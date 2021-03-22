@@ -1,0 +1,266 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp:
+
+File expression_utils.hpp
+=========================
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp``)
+--------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/aggregation.hpp``
+
+- ``cudf/types.hpp``
+
+- ``map``
+
+- ``string``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_tree.hpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalFilter.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_OrderBy.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_skip_data_utils.cpp`
+
+
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a597392d04d4268baed76d008022c5df1`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aa60fd2cf4a5990f75376962058107160`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ab852f06a7c2678e10788ef5dc79d2ab4`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a6fce7f7944d7704c2e129080f0789150`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a4996fc412c775b98b4b6c010259a66b0`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2`
+
+- :ref:`exhale_function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2`
+
+- :ref:`exhale_function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a140d8c66182d9c7237728543252c9e56`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a6b47196f0fdc0710189a2a1c7d760c9e`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a8075c3f3dc0522f9ac4421eaa89348df`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ab28c6a42ddbd289232f39a5111f6ff95`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a2f4aefc724c60dbbbd81620efca2181f`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07`
+
+- :ref:`exhale_function_expression__utils_8hpp_1accf3f8108d4e72e94f48954c22212329`
+
+- :ref:`exhale_function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07`
+
+- :ref:`exhale_function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a6566d1fe108173708939994b4003c605`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a8405138c765230f540e9b7f028148260`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f`
+
+- :ref:`exhale_function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a788be39db69af819766caf71baa763ce`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1`
+
+- :ref:`exhale_function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ab7a098e35e96a261178c98144d8a5bde`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a5124a6fe9cb0860668bf06e913100847`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ae308fa3babdc71d17da0e808476b2076`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a381839be51cf5f83ae60fb8bcb64cf64`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578`
+
+- :ref:`exhale_function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48`
+
+- :ref:`exhale_function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a52ff43ed65bc65da4ae09e202c025be1`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a3831f2bc7b7731472c597369f15fb065`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a311f3203dd6a06578df17bae7acb6d2f`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ae7bfd7ed71a93147fb1241dc88568ed8`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a292a2199e8b6ae46c498ae9e9d9a9f7a`
+
+- :ref:`exhale_function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a35b2fcb233e5c7aead48cfb58a82f911`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a78c873a5466379ee80ae109acc7ff2e3`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a8f36c4b7a7f335b82f6826098a914a7f`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a33d38bd6d82887e47cd9bca39d749485`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1ab3738f218484b788d1acf4b23636ce5a`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1ab860f78b701c5fd157599694b6530543`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a7aef636f64fa52a0386fc0bd1b27e6ee`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a200aa6a816aaffa227fd7b9b9fa84641`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a73532bf8a9c0c1969173fca143353a56`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a996924dbb99f41abd3d3f895ac7f811e`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a197d68efd6c32085fc069db873fabc3e`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a6076e775b97aabc5008e1fc3da0f8f41`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a9fa8f215453ed9721d4e1d3c4c75b11e`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1ab296b774677acda07f10a46f4918262b`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1ae6cd56316e0a5b2405740f8faf99b9d3`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a50855d80ec0e094aba9fe7d27626c12a`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a824bc6a22aa374c7765be01c7b0149d8`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a5aa2cb434408e9a4d81bb3551cb93f12`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1af7d67af38b74cf135a507bd12eea9f8c`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1ad5610f36330da537b25e65b9f97ea112`
+

@@ -1,0 +1,246 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classcomm_1_1node" kind="class" language="C++" prot="public">
+    <compoundname>comm::node</compoundname>
+    <includes refid="node_8hpp" local="no">node.hpp</includes>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classcomm_1_1node_1a119f38ac7c612b00e8defd385634e0bc" prot="protected" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::node::_idx</definition>
+        <argsstring></argsstring>
+        <name>_idx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1node_1ae027c6b4895baf338bc6d7dfd9028564" prot="protected" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string comm::node::_id</definition>
+        <argsstring></argsstring>
+        <name>_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="24" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1node_1a0cb39ff296e4ce1849246e0768dd77c9" prot="protected" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string comm::node::_ip</definition>
+        <argsstring></argsstring>
+        <name>_ip</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1node_1a9bdabd73ddf863beae2342bb95058368" prot="protected" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::node::_port</definition>
+        <argsstring></argsstring>
+        <name>_port</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1node_1abe67a5273290657a1d7f2a3ec47daeb8" prot="protected" static="no" mutable="no">
+        <type>ucp_ep_h</type>
+        <definition>ucp_ep_h comm::node::_ucp_ep</definition>
+        <argsstring></argsstring>
+        <name>_ucp_ep</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="27" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1node_1a7913c12e56fc9cbab2413c533c5615ef" prot="protected" static="no" mutable="no">
+        <type>ucp_worker_h</type>
+        <definition>ucp_worker_h comm::node::_ucp_worker</definition>
+        <argsstring></argsstring>
+        <name>_ucp_worker</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="28" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classcomm_1_1node_1a6d6755478f5717060afe973c51316895" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::node::node</definition>
+        <argsstring>(int idx, std::string id, ucp_ep_h ucp_ep, ucp_worker_h ucp_worker)</argsstring>
+        <name>node</name>
+        <param>
+          <type>int</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>ucp_ep_h</type>
+          <declname>ucp_ep</declname>
+        </param>
+        <param>
+          <type>ucp_worker_h</type>
+          <declname>ucp_worker</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="12" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="5" bodyend="6"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1ac7332802b078f244e450c1176473628a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::node::node</definition>
+        <argsstring>(int idx, std::string id, std::string ip, int port)</argsstring>
+        <name>node</name>
+        <param>
+          <type>int</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>ip</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>port</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="13" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="9" bodyend="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1ac6cb39c359143a1d1ff98b2fd58574b2" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int comm::node::index</definition>
+        <argsstring>() const</argsstring>
+        <name>index</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="15" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="12" bodyend="12"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1ad3d7f028b5365fd2ced908ea36bce12d" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string comm::node::id</definition>
+        <argsstring>() const</argsstring>
+        <name>id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="16" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="14" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1ac3847e90c58b46e286aeb19ae9cde7d2" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>ucp_ep_h</type>
+        <definition>ucp_ep_h comm::node::get_ucp_endpoint</definition>
+        <argsstring>() const</argsstring>
+        <name>get_ucp_endpoint</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="16" bodyend="16"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1ad0d268e67aada4d45befff1f74c4ee00" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>ucp_worker_h</type>
+        <definition>ucp_worker_h comm::node::get_ucp_worker</definition>
+        <argsstring>() const</argsstring>
+        <name>get_ucp_worker</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="19" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="22" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1a3df8fd0f7a8eb7ca0826bde57c343a03" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int comm::node::port</definition>
+        <argsstring>() const</argsstring>
+        <name>port</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="20" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="20" bodyend="20"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1node_1a6e008ccb0b828e33a61f831e85f153a7" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string comm::node::ip</definition>
+        <argsstring>() const</argsstring>
+        <name>ip</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="21" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.cpp" bodystart="18" bodyend="18"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A Node is the representation of a RAL component used in the transport process. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" line="10" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/node.hpp" bodystart="10" bodyend="29"/>
+    <listofallmembers>
+      <member refid="classcomm_1_1node_1ae027c6b4895baf338bc6d7dfd9028564" prot="protected" virt="non-virtual"><scope>comm::node</scope><name>_id</name></member>
+      <member refid="classcomm_1_1node_1a119f38ac7c612b00e8defd385634e0bc" prot="protected" virt="non-virtual"><scope>comm::node</scope><name>_idx</name></member>
+      <member refid="classcomm_1_1node_1a0cb39ff296e4ce1849246e0768dd77c9" prot="protected" virt="non-virtual"><scope>comm::node</scope><name>_ip</name></member>
+      <member refid="classcomm_1_1node_1a9bdabd73ddf863beae2342bb95058368" prot="protected" virt="non-virtual"><scope>comm::node</scope><name>_port</name></member>
+      <member refid="classcomm_1_1node_1abe67a5273290657a1d7f2a3ec47daeb8" prot="protected" virt="non-virtual"><scope>comm::node</scope><name>_ucp_ep</name></member>
+      <member refid="classcomm_1_1node_1a7913c12e56fc9cbab2413c533c5615ef" prot="protected" virt="non-virtual"><scope>comm::node</scope><name>_ucp_worker</name></member>
+      <member refid="classcomm_1_1node_1ac3847e90c58b46e286aeb19ae9cde7d2" prot="public" virt="non-virtual"><scope>comm::node</scope><name>get_ucp_endpoint</name></member>
+      <member refid="classcomm_1_1node_1ad0d268e67aada4d45befff1f74c4ee00" prot="public" virt="non-virtual"><scope>comm::node</scope><name>get_ucp_worker</name></member>
+      <member refid="classcomm_1_1node_1ad3d7f028b5365fd2ced908ea36bce12d" prot="public" virt="non-virtual"><scope>comm::node</scope><name>id</name></member>
+      <member refid="classcomm_1_1node_1ac6cb39c359143a1d1ff98b2fd58574b2" prot="public" virt="non-virtual"><scope>comm::node</scope><name>index</name></member>
+      <member refid="classcomm_1_1node_1a6e008ccb0b828e33a61f831e85f153a7" prot="public" virt="non-virtual"><scope>comm::node</scope><name>ip</name></member>
+      <member refid="classcomm_1_1node_1a6d6755478f5717060afe973c51316895" prot="public" virt="non-virtual"><scope>comm::node</scope><name>node</name></member>
+      <member refid="classcomm_1_1node_1ac7332802b078f244e450c1176473628a" prot="public" virt="non-virtual"><scope>comm::node</scope><name>node</name></member>
+      <member refid="classcomm_1_1node_1a3df8fd0f7a8eb7ca0826bde57c343a03" prot="public" virt="non-virtual"><scope>comm::node</scope><name>port</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

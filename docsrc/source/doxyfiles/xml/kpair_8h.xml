@@ -1,0 +1,855 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="kpair_8h" kind="file" language="C++">
+    <compoundname>kpair.h</compoundname>
+    <includes refid="port_8h" local="yes">port.h</includes>
+    <includes refid="kernel_8h" local="yes">kernel.h</includes>
+    <includedby refid="graph_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h</includedby>
+    <incdepgraph>
+      <node id="5025">
+        <label>atomic</label>
+      </node>
+      <node id="5064">
+        <label>config/GPUManager.cuh</label>
+      </node>
+      <node id="5059">
+        <label>rmm/mr/device/managed_memory_resource.hpp</label>
+      </node>
+      <node id="5098">
+        <label>functional</label>
+      </node>
+      <node id="5101">
+        <label>queue</label>
+      </node>
+      <node id="5024">
+        <label>execution_graph/logic_controllers/CacheMachine.h</label>
+        <link refid="CacheMachine_8h_source"/>
+        <childnode refid="5025" relation="include">
+        </childnode>
+        <childnode refid="5026" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5027" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+        <childnode refid="5030" relation="include">
+        </childnode>
+        <childnode refid="5031" relation="include">
+        </childnode>
+        <childnode refid="5032" relation="include">
+        </childnode>
+        <childnode refid="5036" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+        <childnode refid="5049" relation="include">
+        </childnode>
+        <childnode refid="5051" relation="include">
+        </childnode>
+        <childnode refid="5067" relation="include">
+        </childnode>
+        <childnode refid="5035" relation="include">
+        </childnode>
+        <childnode refid="5068" relation="include">
+        </childnode>
+        <childnode refid="5078" relation="include">
+        </childnode>
+        <childnode refid="5081" relation="include">
+        </childnode>
+        <childnode refid="5090" relation="include">
+        </childnode>
+        <childnode refid="5091" relation="include">
+        </childnode>
+      </node>
+      <node id="5038">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="5039" relation="include">
+        </childnode>
+        <childnode refid="5040" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5041" relation="include">
+        </childnode>
+        <childnode refid="5043" relation="include">
+        </childnode>
+      </node>
+      <node id="5076">
+        <label>cudf/scalar/scalar_device_view.cuh</label>
+      </node>
+      <node id="5081">
+        <label>communication/messages/GPUComponentMessage.h</label>
+        <link refid="GPUComponentMessage_8h_source"/>
+        <childnode refid="5030" relation="include">
+        </childnode>
+        <childnode refid="5069" relation="include">
+        </childnode>
+        <childnode refid="5070" relation="include">
+        </childnode>
+        <childnode refid="5071" relation="include">
+        </childnode>
+        <childnode refid="5044" relation="include">
+        </childnode>
+        <childnode refid="5050" relation="include">
+        </childnode>
+        <childnode refid="5082" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5083" relation="include">
+        </childnode>
+        <childnode refid="5084" relation="include">
+        </childnode>
+        <childnode refid="5085" relation="include">
+        </childnode>
+        <childnode refid="5086" relation="include">
+        </childnode>
+        <childnode refid="5042" relation="include">
+        </childnode>
+        <childnode refid="5087" relation="include">
+        </childnode>
+        <childnode refid="5088" relation="include">
+        </childnode>
+        <childnode refid="5031" relation="include">
+        </childnode>
+        <childnode refid="5089" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+        <childnode refid="5043" relation="include">
+        </childnode>
+      </node>
+      <node id="5065">
+        <label>sys/sysinfo.h</label>
+      </node>
+      <node id="5074">
+        <label>cudf/scalar/scalar_factories.hpp</label>
+      </node>
+      <node id="5093">
+        <label>kernel_type.h</label>
+        <link refid="kernel__type_8h_source"/>
+        <childnode refid="5023" relation="include">
+        </childnode>
+      </node>
+      <node id="5045">
+        <label>cstdint</label>
+      </node>
+      <node id="5057">
+        <label>rmm/mr/device/owning_wrapper.hpp</label>
+      </node>
+      <node id="5062">
+        <label>rmm/mr/device/logging_resource_adaptor.hpp</label>
+      </node>
+      <node id="5041">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="5042" relation="include">
+        </childnode>
+        <childnode refid="5039" relation="include">
+        </childnode>
+        <childnode refid="5040" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+      </node>
+      <node id="5050">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+      </node>
+      <node id="5085">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="5032">
+        <label>error.hpp</label>
+        <link refid="error_8hpp_source"/>
+        <childnode refid="5033" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5034" relation="include">
+        </childnode>
+        <childnode refid="5035" relation="include">
+        </childnode>
+      </node>
+      <node id="5052">
+        <label>cassert</label>
+      </node>
+      <node id="5058">
+        <label>rmm/mr/device/cuda_memory_resource.hpp</label>
+      </node>
+      <node id="5061">
+        <label>rmm/mr/device/arena_memory_resource.hpp</label>
+      </node>
+      <node id="5083">
+        <label>numeric</label>
+      </node>
+      <node id="5055">
+        <label>rmm/cuda_stream_view.hpp</label>
+      </node>
+      <node id="5023">
+        <label>string</label>
+      </node>
+      <node id="5029">
+        <label>map</label>
+      </node>
+      <node id="5087">
+        <label>cudf/null_mask.hpp</label>
+      </node>
+      <node id="5019">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h</label>
+        <link refid="kpair_8h"/>
+        <childnode refid="5020" relation="include">
+        </childnode>
+        <childnode refid="5092" relation="include">
+        </childnode>
+      </node>
+      <node id="5070">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="5043">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5031" relation="include">
+        </childnode>
+        <childnode refid="5044" relation="include">
+        </childnode>
+        <childnode refid="5046" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+      </node>
+      <node id="5035">
+        <label>exception</label>
+      </node>
+      <node id="5091">
+        <label>WaitingQueue.h</label>
+        <link refid="WaitingQueue_8h_source"/>
+        <childnode refid="5025" relation="include">
+        </childnode>
+        <childnode refid="5026" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5027" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+        <childnode refid="5030" relation="include">
+        </childnode>
+        <childnode refid="5035" relation="include">
+        </childnode>
+      </node>
+      <node id="5049">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5050" relation="include">
+        </childnode>
+      </node>
+      <node id="5090">
+        <label>CacheData.h</label>
+        <link refid="CacheData_8h_source"/>
+        <childnode refid="5025" relation="include">
+        </childnode>
+        <childnode refid="5026" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5027" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+        <childnode refid="5030" relation="include">
+        </childnode>
+        <childnode refid="5031" relation="include">
+        </childnode>
+        <childnode refid="5032" relation="include">
+        </childnode>
+        <childnode refid="5036" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+        <childnode refid="5049" relation="include">
+        </childnode>
+        <childnode refid="5051" relation="include">
+        </childnode>
+        <childnode refid="5067" relation="include">
+        </childnode>
+        <childnode refid="5035" relation="include">
+        </childnode>
+        <childnode refid="5068" relation="include">
+        </childnode>
+        <childnode refid="5078" relation="include">
+        </childnode>
+        <childnode refid="5081" relation="include">
+        </childnode>
+      </node>
+      <node id="5068">
+        <label>io/data_provider/DataProvider.h</label>
+        <link refid="DataProvider_8h_source"/>
+        <childnode refid="5030" relation="include">
+        </childnode>
+        <childnode refid="5069" relation="include">
+        </childnode>
+        <childnode refid="5070" relation="include">
+        </childnode>
+        <childnode refid="5071" relation="include">
+        </childnode>
+        <childnode refid="5072" relation="include">
+        </childnode>
+        <childnode refid="5073" relation="include">
+        </childnode>
+        <childnode refid="5074" relation="include">
+        </childnode>
+        <childnode refid="5031" relation="include">
+        </childnode>
+        <childnode refid="5075" relation="include">
+        </childnode>
+        <childnode refid="5076" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5077" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+      </node>
+      <node id="5089">
+        <label>cudf/strings/strings_column_view.hpp</label>
+      </node>
+      <node id="5030">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="5040">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="5097">
+        <label>utilities/ctpl_stl.h</label>
+        <link refid="ctpl__stl_8h_source"/>
+        <childnode refid="5098" relation="include">
+        </childnode>
+        <childnode refid="5099" relation="include">
+        </childnode>
+        <childnode refid="5025" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5035" relation="include">
+        </childnode>
+        <childnode refid="5100" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5101" relation="include">
+        </childnode>
+      </node>
+      <node id="5079">
+        <label>../Schema.h</label>
+        <link refid="Schema_8h_source"/>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5031" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+      </node>
+      <node id="5072">
+        <label>arrow/io/interfaces.h</label>
+      </node>
+      <node id="5027">
+        <label>condition_variable</label>
+      </node>
+      <node id="5096">
+        <label>ExceptionHandling/BlazingThread.h</label>
+      </node>
+      <node id="5082">
+        <label>communication/messages/MessageUtil.cuh</label>
+      </node>
+      <node id="5066">
+        <label>sys/statvfs.h</label>
+      </node>
+      <node id="5075">
+        <label>cudf/utilities/type_dispatcher.hpp</label>
+      </node>
+      <node id="5084">
+        <label>tuple</label>
+      </node>
+      <node id="5100">
+        <label>future</label>
+      </node>
+      <node id="5069">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="5092">
+        <label>kernel.h</label>
+        <link refid="kernel_8h_source"/>
+        <childnode refid="5093" relation="include">
+        </childnode>
+        <childnode refid="5020" relation="include">
+        </childnode>
+        <childnode refid="5094" relation="include">
+        </childnode>
+      </node>
+      <node id="5047">
+        <label>stack</label>
+      </node>
+      <node id="5021">
+        <label>vector</label>
+      </node>
+      <node id="5044">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="5045" relation="include">
+        </childnode>
+      </node>
+      <node id="5088">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="5086">
+        <label>cudf/column/column.hpp</label>
+      </node>
+      <node id="5048">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="5071">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="5046">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5047" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5048" relation="include">
+        </childnode>
+      </node>
+      <node id="5078">
+        <label>io/data_parser/DataParser.h</label>
+        <link refid="DataParser_8h_source"/>
+        <childnode refid="5079" relation="include">
+        </childnode>
+        <childnode refid="5080" relation="include">
+        </childnode>
+        <childnode refid="5068" relation="include">
+        </childnode>
+        <childnode refid="5038" relation="include">
+        </childnode>
+        <childnode refid="5072" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5021" relation="include">
+        </childnode>
+      </node>
+      <node id="5031">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="5095">
+        <label>bmr/MemoryMonitor.h</label>
+        <link refid="MemoryMonitor_8h_source"/>
+        <childnode refid="5027" relation="include">
+        </childnode>
+        <childnode refid="5028" relation="include">
+        </childnode>
+        <childnode refid="5037" relation="include">
+        </childnode>
+        <childnode refid="5096" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+      </node>
+      <node id="5063">
+        <label>rmm/mr/device/per_device_resource.hpp</label>
+      </node>
+      <node id="5080">
+        <label>../DataType.h</label>
+        <link refid="DataType_8h_source"/>
+      </node>
+      <node id="5067">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="5048" relation="include">
+        </childnode>
+        <childnode refid="5050" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5029" relation="include">
+        </childnode>
+      </node>
+      <node id="5094">
+        <label>graph.h</label>
+        <link refid="graph_8h_source"/>
+        <childnode refid="5092" relation="include">
+        </childnode>
+        <childnode refid="5019" relation="include">
+        </childnode>
+        <childnode refid="5024" relation="include">
+        </childnode>
+        <childnode refid="5095" relation="include">
+        </childnode>
+        <childnode refid="5097" relation="include">
+        </childnode>
+      </node>
+      <node id="5020">
+        <label>port.h</label>
+        <link refid="port_8h_source"/>
+        <childnode refid="5021" relation="include">
+        </childnode>
+        <childnode refid="5022" relation="include">
+        </childnode>
+        <childnode refid="5023" relation="include">
+        </childnode>
+        <childnode refid="5024" relation="include">
+        </childnode>
+      </node>
+      <node id="5033">
+        <label>iostream</label>
+      </node>
+      <node id="5042">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="5026">
+        <label>deque</label>
+      </node>
+      <node id="5028">
+        <label>mutex</label>
+      </node>
+      <node id="5054">
+        <label>cuda_runtime_api.h</label>
+      </node>
+      <node id="5037">
+        <label>chrono</label>
+      </node>
+      <node id="5077">
+        <label>blazingdb/io/FileSystem/Uri.h</label>
+      </node>
+      <node id="5036">
+        <label>CodeTimer.h</label>
+        <link refid="CodeTimer_8h_source"/>
+        <childnode refid="5037" relation="include">
+        </childnode>
+      </node>
+      <node id="5056">
+        <label>rmm/mr/device/device_memory_resource.hpp</label>
+      </node>
+      <node id="5099">
+        <label>thread</label>
+      </node>
+      <node id="5051">
+        <label>bmr/BlazingMemoryResource.h</label>
+        <link refid="BlazingMemoryResource_8h_source"/>
+        <childnode refid="5052" relation="include">
+        </childnode>
+        <childnode refid="5025" relation="include">
+        </childnode>
+        <childnode refid="5053" relation="include">
+        </childnode>
+        <childnode refid="5054" relation="include">
+        </childnode>
+        <childnode refid="5055" relation="include">
+        </childnode>
+        <childnode refid="5056" relation="include">
+        </childnode>
+        <childnode refid="5057" relation="include">
+        </childnode>
+        <childnode refid="5058" relation="include">
+        </childnode>
+        <childnode refid="5059" relation="include">
+        </childnode>
+        <childnode refid="5060" relation="include">
+        </childnode>
+        <childnode refid="5061" relation="include">
+        </childnode>
+        <childnode refid="5062" relation="include">
+        </childnode>
+        <childnode refid="5063" relation="include">
+        </childnode>
+        <childnode refid="5064" relation="include">
+        </childnode>
+        <childnode refid="5065" relation="include">
+        </childnode>
+        <childnode refid="5066" relation="include">
+        </childnode>
+      </node>
+      <node id="5060">
+        <label>rmm/mr/device/pool_memory_resource.hpp</label>
+      </node>
+      <node id="5053">
+        <label>set</label>
+      </node>
+      <node id="5039">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="5034">
+        <label>cudf/utilities/error.hpp</label>
+      </node>
+      <node id="5073">
+        <label>cudf/scalar/scalar.hpp</label>
+      </node>
+      <node id="5022">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="5116">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp</label>
+        <link refid="messageReceiver_8hpp_source"/>
+        <childnode refid="5117" relation="include">
+        </childnode>
+        <childnode refid="5115" relation="include">
+        </childnode>
+        <childnode refid="5118" relation="include">
+        </childnode>
+      </node>
+      <node id="5112">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h</label>
+        <link refid="BatchWindowFunctionProcessing_8h_source"/>
+        <childnode refid="5108" relation="include">
+        </childnode>
+      </node>
+      <node id="5106">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h</label>
+        <link refid="BatchProcessing_8h_source"/>
+        <childnode refid="5107" relation="include">
+        </childnode>
+        <childnode refid="5109" relation="include">
+        </childnode>
+        <childnode refid="5110" relation="include">
+        </childnode>
+        <childnode refid="5111" relation="include">
+        </childnode>
+        <childnode refid="5112" relation="include">
+        </childnode>
+      </node>
+      <node id="5107">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchOrderByProcessing.h</label>
+        <link refid="BatchOrderByProcessing_8h_source"/>
+        <childnode refid="5108" relation="include">
+        </childnode>
+      </node>
+      <node id="5102">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h</label>
+        <link refid="kpair_8h"/>
+        <childnode refid="5103" relation="include">
+        </childnode>
+      </node>
+      <node id="5117">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp</label>
+        <link refid="messageListener_8hpp_source"/>
+      </node>
+      <node id="5118">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h</label>
+        <link refid="ucx__init_8h_source"/>
+      </node>
+      <node id="5105">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h</label>
+        <link refid="kernel_8h_source"/>
+        <childnode refid="5103" relation="include">
+        </childnode>
+        <childnode refid="5102" relation="include">
+        </childnode>
+        <childnode refid="5106" relation="include">
+        </childnode>
+        <childnode refid="5113" relation="include">
+        </childnode>
+        <childnode refid="5114" relation="include">
+        </childnode>
+      </node>
+      <node id="5108">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</label>
+        <link refid="PhysicalPlanGenerator_8h_source"/>
+      </node>
+      <node id="5115">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp</label>
+        <link refid="protocols_8hpp_source"/>
+        <childnode refid="5116" relation="include">
+        </childnode>
+        <childnode refid="5119" relation="include">
+        </childnode>
+      </node>
+      <node id="5103">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h</label>
+        <link refid="graph_8h_source"/>
+        <childnode refid="5104" relation="include">
+        </childnode>
+        <childnode refid="5105" relation="include">
+        </childnode>
+        <childnode refid="5106" relation="include">
+        </childnode>
+        <childnode refid="5115" relation="include">
+        </childnode>
+      </node>
+      <node id="5119">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageSender.hpp</label>
+        <link refid="messageSender_8hpp_source"/>
+      </node>
+      <node id="5114">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h</label>
+        <link refid="executor_8h_source"/>
+      </node>
+      <node id="5104">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/CalciteInterpreter.h</label>
+        <link refid="CalciteInterpreter_8h_source"/>
+      </node>
+      <node id="5113">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/distributing_kernel.h</label>
+        <link refid="distributing__kernel_8h_source"/>
+        <childnode refid="5107" relation="include">
+        </childnode>
+        <childnode refid="5109" relation="include">
+        </childnode>
+        <childnode refid="5110" relation="include">
+        </childnode>
+      </node>
+      <node id="5109">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h</label>
+        <link refid="BatchAggregationProcessing_8h_source"/>
+        <childnode refid="5108" relation="include">
+        </childnode>
+      </node>
+      <node id="5111">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchUnionProcessing.h</label>
+        <link refid="BatchUnionProcessing_8h_source"/>
+        <childnode refid="5108" relation="include">
+        </childnode>
+      </node>
+      <node id="5110">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h</label>
+        <link refid="BatchJoinProcessing_8h_source"/>
+        <childnode refid="5108" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structral_1_1cache_1_1cache__settings" prot="public">ral::cache::cache_settings</innerclass>
+    <innerclass refid="classral_1_1cache_1_1kpair" prot="public">ral::cache::kpair</innerclass>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1cache">ral::cache</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;port.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;kernel.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">cache<sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="keyword">enum<sp/>class</highlight><highlight class="normal"><sp/>CacheType<sp/>{SIMPLE,<sp/>CONCATENATING,<sp/>FOR_EACH<sp/>};</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18" refid="structral_1_1cache_1_1cache__settings" refkind="compound"><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref><sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>CacheType<sp/>type<sp/>=<sp/>CacheType::SIMPLE;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>num_partitions<sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;Context&gt;<sp/>context;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>concat_cache_num_bytes<sp/>=<sp/>400000000;</highlight></codeline>
+<codeline lineno="23" refid="structral_1_1cache_1_1cache__settings_1acac908087611fef1560d36be68f1e418" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>concat_all<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;<sp/></highlight></codeline>
+<codeline lineno="24"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/>kernel_pair<sp/>=<sp/>std::pair&lt;kernel<sp/>*,<sp/>std::string&gt;;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31" refid="classral_1_1cache_1_1kpair" refkind="compound"><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref><sp/>{</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref>(std::shared_ptr&lt;kernel&gt;<sp/>a,<sp/>std::shared_ptr&lt;kernel&gt;<sp/>b,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref><sp/>&amp;<sp/>config<sp/>=<sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref>{})<sp/>:<sp/>cache_machine_config(config)<sp/>{</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>src<sp/>=<sp/>a;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dst<sp/>=<sp/>b;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref>(std::shared_ptr&lt;kernel&gt;<sp/>a,<sp/>std::shared_ptr&lt;kernel&gt;<sp/>b,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>port_b,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref><sp/>&amp;<sp/>config<sp/>=<sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref>{})<sp/>:<sp/>cache_machine_config(config)<sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>src<sp/>=<sp/>a;</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dst<sp/>=<sp/>b;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dst_port_name<sp/>=<sp/>port_b;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref>(std::shared_ptr&lt;kernel&gt;<sp/>a,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>port_a,<sp/>std::shared_ptr&lt;kernel&gt;<sp/>b,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>port_b,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref><sp/>&amp;<sp/>config<sp/>=<sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref>{})</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>:<sp/>cache_machine_config(config)<sp/>{</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>src<sp/>=<sp/>a;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>src_port_name<sp/>=<sp/>port_a;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dst<sp/>=<sp/>b;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dst_port_name<sp/>=<sp/>port_b;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref><sp/>&amp;)<sp/>=<sp/></highlight><highlight class="keywordflow">default</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref>(<ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref><sp/>&amp;&amp;)<sp/>=<sp/></highlight><highlight class="keywordflow">default</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>has_custom_source()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>not<sp/>src_port_name.empty();<sp/>}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>has_custom_target()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>not<sp/>dst_port_name.empty();<sp/>}</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;kernel&gt;<sp/>src;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;kernel&gt;<sp/>dst;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref><sp/>cache_machine_config;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>src_port_name;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>dst_port_name;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>cache</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h"/>
+  </compounddef>
+</doxygen>

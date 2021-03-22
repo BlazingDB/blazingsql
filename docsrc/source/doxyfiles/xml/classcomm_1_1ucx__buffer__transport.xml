@@ -1,0 +1,275 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classcomm_1_1ucx__buffer__transport" kind="class" language="C++" prot="public">
+    <compoundname>comm::ucx_buffer_transport</compoundname>
+    <basecompoundref refid="classcomm_1_1buffer__transport" prot="public" virt="non-virtual">comm::buffer_transport</basecompoundref>
+    <includes refid="protocols_8hpp" local="no">protocols.hpp</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classcomm_1_1ucx__buffer__transport_1a71cf4043f7b9256c84fa74994e04b6b6" prot="private" static="no" mutable="no">
+        <type>ucp_worker_h</type>
+        <definition>ucp_worker_h comm::ucx_buffer_transport::origin_node</definition>
+        <argsstring></argsstring>
+        <name>origin_node</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="112" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1ucx__buffer__transport_1adc371962af14bd3cfe9c83d899b8bd2f" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::ucx_buffer_transport::ral_id</definition>
+        <argsstring></argsstring>
+        <name>ral_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="113" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1ucx__buffer__transport_1a7bd5f61cd299bf9946b840f134bd7ec0" prot="private" static="no" mutable="no">
+        <type>ucp_tag_t</type>
+        <definition>ucp_tag_t comm::ucx_buffer_transport::tag</definition>
+        <argsstring></argsstring>
+        <name>tag</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The first 6 bytes are the actual tag the last two indicate which frame this is. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="122" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1ucx__buffer__transport_1a8b852423753b08e61ae9a0055c4daa10" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::ucx_buffer_transport::message_id</definition>
+        <argsstring></argsstring>
+        <name>message_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="125" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="125" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1ucx__buffer__transport_1ae99f444efda958a972f5d5fbbf8824ff" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t comm::ucx_buffer_transport::_request_size</definition>
+        <argsstring></argsstring>
+        <name>_request_size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="127" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="127" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classcomm_1_1ucx__buffer__transport_1a7892303af5ac173623795aeeeccc9f3b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::ucx_buffer_transport::ucx_buffer_transport</definition>
+        <argsstring>(size_t request_size, ucp_worker_h origin_node, std::vector&lt; node &gt; destinations, ral::cache::MetadataDictionary metadata, std::vector&lt; size_t &gt; buffer_sizes, std::vector&lt; blazingdb::transport::ColumnTransport &gt; column_transports, std::vector&lt; ral::memory::blazing_chunked_column_info &gt; chunked_column_infos, int ral_id, bool require_acknowledge)</argsstring>
+        <name>ucx_buffer_transport</name>
+        <param>
+          <type>size_t</type>
+          <declname>request_size</declname>
+        </param>
+        <param>
+          <type>ucp_worker_h</type>
+          <declname>origin_node</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; <ref refid="classcomm_1_1node" kindref="compound">node</ref> &gt;</type>
+          <declname>destinations</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">ral::cache::MetadataDictionary</ref></type>
+          <declname>metadata</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; size_t &gt;</type>
+          <declname>buffer_sizes</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">blazingdb::transport::ColumnTransport</ref> &gt;</type>
+          <declname>column_transports</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__chunked__column__info" kindref="compound">ral::memory::blazing_chunked_column_info</ref> &gt;</type>
+          <declname>chunked_column_infos</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ral_id</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>require_acknowledge</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="93" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="246" bodyend="259"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1ucx__buffer__transport_1a0a2efee2657fab0ab7c59bc33527c1c0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::ucx_buffer_transport::~ucx_buffer_transport</definition>
+        <argsstring>()</argsstring>
+        <name>~ucx_buffer_transport</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="102" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="261" bodyend="262"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1ucx__buffer__transport_1aa90d59aa020a7575f3af559a5d431fbf" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void comm::ucx_buffer_transport::send_begin_transmission</definition>
+        <argsstring>() override</argsstring>
+        <name>send_begin_transmission</name>
+        <reimplements refid="classcomm_1_1buffer__transport_1a0ea6dd0f6412b2422cc47706ad34dad9">send_begin_transmission</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="104" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="273" bodyend="303"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classcomm_1_1ucx__buffer__transport_1aae9fff646e4addce7092d5f043513a44" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void comm::ucx_buffer_transport::send_impl</definition>
+        <argsstring>(const char *buffer, size_t buffer_size) override</argsstring>
+        <name>send_impl</name>
+        <reimplements refid="classcomm_1_1buffer__transport_1a7c4d1651a8af5965619c9e37b225859d">send_impl</reimplements>
+        <param>
+          <type>const char *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>buffer_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="107" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="305" bodyend="332"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1ucx__buffer__transport_1a2940abea65cd4a031ef92350255c6c53" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void comm::ucx_buffer_transport::receive_acknowledge</definition>
+        <argsstring>()</argsstring>
+        <name>receive_acknowledge</name>
+        <reimplements refid="classcomm_1_1buffer__transport_1a6aa1fb3a4543ace7e5c06914252a02e4">receive_acknowledge</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="108" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="334" bodyend="375"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="classcomm_1_1ucx__buffer__transport_1a65ec16e1ac0fbfc0c1b8c15b3266d82f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ucp_tag_t</type>
+        <definition>ucp_tag_t comm::ucx_buffer_transport::generate_message_tag</definition>
+        <argsstring>()</argsstring>
+        <name>generate_message_tag</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Generates message tag. Generates a tag for the message where the first 4 bytes are our message id. The next 2 bytes are our worker number. The final 2 bytes are 00 and used for sending frame number <simplesect kind="return"><para>a ucp_tag_t where the first 6 bytes are unique to this worker </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="121" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="266" bodyend="271"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A class that can send a buffer via ucx protocol </para>    </detaileddescription>
+    <inheritancegraph>
+      <node id="428">
+        <label>comm::buffer_transport</label>
+        <link refid="classcomm_1_1buffer__transport"/>
+      </node>
+      <node id="427">
+        <label>comm::ucx_buffer_transport</label>
+        <link refid="classcomm_1_1ucx__buffer__transport"/>
+        <childnode refid="428" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="430">
+        <label>comm::buffer_transport</label>
+        <link refid="classcomm_1_1buffer__transport"/>
+        <childnode refid="431" relation="usage">
+          <edgelabel>metadata</edgelabel>
+        </childnode>
+      </node>
+      <node id="431">
+        <label>ral::cache::MetadataDictionary</label>
+        <link refid="classral_1_1cache_1_1MetadataDictionary"/>
+      </node>
+      <node id="429">
+        <label>comm::ucx_buffer_transport</label>
+        <link refid="classcomm_1_1ucx__buffer__transport"/>
+        <childnode refid="430" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="91" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="91" bodyend="128"/>
+    <listofallmembers>
+      <member refid="classcomm_1_1ucx__buffer__transport_1ae99f444efda958a972f5d5fbbf8824ff" prot="private" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>_request_size</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a3bf404422bf786f01a45066f48a751c6" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>buffer_sent</name></member>
+      <member refid="classcomm_1_1buffer__transport_1ae01314b9b03cd1278a20996dafc4dcb0" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>buffer_sizes</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a012bb1c7d1f7a2e9512815cafd95ef80" prot="public" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>buffer_transport</name></member>
+      <member refid="classcomm_1_1buffer__transport_1aa02f7f37ea5c8c4343e3289d6b9e132c" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>chunked_column_infos</name></member>
+      <member refid="classcomm_1_1buffer__transport_1ad5104419e3ecfca874534e12804b48fc" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>column_transports</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a57085a949db7cafedccdd6ce8db29b9e" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>completion_condition_variable</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a625bc455a5fc03c79cb4501c6b993aa8" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>destinations</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a65ec16e1ac0fbfc0c1b8c15b3266d82f" prot="private" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>generate_message_tag</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a81080122f0355dae745d7bf6453152a8" prot="public" virt="virtual"><scope>comm::ucx_buffer_transport</scope><name>increment_begin_transmission</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a3b921d1808fb74d95f83146de5269cb6" prot="public" virt="virtual"><scope>comm::ucx_buffer_transport</scope><name>increment_frame_transmission</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a8b852423753b08e61ae9a0055c4daa10" prot="private" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>message_id</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a0b3c07ac433f3c7b114e677f399e3210" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>metadata</name></member>
+      <member refid="classcomm_1_1buffer__transport_1aaef40e35a9a214ecb83d44493937449e" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>mutex</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a71cf4043f7b9256c84fa74994e04b6b6" prot="private" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>origin_node</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1adc371962af14bd3cfe9c83d899b8bd2f" prot="private" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>ral_id</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a2940abea65cd4a031ef92350255c6c53" prot="protected" virt="virtual"><scope>comm::ucx_buffer_transport</scope><name>receive_acknowledge</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a089d28bc6f8f3eac8a89705bd7391a30" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>require_acknowledge</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a0a7ae6691d0a182c4567f3001f96aefe" prot="public" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>send</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1aa90d59aa020a7575f3af559a5d431fbf" prot="public" virt="virtual"><scope>comm::ucx_buffer_transport</scope><name>send_begin_transmission</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1aae9fff646e4addce7092d5f043513a44" prot="protected" virt="virtual"><scope>comm::ucx_buffer_transport</scope><name>send_impl</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a7bd5f61cd299bf9946b840f134bd7ec0" prot="private" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>tag</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a22e84756f6b66324df67bdd556600c19" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>transmitted_acknowledgements</name></member>
+      <member refid="classcomm_1_1buffer__transport_1af9c04a8af736e05980d62b7448142b30" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>transmitted_begin_frames</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a1c8254316bfcb05204a196bece986f68" prot="protected" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>transmitted_frames</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a7892303af5ac173623795aeeeccc9f3b" prot="public" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>ucx_buffer_transport</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a6388e67a79f9a5c2e80ed45b23e6327c" prot="public" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>wait_for_begin_transmission</name></member>
+      <member refid="classcomm_1_1buffer__transport_1aef710177ed4367311b1d8e70acead7c2" prot="public" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>wait_until_complete</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a26262247b49fe649d2b1c62e4b7dfb90" prot="public" virt="virtual"><scope>comm::ucx_buffer_transport</scope><name>~buffer_transport</name></member>
+      <member refid="classcomm_1_1ucx__buffer__transport_1a0a2efee2657fab0ab7c59bc33527c1c0" prot="public" virt="non-virtual"><scope>comm::ucx_buffer_transport</scope><name>~ucx_buffer_transport</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,10 @@
+<map id="ral::batch::LimitKernel::run" name="ral::batch::LimitKernel::run">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html#aac90d80ed296715da2a7736691847270" title="Returns the input cache. " alt="" coords="491,5,613,47"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="700,64,823,105"/>
+<area shape="rect" id="node4" href="$classral_1_1batch_1_1BatchSequenceBypass.html#a623422aa9164a34bce024e92f4f26679" title="ral::batch::BatchSequence\lBypass::wait_for_next" alt="" coords="228,123,404,164"/>
+<area shape="rect" id="node5" href="$classral_1_1batch_1_1BatchSequenceBypass.html#a5d55f785961b21c82578223ab5a0a217" title="ral::batch::BatchSequence\lBypass::next" alt="" coords="228,188,404,229"/>
+<area shape="rect" id="node6" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="452,237,652,279"/>
+<area shape="rect" id="node7" href="$classral_1_1cache_1_1distributing__kernel.html#aa2c88f7cefd4bb5eee4058c7059c277e" title="Sends a table with their corresponding metadata. " alt="" coords="236,305,396,347"/>
+<area shape="rect" id="node9" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="491,368,613,409"/>
+<area shape="rect" id="node8" href="$classral_1_1cache_1_1MetadataDictionary.html#abdc2863d96dc839565f2078471f4c9f7" title="ral::cache::MetadataDictionary\l::get_values" alt="" coords="452,303,652,344"/>
+</map>

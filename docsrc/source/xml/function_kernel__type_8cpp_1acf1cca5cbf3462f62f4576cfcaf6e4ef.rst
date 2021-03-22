@@ -1,0 +1,13 @@
+.. _exhale_function_kernel__type_8cpp_1acf1cca5cbf3462f62f4576cfcaf6e4ef:
+
+Function ral::cache::get_kernel_type_name
+=========================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_kernel_type.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::cache::get_kernel_type_name(kernel_type)

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_23bd0f278815f8e6b8b25c569893cfd7" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/messages</compoundname>
+    <innerfile refid="ComponentMessages_8h">ComponentMessages.h</innerfile>
+    <innerfile refid="GPUComponentMessage_8cpp">GPUComponentMessage.cpp</innerfile>
+    <innerfile refid="GPUComponentMessage_8h">GPUComponentMessage.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/messages/"/>
+  </compounddef>
+</doxygen>

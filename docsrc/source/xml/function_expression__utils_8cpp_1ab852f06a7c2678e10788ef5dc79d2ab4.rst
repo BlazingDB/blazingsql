@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1ab852f06a7c2678e10788ef5dc79d2ab4:
+
+Function get_output_type(operator_type, cudf::type_id)
+======================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_output_type(operator_type, cudf::type_id)

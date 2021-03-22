@@ -1,0 +1,700 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="OrderBy_8cpp" kind="file" language="C++">
+    <compoundname>OrderBy.cpp</compoundname>
+    <includes refid="OrderBy_8h" local="yes">OrderBy.h</includes>
+    <includes refid="CalciteExpressionParsing_8h" local="yes">CalciteExpressionParsing.h</includes>
+    <includes refid="CodeTimer_8h" local="yes">CodeTimer.h</includes>
+    <includes refid="CommunicationData_8h" local="yes">communication/CommunicationData.h</includes>
+    <includes refid="primitives_8h" local="yes">distribution/primitives.h</includes>
+    <includes local="no">blazingdb/io/Library/Logging/Logger.h</includes>
+    <includes local="no">cudf/copying.hpp</includes>
+    <includes local="no">cudf/sorting.hpp</includes>
+    <includes local="no">cudf/search.hpp</includes>
+    <includes local="no">random</includes>
+    <includes refid="expression__utils_8hpp" local="yes">parser/expression_utils.hpp</includes>
+    <includes refid="CommonOperations_8h" local="yes">utilities/CommonOperations.h</includes>
+    <includes local="no">blazingdb/io/Util/StringUtil.h</includes>
+    <incdepgraph>
+      <node id="6580">
+        <label>blazingdb/io/Library/Logging/Logger.h</label>
+      </node>
+      <node id="6582">
+        <label>cudf/sorting.hpp</label>
+      </node>
+      <node id="6562">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="6563" relation="include">
+        </childnode>
+        <childnode refid="6564" relation="include">
+        </childnode>
+        <childnode refid="6559" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6565" relation="include">
+        </childnode>
+        <childnode refid="6567" relation="include">
+        </childnode>
+      </node>
+      <node id="6549">
+        <label>OrderBy.h</label>
+        <link refid="OrderBy_8h_source"/>
+        <childnode refid="6550" relation="include">
+        </childnode>
+        <childnode refid="6551" relation="include">
+        </childnode>
+        <childnode refid="6552" relation="include">
+        </childnode>
+        <childnode refid="6553" relation="include">
+        </childnode>
+        <childnode refid="6554" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6561" relation="include">
+        </childnode>
+        <childnode refid="6562" relation="include">
+        </childnode>
+      </node>
+      <node id="6570">
+        <label>cstdint</label>
+      </node>
+      <node id="6565">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="6566" relation="include">
+        </childnode>
+        <childnode refid="6563" relation="include">
+        </childnode>
+        <childnode refid="6564" relation="include">
+        </childnode>
+        <childnode refid="6559" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+      </node>
+      <node id="6558">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="6559" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+      </node>
+      <node id="6581">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="6560">
+        <label>string</label>
+      </node>
+      <node id="6548">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/operators/OrderBy.cpp</label>
+        <link refid="OrderBy_8cpp"/>
+        <childnode refid="6549" relation="include">
+        </childnode>
+        <childnode refid="6574" relation="include">
+        </childnode>
+        <childnode refid="6575" relation="include">
+        </childnode>
+        <childnode refid="6577" relation="include">
+        </childnode>
+        <childnode refid="6578" relation="include">
+        </childnode>
+        <childnode refid="6580" relation="include">
+        </childnode>
+        <childnode refid="6581" relation="include">
+        </childnode>
+        <childnode refid="6582" relation="include">
+        </childnode>
+        <childnode refid="6583" relation="include">
+        </childnode>
+        <childnode refid="6584" relation="include">
+        </childnode>
+        <childnode refid="6585" relation="include">
+        </childnode>
+        <childnode refid="6587" relation="include">
+        </childnode>
+        <childnode refid="6589" relation="include">
+        </childnode>
+      </node>
+      <node id="6586">
+        <label>cudf/aggregation.hpp</label>
+      </node>
+      <node id="6556">
+        <label>map</label>
+      </node>
+      <node id="6578">
+        <label>distribution/primitives.h</label>
+        <link refid="primitives_8h_source"/>
+        <childnode refid="6554" relation="include">
+        </childnode>
+        <childnode refid="6579" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6562" relation="include">
+        </childnode>
+      </node>
+      <node id="6552">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="6567">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6559" relation="include">
+        </childnode>
+        <childnode refid="6568" relation="include">
+        </childnode>
+        <childnode refid="6569" relation="include">
+        </childnode>
+        <childnode refid="6571" relation="include">
+        </childnode>
+        <childnode refid="6562" relation="include">
+        </childnode>
+      </node>
+      <node id="6554">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6556" relation="include">
+        </childnode>
+        <childnode refid="6557" relation="include">
+        </childnode>
+        <childnode refid="6558" relation="include">
+        </childnode>
+      </node>
+      <node id="6587">
+        <label>utilities/CommonOperations.h</label>
+        <link refid="CommonOperations_8h_source"/>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6562" relation="include">
+        </childnode>
+        <childnode refid="6588" relation="include">
+        </childnode>
+      </node>
+      <node id="6550">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="6585">
+        <label>parser/expression_utils.hpp</label>
+        <link refid="expression__utils_8hpp_source"/>
+        <childnode refid="6556" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6568" relation="include">
+        </childnode>
+        <childnode refid="6586" relation="include">
+        </childnode>
+      </node>
+      <node id="6564">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="6584">
+        <label>random</label>
+      </node>
+      <node id="6561">
+        <label>tuple</label>
+      </node>
+      <node id="6551">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="6572">
+        <label>stack</label>
+      </node>
+      <node id="6555">
+        <label>vector</label>
+      </node>
+      <node id="6569">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="6570" relation="include">
+        </childnode>
+      </node>
+      <node id="6589">
+        <label>blazingdb/io/Util/StringUtil.h</label>
+      </node>
+      <node id="6588">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="6573">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="6553">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="6571">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="6555" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6572" relation="include">
+        </childnode>
+        <childnode refid="6557" relation="include">
+        </childnode>
+        <childnode refid="6559" relation="include">
+        </childnode>
+        <childnode refid="6573" relation="include">
+        </childnode>
+      </node>
+      <node id="6568">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="6577">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="6573" relation="include">
+        </childnode>
+        <childnode refid="6558" relation="include">
+        </childnode>
+        <childnode refid="6559" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6556" relation="include">
+        </childnode>
+      </node>
+      <node id="6566">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="6583">
+        <label>cudf/search.hpp</label>
+      </node>
+      <node id="6557">
+        <label>mutex</label>
+      </node>
+      <node id="6576">
+        <label>chrono</label>
+      </node>
+      <node id="6574">
+        <label>CalciteExpressionParsing.h</label>
+        <link refid="CalciteExpressionParsing_8h_source"/>
+        <childnode refid="6568" relation="include">
+        </childnode>
+        <childnode refid="6560" relation="include">
+        </childnode>
+        <childnode refid="6555" relation="include">
+        </childnode>
+      </node>
+      <node id="6575">
+        <label>CodeTimer.h</label>
+        <link refid="CodeTimer_8h_source"/>
+        <childnode refid="6576" relation="include">
+        </childnode>
+      </node>
+      <node id="6563">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="6579">
+        <label>communication/factory/MessageFactory.h</label>
+        <link refid="MessageFactory_8h_source"/>
+      </node>
+      <node id="6559">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1operators">ral::operators</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;OrderBy.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;CalciteExpressionParsing.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;CodeTimer.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;communication/CommunicationData.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;distribution/primitives.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;blazingdb/io/Library/Logging/Logger.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/copying.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/sorting.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/search.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;random&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;parser/expression_utils.hpp&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;utilities/CommonOperations.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;blazingdb/io/Util/StringUtil.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespacefmt_1_1literals" kindref="compound">fmt::literals</ref>;</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">operators<sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref>;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classblazingdb_1_1transport_1_1Node" kindref="compound">blazingdb::transport::Node</ref>;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classral_1_1communication_1_1CommunicationData" kindref="compound">ral::communication::CommunicationData</ref>;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral_1_1distribution" kindref="compound">ral::distribution</ref>;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>ASCENDING_ORDER_SORT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;ASC&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>DESCENDING_ORDER_SORT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;DESC&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>logicalSort(</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;int&gt;<sp/>&amp;<sp/>sortColIndices,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;cudf::order&gt;<sp/>&amp;<sp/>sortOrderTypes)<sp/>{</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>CudfTableView<sp/>sortColumns<sp/>=<sp/>table.view().select(sortColIndices);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*ToDo:<sp/>Edit<sp/>this<sp/>according<sp/>the<sp/>Calcite<sp/>output*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::null_order&gt;<sp/>null_orders(sortColIndices.size(),<sp/>cudf::null_order::AFTER);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;cudf::column&gt;<sp/>output<sp/>=<sp/>cudf::sorted_order(<sp/>sortColumns,<sp/>sortOrderTypes,<sp/>null_orders<sp/>);</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;cudf::table&gt;<sp/>gathered<sp/>=<sp/>cudf::gather(<sp/>table.view(),<sp/>output-&gt;view()<sp/>);</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_unique&lt;ral::frame::BlazingTable&gt;(<sp/>std::move(gathered),<sp/>table.names()<sp/>);</highlight></codeline>
+<codeline lineno="55"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal">std::unique_ptr&lt;cudf::table&gt;<sp/>logicalLimit(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>cudf::table_view&amp;<sp/>table,<sp/>cudf::size_type<sp/>limitRows)<sp/>{</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(limitRows<sp/>&lt;<sp/>table.num_rows());</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(limitRows<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>cudf::empty_like(table);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(limitRows<sp/>&lt;<sp/>table.num_rows())<sp/>{</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;cudf::size_type&gt;<sp/>splits<sp/>=<sp/>{limitRows};</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;cudf::table_view&gt;<sp/>split_table<sp/>=<sp/>cudf::split(table,<sp/>splits);</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_unique&lt;cudf::table&gt;(split_table[0]);</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_unique&lt;cudf::table&gt;(table);</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="69"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal">int64_t<sp/>determine_local_limit(<ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">Context</ref><sp/>*<sp/></highlight><highlight class="comment">/*context*/</highlight><highlight class="normal">,<sp/>int64_t<sp/></highlight><highlight class="comment">/*local_num_rows*/</highlight><highlight class="normal">,<sp/>cudf::size_type<sp/></highlight><highlight class="comment">/*limit_rows*/</highlight><highlight class="normal">){</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>context-&gt;incrementQuerySubstep();</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>ral::distribution::distributeNumRows(context,<sp/>local_num_rows);</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>std::vector&lt;int64_t&gt;<sp/>nodesRowSize<sp/>=<sp/>ral::distribution::collectNumRows(context);</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>int<sp/>self_node_idx<sp/>=<sp/>context-&gt;getNodeIndex(CommunicationData::getInstance().getSelfNode());</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>int64_t<sp/>prev_total_rows<sp/>=<sp/>std::accumulate(nodesRowSize.begin(),<sp/>nodesRowSize.begin()<sp/>+<sp/>self_node_idx,<sp/>int64_t(0));</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>return<sp/>std::min(std::max(limit_rows<sp/>-<sp/>prev_total_rows,<sp/>int64_t{0}),<sp/>local_num_rows);</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal">std::tuple&lt;std::vector&lt;int&gt;,<sp/>std::vector&lt;cudf::order&gt;,<sp/>cudf::size_type&gt;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal">get_sort_vars(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part)<sp/>{</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>rangeStart<sp/>=<sp/>query_part.find(</highlight><highlight class="stringliteral">&quot;(&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>rangeEnd<sp/>=<sp/>query_part.rfind(</highlight><highlight class="stringliteral">&quot;)&quot;</highlight><highlight class="normal">)<sp/>-<sp/>rangeStart<sp/>-<sp/>1;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>combined_expression<sp/>=<sp/>query_part.substr(rangeStart<sp/>+<sp/>1,<sp/>rangeEnd);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>num_sort_columns<sp/>=<sp/>count_string_occurrence(combined_expression,<sp/></highlight><highlight class="stringliteral">&quot;sort&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices(num_sort_columns);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes(num_sort_columns);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>num_sort_columns;<sp/>i++)<sp/>{</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sortColIndices[i]<sp/>=<sp/>get_index(get_named_expression(combined_expression,<sp/></highlight><highlight class="stringliteral">&quot;sort&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(i)));</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sortOrderTypes[i]<sp/>=<sp/>(get_named_expression(combined_expression,<sp/></highlight><highlight class="stringliteral">&quot;dir&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(i))<sp/>==<sp/>ASCENDING_ORDER_SORT_TEXT<sp/>?<sp/>cudf::order::ASCENDING<sp/>:<sp/>cudf::order::DESCENDING);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>limitRowsStr<sp/>=<sp/>get_named_expression(combined_expression,<sp/></highlight><highlight class="stringliteral">&quot;fetch&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>limitRows<sp/>=<sp/>!limitRowsStr.empty()<sp/>?<sp/>std::stoi(limitRowsStr)<sp/>:<sp/>-1;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(sortColIndices,<sp/>sortOrderTypes,<sp/>limitRows);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="comment">//<sp/>input:<sp/>min_keys=[MIN($0)<sp/>OVER<sp/>(PARTITION<sp/>BY<sp/>$1,<sp/>$2<sp/>ORDER<sp/>BY<sp/>$3)],<sp/>n_nationkey=[$0]</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="comment">//<sp/>output:<sp/>&lt;<sp/>[1,<sp/>2],<sp/>[cudf::ASCENDING,<sp/>cudf::ASCENDING]<sp/>&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal">std::tuple&lt;<sp/>std::vector&lt;int&gt;,<sp/>std::vector&lt;cudf::order&gt;<sp/>&gt;<sp/>get_vars_to_partition(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>logical_plan)<sp/>{</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>column_index;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>order_types;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>partition_expr<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;PARTITION<sp/>BY<sp/>&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>PARTITION<sp/>BY<sp/>$1,<sp/>$2<sp/>ORDER<sp/>BY<sp/>$3</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>over_expression<sp/>=<sp/>get_first_over_expression_from_logical_plan(logical_plan,<sp/>partition_expr);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(over_expression.size()<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(column_index,<sp/>order_types);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>start_position<sp/>=<sp/>over_expression.find(partition_expr)<sp/>+<sp/>partition_expr.size();</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>end_position<sp/>=<sp/>over_expression.find(</highlight><highlight class="stringliteral">&quot;ORDER<sp/>BY<sp/>&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end_position<sp/>==<sp/>get_query_part(logical_plan).npos)<sp/>{</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>end_position<sp/>=<sp/>over_expression.size()<sp/>+<sp/>1;</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>$1,<sp/>$2</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>values<sp/>=<sp/>over_expression.substr(start_position,<sp/>end_position<sp/>-<sp/>start_position<sp/>-<sp/>1);</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>column_numbers_string<sp/>=<sp/>StringUtil::split(values,<sp/></highlight><highlight class="stringliteral">&quot;,<sp/>&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>column_numbers_string.size();<sp/>i++)<sp/>{</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>column_numbers_string[i]<sp/>=<sp/>StringUtil::replace(column_numbers_string[i],<sp/></highlight><highlight class="stringliteral">&quot;$&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>column_index.push_back(std::stoi(column_numbers_string[i]));</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>order_types.push_back(cudf::order::ASCENDING);</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(column_index,<sp/>order_types);</highlight></codeline>
+<codeline lineno="147"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight><highlight class="comment">//<sp/>input:<sp/>min_keys=[MIN($0)<sp/>OVER<sp/>(PARTITION<sp/>BY<sp/>$2<sp/>ORDER<sp/>BY<sp/>$3,<sp/>$1<sp/>DESC)],<sp/>n_nationkey=[$0]</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight><highlight class="comment">//<sp/>output:<sp/>&lt;<sp/>[3,<sp/>1],<sp/>[cudf::ASCENDING,<sp/>cudf::DESCENDING]<sp/>&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="151"><highlight class="normal">std::tuple&lt;<sp/>std::vector&lt;int&gt;,<sp/>std::vector&lt;cudf::order&gt;<sp/>&gt;<sp/>get_vars_to_orders(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>logical_plan)<sp/>{</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>column_index;</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>order_types;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>order_expr<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;ORDER<sp/>BY<sp/>&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>PARTITION<sp/>BY<sp/>$2<sp/>ORDER<sp/>BY<sp/>$3,<sp/>$1<sp/>DESC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>over_expression<sp/>=<sp/>get_first_over_expression_from_logical_plan(logical_plan,<sp/>order_expr);</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(over_expression.size()<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(column_index,<sp/>order_types);</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>start_position<sp/>=<sp/>over_expression.find(order_expr)<sp/>+<sp/>order_expr.size();</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>end_position<sp/>=<sp/>over_expression.find(</highlight><highlight class="stringliteral">&quot;ROWS&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end_position<sp/>!=<sp/>over_expression.npos)<sp/>{</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>end_position<sp/>=<sp/>end_position<sp/>-<sp/>1;</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>end_position<sp/>=<sp/>over_expression.size();</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>$3,<sp/>$1<sp/>DESC</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>values<sp/>=<sp/>over_expression.substr(start_position,<sp/>end_position<sp/>-<sp/>start_position);</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>column_express<sp/>=<sp/>StringUtil::split(values,<sp/></highlight><highlight class="stringliteral">&quot;,<sp/>&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(std::size_t<sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>column_express.size();<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>split_parts<sp/>=<sp/>StringUtil::split(column_express[i],<sp/></highlight><highlight class="stringliteral">&quot;<sp/>&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(split_parts.size()<sp/>==<sp/>1)<sp/>order_types.push_back(cudf::order::ASCENDING);</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>order_types.push_back(cudf::order::DESCENDING);</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>split_parts[0]<sp/>=<sp/>StringUtil::replace(split_parts[0],<sp/></highlight><highlight class="stringliteral">&quot;$&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>column_index.push_back(std::stoi(split_parts[0]));</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(column_index,<sp/>order_types);</highlight></codeline>
+<codeline lineno="184"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight><highlight class="comment">//<sp/>input:<sp/>min_keys=[MIN($0)<sp/>OVER<sp/>(PARTITION<sp/>BY<sp/>$1,<sp/>$2<sp/>ORDER<sp/>BY<sp/>$3<sp/>DESC)],<sp/>n_nationkey=[$0]</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"></highlight><highlight class="comment">//<sp/>output:<sp/>&lt;<sp/>[1,<sp/>2,<sp/>3],<sp/>[cudf::ASCENDING,<sp/>cudf::ASCENDING,<sp/>cudf::DESCENDING]<sp/>&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal">std::tuple&lt;<sp/>std::vector&lt;int&gt;,<sp/>std::vector&lt;cudf::order&gt;<sp/>&gt;<sp/>get_vars_to_partition_and_order(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part)<sp/>{</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>column_index_partition,<sp/>column_index_order;</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>order_types_partition,<sp/>order_types_order;</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tie(column_index_partition,<sp/>order_types_partition)<sp/>=<sp/>get_vars_to_partition(query_part);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tie(column_index_order,<sp/>order_types_order)<sp/>=<sp/>get_vars_to_orders(query_part);</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/>column_index_partition.insert(column_index_partition.end(),<sp/>column_index_order.begin(),<sp/>column_index_order.end());</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/>order_types_partition.insert(order_types_partition.end(),<sp/>order_types_order.begin(),<sp/>order_types_order.end());</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"></highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(column_index_partition,<sp/>order_types_partition);</highlight></codeline>
+<codeline lineno="199"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal">std::tuple&lt;std::vector&lt;int&gt;,<sp/>std::vector&lt;cudf::order&gt;<sp/>&gt;<sp/>get_right_sorts_vars(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part)<sp/>{</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes;</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>limitRows;</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"></highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_window_function(query_part))<sp/>{</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>`order<sp/>by`<sp/>and<sp/>`partition<sp/>by`</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(query_part.find(</highlight><highlight class="stringliteral">&quot;ORDER<sp/>BY&quot;</highlight><highlight class="normal">)<sp/>!=<sp/>query_part.npos<sp/>&amp;&amp;<sp/>query_part.find(</highlight><highlight class="stringliteral">&quot;PARTITION<sp/>BY&quot;</highlight><highlight class="normal">)<sp/>!=<sp/>query_part.npos)<sp/>{</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_vars_to_partition_and_order(query_part);</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>only<sp/>`partition<sp/>by`</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!window_expression_contains_order(query_part))<sp/>{</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_vars_to_partition(query_part);</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO:<sp/>for<sp/>now<sp/>over<sp/>clauses<sp/>without<sp/>`partition<sp/>by`<sp/>are<sp/>not<sp/>supported</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/>std::runtime_error(</highlight><highlight class="stringliteral">&quot;Error,<sp/>not<sp/>support<sp/>for<sp/>WINDOW<sp/>FUNCTION<sp/>without<sp/>PARTITION<sp/>BY<sp/>clause&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_vars_to_orders(query_part);<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes,<sp/>limitRows)<sp/>=<sp/>get_sort_vars(query_part);</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"></highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(sortColIndices,<sp/>sortOrderTypes);</highlight></codeline>
+<codeline lineno="223"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"></highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>has_limit_only(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part){</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>std::ignore,<sp/>std::ignore)<sp/>=<sp/>get_sort_vars(query_part);</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sortColIndices.empty();</highlight></codeline>
+<codeline lineno="230"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"></highlight></codeline>
+<codeline lineno="232"><highlight class="normal">int64_t<sp/>get_limit_rows_when_relational_alg_is_simple(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part){</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/>int64_t<sp/>limitRows;</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tie(std::ignore,<sp/>std::ignore,<sp/>limitRows)<sp/>=<sp/>get_sort_vars(query_part);</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>limitRows;</highlight></codeline>
+<codeline lineno="236"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"></highlight></codeline>
+<codeline lineno="238"><highlight class="normal">std::tuple&lt;std::unique_ptr&lt;ral::frame::BlazingTable&gt;,<sp/>bool,<sp/>int64_t&gt;</highlight></codeline>
+<codeline lineno="239"><highlight class="normal">limit_table(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,<sp/>int64_t<sp/>num_rows_limit)<sp/>{</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>table_rows<sp/>=<sp/>table.num_rows();</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(num_rows_limit<sp/>&lt;=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(std::make_unique&lt;ral::frame::BlazingTable&gt;(cudf::empty_like(table.view()),<sp/>table.names()),<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">,<sp/>0);</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(num_rows_limit<sp/>&gt;=<sp/>table_rows)<sp/>{</highlight></codeline>
+<codeline lineno="245"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(std::make_unique&lt;ral::frame::BlazingTable&gt;(table.view(),<sp/>table.names()),<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">,<sp/>num_rows_limit<sp/>-<sp/>table_rows);</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(std::make_unique&lt;ral::frame::BlazingTable&gt;(logicalLimit(table.view(),<sp/>num_rows_limit),<sp/>table.names()),<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">,<sp/>0);</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="249"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"></highlight></codeline>
+<codeline lineno="251"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>sort(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part){</highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes;</highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"></highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_right_sorts_vars(query_part);</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"></highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>logicalSort(table,<sp/>sortColIndices,<sp/>sortOrderTypes);</highlight></codeline>
+<codeline lineno="258"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="259"><highlight class="normal"></highlight></codeline>
+<codeline lineno="260"><highlight class="normal">std::size_t<sp/>compute_total_samples(std::size_t<sp/>num_rows)<sp/>{</highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>num_samples<sp/>=<sp/>std::ceil(num_rows<sp/>*<sp/>0.1);</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>MAX_SAMPLES<sp/>=<sp/>1000;</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>MIN_SAMPLES<sp/>=<sp/>100;</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/>num_samples<sp/>=<sp/>std::min(num_samples,<sp/>MAX_SAMPLES);<sp/><sp/></highlight><highlight class="comment">//<sp/>max<sp/>1000<sp/>per<sp/>batch</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/><sp/><sp/>num_samples<sp/>=<sp/>std::max(num_samples,<sp/>MIN_SAMPLES);<sp/><sp/></highlight><highlight class="comment">//<sp/>min<sp/>100<sp/>per<sp/>batch</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="266"><highlight class="normal"><sp/><sp/><sp/><sp/>num_samples<sp/>=<sp/>num_rows<sp/>&lt;<sp/>num_samples<sp/>?<sp/>num_rows<sp/>:<sp/>num_samples;<sp/></highlight><highlight class="comment">//<sp/>lets<sp/>make<sp/>sure<sp/>that<sp/>`num_samples`<sp/>is<sp/>not<sp/>actually<sp/>bigger<sp/>than<sp/>the<sp/>batch</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="267"><highlight class="normal"></highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>num_samples;</highlight></codeline>
+<codeline lineno="269"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"></highlight></codeline>
+<codeline lineno="271"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>sample(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part){</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes;</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="274"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>limitRows;</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"></highlight></codeline>
+<codeline lineno="276"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_window_function(query_part))<sp/>{</highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_vars_to_partition(query_part);</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes,<sp/>limitRows)<sp/>=<sp/>get_sort_vars(query_part);</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"></highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>tableNames<sp/>=<sp/>table.names();</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>sortColNames(sortColIndices.size());</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/><sp/><sp/>std::transform(sortColIndices.begin(),<sp/>sortColIndices.end(),<sp/>sortColNames.begin(),<sp/>[&amp;](</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>index)<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>tableNames[index];<sp/>});</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"></highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>num_samples<sp/>=<sp/>compute_total_samples(table.num_rows());</highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/><sp/><sp/>std::random_device<sp/>rd;</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>samples<sp/>=<sp/>cudf::sample(table.view().select(sortColIndices),<sp/>num_samples,<sp/>cudf::sample_with_replacement::FALSE,<sp/>rd());</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_unique&lt;ral::frame::BlazingTable&gt;(std::move(samples),<sp/>sortColNames);</highlight></codeline>
+<codeline lineno="292"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="293"><highlight class="normal"></highlight></codeline>
+<codeline lineno="294"><highlight class="normal">std::vector&lt;cudf::table_view&gt;<sp/>partition_table(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>partitionPlan,</highlight></codeline>
+<codeline lineno="295"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>sortedTable,</highlight></codeline>
+<codeline lineno="296"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part)<sp/>{</highlight></codeline>
+<codeline lineno="297"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes;</highlight></codeline>
+<codeline lineno="298"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>limitRows;</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"></highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_window_function(query_part))<sp/>{</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_vars_to_partition(query_part);</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes,<sp/>limitRows)<sp/>=<sp/>get_sort_vars(query_part);</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight></codeline>
+<codeline lineno="308"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(sortedTable.num_rows()<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>{sortedTable.view()};</highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"></highlight></codeline>
+<codeline lineno="312"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO<sp/>this<sp/>is<sp/>just<sp/>a<sp/>default<sp/>setting.<sp/>Will<sp/>want<sp/>to<sp/>be<sp/>able<sp/>to<sp/>properly<sp/>set<sp/>null_order</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="313"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::null_order&gt;<sp/>null_orders(sortOrderTypes.size(),<sp/>cudf::null_order::AFTER);</highlight></codeline>
+<codeline lineno="314"><highlight class="normal"></highlight></codeline>
+<codeline lineno="315"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::table_view<sp/>columns_to_search<sp/>=<sp/>sortedTable.view().select(sortColIndices);</highlight></codeline>
+<codeline lineno="316"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>pivot_indexes<sp/>=<sp/>cudf::upper_bound(columns_to_search,<sp/>partitionPlan.view(),<sp/>sortOrderTypes,<sp/>null_orders);</highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::size_type&gt;<sp/>split_indexes<sp/>=<sp/>ral::utilities::vector_to_column&lt;cudf::size_type&gt;(pivot_indexes-&gt;view());</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>cudf::split(sortedTable.view(),<sp/>split_indexes);</highlight></codeline>
+<codeline lineno="320"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>generate_partition_plan(</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;std::unique_ptr&lt;ral::frame::BlazingTable&gt;&gt;<sp/>&amp;<sp/>samples,</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>table_num_rows,<sp/>std::size_t<sp/>avg_bytes_per_row,</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part,<sp/><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">Context</ref><sp/>*<sp/>context)<sp/>{</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"></highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes;</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>limitRows;</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_window_function(query_part))<sp/>{<sp/></highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_vars_to_partition(query_part);</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes,<sp/>limitRows)<sp/>=<sp/>get_sort_vars(query_part);</highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="337"><highlight class="normal"></highlight></codeline>
+<codeline lineno="338"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>partitionPlan;</highlight></codeline>
+<codeline lineno="339"><highlight class="normal"></highlight></codeline>
+<codeline lineno="340"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>num_bytes_per_order_by_partition<sp/>=<sp/>400000000;</highlight></codeline>
+<codeline lineno="341"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>max_num_order_by_partitions_per_node<sp/>=<sp/>8;</highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/><sp/><sp/>std::map&lt;std::string,<sp/>std::string&gt;<sp/>config_options<sp/>=<sp/>context-&gt;getConfigOptions();</highlight></codeline>
+<codeline lineno="343"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>it<sp/>=<sp/>config_options.find(</highlight><highlight class="stringliteral">&quot;NUM_BYTES_PER_ORDER_BY_PARTITION&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="344"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(it<sp/>!=<sp/>config_options.end()){</highlight></codeline>
+<codeline lineno="345"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>num_bytes_per_order_by_partition<sp/>=<sp/>std::stoull(config_options[</highlight><highlight class="stringliteral">&quot;NUM_BYTES_PER_ORDER_BY_PARTITION&quot;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="346"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="347"><highlight class="normal"><sp/><sp/><sp/><sp/>it<sp/>=<sp/>config_options.find(</highlight><highlight class="stringliteral">&quot;MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="348"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(it<sp/>!=<sp/>config_options.end()){</highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>max_num_order_by_partitions_per_node<sp/>=<sp/>std::stoi(config_options[</highlight><highlight class="stringliteral">&quot;MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE&quot;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="350"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"></highlight></codeline>
+<codeline lineno="352"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>num_nodes<sp/>=<sp/>context-&gt;getTotalNodes();</highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>total_num_partitions<sp/>=<sp/>(double)table_num_rows*(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)avg_bytes_per_row/(double)num_bytes_per_order_by_partition;</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"><sp/><sp/><sp/><sp/>total_num_partitions<sp/>=<sp/>total_num_partitions<sp/>&lt;=<sp/>0<sp/>?<sp/>1<sp/>:<sp/>total_num_partitions;</highlight></codeline>
+<codeline lineno="355"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>want<sp/>to<sp/>make<sp/>the<sp/>total_num_partitions<sp/>to<sp/>be<sp/>a<sp/>multiple<sp/>of<sp/>the<sp/>number<sp/>of<sp/>nodes<sp/>to<sp/>evenly<sp/>distribute</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="356"><highlight class="normal"><sp/><sp/><sp/><sp/>total_num_partitions<sp/>=<sp/>((total_num_partitions<sp/>+<sp/>num_nodes<sp/>-<sp/>1)<sp/>/<sp/>num_nodes)<sp/>*<sp/>num_nodes;</highlight></codeline>
+<codeline lineno="357"><highlight class="normal"><sp/><sp/><sp/><sp/>total_num_partitions<sp/>=<sp/>total_num_partitions<sp/>&gt;<sp/>max_num_order_by_partitions_per_node<sp/>*<sp/>num_nodes<sp/>?<sp/>max_num_order_by_partitions_per_node<sp/>*<sp/>num_nodes<sp/>:<sp/>total_num_partitions;</highlight></codeline>
+<codeline lineno="358"><highlight class="normal"></highlight></codeline>
+<codeline lineno="359"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>info<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;table_num_rows:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(table_num_rows)<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;<sp/>avg_bytes_per_row:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(avg_bytes_per_row)<sp/>+</highlight></codeline>
+<codeline lineno="360"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;<sp/>total_num_partitions:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(total_num_partitions)<sp/>+</highlight></codeline>
+<codeline lineno="361"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;<sp/>NUM_BYTES_PER_ORDER_BY_PARTITION:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(num_bytes_per_order_by_partition)<sp/>+</highlight></codeline>
+<codeline lineno="362"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;<sp/>MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(max_num_order_by_partitions_per_node);</highlight></codeline>
+<codeline lineno="363"><highlight class="normal"></highlight></codeline>
+<codeline lineno="364"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;spdlog::logger&gt;<sp/>logger<sp/>=<sp/>spdlog::get(</highlight><highlight class="stringliteral">&quot;batch_logger&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="365"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(logger){</highlight></codeline>
+<codeline lineno="366"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>logger-&gt;debug(</highlight><highlight class="stringliteral">&quot;{query_id}|{step}|{substep}|{info}|||||&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;query_id&quot;</highlight><highlight class="normal">_a=context-&gt;getContextToken(),</highlight></codeline>
+<codeline lineno="368"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;step&quot;</highlight><highlight class="normal">_a=context-&gt;getQueryStep(),</highlight></codeline>
+<codeline lineno="369"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;substep&quot;</highlight><highlight class="normal">_a=context-&gt;getQuerySubstep(),</highlight></codeline>
+<codeline lineno="370"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;info&quot;</highlight><highlight class="normal">_a=</highlight><highlight class="stringliteral">&quot;Determining<sp/>Number<sp/>of<sp/>Order<sp/>By<sp/>Partitions<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>info);</highlight></codeline>
+<codeline lineno="371"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="372"><highlight class="normal"></highlight></codeline>
+<codeline lineno="373"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(<sp/>ral::utilities::checkIfConcatenatingStringsWillOverflow(samples))<sp/>{</highlight></codeline>
+<codeline lineno="374"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(logger){</highlight></codeline>
+<codeline lineno="375"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>logger-&gt;warn(</highlight><highlight class="stringliteral">&quot;{query_id}|{step}|{substep}|{info}&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="376"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;query_id&quot;</highlight><highlight class="normal">_a=(context<sp/>?<sp/>std::to_string(context-&gt;getContextToken())<sp/>:<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">),</highlight></codeline>
+<codeline lineno="377"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;step&quot;</highlight><highlight class="normal">_a=(context<sp/>?<sp/>std::to_string(context-&gt;getQueryStep())<sp/>:<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">),</highlight></codeline>
+<codeline lineno="378"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;substep&quot;</highlight><highlight class="normal">_a=(context<sp/>?<sp/>std::to_string(context-&gt;getQuerySubstep())<sp/>:<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">),</highlight></codeline>
+<codeline lineno="379"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;info&quot;</highlight><highlight class="normal">_a=</highlight><highlight class="stringliteral">&quot;In<sp/>generatePartitionPlans<sp/>Concatenating<sp/>Strings<sp/>will<sp/>overflow<sp/>strings<sp/>length&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="380"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="381"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="382"><highlight class="normal"></highlight></codeline>
+<codeline lineno="383"><highlight class="normal"><sp/><sp/><sp/><sp/>partitionPlan<sp/>=<sp/>generatePartitionPlans(total_num_partitions,<sp/>samples,<sp/>sortOrderTypes);</highlight></codeline>
+<codeline lineno="384"><highlight class="normal"><sp/><sp/><sp/><sp/>context-&gt;incrementQuerySubstep();</highlight></codeline>
+<codeline lineno="385"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>partitionPlan;</highlight></codeline>
+<codeline lineno="386"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="387"><highlight class="normal"></highlight></codeline>
+<codeline lineno="388"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>merge(std::vector&lt;ral::frame::BlazingTableView&gt;<sp/>partitions_to_merge,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part)<sp/>{</highlight></codeline>
+<codeline lineno="389"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes;</highlight></codeline>
+<codeline lineno="390"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>sortColIndices;</highlight></codeline>
+<codeline lineno="391"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="392"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tie(sortColIndices,<sp/>sortOrderTypes)<sp/>=<sp/>get_right_sorts_vars(query_part);</highlight></codeline>
+<codeline lineno="393"><highlight class="normal"></highlight></codeline>
+<codeline lineno="394"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sortedMerger(partitions_to_merge,<sp/>sortOrderTypes,<sp/>sortColIndices);</highlight></codeline>
+<codeline lineno="395"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="396"><highlight class="normal"></highlight></codeline>
+<codeline lineno="397"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>operators</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="398"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/operators/OrderBy.cpp"/>
+  </compounddef>
+</doxygen>

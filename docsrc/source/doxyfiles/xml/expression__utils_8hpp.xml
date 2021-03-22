@@ -1,0 +1,2274 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="expression__utils_8hpp" kind="file" language="C++">
+    <compoundname>expression_utils.hpp</compoundname>
+    <includes local="no">map</includes>
+    <includes local="no">string</includes>
+    <includes local="no">vector</includes>
+    <includes local="no">cudf/types.hpp</includes>
+    <includes local="no">cudf/aggregation.hpp</includes>
+    <includedby refid="expression__tree_8hpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.hpp</includedby>
+    <includedby refid="PhysicalPlanGenerator_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</includedby>
+    <includedby refid="BatchOrderByProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp</includedby>
+    <includedby refid="BatchProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp</includedby>
+    <includedby refid="BatchUnionProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp</includedby>
+    <includedby refid="BatchWindowFunctionProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp</includedby>
+    <includedby refid="LogicalFilter_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp</includedby>
+    <includedby refid="LogicalProject_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp</includedby>
+    <includedby refid="GroupBy_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/operators/GroupBy.cpp</includedby>
+    <includedby refid="OrderBy_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/operators/OrderBy.cpp</includedby>
+    <includedby refid="expression__utils_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp</includedby>
+    <includedby refid="utils_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/skip_data/utils.cpp</includedby>
+    <incdepgraph>
+      <node id="6708">
+        <label>string</label>
+      </node>
+      <node id="6711">
+        <label>cudf/aggregation.hpp</label>
+      </node>
+      <node id="6707">
+        <label>map</label>
+      </node>
+      <node id="6706">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp</label>
+        <link refid="expression__utils_8hpp"/>
+        <childnode refid="6707" relation="include">
+        </childnode>
+        <childnode refid="6708" relation="include">
+        </childnode>
+        <childnode refid="6709" relation="include">
+        </childnode>
+        <childnode refid="6710" relation="include">
+        </childnode>
+        <childnode refid="6711" relation="include">
+        </childnode>
+      </node>
+      <node id="6709">
+        <label>vector</label>
+      </node>
+      <node id="6710">
+        <label>cudf/types.hpp</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="6714">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/skip_data/SkipDataProcessor.h</label>
+        <link refid="SkipDataProcessor_8h_source"/>
+      </node>
+      <node id="6712">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp</label>
+        <link refid="expression__utils_8hpp"/>
+        <childnode refid="6713" relation="include">
+        </childnode>
+        <childnode refid="6716" relation="include">
+        </childnode>
+      </node>
+      <node id="6716">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</label>
+        <link refid="PhysicalPlanGenerator_8h_source"/>
+      </node>
+      <node id="6715">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/Interpreter/interpreter_cpp.h</label>
+        <link refid="interpreter__cpp_8h_source"/>
+      </node>
+      <node id="6713">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.hpp</label>
+        <link refid="expression__tree_8hpp_source"/>
+        <childnode refid="6714" relation="include">
+        </childnode>
+        <childnode refid="6715" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e" prot="public" static="no">
+        <name>operator_type</name>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1983ac3158d68c3d98feae75547c3edd" prot="public">
+          <name>BLZ_INVALID_OP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea0e673dbc196ac9a04f2ac5ce3b4aaa79" prot="public">
+          <name>BLZ_RAND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea39e261690ef7ceca8adffe5d181dddbd" prot="public">
+          <name>BLZ_NOT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1043a6b5463d6e27e1fa92e43f5779fc" prot="public">
+          <name>BLZ_ABS</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea24076a6ed88e6cc92a991504a41ba14a" prot="public">
+          <name>BLZ_FLOOR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf4755788ff730ee9b8bf0c3d9004bf2d" prot="public">
+          <name>BLZ_CEIL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea995c80e73976f3828efb17cd2e10cff6" prot="public">
+          <name>BLZ_SIN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea520a1383e99d347b5b0ab51a65570377" prot="public">
+          <name>BLZ_COS</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaa0b22831afa1fbe4f7440c7e9f59c360" prot="public">
+          <name>BLZ_ASIN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaa8dfb5c6256517b1f22a97b5fd45bccd" prot="public">
+          <name>BLZ_ACOS</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea19e1637150dd29062feeafe67ab03085" prot="public">
+          <name>BLZ_TAN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea4a5d202b8cbe30d9cd3f0d210485a694" prot="public">
+          <name>BLZ_COTAN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eab2f477a30d5245f94d1c3883e645ee9e" prot="public">
+          <name>BLZ_ATAN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaea17f4c3509cc2398c7286db5c0c8382" prot="public">
+          <name>BLZ_LN</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ead9af4259137a4856e2b34bcf7f455791" prot="public">
+          <name>BLZ_LOG</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea9a502276354dfa9a88a1ee77bc11985a" prot="public">
+          <name>BLZ_YEAR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eac37baa54fc55d4eabf5089552a7d20df" prot="public">
+          <name>BLZ_MONTH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea819fe3937d534c0489401e0e61dcd5b0" prot="public">
+          <name>BLZ_DAY</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3f352f0d26fd94e20abe60af740793e5" prot="public">
+          <name>BLZ_DAYOFWEEK</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea61635b1c89e2363c53e9d84a6196bd08" prot="public">
+          <name>BLZ_HOUR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eadfbcc772aee8aa41f92b1f46a9d8492d" prot="public">
+          <name>BLZ_MINUTE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea986f0c32721842587046af33287f990d" prot="public">
+          <name>BLZ_SECOND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea45e6b02d269e1ade637ef429cda06751" prot="public">
+          <name>BLZ_IS_NULL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eacaf623bc50bb91ca2477c1bc8a2c9188" prot="public">
+          <name>BLZ_IS_NOT_NULL</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eabec4ae1dd80e6586c89026b0c1829d92" prot="public">
+          <name>BLZ_CAST_TINYINT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2f978d83020fcc5ac378f8489238433d" prot="public">
+          <name>BLZ_CAST_SMALLINT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1c61ee0f63a791d8a7b2fa5fc104a74f" prot="public">
+          <name>BLZ_CAST_INTEGER</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea55f422814f00952f78ebb51eaa6bc8cb" prot="public">
+          <name>BLZ_CAST_BIGINT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea8c9033dc17e9fc20c530511949282574" prot="public">
+          <name>BLZ_CAST_FLOAT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea0be4dd172f87147885bf6b2167b46b8b" prot="public">
+          <name>BLZ_CAST_DOUBLE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf40b7f7ca1cdc0db1b5fbef800d73fab" prot="public">
+          <name>BLZ_CAST_DATE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea4e32561c8fbb9422c0b98c22d6039405" prot="public">
+          <name>BLZ_CAST_TIMESTAMP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea05b236e6602def6bd40f86763a27da8f" prot="public">
+          <name>BLZ_CAST_VARCHAR</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2d62119e1eda1bb88e7f115fa238e76d" prot="public">
+          <name>BLZ_CHAR_LENGTH</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eabace7247e970b4d94fa8e5fe8bd152f8" prot="public">
+          <name>BLZ_STR_LOWER</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea454dac808d16853c499409ce606c232a" prot="public">
+          <name>BLZ_STR_UPPER</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eac7899ddb9183485551c3ef3590251f91" prot="public">
+          <name>BLZ_STR_INITCAP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea8749b4b142f3eb2febf1eda8d3c95c4a" prot="public">
+          <name>BLZ_STR_REVERSE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea619121dbfeea1111e9e3e39d45086c41" prot="public">
+          <name>BLZ_ADD</name>
+          <briefdescription>
+<para>operator + </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea6092ed122f1e33a2a6291c2514e11db7" prot="public">
+          <name>BLZ_SUB</name>
+          <briefdescription>
+<para>operator - </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf21e5bccf824990b416b1c598e6cf825" prot="public">
+          <name>BLZ_MUL</name>
+          <briefdescription>
+<para>operator * </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea611e0c4bf2537273666943ce40752342" prot="public">
+          <name>BLZ_DIV</name>
+          <briefdescription>
+<para>operator / using common type of lhs and rhs </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3ddc0a74bc1e81f300bf1049a0653dc4" prot="public">
+          <name>BLZ_MOD</name>
+          <briefdescription>
+<para>operator % </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1354ca5c0986c6fbee989f92949ddc53" prot="public">
+          <name>BLZ_POW</name>
+          <briefdescription>
+<para>lhs ^ rhs </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea6fc1277da760135c49248f3352f62bae" prot="public">
+          <name>BLZ_ROUND</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea02fad5f9e09a90dffe4ca8bc3fcfb6cf" prot="public">
+          <name>BLZ_EQUAL</name>
+          <briefdescription>
+<para>operator == </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea90109a1a8087551d5d97e90793012ced" prot="public">
+          <name>BLZ_NOT_EQUAL</name>
+          <briefdescription>
+<para>operator != </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3367233e04b5f842a45ff78a13692ad1" prot="public">
+          <name>BLZ_LESS</name>
+          <briefdescription>
+<para>operator &lt; </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea720b947fe71fb6bbdc8622f4e93d7c7d" prot="public">
+          <name>BLZ_GREATER</name>
+          <briefdescription>
+<para>operator &gt; </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea42f724472bddbf49bb39bd4cff2b3764" prot="public">
+          <name>BLZ_LESS_EQUAL</name>
+          <briefdescription>
+<para>operator &lt;= </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2c20917ac494716e43c396b6e003058f" prot="public">
+          <name>BLZ_GREATER_EQUAL</name>
+          <briefdescription>
+<para>operator &gt;= </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea27c56d16ae489b75ebde65758ddd19e0" prot="public">
+          <name>BLZ_BITWISE_AND</name>
+          <briefdescription>
+<para>operator &amp; </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2ca0e0bfd73ac4047a5874bad6f566c5" prot="public">
+          <name>BLZ_BITWISE_OR</name>
+          <briefdescription>
+<para>operator | </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaa292076eee5495d1a73ade9e7e378680" prot="public">
+          <name>BLZ_BITWISE_XOR</name>
+          <briefdescription>
+<para>operator ^ </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eae0898bc0b3fa36691481e3ffec1f9b08" prot="public">
+          <name>BLZ_LOGICAL_AND</name>
+          <briefdescription>
+<para>operator &amp;&amp; </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea741458f75c39960f601da87b34168350" prot="public">
+          <name>BLZ_LOGICAL_OR</name>
+          <briefdescription>
+<para>operator || </para>          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea05897e3b5c0409bfcb726dbeab5304ff" prot="public">
+          <name>BLZ_FIRST_NON_MAGIC</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaef8424a43cb4d3a912ef67846c3c81b6" prot="public">
+          <name>BLZ_MAGIC_IF_NOT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3da57fca5aa82eaaa135a111cc59f6ae" prot="public">
+          <name>BLZ_STR_LIKE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaecbf6cb5bf140d76d4b783afebbfe3a8" prot="public">
+          <name>BLZ_STR_SUBSTRING</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf265c875de2eb4cdbaec84853fb24c18" prot="public">
+          <name>BLZ_STR_REGEXP_REPLACE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eadb4cd566a94c67b57c105aeb692633a2" prot="public">
+          <name>BLZ_STR_CONCAT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eade2c57e635e3c73a0bf66efaee132f9d" prot="public">
+          <name>BLZ_STR_REPLACE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eac61d28d40c7943aef95cfaac42e44b30" prot="public">
+          <name>BLZ_STR_LEFT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea896386f12fd95caf45a1ca8d4db843d5" prot="public">
+          <name>BLZ_STR_RIGHT</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea424a89986ecddb37a488f136b216b128" prot="public">
+          <name>BLZ_TO_DATE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eae9dd5d32b30a54497ad35ed7569df9d3" prot="public">
+          <name>BLZ_TO_TIMESTAMP</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea382426f383da93c1f0fdfe94ee0047c2" prot="public">
+          <name>BLZ_STR_TRIM</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="9" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="9" bodyend="84"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="expression__utils_8hpp_1a73532bf8a9c0c1969173fca143353a56" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_JOIN_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_JOIN_TEXT</name>
+        <initializer>= &quot;LogicalJoin&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="114" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1ab296b774677acda07f10a46f4918262b" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_PARTWISE_JOIN_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_PARTWISE_JOIN_TEXT</name>
+        <initializer>= &quot;PartwiseJoin&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="115" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_JOIN_PARTITION_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_JOIN_PARTITION_TEXT</name>
+        <initializer>= &quot;JoinPartition&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="116" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1ad5610f36330da537b25e65b9f97ea112" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_UNION_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_UNION_TEXT</name>
+        <initializer>= &quot;LogicalUnion&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="117" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a50855d80ec0e094aba9fe7d27626c12a" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_SCAN_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_SCAN_TEXT</name>
+        <initializer>= &quot;LogicalTableScan&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="118" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a33d38bd6d82887e47cd9bca39d749485" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string BINDABLE_SCAN_TEXT</definition>
+        <argsstring></argsstring>
+        <name>BINDABLE_SCAN_TEXT</name>
+        <initializer>= &quot;BindableTableScan&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="119" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_AGGREGATE_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_AGGREGATE_TEXT</name>
+        <initializer>= &quot;LogicalAggregate&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="120" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1ab860f78b701c5fd157599694b6530543" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_COMPUTE_AGGREGATE_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_COMPUTE_AGGREGATE_TEXT</name>
+        <initializer>= &quot;ComputeAggregate&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="121" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a200aa6a816aaffa227fd7b9b9fa84641" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_DISTRIBUTE_AGGREGATE_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_DISTRIBUTE_AGGREGATE_TEXT</name>
+        <initializer>= &quot;DistributeAggregate&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="122" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a197d68efd6c32085fc069db873fabc3e" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_MERGE_AGGREGATE_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_MERGE_AGGREGATE_TEXT</name>
+        <initializer>= &quot;MergeAggregate&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="123" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1ae6cd56316e0a5b2405740f8faf99b9d3" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_PROJECT_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_PROJECT_TEXT</name>
+        <initializer>= &quot;LogicalProject&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="124" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a996924dbb99f41abd3d3f895ac7f811e" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_LIMIT_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_LIMIT_TEXT</name>
+        <initializer>= &quot;LogicalLimit&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="125" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="125" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1af7d67af38b74cf135a507bd12eea9f8c" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_SORT_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_SORT_TEXT</name>
+        <initializer>= &quot;LogicalSort&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="126" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a6076e775b97aabc5008e1fc3da0f8f41" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_MERGE_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_MERGE_TEXT</name>
+        <initializer>= &quot;LogicalMerge&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="127" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="127" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a9fa8f215453ed9721d4e1d3c4c75b11e" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_PARTITION_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_PARTITION_TEXT</name>
+        <initializer>= &quot;LogicalPartition&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="128" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="128" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a5aa2cb434408e9a4d81bb3551cb93f12" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_SORT_AND_SAMPLE_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_SORT_AND_SAMPLE_TEXT</name>
+        <initializer>= &quot;Logical_SortAndSample&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="129" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a824bc6a22aa374c7765be01c7b0149d8" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_SINGLE_NODE_PARTITION_TEXT</name>
+        <initializer>= &quot;LogicalSingleNodePartition&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="130" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_FILTER_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_FILTER_TEXT</name>
+        <initializer>= &quot;LogicalFilter&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="131" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a7aef636f64fa52a0386fc0bd1b27e6ee" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string LOGICAL_COMPUTE_WINDOW_TEXT</definition>
+        <argsstring></argsstring>
+        <name>LOGICAL_COMPUTE_WINDOW_TEXT</name>
+        <initializer>= &quot;LogicalComputeWindow&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="132" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1a8f36c4b7a7f335b82f6826098a914a7f" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string ASCENDING_ORDER_SORT_TEXT</definition>
+        <argsstring></argsstring>
+        <name>ASCENDING_ORDER_SORT_TEXT</name>
+        <initializer>= &quot;ASC&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="133" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="133" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="expression__utils_8hpp_1ab3738f218484b788d1acf4b23636ce5a" prot="public" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string DESCENDING_ORDER_SORT_TEXT</definition>
+        <argsstring></argsstring>
+        <name>DESCENDING_ORDER_SORT_TEXT</name>
+        <initializer>= &quot;DESC&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="134" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" bodystart="134" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="expression__utils_8hpp_1a5124a6fe9cb0860668bf06e913100847" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_nullary_operator</definition>
+        <argsstring>(operator_type op)</argsstring>
+        <name>is_nullary_operator</name>
+        <param>
+          <type>operator_type</type>
+          <declname>op</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="87" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="10" bodyend="18"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_unary_operator</definition>
+        <argsstring>(operator_type op)</argsstring>
+        <name>is_unary_operator</name>
+        <param>
+          <type>operator_type</type>
+          <declname>op</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="88" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="20" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ab28c6a42ddbd289232f39a5111f6ff95" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_binary_operator</definition>
+        <argsstring>(operator_type op)</argsstring>
+        <name>is_binary_operator</name>
+        <param>
+          <type>operator_type</type>
+          <declname>op</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="89" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="65" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ab852f06a7c2678e10788ef5dc79d2ab4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::type_id</type>
+        <definition>cudf::type_id get_output_type</definition>
+        <argsstring>(operator_type op, cudf::type_id input_left_type)</argsstring>
+        <name>get_output_type</name>
+        <param>
+          <type>operator_type</type>
+          <declname>op</declname>
+        </param>
+        <param>
+          <type>cudf::type_id</type>
+          <declname>input_left_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="91" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="119" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a6fce7f7944d7704c2e129080f0789150" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::type_id</type>
+        <definition>cudf::type_id get_output_type</definition>
+        <argsstring>(operator_type op, cudf::type_id input_left_type, cudf::type_id input_right_type)</argsstring>
+        <name>get_output_type</name>
+        <param>
+          <type>operator_type</type>
+          <declname>op</declname>
+        </param>
+        <param>
+          <type>cudf::type_id</type>
+          <declname>input_left_type</declname>
+        </param>
+        <param>
+          <type>cudf::type_id</type>
+          <declname>input_right_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="92" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="184" bodyend="249"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a4996fc412c775b98b4b6c010259a66b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::type_id</type>
+        <definition>cudf::type_id get_output_type</definition>
+        <argsstring>(operator_type op)</argsstring>
+        <name>get_output_type</name>
+        <param>
+          <type>operator_type</type>
+          <declname>op</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="93" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="108" bodyend="117"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a292a2199e8b6ae46c498ae9e9d9a9f7a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>operator_type</type>
+        <definition>operator_type map_to_operator_type</definition>
+        <argsstring>(const std::string &amp;operator_token)</argsstring>
+        <name>map_to_operator_type</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>operator_token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="95" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="251" bodyend="328"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ab7a098e35e96a261178c98144d8a5bde" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_null</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_null</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="97" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="330" bodyend="330"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ae308fa3babdc71d17da0e808476b2076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_number</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_number</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="98" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="334" bodyend="337"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1accf3f8108d4e72e94f48954c22212329" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_date</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_date</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="99" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="339" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a6566d1fe108173708939994b4003c605" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_hour</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_hour</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="100" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="344" bodyend="347"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a311f3203dd6a06578df17bae7acb6d2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_timestamp</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_timestamp</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="101" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="349" bodyend="353"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a3831f2bc7b7731472c597369f15fb065" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_string</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_string</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="102" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="332" bodyend="332"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a2f4aefc724c60dbbbd81620efca2181f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_bool</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_bool</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="103" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="355" bodyend="355"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a52ff43ed65bc65da4ae09e202c025be1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_SQL_data_type</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_SQL_data_type</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="104" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="357" bodyend="363"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a381839be51cf5f83ae60fb8bcb64cf64" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_operator_token</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_operator_token</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="105" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="365" bodyend="369"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a788be39db69af819766caf71baa763ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_literal</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_literal</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="106" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="371" bodyend="374"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ae7bfd7ed71a93147fb1241dc88568ed8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_var_column</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_var_column</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="107" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="376" bodyend="378"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a8405138c765230f540e9b7f028148260" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_inequality</definition>
+        <argsstring>(const std::string &amp;token)</argsstring>
+        <name>is_inequality</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="108" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="380" bodyend="382"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aa60fd2cf4a5990f75376962058107160" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string get_named_expression</definition>
+        <argsstring>(const std::string &amp;query_part, const std::string &amp;expression_name)</argsstring>
+        <name>get_named_expression</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query_part</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>expression_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="110" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="409" bodyend="419"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; get_projections</definition>
+        <argsstring>(const std::string &amp;query_part)</argsstring>
+        <name>get_projections</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="112" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="421" bodyend="453"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_union</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_union</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="137" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="455" bodyend="455"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_project</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_project</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="138" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="457" bodyend="457"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_logical_scan</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_logical_scan</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="139" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="459" bodyend="459"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_bindable_scan</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_bindable_scan</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="140" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="461" bodyend="461"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_filtered_bindable_scan</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_filtered_bindable_scan</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="141" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="463" bodyend="465"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_scan</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_scan</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="142" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="467" bodyend="467"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_filter</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_filter</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="143" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="469" bodyend="469"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_limit</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_limit</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="144" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="471" bodyend="471"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_sort</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_sort</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="145" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="473" bodyend="473"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_merge</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_merge</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="146" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="475" bodyend="475"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_partition</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_partition</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="147" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="477" bodyend="477"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_sort_and_sample</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_sort_and_sample</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="148" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="479" bodyend="479"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_single_node_partition</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_single_node_partition</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="149" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="481" bodyend="481"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_join</definition>
+        <argsstring>(const std::string &amp;query)</argsstring>
+        <name>is_join</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="150" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="483" bodyend="483"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_pairwise_join</definition>
+        <argsstring>(const std::string &amp;query)</argsstring>
+        <name>is_pairwise_join</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="151" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="485" bodyend="485"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_join_partition</definition>
+        <argsstring>(const std::string &amp;query)</argsstring>
+        <name>is_join_partition</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="152" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="487" bodyend="487"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_aggregate</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_aggregate</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="153" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="489" bodyend="489"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_compute_aggregate</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_compute_aggregate</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="154" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="491" bodyend="491"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_distribute_aggregate</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_distribute_aggregate</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="155" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="493" bodyend="493"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_merge_aggregate</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_merge_aggregate</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="156" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="495" bodyend="495"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a6b47196f0fdc0710189a2a1c7d760c9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_aggregate_merge</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_aggregate_merge</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="157" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a8075c3f3dc0522f9ac4421eaa89348df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_aggregate_partition</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_aggregate_partition</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="158" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a140d8c66182d9c7237728543252c9e56" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_aggregate_and_sample</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_aggregate_and_sample</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="159" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_window_function</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_window_function</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="160" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="497" bodyend="497"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_window_compute</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>is_window_compute</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="161" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="499" bodyend="499"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a78c873a5466379ee80ae109acc7ff2e3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool window_expression_contains_partition</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>window_expression_contains_partition</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="163" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="501" bodyend="501"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a35b2fcb233e5c7aead48cfb58a82f911" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool window_expression_contains_order</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>window_expression_contains_order</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="165" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="503" bodyend="503"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool window_expression_contains_multiple_diff_over_clauses</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>window_expression_contains_multiple_diff_over_clauses</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="167" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="508" bodyend="531"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_sum_window_function</definition>
+        <argsstring>(std::string expression)</argsstring>
+        <name>is_sum_window_function</name>
+        <param>
+          <type>std::string</type>
+          <declname>expression</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="169" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="536" bodyend="541"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool is_avg_window_function</definition>
+        <argsstring>(std::string expression)</argsstring>
+        <name>is_avg_window_function</name>
+        <param>
+          <type>std::string</type>
+          <declname>expression</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="171" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="546" bodyend="551"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string remove_over_expr</definition>
+        <argsstring>(std::string expression)</argsstring>
+        <name>remove_over_expr</name>
+        <param>
+          <type>std::string</type>
+          <declname>expression</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="173" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="555" bodyend="562"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string replace_count_expr_with_right_index</definition>
+        <argsstring>(std::string expression, size_t rigt_index)</argsstring>
+        <name>replace_count_expr_with_right_index</name>
+        <param>
+          <type>std::string</type>
+          <declname>expression</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rigt_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="175" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="568" bodyend="589"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string replace_sum0_expr_with_right_index</definition>
+        <argsstring>(std::string expression, size_t rigt_index)</argsstring>
+        <name>replace_sum0_expr_with_right_index</name>
+        <param>
+          <type>std::string</type>
+          <declname>expression</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rigt_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="177" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="595" bodyend="612"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string get_query_part</definition>
+        <argsstring>(std::string logical_plan)</argsstring>
+        <name>get_query_part</name>
+        <param>
+          <type>std::string</type>
+          <declname>logical_plan</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="179" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="616" bodyend="621"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::tuple&lt; int, int &gt;</type>
+        <definition>std::tuple&lt; int, int &gt; get_bounds_from_window_expression</definition>
+        <argsstring>(const std::string &amp;logical_plan)</argsstring>
+        <name>get_bounds_from_window_expression</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>logical_plan</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="181" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="625" bodyend="655"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string get_frame_type_from_over_clause</definition>
+        <argsstring>(const std::string &amp;logical_plan)</argsstring>
+        <name>get_frame_type_from_over_clause</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>logical_plan</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="183" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="657" bodyend="664"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string get_over_expression</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>get_over_expression</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="185" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="668" bodyend="684"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string get_first_over_expression_from_logical_plan</definition>
+        <argsstring>(const std::string &amp;logical_plan, const std::string &amp;expr)</argsstring>
+        <name>get_first_over_expression_from_logical_plan</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>logical_plan</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>expr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="187" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="688" bodyend="710"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::tuple&lt; std::vector&lt; int &gt;, std::vector&lt; std::string &gt;, std::vector&lt; int &gt; &gt;</type>
+        <definition>std::tuple&lt; std::vector&lt;int&gt;, std::vector&lt;std::string&gt;, std::vector&lt;int&gt; &gt; get_cols_to_apply_window_and_cols_to_apply_agg</definition>
+        <argsstring>(const std::string &amp;query_part)</argsstring>
+        <name>get_cols_to_apply_window_and_cols_to_apply_agg</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="190" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="717" bodyend="759"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; clean_window_function_expressions</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;expressions, size_t num_columns)</argsstring>
+        <name>clean_window_function_expressions</name>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>expressions</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>num_columns</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="192" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="766" bodyend="801"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t get_table_index</definition>
+        <argsstring>(std::vector&lt; std::string &gt; table_scans, std::string table_scan)</argsstring>
+        <name>get_table_index</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>table_scans</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>table_scan</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="195" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="804" bodyend="812"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string extract_table_name</definition>
+        <argsstring>(std::string query_part)</argsstring>
+        <name>extract_table_name</name>
+        <param>
+          <type>std::string</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="198" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="815" bodyend="832"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; get_expressions_from_expression_list</definition>
+        <argsstring>(std::string &amp;combined_expressions, bool trim=true)</argsstring>
+        <name>get_expressions_from_expression_list</name>
+        <param>
+          <type>std::string &amp;</type>
+          <declname>combined_expressions</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>trim</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="202" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="836" bodyend="890"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string replace_calcite_regex</definition>
+        <argsstring>(const std::string &amp;expression)</argsstring>
+        <name>replace_calcite_regex</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>expression</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="204" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="893" bodyend="933"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1a597392d04d4268baed76d008022c5df1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; fix_column_aliases</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;column_names, std::string expression)</argsstring>
+        <name>fix_column_aliases</name>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>column_names</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>expression</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="207" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="384" bodyend="407"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::tuple&lt; bool, bool, std::vector&lt; std::string &gt; &gt;</type>
+        <definition>std::tuple&lt; bool, bool, std::vector&lt;std::string&gt; &gt; bypassingProject</definition>
+        <argsstring>(std::string logical_plan, std::vector&lt; std::string &gt; names)</argsstring>
+        <name>bypassingProject</name>
+        <param>
+          <type>std::string</type>
+          <declname>logical_plan</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp" line="209" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.cpp" bodystart="935" bodyend="971"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;map&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;vector&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/types.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/aggregation.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">enum<sp/>class</highlight><highlight class="normal"><sp/>operator_type<sp/>{</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_INVALID_OP,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Nullary<sp/>operators</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_RAND,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Unary<sp/>operators</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_NOT,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_ABS,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_FLOOR,</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CEIL,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_SIN,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_COS,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_ASIN,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_ACOS,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_TAN,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_COTAN,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_ATAN,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_LN,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_LOG,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_YEAR,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_MONTH,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_DAY,</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_DAYOFWEEK,</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_HOUR,</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_MINUTE,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_SECOND,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_IS_NULL,</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_IS_NOT_NULL,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_TINYINT,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_SMALLINT,</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_INTEGER,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_BIGINT,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_FLOAT,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_DOUBLE,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_DATE,</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_TIMESTAMP,</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CAST_VARCHAR,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_CHAR_LENGTH,</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_LOWER,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_UPPER,</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_INITCAP,</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_REVERSE,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Binary<sp/>operators</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_ADD,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_SUB,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_MUL,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_DIV,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_MOD,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_POW,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_ROUND,</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_EQUAL,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_NOT_EQUAL,<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_LESS,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_GREATER,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_LESS_EQUAL,<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_GREATER_EQUAL,<sp/><sp/></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_BITWISE_AND,<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_BITWISE_OR,<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_BITWISE_XOR,<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_LOGICAL_AND,<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_LOGICAL_OR,<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_FIRST_NON_MAGIC,</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_MAGIC_IF_NOT,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_LIKE,</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_SUBSTRING,</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_REGEXP_REPLACE,</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_CONCAT,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_REPLACE,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_LEFT,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_RIGHT,</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_TO_DATE,</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_TO_TIMESTAMP,</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>BLZ_STR_TRIM,</highlight></codeline>
+<codeline lineno="84"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_nullary_operator(operator_type<sp/>op);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_unary_operator(operator_type<sp/>op);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_binary_operator(operator_type<sp/>op);</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal">cudf::type_id<sp/>get_output_type(operator_type<sp/>op,<sp/>cudf::type_id<sp/>input_left_type);</highlight></codeline>
+<codeline lineno="92"><highlight class="normal">cudf::type_id<sp/>get_output_type(operator_type<sp/>op,<sp/>cudf::type_id<sp/>input_left_type,<sp/>cudf::type_id<sp/>input_right_type);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal">cudf::type_id<sp/>get_output_type(operator_type<sp/>op);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal">operator_type<sp/>map_to_operator_type(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>operator_token);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_null(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_number(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_date(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_hour(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_timestamp(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_string(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_bool(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_SQL_data_type(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_operator_token(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_literal(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_var_column(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_inequality(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal">std::string<sp/>get_named_expression(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>expression_name);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal">std::vector&lt;int&gt;<sp/>get_projections(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_JOIN_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalJoin&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_PARTWISE_JOIN_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;PartwiseJoin&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_JOIN_PARTITION_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;JoinPartition&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_UNION_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalUnion&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_SCAN_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalTableScan&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>BINDABLE_SCAN_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;BindableTableScan&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_AGGREGATE_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalAggregate&quot;</highlight><highlight class="normal">;<sp/><sp/></highlight><highlight class="comment">//<sp/>this<sp/>is<sp/>the<sp/>base<sp/>Aggregate<sp/>that<sp/>gets<sp/>replaced</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_COMPUTE_AGGREGATE_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;ComputeAggregate&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_DISTRIBUTE_AGGREGATE_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;DistributeAggregate&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_MERGE_AGGREGATE_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;MergeAggregate&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_PROJECT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalProject&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_LIMIT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalLimit&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_SORT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalSort&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_MERGE_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalMerge&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_PARTITION_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalPartition&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_SORT_AND_SAMPLE_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;Logical_SortAndSample&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_SINGLE_NODE_PARTITION_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalSingleNodePartition&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_FILTER_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalFilter&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LOGICAL_COMPUTE_WINDOW_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;LogicalComputeWindow&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>ASCENDING_ORDER_SORT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;ASC&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>DESCENDING_ORDER_SORT_TEXT<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;DESC&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_union(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_project(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_logical_scan(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_bindable_scan(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_filtered_bindable_scan(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_scan(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_filter(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_limit(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_sort(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_merge(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_partition(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_sort_and_sample(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_single_node_partition(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_join(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query);</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_pairwise_join(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query);</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_join_partition(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_aggregate(std::string<sp/>query_part);<sp/></highlight><highlight class="comment">//<sp/>this<sp/>is<sp/>the<sp/>base<sp/>Aggregate<sp/>that<sp/>gets<sp/>replaced</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_compute_aggregate(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_distribute_aggregate(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_merge_aggregate(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_aggregate_merge(std::string<sp/>query_part);<sp/></highlight><highlight class="comment">//<sp/>to<sp/>be<sp/>deprecated</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_aggregate_partition(std::string<sp/>query_part);<sp/></highlight><highlight class="comment">//<sp/>to<sp/>be<sp/>deprecated</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_aggregate_and_sample(std::string<sp/>query_part);<sp/></highlight><highlight class="comment">//<sp/>to<sp/>be<sp/>deprecated</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_window_function(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_window_compute(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>window_expression_contains_partition(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>window_expression_contains_order(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>window_expression_contains_multiple_diff_over_clauses(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_sum_window_function(std::string<sp/>expression);</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_avg_window_function(std::string<sp/>expression);</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal">std::string<sp/>remove_over_expr(std::string<sp/>expression);</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal">std::string<sp/>replace_count_expr_with_right_index(std::string<sp/>expression,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rigt_index);</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"></highlight></codeline>
+<codeline lineno="177"><highlight class="normal">std::string<sp/>replace_sum0_expr_with_right_index(std::string<sp/>expression,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rigt_index);</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal">std::string<sp/>get_query_part(std::string<sp/>logical_plan);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal">std::tuple&lt;<sp/>int,<sp/>int<sp/>&gt;<sp/>get_bounds_from_window_expression(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>logical_plan);</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal">std::string<sp/>get_frame_type_from_over_clause(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>logical_plan);</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"></highlight></codeline>
+<codeline lineno="185"><highlight class="normal">std::string<sp/>get_over_expression(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal">std::string<sp/>get_first_over_expression_from_logical_plan(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>logical_plan,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>expr);</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"></highlight></codeline>
+<codeline lineno="189"><highlight class="normal">std::tuple&lt;<sp/>std::vector&lt;int&gt;,<sp/>std::vector&lt;std::string&gt;,<sp/>std::vector&lt;int&gt;<sp/>&gt;<sp/></highlight></codeline>
+<codeline lineno="190"><highlight class="normal">get_cols_to_apply_window_and_cols_to_apply_agg(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part);</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal">std::vector&lt;std::string&gt;<sp/>clean_window_function_expressions(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;std::string&gt;<sp/>&amp;<sp/>expressions,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>num_columns);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Returns<sp/>the<sp/>index<sp/>from<sp/>table_scan<sp/>if<sp/>exists</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>get_table_index(std::vector&lt;std::string&gt;<sp/>table_scans,<sp/>std::string<sp/>table_scan);</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Input:<sp/>[[hr,<sp/>emps]]<sp/>or<sp/>[[emps]]<sp/>Output:<sp/>hr.emps<sp/>or<sp/>emps</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="198"><highlight class="normal">std::string<sp/>extract_table_name(std::string<sp/>query_part);</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"></highlight><highlight class="comment">//<sp/>takes<sp/>a<sp/>comma<sp/>delimited<sp/>list<sp/>of<sp/>expressions<sp/>and<sp/>splits<sp/>it<sp/>into<sp/>separate<sp/>expressions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal"></highlight><highlight class="comment">//<sp/>if<sp/>the<sp/>flag<sp/>trim<sp/>is<sp/>true,<sp/>leading<sp/>and<sp/>trailing<sp/>spaces<sp/>are<sp/>removed</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal">std::vector&lt;std::string&gt;<sp/>get_expressions_from_expression_list(std::string<sp/>&amp;<sp/>combined_expressions,<sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>trim<sp/>=<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"></highlight></codeline>
+<codeline lineno="204"><highlight class="normal">std::string<sp/>replace_calcite_regex(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>expression);</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"></highlight></codeline>
+<codeline lineno="206"><highlight class="normal"></highlight><highlight class="comment">//Returns<sp/>the<sp/>column<sp/>names<sp/>according<sp/>to<sp/>the<sp/>corresponding<sp/>algebra<sp/>expression</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="207"><highlight class="normal">std::vector&lt;std::string&gt;<sp/>fix_column_aliases(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;std::string&gt;<sp/>&amp;<sp/>column_names,<sp/>std::string<sp/>expression);</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal">std::tuple&lt;<sp/>bool,<sp/>bool,<sp/>std::vector&lt;std::string&gt;<sp/>&gt;<sp/>bypassingProject(std::string<sp/>logical_plan,<sp/>std::vector&lt;std::string&gt;<sp/>names);</highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp"/>
+  </compounddef>
+</doxygen>

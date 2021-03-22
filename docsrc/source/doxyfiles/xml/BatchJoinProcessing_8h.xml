@@ -1,0 +1,906 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="BatchJoinProcessing_8h" kind="file" language="C++">
+    <compoundname>BatchJoinProcessing.h</compoundname>
+    <includes local="no">tuple</includes>
+    <includes refid="BatchProcessing_8h" local="yes">BatchProcessing.h</includes>
+    <includes refid="distributing__kernel_8h" local="yes">taskflow/distributing_kernel.h</includes>
+    <includedby refid="PhysicalPlanGenerator_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</includedby>
+    <includedby refid="BatchJoinProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp</includedby>
+    <incdepgraph>
+      <node id="2542">
+        <label>atomic</label>
+      </node>
+      <node id="2583">
+        <label>config/GPUManager.cuh</label>
+      </node>
+      <node id="2578">
+        <label>rmm/mr/device/managed_memory_resource.hpp</label>
+      </node>
+      <node id="2618">
+        <label>functional</label>
+      </node>
+      <node id="2621">
+        <label>queue</label>
+      </node>
+      <node id="2541">
+        <label>CacheMachine.h</label>
+        <link refid="CacheMachine_8h_source"/>
+        <childnode refid="2542" relation="include">
+        </childnode>
+        <childnode refid="2543" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2545" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2549" relation="include">
+        </childnode>
+        <childnode refid="2550" relation="include">
+        </childnode>
+        <childnode refid="2551" relation="include">
+        </childnode>
+        <childnode refid="2555" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+        <childnode refid="2568" relation="include">
+        </childnode>
+        <childnode refid="2570" relation="include">
+        </childnode>
+        <childnode refid="2586" relation="include">
+        </childnode>
+        <childnode refid="2554" relation="include">
+        </childnode>
+        <childnode refid="2587" relation="include">
+        </childnode>
+        <childnode refid="2597" relation="include">
+        </childnode>
+        <childnode refid="2600" relation="include">
+        </childnode>
+        <childnode refid="2608" relation="include">
+        </childnode>
+        <childnode refid="2609" relation="include">
+        </childnode>
+      </node>
+      <node id="2557">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="2558" relation="include">
+        </childnode>
+        <childnode refid="2559" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2560" relation="include">
+        </childnode>
+        <childnode refid="2562" relation="include">
+        </childnode>
+      </node>
+      <node id="2595">
+        <label>cudf/scalar/scalar_device_view.cuh</label>
+      </node>
+      <node id="2600">
+        <label>communication/messages/GPUComponentMessage.h</label>
+        <link refid="GPUComponentMessage_8h_source"/>
+        <childnode refid="2549" relation="include">
+        </childnode>
+        <childnode refid="2588" relation="include">
+        </childnode>
+        <childnode refid="2589" relation="include">
+        </childnode>
+        <childnode refid="2590" relation="include">
+        </childnode>
+        <childnode refid="2563" relation="include">
+        </childnode>
+        <childnode refid="2569" relation="include">
+        </childnode>
+        <childnode refid="2601" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2602" relation="include">
+        </childnode>
+        <childnode refid="2538" relation="include">
+        </childnode>
+        <childnode refid="2603" relation="include">
+        </childnode>
+        <childnode refid="2604" relation="include">
+        </childnode>
+        <childnode refid="2561" relation="include">
+        </childnode>
+        <childnode refid="2605" relation="include">
+        </childnode>
+        <childnode refid="2606" relation="include">
+        </childnode>
+        <childnode refid="2550" relation="include">
+        </childnode>
+        <childnode refid="2607" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+        <childnode refid="2562" relation="include">
+        </childnode>
+      </node>
+      <node id="2584">
+        <label>sys/sysinfo.h</label>
+      </node>
+      <node id="2593">
+        <label>cudf/scalar/scalar_factories.hpp</label>
+      </node>
+      <node id="2612">
+        <label>kernel_type.h</label>
+        <link refid="kernel__type_8h_source"/>
+        <childnode refid="2546" relation="include">
+        </childnode>
+      </node>
+      <node id="2564">
+        <label>cstdint</label>
+      </node>
+      <node id="2576">
+        <label>rmm/mr/device/owning_wrapper.hpp</label>
+      </node>
+      <node id="2581">
+        <label>rmm/mr/device/logging_resource_adaptor.hpp</label>
+      </node>
+      <node id="2560">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="2561" relation="include">
+        </childnode>
+        <childnode refid="2558" relation="include">
+        </childnode>
+        <childnode refid="2559" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+      </node>
+      <node id="2569">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+      </node>
+      <node id="2603">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="2551">
+        <label>error.hpp</label>
+        <link refid="error_8hpp_source"/>
+        <childnode refid="2552" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2553" relation="include">
+        </childnode>
+        <childnode refid="2554" relation="include">
+        </childnode>
+      </node>
+      <node id="2571">
+        <label>cassert</label>
+      </node>
+      <node id="2577">
+        <label>rmm/mr/device/cuda_memory_resource.hpp</label>
+      </node>
+      <node id="2580">
+        <label>rmm/mr/device/arena_memory_resource.hpp</label>
+      </node>
+      <node id="2602">
+        <label>numeric</label>
+      </node>
+      <node id="2574">
+        <label>rmm/cuda_stream_view.hpp</label>
+      </node>
+      <node id="2546">
+        <label>string</label>
+      </node>
+      <node id="2539">
+        <label>BatchProcessing.h</label>
+        <link refid="BatchProcessing_8h_source"/>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2541" relation="include">
+        </childnode>
+        <childnode refid="2610" relation="include">
+        </childnode>
+        <childnode refid="2598" relation="include">
+        </childnode>
+        <childnode refid="2622" relation="include">
+        </childnode>
+        <childnode refid="2611" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+      </node>
+      <node id="2548">
+        <label>map</label>
+      </node>
+      <node id="2605">
+        <label>cudf/null_mask.hpp</label>
+      </node>
+      <node id="2614">
+        <label>kpair.h</label>
+        <link refid="kpair_8h_source"/>
+        <childnode refid="2613" relation="include">
+        </childnode>
+        <childnode refid="2611" relation="include">
+        </childnode>
+      </node>
+      <node id="2625">
+        <label>distribution/primitives.h</label>
+        <link refid="primitives_8h_source"/>
+        <childnode refid="2568" relation="include">
+        </childnode>
+        <childnode refid="2626" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+      </node>
+      <node id="2589">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="2562">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2550" relation="include">
+        </childnode>
+        <childnode refid="2563" relation="include">
+        </childnode>
+        <childnode refid="2565" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+      </node>
+      <node id="2554">
+        <label>exception</label>
+      </node>
+      <node id="2609">
+        <label>WaitingQueue.h</label>
+        <link refid="WaitingQueue_8h_source"/>
+        <childnode refid="2542" relation="include">
+        </childnode>
+        <childnode refid="2543" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2545" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2549" relation="include">
+        </childnode>
+        <childnode refid="2554" relation="include">
+        </childnode>
+      </node>
+      <node id="2568">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2569" relation="include">
+        </childnode>
+      </node>
+      <node id="2608">
+        <label>CacheData.h</label>
+        <link refid="CacheData_8h_source"/>
+        <childnode refid="2542" relation="include">
+        </childnode>
+        <childnode refid="2543" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2545" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2549" relation="include">
+        </childnode>
+        <childnode refid="2550" relation="include">
+        </childnode>
+        <childnode refid="2551" relation="include">
+        </childnode>
+        <childnode refid="2555" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+        <childnode refid="2568" relation="include">
+        </childnode>
+        <childnode refid="2570" relation="include">
+        </childnode>
+        <childnode refid="2586" relation="include">
+        </childnode>
+        <childnode refid="2554" relation="include">
+        </childnode>
+        <childnode refid="2587" relation="include">
+        </childnode>
+        <childnode refid="2597" relation="include">
+        </childnode>
+        <childnode refid="2600" relation="include">
+        </childnode>
+      </node>
+      <node id="2587">
+        <label>io/data_provider/DataProvider.h</label>
+        <link refid="DataProvider_8h_source"/>
+        <childnode refid="2549" relation="include">
+        </childnode>
+        <childnode refid="2588" relation="include">
+        </childnode>
+        <childnode refid="2589" relation="include">
+        </childnode>
+        <childnode refid="2590" relation="include">
+        </childnode>
+        <childnode refid="2591" relation="include">
+        </childnode>
+        <childnode refid="2592" relation="include">
+        </childnode>
+        <childnode refid="2593" relation="include">
+        </childnode>
+        <childnode refid="2550" relation="include">
+        </childnode>
+        <childnode refid="2594" relation="include">
+        </childnode>
+        <childnode refid="2595" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2596" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+      </node>
+      <node id="2607">
+        <label>cudf/strings/strings_column_view.hpp</label>
+      </node>
+      <node id="2549">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="2559">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="2617">
+        <label>utilities/ctpl_stl.h</label>
+        <link refid="ctpl__stl_8h_source"/>
+        <childnode refid="2618" relation="include">
+        </childnode>
+        <childnode refid="2619" relation="include">
+        </childnode>
+        <childnode refid="2542" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2554" relation="include">
+        </childnode>
+        <childnode refid="2620" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2621" relation="include">
+        </childnode>
+      </node>
+      <node id="2598">
+        <label>../Schema.h</label>
+        <link refid="Schema_8h_source"/>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2550" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+      </node>
+      <node id="2591">
+        <label>arrow/io/interfaces.h</label>
+      </node>
+      <node id="2545">
+        <label>condition_variable</label>
+      </node>
+      <node id="2616">
+        <label>ExceptionHandling/BlazingThread.h</label>
+      </node>
+      <node id="2601">
+        <label>communication/messages/MessageUtil.cuh</label>
+      </node>
+      <node id="2585">
+        <label>sys/statvfs.h</label>
+      </node>
+      <node id="2594">
+        <label>cudf/utilities/type_dispatcher.hpp</label>
+      </node>
+      <node id="2538">
+        <label>tuple</label>
+      </node>
+      <node id="2620">
+        <label>future</label>
+      </node>
+      <node id="2588">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="2611">
+        <label>kernel.h</label>
+        <link refid="kernel_8h_source"/>
+        <childnode refid="2612" relation="include">
+        </childnode>
+        <childnode refid="2613" relation="include">
+        </childnode>
+        <childnode refid="2610" relation="include">
+        </childnode>
+      </node>
+      <node id="2566">
+        <label>stack</label>
+      </node>
+      <node id="2547">
+        <label>vector</label>
+      </node>
+      <node id="2563">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="2564" relation="include">
+        </childnode>
+      </node>
+      <node id="2606">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="2604">
+        <label>cudf/column/column.hpp</label>
+      </node>
+      <node id="2567">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="2590">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="2565">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2566" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2567" relation="include">
+        </childnode>
+      </node>
+      <node id="2597">
+        <label>io/data_parser/DataParser.h</label>
+        <link refid="DataParser_8h_source"/>
+        <childnode refid="2598" relation="include">
+        </childnode>
+        <childnode refid="2599" relation="include">
+        </childnode>
+        <childnode refid="2587" relation="include">
+        </childnode>
+        <childnode refid="2557" relation="include">
+        </childnode>
+        <childnode refid="2591" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+      </node>
+      <node id="2550">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="2615">
+        <label>bmr/MemoryMonitor.h</label>
+        <link refid="MemoryMonitor_8h_source"/>
+        <childnode refid="2545" relation="include">
+        </childnode>
+        <childnode refid="2540" relation="include">
+        </childnode>
+        <childnode refid="2556" relation="include">
+        </childnode>
+        <childnode refid="2616" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+      </node>
+      <node id="2582">
+        <label>rmm/mr/device/per_device_resource.hpp</label>
+      </node>
+      <node id="2599">
+        <label>../DataType.h</label>
+        <link refid="DataType_8h_source"/>
+      </node>
+      <node id="2586">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="2567" relation="include">
+        </childnode>
+        <childnode refid="2569" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+      </node>
+      <node id="2610">
+        <label>taskflow/graph.h</label>
+        <link refid="graph_8h_source"/>
+        <childnode refid="2611" relation="include">
+        </childnode>
+        <childnode refid="2614" relation="include">
+        </childnode>
+        <childnode refid="2541" relation="include">
+        </childnode>
+        <childnode refid="2615" relation="include">
+        </childnode>
+        <childnode refid="2617" relation="include">
+        </childnode>
+      </node>
+      <node id="2613">
+        <label>port.h</label>
+        <link refid="port_8h_source"/>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+        <childnode refid="2546" relation="include">
+        </childnode>
+        <childnode refid="2541" relation="include">
+        </childnode>
+      </node>
+      <node id="2552">
+        <label>iostream</label>
+      </node>
+      <node id="2561">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="2543">
+        <label>deque</label>
+      </node>
+      <node id="2540">
+        <label>mutex</label>
+      </node>
+      <node id="2573">
+        <label>cuda_runtime_api.h</label>
+      </node>
+      <node id="2556">
+        <label>chrono</label>
+      </node>
+      <node id="2596">
+        <label>blazingdb/io/FileSystem/Uri.h</label>
+      </node>
+      <node id="2555">
+        <label>CodeTimer.h</label>
+        <link refid="CodeTimer_8h_source"/>
+        <childnode refid="2556" relation="include">
+        </childnode>
+      </node>
+      <node id="2575">
+        <label>rmm/mr/device/device_memory_resource.hpp</label>
+      </node>
+      <node id="2619">
+        <label>thread</label>
+      </node>
+      <node id="2570">
+        <label>bmr/BlazingMemoryResource.h</label>
+        <link refid="BlazingMemoryResource_8h_source"/>
+        <childnode refid="2571" relation="include">
+        </childnode>
+        <childnode refid="2542" relation="include">
+        </childnode>
+        <childnode refid="2572" relation="include">
+        </childnode>
+        <childnode refid="2573" relation="include">
+        </childnode>
+        <childnode refid="2574" relation="include">
+        </childnode>
+        <childnode refid="2575" relation="include">
+        </childnode>
+        <childnode refid="2576" relation="include">
+        </childnode>
+        <childnode refid="2577" relation="include">
+        </childnode>
+        <childnode refid="2578" relation="include">
+        </childnode>
+        <childnode refid="2579" relation="include">
+        </childnode>
+        <childnode refid="2580" relation="include">
+        </childnode>
+        <childnode refid="2581" relation="include">
+        </childnode>
+        <childnode refid="2582" relation="include">
+        </childnode>
+        <childnode refid="2583" relation="include">
+        </childnode>
+        <childnode refid="2584" relation="include">
+        </childnode>
+        <childnode refid="2585" relation="include">
+        </childnode>
+      </node>
+      <node id="2624">
+        <label>taskflow/distributing_kernel.h</label>
+        <link refid="distributing__kernel_8h_source"/>
+        <childnode refid="2542" relation="include">
+        </childnode>
+        <childnode refid="2548" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2625" relation="include">
+        </childnode>
+        <childnode refid="2541" relation="include">
+        </childnode>
+        <childnode refid="2568" relation="include">
+        </childnode>
+        <childnode refid="2611" relation="include">
+        </childnode>
+      </node>
+      <node id="2579">
+        <label>rmm/mr/device/pool_memory_resource.hpp</label>
+      </node>
+      <node id="2572">
+        <label>set</label>
+      </node>
+      <node id="2558">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="2626">
+        <label>communication/factory/MessageFactory.h</label>
+        <link refid="MessageFactory_8h_source"/>
+      </node>
+      <node id="2622">
+        <label>io/DataLoader.h</label>
+        <link refid="DataLoader_8h_source"/>
+        <childnode refid="2623" relation="include">
+        </childnode>
+        <childnode refid="2597" relation="include">
+        </childnode>
+        <childnode refid="2587" relation="include">
+        </childnode>
+        <childnode refid="2591" relation="include">
+        </childnode>
+        <childnode refid="2568" relation="include">
+        </childnode>
+        <childnode refid="2547" relation="include">
+        </childnode>
+        <childnode refid="2544" relation="include">
+        </childnode>
+      </node>
+      <node id="2553">
+        <label>cudf/utilities/error.hpp</label>
+      </node>
+      <node id="2537">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h</label>
+        <link refid="BatchJoinProcessing_8h"/>
+        <childnode refid="2538" relation="include">
+        </childnode>
+        <childnode refid="2539" relation="include">
+        </childnode>
+        <childnode refid="2624" relation="include">
+        </childnode>
+      </node>
+      <node id="2592">
+        <label>cudf/scalar/scalar.hpp</label>
+      </node>
+      <node id="2544">
+        <label>memory</label>
+      </node>
+      <node id="2623">
+        <label>FileSystem/Uri.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2628">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</label>
+        <link refid="PhysicalPlanGenerator_8h_source"/>
+      </node>
+      <node id="2627">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h</label>
+        <link refid="BatchJoinProcessing_8h"/>
+        <childnode refid="2628" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classral_1_1batch_1_1PartwiseJoin" prot="public">ral::batch::PartwiseJoin</innerclass>
+    <innerclass refid="classral_1_1batch_1_1JoinPartitionKernel" prot="public">ral::batch::JoinPartitionKernel</innerclass>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1batch">ral::batch</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;tuple&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;BatchProcessing.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;taskflow/distributing_kernel.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">batch<sp/>{</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1distributing__kernel" kindref="compound">ral::cache::distributing_kernel</ref>;</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/>ral::cache::kstatus;</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref>;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/>ral::cache::kernel_type;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/>Context<sp/>=<sp/><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref>;</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespacefmt_1_1literals" kindref="compound">fmt::literals</ref>;</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>INNER_JOIN<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;inner&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>LEFT_JOIN<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;left&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>RIGHT_JOIN<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;right&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>OUTER_JOIN<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;full&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>CROSS_JOIN<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;cross&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>LEFT_TABLE_IDX<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>RIGHT_TABLE_IDX<sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>This<sp/>function<sp/>takes<sp/>in<sp/>the<sp/>relational<sp/>algrebra<sp/>expression<sp/>and<sp/>returns:</highlight></codeline>
+<codeline lineno="27"><highlight class="comment">-<sp/>modified<sp/>relational<sp/>algebra<sp/>expression</highlight></codeline>
+<codeline lineno="28"><highlight class="comment">-<sp/>join<sp/>condition</highlight></codeline>
+<codeline lineno="29"><highlight class="comment">-<sp/>filter_statement</highlight></codeline>
+<codeline lineno="30"><highlight class="comment">-<sp/>join<sp/>type<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal">std::tuple&lt;std::string,<sp/>std::string,<sp/>std::string,<sp/>std::string&gt;<sp/>parseExpressionToGetTypeAndCondition(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>expression);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>parseJoinConditionToColumnIndices(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>condition,<sp/>std::vector&lt;int&gt;<sp/>&amp;<sp/>columnIndices);</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>split_inequality_join_into_join_and_filter(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>join_statement,<sp/>std::string<sp/>&amp;<sp/>new_join_statement,<sp/>std::string<sp/>&amp;<sp/>filter_statement);</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37" refid="classral_1_1batch_1_1PartwiseJoin" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1batch_1_1PartwiseJoin" kindref="compound">PartwiseJoin</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref><sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1batch_1_1PartwiseJoin" kindref="compound">PartwiseJoin</ref>(std::size_t<sp/>kernel_id,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>queryString,<sp/>std::shared_ptr&lt;Context&gt;<sp/>context,<sp/>std::shared_ptr&lt;ral::cache::graph&gt;<sp/>query_graph);</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>kernel_name()<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;PartwiseJoin&quot;</highlight><highlight class="normal">;}</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>join_set(</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table_left,</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table_right);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref><sp/>do_process(std::vector&lt;std::unique_ptr&lt;ral::frame::BlazingTable&gt;&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cudaStream_t<sp/>stream,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>kstatus<sp/>run()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>get_join_type();</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::cache::CacheData&gt;<sp/>load_left_set();</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::cache::CacheData&gt;<sp/>load_right_set();</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mark_set_completed(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>left_ind,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>right_ind);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>This<sp/>function<sp/>checks<sp/>to<sp/>see<sp/>if<sp/>there<sp/>is<sp/>a<sp/>set<sp/>from<sp/>our<sp/>current<sp/>completion_matix<sp/>(data<sp/>we<sp/>have<sp/>already<sp/>loaded<sp/>once)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>that<sp/>we<sp/>have<sp/>not<sp/>completed<sp/>that<sp/>uses<sp/>one<sp/>of<sp/>our<sp/>current<sp/>indices,<sp/>otherwise<sp/>it<sp/>returns<sp/>[-1,<sp/>-1]</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tuple&lt;int,<sp/>int&gt;<sp/>check_for_another_set_to_do_with_data_we_already_have(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>left_ind<sp/>=<sp/>-1,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>right_ind<sp/>=<sp/>-1);</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>This<sp/>function<sp/>returns<sp/>the<sp/>first<sp/>not<sp/>completed<sp/>set,<sp/>otherwise<sp/>it<sp/>returns<sp/>[-1,<sp/>-1]</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>std::tuple&lt;int,<sp/>int&gt;<sp/>check_for_set_that_has_not_been_completed();</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>This<sp/>function<sp/>makes<sp/>sure<sp/>that<sp/>the<sp/>columns<sp/>being<sp/>joined<sp/>are<sp/>of<sp/>the<sp/>same<sp/>type<sp/>so<sp/>that<sp/>we<sp/>can<sp/>join<sp/>them<sp/>properly</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>computeNormalizationData(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;cudf::data_type&gt;<sp/>&amp;<sp/>left_types,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;cudf::data_type&gt;<sp/>&amp;<sp/>right_types);</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>left_input;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>right_input;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>max_left_ind;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>max_right_ind;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::vector&lt;bool&gt;&gt;<sp/>completion_matrix;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>leftArrayCache;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>rightArrayCache;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>parsed<sp/>expression<sp/>related<sp/>parameters</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>join_type;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>condition;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>filter_statement;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::size_type&gt;<sp/>left_column_indices,<sp/>right_column_indices;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::data_type&gt;<sp/>join_column_common_types;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>normalize_left,<sp/>normalize_right;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>result_names;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93" refid="classral_1_1batch_1_1JoinPartitionKernel" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1batch_1_1JoinPartitionKernel" kindref="compound">JoinPartitionKernel</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1distributing__kernel" kindref="compound">distributing_kernel</ref><sp/>{</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1batch_1_1JoinPartitionKernel" kindref="compound">JoinPartitionKernel</ref>(std::size_t<sp/>kernel_id,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>queryString,<sp/>std::shared_ptr&lt;Context&gt;<sp/>context,<sp/>std::shared_ptr&lt;ral::cache::graph&gt;<sp/>query_graph);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref><sp/>do_process(std::vector&lt;std::unique_ptr&lt;ral::frame::BlazingTable&gt;&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cudaStream_t<sp/>stream,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>kstatus<sp/>run()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>get_join_type();</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>kernel_name()<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;JoinPartition&quot;</highlight><highlight class="normal">;}</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>this<sp/>function<sp/>makes<sp/>sure<sp/>that<sp/>the<sp/>columns<sp/>being<sp/>joined<sp/>are<sp/>of<sp/>the<sp/>same<sp/>type<sp/>so<sp/>that<sp/>we<sp/>can<sp/>join<sp/>them<sp/>properly</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>computeNormalizationData(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;cudf::data_type&gt;<sp/>&amp;<sp/>left_types,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::data_type&gt;<sp/>&amp;<sp/>right_types);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/>std::pair&lt;bool,<sp/>bool&gt;<sp/>determine_if_we_are_scattering_a_small_table(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref>&amp;<sp/>left_cache_data,</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref>&amp;<sp/>right_cache_data);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>perform_standard_hash_partitioning(</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::cache::CacheData&gt;<sp/>left_cache_data,</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::cache::CacheData&gt;<sp/>right_cache_data,</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>left_input,</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>right_input);</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>small_table_scatter_distribution(std::unique_ptr&lt;ral::cache::CacheData&gt;<sp/>small_cache_data,</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::unique_ptr&lt;ral::cache::CacheData&gt;<sp/>big_cache_data,</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>small_input,</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>big_input);</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>std::pair&lt;bool,<sp/>bool&gt;<sp/>scatter_left_right<sp/>=<sp/>{</highlight><highlight class="keyword">false</highlight><highlight class="normal">,<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">};</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>parsed<sp/>expression<sp/>related<sp/>parameters</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>join_type;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>condition;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>filter_statement;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::size_type&gt;<sp/>left_column_indices,<sp/>right_column_indices;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::data_type&gt;<sp/>join_column_common_types;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>normalize_left,<sp/>normalize_right;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>batch</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h"/>
+  </compounddef>
+</doxygen>

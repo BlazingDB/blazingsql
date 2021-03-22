@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class data_provider &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class dummy_data_provider" href="classral_1_1io_1_1dummy__data__provider.html" />
+    <link rel="prev" title="Class data_parser" href="classral_1_1io_1_1data__parser.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#derived-types" class="nav-link">Derived Types</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/classral_1_1io_1_1data__provider.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="class-data-provider">
+<span id="exhale-class-classral-1-1io-1-1data-provider"></span><h1>Class data_provider<a class="headerlink" href="#class-data-provider" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_provider_DataProvider.h.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-io-data-provider-dataprovider-h"><span class="std std-ref">File DataProvider.h</span></a></p></li>
+</ul>
+<div class="section" id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="derived-types">
+<h3>Derived Types<a class="headerlink" href="#derived-types" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">ral::io::dummy_data_provider</span></code> (<a class="reference internal" href="classral_1_1io_1_1dummy__data__provider.html#exhale-class-classral-1-1io-1-1dummy-data-provider"><span class="std std-ref">Class dummy_data_provider</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">ral::io::gdf_data_provider</span></code> (<a class="reference internal" href="classral_1_1io_1_1gdf__data__provider.html#exhale-class-classral-1-1io-1-1gdf-data-provider"><span class="std std-ref">Class gdf_data_provider</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">ral::io::uri_data_provider</span></code> (<a class="reference internal" href="classral_1_1io_1_1uri__data__provider.html#exhale-class-classral-1-1io-1-1uri-data-provider"><span class="std std-ref">Class uri_data_provider</span></a>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral2io13data_providerE">
+<span id="_CPPv3N3ral2io13data_providerE"></span><span id="_CPPv2N3ral2io13data_providerE"></span><span id="ral::io::data_provider"></span><span class="target" id="classral_1_1io_1_1data__provider"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">data_provider</code><a class="headerlink" href="#_CPPv4N3ral2io13data_providerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A class we can use which will be the base for all of our data providers </p>
+<p>Subclassed by <a class="reference internal" href="classral_1_1io_1_1dummy__data__provider.html#classral_1_1io_1_1dummy__data__provider"><span class="std std-ref">ral::io::dummy_data_provider</span></a>, <a class="reference internal" href="classral_1_1io_1_1gdf__data__provider.html#classral_1_1io_1_1gdf__data__provider"><span class="std std-ref">ral::io::gdf_data_provider</span></a>, <a class="reference internal" href="classral_1_1io_1_1uri__data__provider.html#classral_1_1io_1_1uri__data__provider"><span class="std std-ref">ral::io::uri_data_provider</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider5cloneEv">
+<span id="_CPPv3N3ral2io13data_provider5cloneEv"></span><span id="_CPPv2N3ral2io13data_provider5cloneEv"></span><span id="ral::io::data_provider::clone"></span><span class="target" id="classral_1_1io_1_1data__provider_1afff64b38ec3107e2e63edf6773ab7414"></span>std::shared_ptr&lt;<a class="reference internal" href="#_CPPv4N3ral2io13data_providerE" title="ral::io::data_provider">data_provider</a>&gt; <code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider5cloneEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider8has_nextEv">
+<span id="_CPPv3N3ral2io13data_provider8has_nextEv"></span><span id="_CPPv2N3ral2io13data_provider8has_nextEv"></span><span id="ral::io::data_provider::has_next"></span><span class="target" id="classral_1_1io_1_1data__provider_1a92176228bbef65093853e2e2165a6d71"></span>bool <code class="sig-name descname">has_next</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider8has_nextEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>tells us if this provider can generate more arrow::io::RandomAccessFile instances </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider5resetEv">
+<span id="_CPPv3N3ral2io13data_provider5resetEv"></span><span id="_CPPv2N3ral2io13data_provider5resetEv"></span><span id="ral::io::data_provider::reset"></span><span class="target" id="classral_1_1io_1_1data__provider_1ab762cbdb9fd702a61b48785c84e91536"></span>void <code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider5resetEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Resets file read count to 0 for file based DataProvider </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider8get_nextEb">
+<span id="_CPPv3N3ral2io13data_provider8get_nextEb"></span><span id="_CPPv2N3ral2io13data_provider8get_nextEb"></span><span id="ral::io::data_provider::get_next__b"></span><span class="target" id="classral_1_1io_1_1data__provider_1aa49cde8c92f3bc4e9fcbe2e8f34e7ba3"></span><a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <code class="sig-name descname">get_next</code><span class="sig-paren">(</span>bool <em>open_file</em> = true<span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider8get_nextEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>gets us the next arrow::io::RandomAccessFile </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider8get_someENSt6size_tEb">
+<span id="_CPPv3N3ral2io13data_provider8get_someENSt6size_tEb"></span><span id="_CPPv2N3ral2io13data_provider8get_someENSt6size_tEb"></span><span id="ral::io::data_provider::get_some__std::s.b"></span><span class="target" id="classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548"></span>std::vector&lt;<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a>&gt; <code class="sig-name descname">get_some</code><span class="sig-paren">(</span>std::size_t <em>num_files</em>, bool <em>open_file</em> = true<span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider8get_someENSt6size_tEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, trying to get too many file handles will cause a crash. Using <a class="reference internal" href="#classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548"><span class="std std-ref">get_some()</span></a> forces breaking up the process of getting file_handles. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider18close_file_handlesEv">
+<span id="_CPPv3N3ral2io13data_provider18close_file_handlesEv"></span><span id="_CPPv2N3ral2io13data_provider18close_file_handlesEv"></span><span id="ral::io::data_provider::close_file_handles"></span><span class="target" id="classral_1_1io_1_1data__provider_1afa6216bccde854b011ed098e114ba8b3"></span>void <code class="sig-name descname">close_file_handles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider18close_file_handlesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Closes currently open set of file handles maintained by the provider </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io13data_provider15get_num_handlesEv">
+<span id="_CPPv3N3ral2io13data_provider15get_num_handlesEv"></span><span id="_CPPv2N3ral2io13data_provider15get_num_handlesEv"></span><span id="ral::io::data_provider::get_num_handles"></span><span class="target" id="classral_1_1io_1_1data__provider_1a00ff9cc629a869d7b7e6a67c90056749"></span>size_t <code class="sig-name descname">get_num_handles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider15get_num_handlesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the number of data_handles that will be provided. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="classral_1_1io_1_1data__parser.html" title="previous page">Class data_parser</a>
+    <a class='right-next' id="next-link" href="classral_1_1io_1_1dummy__data__provider.html" title="next page">Class dummy_data_provider</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

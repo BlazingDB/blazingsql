@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classBlazingMemoryResource" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>BlazingMemoryResource</compoundname>
+    <derivedcompoundref refid="classblazing__device__memory__resource" prot="public" virt="non-virtual">blazing_device_memory_resource</derivedcompoundref>
+    <derivedcompoundref refid="classblazing__disk__memory__resource" prot="public" virt="non-virtual">blazing_disk_memory_resource</derivedcompoundref>
+    <derivedcompoundref refid="classblazing__host__memory__resource" prot="public" virt="non-virtual">blazing_host_memory_resource</derivedcompoundref>
+    <includes refid="BlazingMemoryResource_8h" local="no">BlazingMemoryResource.h</includes>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classBlazingMemoryResource_1abd562a80dbab3fd1d174f8e6ec4547f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>size_t</type>
+        <definition>virtual size_t BlazingMemoryResource::get_from_driver_used_memory</definition>
+        <argsstring>()=0</argsstring>
+        <name>get_from_driver_used_memory</name>
+        <reimplementedby refid="classblazing__device__memory__resource_1ac64dc046686ed83b8f6b0f85cd79517e">get_from_driver_used_memory</reimplementedby>
+        <reimplementedby refid="classblazing__host__memory__resource_1a15c8bcb4ef3618d82a18bf8dd3909ef5">get_from_driver_used_memory</reimplementedby>
+        <reimplementedby refid="classblazing__disk__memory__resource_1ad4651b8b5e16a09108caa6f8b681c46a">get_from_driver_used_memory</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h" line="34" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classBlazingMemoryResource_1a1436e73e3554c721a5a972fcf21bc91f" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>size_t</type>
+        <definition>virtual size_t BlazingMemoryResource::get_memory_limit</definition>
+        <argsstring>()=0</argsstring>
+        <name>get_memory_limit</name>
+        <reimplementedby refid="classblazing__device__memory__resource_1a0d0e8280d74b19fdfbab855b790c872e">get_memory_limit</reimplementedby>
+        <reimplementedby refid="classblazing__host__memory__resource_1a91cb1fe1caf14c6fd2c42a12cc51e116">get_memory_limit</reimplementedby>
+        <reimplementedby refid="classblazing__disk__memory__resource_1ac035ec9b3f7ef86b87c7ed634ee10673">get_memory_limit</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h" line="35" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classBlazingMemoryResource_1a89e616e15446e4bfd013d55b714f1fc9" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>size_t</type>
+        <definition>virtual size_t BlazingMemoryResource::get_memory_used</definition>
+        <argsstring>()=0</argsstring>
+        <name>get_memory_used</name>
+        <reimplementedby refid="classblazing__device__memory__resource_1ae6a57a18e3a02583bb111a273d9b9467">get_memory_used</reimplementedby>
+        <reimplementedby refid="classblazing__host__memory__resource_1a3ada1edd4d72ed90b5b545e83590fcb1">get_memory_used</reimplementedby>
+        <reimplementedby refid="classblazing__disk__memory__resource_1a62e42fcf3251e1591c7a55f45fc5a8a0">get_memory_used</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h" line="36" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classBlazingMemoryResource_1a5e3c23ce2c2b065bed12f9b29a9976f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>size_t</type>
+        <definition>virtual size_t BlazingMemoryResource::get_total_memory</definition>
+        <argsstring>()=0</argsstring>
+        <name>get_total_memory</name>
+        <reimplementedby refid="classblazing__device__memory__resource_1a34c81aa0fe6a5d542573739a187264bb">get_total_memory</reimplementedby>
+        <reimplementedby refid="classblazing__host__memory__resource_1aaf5b08aae1b6d60fdf30c1b4cb0b0ed2">get_total_memory</reimplementedby>
+        <reimplementedby refid="classblazing__disk__memory__resource_1a7b38ea651ff546fd6b2c5f4dfaee14d0">get_total_memory</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h" line="37" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This interface represents a custom memory resource used in the cache system. The Cache Machines uses singleton references to device, host and disk memory resources. Each object of the CacheMachine class has knownlegde about the status of the memory resource by using <computeroutput>get_memory_limit</computeroutput> and <computeroutput>get_memory_used</computeroutput> methods. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="73">
+        <label>blazing_host_memory_resource</label>
+        <link refid="classblazing__host__memory__resource"/>
+        <childnode refid="70" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="71">
+        <label>blazing_device_memory_resource</label>
+        <link refid="classblazing__device__memory__resource"/>
+        <childnode refid="70" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="72">
+        <label>blazing_disk_memory_resource</label>
+        <link refid="classblazing__disk__memory__resource"/>
+        <childnode refid="70" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="70">
+        <label>BlazingMemoryResource</label>
+        <link refid="classBlazingMemoryResource"/>
+      </node>
+    </inheritancegraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h" line="32" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h" bodystart="32" bodyend="38"/>
+    <listofallmembers>
+      <member refid="classBlazingMemoryResource_1abd562a80dbab3fd1d174f8e6ec4547f0" prot="public" virt="pure-virtual"><scope>BlazingMemoryResource</scope><name>get_from_driver_used_memory</name></member>
+      <member refid="classBlazingMemoryResource_1a1436e73e3554c721a5a972fcf21bc91f" prot="public" virt="pure-virtual"><scope>BlazingMemoryResource</scope><name>get_memory_limit</name></member>
+      <member refid="classBlazingMemoryResource_1a89e616e15446e4bfd013d55b714f1fc9" prot="public" virt="pure-virtual"><scope>BlazingMemoryResource</scope><name>get_memory_used</name></member>
+      <member refid="classBlazingMemoryResource_1a5e3c23ce2c2b065bed12f9b29a9976f6" prot="public" virt="pure-virtual"><scope>BlazingMemoryResource</scope><name>get_total_memory</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

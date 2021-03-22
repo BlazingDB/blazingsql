@@ -1,0 +1,105 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_CommunicationInterface_bufferTransport.hpp:
+
+Program Listing for File bufferTransport.hpp
+============================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_CommunicationInterface_bufferTransport.hpp>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/bufferTransport.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #pragma once
+   
+   #include <map>
+   #include <vector>
+   #include <exception>
+   #include <blazingdb/io/Util/StringUtil.h>
+   #include <transport/ColumnTransport.h>
+   
+   #include "node.hpp"
+   #include "execution_graph/logic_controllers/CacheMachine.h"
+   
+   
+   namespace comm {
+   
+   namespace detail {
+   
+   template <typename T>
+   std::vector<char> to_byte_vector(T input) {
+       char * byte_pointer = reinterpret_cast<char *>(&input);
+       return std::vector<char>(byte_pointer, byte_pointer + sizeof(T));
+   }
+   
+   template <typename T>
+   std::vector<char> vector_to_byte_vector(std::vector<T> input) {
+       char * byte_pointer = reinterpret_cast<char *>(input.data());
+       return std::vector<char>(byte_pointer, byte_pointer + (sizeof(T) * input.size()));
+   }
+   
+   template <typename T>
+   T from_byte_vector(const char * input) {
+       const T * byte_pointer = reinterpret_cast<const T *>(input);
+       return *byte_pointer;
+   }
+   
+   template <typename T>
+   std::vector<T> vector_from_byte_vector(const char * input, size_t length) {
+       const T * byte_pointer = reinterpret_cast<const T *>(input);
+       return std::vector<T>(byte_pointer,byte_pointer + length);
+   }
+   
+   std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::cache::MetadataDictionary & metadata,
+                                                       const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
+                                                       const std::vector<ral::memory::blazing_chunked_column_info> & chunked_column_infos,
+                                                       const std::vector<size_t> buffer_sizes);
+   
+   std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>, 
+       std::vector<ral::memory::blazing_chunked_column_info>, std::vector<size_t> > get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data);
+   
+   } // namespace detail
+   
+   
+   class buffer_transport
+   {
+   public:
+       buffer_transport(ral::cache::MetadataDictionary metadata,
+           std::vector<size_t> buffer_sizes,
+           std::vector<blazingdb::transport::ColumnTransport> column_transports,
+           std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
+           std::vector<node> destinations,
+           bool require_acknowledge);
+       virtual ~buffer_transport();
+   
+     virtual void send_begin_transmission() = 0;
+   
+     void send(const char * buffer, size_t buffer_size);
+   
+       void wait_until_complete();
+   
+       void wait_for_begin_transmission();
+       virtual void increment_frame_transmission();
+       virtual void increment_begin_transmission();
+   protected:
+       virtual void send_impl(const char * buffer, size_t buffer_size) = 0;
+       virtual void receive_acknowledge() = 0;
+   
+       std::vector<blazingdb::transport::ColumnTransport> column_transports;
+       std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos;
+       ral::cache::MetadataDictionary metadata;
+       std::vector<size_t> buffer_sizes;
+       size_t buffer_sent = 0;
+   
+       std::atomic<size_t> transmitted_begin_frames; 
+       std::atomic<size_t> transmitted_frames; 
+       std::mutex mutex;
+       std::condition_variable completion_condition_variable;
+       std::vector<node> destinations;
+   
+       std::map<std::string,bool> transmitted_acknowledgements;
+       bool require_acknowledge = false;
+   };
+   
+   
+   }  // namespace comm

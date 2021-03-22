@@ -1,0 +1,13 @@
+.. _exhale_function_SkipDataProcessor_8cpp_1a4ee9e29754ae47f230a0be67575e7935:
+
+Function ral::skip_data::drop_value
+===================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_skip_data_SkipDataProcessor.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::skip_data::drop_value(ral::parser::parse_tree&, const std::string&)

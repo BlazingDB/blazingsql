@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classcomm_1_1graphs__info" kind="class" language="C++" prot="public">
+    <compoundname>comm::graphs_info</compoundname>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classcomm_1_1graphs__info_1a9f5bacb497713116db4d439d96d652ba" prot="private" static="no" mutable="no">
+        <type>std::map&lt; int32_t, std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1graph" kindref="compound">ral::cache::graph</ref> &gt; &gt;</type>
+        <definition>std::map&lt;int32_t, std::shared_ptr&lt;ral::cache::graph&gt; &gt; comm::graphs_info::_ctx_token_to_graph_map</definition>
+        <argsstring></argsstring>
+        <name>_ctx_token_to_graph_map</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="85" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1a4fab1012e68fe7b44013d7aaf387def0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;</type>
+        <definition>graphs_info &amp; comm::graphs_info::getInstance</definition>
+        <argsstring>()</argsstring>
+        <name>getInstance</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="71" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="102" bodyend="105"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1af257399e8dbe131eccf0394b4cafdcfd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::graphs_info::register_graph</definition>
+        <argsstring>(int32_t ctx_token, std::shared_ptr&lt; ral::cache::graph &gt; graph)</argsstring>
+        <name>register_graph</name>
+        <param>
+          <type>int32_t</type>
+          <declname>ctx_token</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1graph" kindref="compound">ral::cache::graph</ref> &gt;</type>
+          <declname>graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="73" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="226" bodyend="228"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1a7cd098b020586c073d21cedd50f70844" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::graphs_info::deregister_graph</definition>
+        <argsstring>(int32_t ctx_token)</argsstring>
+        <name>deregister_graph</name>
+        <param>
+          <type>int32_t</type>
+          <declname>ctx_token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="74" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="230" bodyend="237"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1ae785c84b1aaf6d4ba425f40166fd6122" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1graph" kindref="compound">ral::cache::graph</ref> &gt;</type>
+        <definition>std::shared_ptr&lt; ral::cache::graph &gt; comm::graphs_info::get_graph</definition>
+        <argsstring>(int32_t ctx_token)</argsstring>
+        <name>get_graph</name>
+        <param>
+          <type>int32_t</type>
+          <declname>ctx_token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="76" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="238" bodyend="243"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1aae02250ccc4d96ac8586c2f9832e3aed" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::graphs_info::graphs_info</definition>
+        <argsstring>()=default</argsstring>
+        <name>graphs_info</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="79" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1aa89319c39fd6a2d4676bfd384efb229f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::graphs_info::graphs_info</definition>
+        <argsstring>(graphs_info &amp;&amp;)=delete</argsstring>
+        <name>graphs_info</name>
+        <param>
+          <type><ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="80" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1a2474478e6a8c3ab752ed2fbaa1a92a84" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::graphs_info::graphs_info</definition>
+        <argsstring>(const graphs_info &amp;)=delete</argsstring>
+        <name>graphs_info</name>
+        <param>
+          <type>const <ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="81" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1abefd5d981b56e6fc99c8d816402b87b3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;</type>
+        <definition>graphs_info&amp; comm::graphs_info::operator=</definition>
+        <argsstring>(graphs_info &amp;&amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type><ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="82" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1graphs__info_1a9c743a4bb11831375e9cd38147ee6b40" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;</type>
+        <definition>graphs_info&amp; comm::graphs_info::operator=</definition>
+        <argsstring>(const graphs_info &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type>const <ref refid="classcomm_1_1graphs__info" kindref="compound">graphs_info</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="83" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="69" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="68" bodyend="86"/>
+    <listofallmembers>
+      <member refid="classcomm_1_1graphs__info_1a9f5bacb497713116db4d439d96d652ba" prot="private" virt="non-virtual"><scope>comm::graphs_info</scope><name>_ctx_token_to_graph_map</name></member>
+      <member refid="classcomm_1_1graphs__info_1a7cd098b020586c073d21cedd50f70844" prot="public" virt="non-virtual"><scope>comm::graphs_info</scope><name>deregister_graph</name></member>
+      <member refid="classcomm_1_1graphs__info_1ae785c84b1aaf6d4ba425f40166fd6122" prot="public" virt="non-virtual"><scope>comm::graphs_info</scope><name>get_graph</name></member>
+      <member refid="classcomm_1_1graphs__info_1a4fab1012e68fe7b44013d7aaf387def0" prot="public" virt="non-virtual"><scope>comm::graphs_info</scope><name>getInstance</name></member>
+      <member refid="classcomm_1_1graphs__info_1aae02250ccc4d96ac8586c2f9832e3aed" prot="private" virt="non-virtual"><scope>comm::graphs_info</scope><name>graphs_info</name></member>
+      <member refid="classcomm_1_1graphs__info_1aa89319c39fd6a2d4676bfd384efb229f" prot="private" virt="non-virtual"><scope>comm::graphs_info</scope><name>graphs_info</name></member>
+      <member refid="classcomm_1_1graphs__info_1a2474478e6a8c3ab752ed2fbaa1a92a84" prot="private" virt="non-virtual"><scope>comm::graphs_info</scope><name>graphs_info</name></member>
+      <member refid="classcomm_1_1graphs__info_1abefd5d981b56e6fc99c8d816402b87b3" prot="private" virt="non-virtual"><scope>comm::graphs_info</scope><name>operator=</name></member>
+      <member refid="classcomm_1_1graphs__info_1a9c743a4bb11831375e9cd38147ee6b40" prot="private" virt="non-virtual"><scope>comm::graphs_info</scope><name>operator=</name></member>
+      <member refid="classcomm_1_1graphs__info_1af257399e8dbe131eccf0394b4cafdcfd" prot="public" virt="non-virtual"><scope>comm::graphs_info</scope><name>register_graph</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

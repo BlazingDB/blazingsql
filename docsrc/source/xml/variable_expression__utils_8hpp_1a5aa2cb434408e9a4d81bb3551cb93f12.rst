@@ -1,0 +1,13 @@
+.. _exhale_variable_expression__utils_8hpp_1a5aa2cb434408e9a4d81bb3551cb93f12:
+
+Variable LOGICAL_SORT_AND_SAMPLE_TEXT
+=====================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: LOGICAL_SORT_AND_SAMPLE_TEXT

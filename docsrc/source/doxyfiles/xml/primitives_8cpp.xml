@@ -1,0 +1,502 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="primitives_8cpp" kind="file" language="C++">
+    <compoundname>primitives.cpp</compoundname>
+    <includes refid="primitives_8h" local="yes">distribution/primitives.h</includes>
+    <includes refid="CalciteExpressionParsing_8h" local="yes">CalciteExpressionParsing.h</includes>
+    <includes refid="CommunicationData_8h" local="yes">communication/CommunicationData.h</includes>
+    <includes local="no">cmath</includes>
+    <includes local="no">cudf/search.hpp</includes>
+    <includes local="no">cudf/sorting.hpp</includes>
+    <includes local="yes">cudf/detail/gather.hpp</includes>
+    <includes local="yes">cudf/copying.hpp</includes>
+    <includes local="no">cudf/merge.hpp</includes>
+    <includes local="no">cudf/utilities/traits.hpp</includes>
+    <includes refid="CommonOperations_8h" local="yes">utilities/CommonOperations.h</includes>
+    <includes refid="error_8hpp" local="yes">error.hpp</includes>
+    <includes refid="ctpl__stl_8h" local="yes">utilities/ctpl_stl.h</includes>
+    <includes local="no">numeric</includes>
+    <includes local="no">spdlog/spdlog.h</includes>
+    <incdepgraph>
+      <node id="2126">
+        <label>atomic</label>
+      </node>
+      <node id="2112">
+        <label>cudf/sorting.hpp</label>
+      </node>
+      <node id="2124">
+        <label>functional</label>
+      </node>
+      <node id="2128">
+        <label>queue</label>
+      </node>
+      <node id="2096">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="2097" relation="include">
+        </childnode>
+        <childnode refid="2098" relation="include">
+        </childnode>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2099" relation="include">
+        </childnode>
+        <childnode refid="2101" relation="include">
+        </childnode>
+      </node>
+      <node id="2104">
+        <label>cstdint</label>
+      </node>
+      <node id="2099">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="2100" relation="include">
+        </childnode>
+        <childnode refid="2097" relation="include">
+        </childnode>
+        <childnode refid="2098" relation="include">
+        </childnode>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+      </node>
+      <node id="2092">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+      </node>
+      <node id="2114">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="2115">
+        <label>cudf/merge.hpp</label>
+      </node>
+      <node id="2119">
+        <label>error.hpp</label>
+        <link refid="error_8hpp_source"/>
+        <childnode refid="2120" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2121" relation="include">
+        </childnode>
+        <childnode refid="2122" relation="include">
+        </childnode>
+      </node>
+      <node id="2110">
+        <label>cmath</label>
+      </node>
+      <node id="2129">
+        <label>numeric</label>
+      </node>
+      <node id="2094">
+        <label>string</label>
+      </node>
+      <node id="2113">
+        <label>cudf/detail/gather.hpp</label>
+      </node>
+      <node id="2090">
+        <label>map</label>
+      </node>
+      <node id="2087">
+        <label>distribution/primitives.h</label>
+        <link refid="primitives_8h_source"/>
+        <childnode refid="2088" relation="include">
+        </childnode>
+        <childnode refid="2095" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2096" relation="include">
+        </childnode>
+      </node>
+      <node id="2101">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2102" relation="include">
+        </childnode>
+        <childnode refid="2103" relation="include">
+        </childnode>
+        <childnode refid="2105" relation="include">
+        </childnode>
+        <childnode refid="2096" relation="include">
+        </childnode>
+      </node>
+      <node id="2122">
+        <label>exception</label>
+      </node>
+      <node id="2088">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2090" relation="include">
+        </childnode>
+        <childnode refid="2091" relation="include">
+        </childnode>
+        <childnode refid="2092" relation="include">
+        </childnode>
+      </node>
+      <node id="2117">
+        <label>utilities/CommonOperations.h</label>
+        <link refid="CommonOperations_8h_source"/>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2096" relation="include">
+        </childnode>
+        <childnode refid="2118" relation="include">
+        </childnode>
+      </node>
+      <node id="2130">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="2098">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="2123">
+        <label>utilities/ctpl_stl.h</label>
+        <link refid="ctpl__stl_8h_source"/>
+        <childnode refid="2124" relation="include">
+        </childnode>
+        <childnode refid="2125" relation="include">
+        </childnode>
+        <childnode refid="2126" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2122" relation="include">
+        </childnode>
+        <childnode refid="2127" relation="include">
+        </childnode>
+        <childnode refid="2091" relation="include">
+        </childnode>
+        <childnode refid="2128" relation="include">
+        </childnode>
+      </node>
+      <node id="2086">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/distribution/primitives.cpp</label>
+        <link refid="primitives_8cpp"/>
+        <childnode refid="2087" relation="include">
+        </childnode>
+        <childnode refid="2108" relation="include">
+        </childnode>
+        <childnode refid="2109" relation="include">
+        </childnode>
+        <childnode refid="2110" relation="include">
+        </childnode>
+        <childnode refid="2111" relation="include">
+        </childnode>
+        <childnode refid="2112" relation="include">
+        </childnode>
+        <childnode refid="2113" relation="include">
+        </childnode>
+        <childnode refid="2114" relation="include">
+        </childnode>
+        <childnode refid="2115" relation="include">
+        </childnode>
+        <childnode refid="2116" relation="include">
+        </childnode>
+        <childnode refid="2117" relation="include">
+        </childnode>
+        <childnode refid="2119" relation="include">
+        </childnode>
+        <childnode refid="2123" relation="include">
+        </childnode>
+        <childnode refid="2129" relation="include">
+        </childnode>
+        <childnode refid="2130" relation="include">
+        </childnode>
+      </node>
+      <node id="2127">
+        <label>future</label>
+      </node>
+      <node id="2106">
+        <label>stack</label>
+      </node>
+      <node id="2089">
+        <label>vector</label>
+      </node>
+      <node id="2103">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="2104" relation="include">
+        </childnode>
+      </node>
+      <node id="2118">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="2107">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="2105">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="2089" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2106" relation="include">
+        </childnode>
+        <childnode refid="2091" relation="include">
+        </childnode>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2107" relation="include">
+        </childnode>
+      </node>
+      <node id="2102">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="2116">
+        <label>cudf/utilities/traits.hpp</label>
+      </node>
+      <node id="2109">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="2107" relation="include">
+        </childnode>
+        <childnode refid="2092" relation="include">
+        </childnode>
+        <childnode refid="2093" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2090" relation="include">
+        </childnode>
+      </node>
+      <node id="2120">
+        <label>iostream</label>
+      </node>
+      <node id="2100">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="2111">
+        <label>cudf/search.hpp</label>
+      </node>
+      <node id="2091">
+        <label>mutex</label>
+      </node>
+      <node id="2108">
+        <label>CalciteExpressionParsing.h</label>
+        <link refid="CalciteExpressionParsing_8h_source"/>
+        <childnode refid="2102" relation="include">
+        </childnode>
+        <childnode refid="2094" relation="include">
+        </childnode>
+        <childnode refid="2089" relation="include">
+        </childnode>
+      </node>
+      <node id="2125">
+        <label>thread</label>
+      </node>
+      <node id="2097">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="2095">
+        <label>communication/factory/MessageFactory.h</label>
+        <link refid="MessageFactory_8h_source"/>
+      </node>
+      <node id="2121">
+        <label>cudf/utilities/error.hpp</label>
+      </node>
+      <node id="2093">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1distribution">ral::distribution</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;distribution/primitives.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;CalciteExpressionParsing.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;communication/CommunicationData.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cmath&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/search.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/sorting.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;cudf/detail/gather.hpp&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;cudf/copying.hpp&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/merge.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/utilities/traits.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;utilities/CommonOperations.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;error.hpp&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;utilities/ctpl_stl.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;numeric&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;spdlog/spdlog.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespacefmt_1_1literals" kindref="compound">fmt::literals</ref>;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">distribution<sp/>{</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref><sp/>BlazingTable;</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>BlazingTableView;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref><sp/>Context;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/><ref refid="classblazingdb_1_1transport_1_1Node" kindref="compound">blazingdb::transport::Node</ref><sp/>Node;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal">std::unique_ptr&lt;BlazingTable&gt;<sp/>generatePartitionPlans(</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>number_partitions,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;std::unique_ptr&lt;ral::frame::BlazingTable&gt;&gt;<sp/>&amp;<sp/>samples,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;cudf::order&gt;<sp/>&amp;<sp/>sortOrderTypes)<sp/>{</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>just<sp/>to<sp/>call<sp/>concatTables</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;BlazingTableView&gt;<sp/>samplesView;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(std::size_t<sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>samples.size();<sp/>i++){</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>samplesView.push_back(samples[i]-&gt;toBlazingTableView());</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;BlazingTable&gt;<sp/>concatSamples<sp/>=<sp/>ral::utilities::concatTables(samplesView);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::null_order&gt;<sp/>null_orders(sortOrderTypes.size(),<sp/>cudf::null_order::AFTER);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO<sp/>this<sp/>is<sp/>just<sp/>a<sp/>default<sp/>setting.<sp/>Will<sp/>want<sp/>to<sp/>be<sp/>able<sp/>to<sp/>properly<sp/>set<sp/>null_order</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;cudf::column&gt;<sp/>sort_indices<sp/>=<sp/>cudf::sorted_order(<sp/>concatSamples-&gt;view(),<sp/>sortOrderTypes,<sp/>null_orders);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;CudfTable&gt;<sp/>sortedSamples<sp/>=<sp/>cudf::detail::gather(<sp/>concatSamples-&gt;view(),<sp/>sort_indices-&gt;view(),<sp/>cudf::out_of_bounds_policy::DONT_CHECK,<sp/>cudf::detail::negative_index_policy::NOT_ALLOWED<sp/>);</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>lets<sp/>get<sp/>names<sp/>from<sp/>a<sp/>non-empty<sp/>table</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>names;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>samples.size();<sp/>i++)<sp/>{</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(samples[i]-&gt;names().size()<sp/>&gt;<sp/>0){</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>names<sp/>=<sp/>samples[i]-&gt;names();</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(names.size()<sp/>==<sp/>0){</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/>std::runtime_error(</highlight><highlight class="stringliteral">&quot;ERROR<sp/>in<sp/>generatePartitionPlans.<sp/>names.size()<sp/>==<sp/>0&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>getPivotPointsTable(number_partitions,<sp/>BlazingTableView(sortedSamples-&gt;view(),<sp/>names));</highlight></codeline>
+<codeline lineno="65"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="comment">//<sp/>This<sp/>function<sp/>locates<sp/>the<sp/>pivots<sp/>in<sp/>the<sp/>table<sp/>and<sp/>partitions<sp/>the<sp/>data<sp/>on<sp/>those<sp/>pivot<sp/>points.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="comment">//<sp/>IMPORTANT:<sp/>This<sp/>function<sp/>expects<sp/>data<sp/>to<sp/>already<sp/>be<sp/>sorted<sp/>according<sp/>to<sp/>the<sp/>searchColIndices<sp/>and<sp/>sortOrderTypes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="comment">//<sp/>IMPORTANT:<sp/>The<sp/>TableViews<sp/>of<sp/>the<sp/>data<sp/>returned<sp/>point<sp/>to<sp/>the<sp/>same<sp/>data<sp/>that<sp/>was<sp/>input.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal">std::vector&lt;NodeColumnView&gt;<sp/>partitionData(Context<sp/>*<sp/>context,</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>BlazingTableView<sp/>&amp;<sp/>table,</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>BlazingTableView<sp/>&amp;<sp/>pivots,</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;int&gt;<sp/>&amp;<sp/>searchColIndices,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::order&gt;<sp/>sortOrderTypes)<sp/>{</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/>RAL_EXPECTS(static_cast&lt;size_t&gt;(pivots.view().num_columns())<sp/>==<sp/>searchColIndices.size(),<sp/></highlight><highlight class="stringliteral">&quot;Mismatched<sp/>pivots<sp/>num_columns<sp/>and<sp/>searchColIndices&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>num_rows<sp/>=<sp/>table.view().num_rows();</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(num_rows<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;NodeColumnView&gt;<sp/>array_node_columns;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>nodes<sp/>=<sp/>context-&gt;getAllNodes();</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(std::size_t<sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>nodes.size();<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>array_node_columns.emplace_back(nodes[i],<sp/>BlazingTableView(table.view(),<sp/>table.names()));</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>array_node_columns;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(sortOrderTypes.size()<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sortOrderTypes.assign(searchColIndices.size(),<sp/>cudf::order::ASCENDING);</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO<sp/>this<sp/>is<sp/>just<sp/>a<sp/>default<sp/>setting.<sp/>Will<sp/>want<sp/>to<sp/>be<sp/>able<sp/>to<sp/>properly<sp/>set<sp/>null_order</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::null_order&gt;<sp/>null_orders(sortOrderTypes.size(),<sp/>cudf::null_order::AFTER);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/>CudfTableView<sp/>columns_to_search<sp/>=<sp/>table.view().select(searchColIndices);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;cudf::column&gt;<sp/>pivot_indexes<sp/>=<sp/>cudf::upper_bound(columns_to_search,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pivots.view(),</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sortOrderTypes,</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>null_orders);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::size_type&gt;<sp/>host_data(pivot_indexes-&gt;view().size());</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>CUDA_TRY(cudaMemcpy(host_data.data(),<sp/>pivot_indexes-&gt;view().data&lt;cudf::size_type&gt;(),<sp/>pivot_indexes-&gt;view().size()<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(cudf::size_type),<sp/>cudaMemcpyDeviceToHost));</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;CudfTableView&gt;<sp/>partitioned_data<sp/>=<sp/>cudf::split(table.view(),<sp/>host_data);</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;Node&gt;<sp/>all_nodes<sp/>=<sp/>context-&gt;getAllNodes();</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/>RAL_EXPECTS(all_nodes.size()<sp/>&lt;=<sp/>partitioned_data.size(),<sp/></highlight><highlight class="stringliteral">&quot;Number<sp/>of<sp/>table<sp/>partitions<sp/>is<sp/>smalled<sp/>than<sp/>total<sp/>nodes&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>step<sp/>=<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">int</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(partitioned_data.size()<sp/>/<sp/>all_nodes.size());</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;NodeColumnView&gt;<sp/>partitioned_node_column_views;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">size_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(i)<sp/>&lt;<sp/>partitioned_data.size();<sp/>i++){</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>node_idx<sp/>=<sp/>std::min(i<sp/>/<sp/>step,<sp/>static_cast&lt;int&gt;(all_nodes.size()<sp/>-<sp/>1));</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>partitioned_node_column_views.emplace_back(all_nodes[node_idx],<sp/>BlazingTableView(partitioned_data[i],<sp/>table.names()));</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>partitioned_node_column_views;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal">std::unique_ptr&lt;BlazingTable&gt;<sp/>sortedMerger(std::vector&lt;BlazingTableView&gt;<sp/>&amp;<sp/>tables,</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;cudf::order&gt;<sp/>&amp;<sp/>sortOrderTypes,</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;int&gt;<sp/>&amp;<sp/>sortColIndices)<sp/>{</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO<sp/>this<sp/>is<sp/>just<sp/>a<sp/>default<sp/>setting.<sp/>Will<sp/>want<sp/>to<sp/>be<sp/>able<sp/>to<sp/>properly<sp/>set<sp/>null_order</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::null_order&gt;<sp/>null_orders(sortOrderTypes.size(),<sp/>cudf::null_order::AFTER);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;CudfTableView&gt;<sp/>cudf_table_views(tables.size());</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>tables.size();<sp/>i++)<sp/>{</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cudf_table_views[i]<sp/>=<sp/>tables[i].view();</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;CudfTable&gt;<sp/>merged_table<sp/>=<sp/>cudf::merge(cudf_table_views,<sp/>sortColIndices,<sp/>sortOrderTypes,<sp/>null_orders);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>lets<sp/>get<sp/>names<sp/>from<sp/>a<sp/>non-empty<sp/>table</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>names;</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>tables.size();<sp/>i++)<sp/>{</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(tables[i].names().size()<sp/>&gt;<sp/>0){</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>names<sp/>=<sp/>tables[i].names();</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_unique&lt;BlazingTable&gt;(std::move(merged_table),<sp/>names);</highlight></codeline>
+<codeline lineno="143"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal">std::unique_ptr&lt;BlazingTable&gt;<sp/>getPivotPointsTable(cudf::size_type<sp/>number_partitions,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>BlazingTableView<sp/>&amp;<sp/>sortedSamples){</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>outputRowSize<sp/>=<sp/>sortedSamples.view().num_rows();</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::size_type<sp/>pivotsSize<sp/>=<sp/>outputRowSize<sp/>&gt;<sp/>0<sp/>?<sp/>number_partitions<sp/>-<sp/>1<sp/>:<sp/>0;</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/>int32_t<sp/>step<sp/>=<sp/>outputRowSize<sp/>/<sp/>number_partitions;</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int32_t&gt;<sp/>sequence(pivotsSize);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/>std::iota(sequence.begin(),<sp/>sequence.end(),<sp/>1);</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/>std::transform(sequence.begin(),<sp/>sequence.end(),<sp/>sequence.begin(),<sp/>[step](int32_t<sp/>i){<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>i*step;});</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>gather_map<sp/>=<sp/>ral::utilities::vector_to_column(sequence,<sp/>cudf::data_type(cudf::type_id::INT32));</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;CudfTable&gt;<sp/>pivots<sp/>=<sp/>cudf::detail::gather(<sp/>sortedSamples.view(),<sp/>gather_map-&gt;view(),<sp/>cudf::out_of_bounds_policy::DONT_CHECK,<sp/>cudf::detail::negative_index_policy::NOT_ALLOWED<sp/>);</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_unique&lt;BlazingTable&gt;(std::move(pivots),<sp/>sortedSamples.names());</highlight></codeline>
+<codeline lineno="161"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>distribution</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/distribution/primitives.cpp"/>
+  </compounddef>
+</doxygen>

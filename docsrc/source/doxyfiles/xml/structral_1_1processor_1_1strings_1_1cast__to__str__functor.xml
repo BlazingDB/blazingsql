@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1processor_1_1strings_1_1cast__to__str__functor" kind="struct" language="C++" prot="public">
+    <compoundname>ral::processor::strings::cast_to_str_functor</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>std::enable_if_t&lt; cudf::is_boolean&lt; T &gt;()&gt; *</type>
+            <defval>nullptr</defval>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::processor::strings::cast_to_str_functor::operator()</definition>
+        <argsstring>(const cudf::column_view &amp;col)</argsstring>
+        <name>operator()</name>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="63" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="63" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>std::enable_if_t&lt; cudf::is_fixed_point&lt; T &gt;()&gt; *</type>
+            <defval>nullptr</defval>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::processor::strings::cast_to_str_functor::operator()</definition>
+        <argsstring>(const cudf::column_view &amp;col)</argsstring>
+        <name>operator()</name>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="68" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="68" bodyend="70"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>std::enable_if_t&lt; std::is_integral&lt; T &gt;::value &amp;&amp;!cudf::is_boolean&lt; T &gt;()&gt; *</type>
+            <defval>nullptr</defval>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::processor::strings::cast_to_str_functor::operator()</definition>
+        <argsstring>(const cudf::column_view &amp;col)</argsstring>
+        <name>operator()</name>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="73" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="73" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>std::enable_if_t&lt; std::is_floating_point&lt; T &gt;::value &gt; *</type>
+            <defval>nullptr</defval>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::processor::strings::cast_to_str_functor::operator()</definition>
+        <argsstring>(const cudf::column_view &amp;col)</argsstring>
+        <name>operator()</name>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="78" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="78" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>std::enable_if_t&lt; cudf::is_timestamp&lt; T &gt;()&gt; *</type>
+            <defval>nullptr</defval>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::processor::strings::cast_to_str_functor::operator()</definition>
+        <argsstring>(const cudf::column_view &amp;col)</argsstring>
+        <name>operator()</name>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="83" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="83" bodyend="85"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1a5f2931bb32a8459a3e7bb9c1422593ab" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>std::enable_if_t&lt; cudf::is_compound&lt; T &gt;() or cudf::is_duration&lt; T &gt;()&gt; *</type>
+            <defval>nullptr</defval>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::processor::strings::cast_to_str_functor::operator()</definition>
+        <argsstring>(const cudf::column_view &amp;)</argsstring>
+        <name>operator()</name>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="88" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="88" bodyend="90"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="61" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="61" bodyend="91"/>
+    <listofallmembers>
+      <member refid="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" virt="non-virtual"><scope>ral::processor::strings::cast_to_str_functor</scope><name>operator()</name></member>
+      <member refid="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" virt="non-virtual"><scope>ral::processor::strings::cast_to_str_functor</scope><name>operator()</name></member>
+      <member refid="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" virt="non-virtual"><scope>ral::processor::strings::cast_to_str_functor</scope><name>operator()</name></member>
+      <member refid="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" virt="non-virtual"><scope>ral::processor::strings::cast_to_str_functor</scope><name>operator()</name></member>
+      <member refid="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1ada42b05ccacb321248b8321987eb6f29" prot="public" virt="non-virtual"><scope>ral::processor::strings::cast_to_str_functor</scope><name>operator()</name></member>
+      <member refid="structral_1_1processor_1_1strings_1_1cast__to__str__functor_1a5f2931bb32a8459a3e7bb9c1422593ab" prot="public" virt="non-virtual"><scope>ral::processor::strings::cast_to_str_functor</scope><name>operator()</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

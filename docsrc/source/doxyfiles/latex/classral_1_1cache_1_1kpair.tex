@@ -1,0 +1,70 @@
+\hypertarget{classral_1_1cache_1_1kpair}{}\section{ral\+:\+:cache\+:\+:kpair Class Reference}
+\label{classral_1_1cache_1_1kpair}\index{ral\+::cache\+::kpair@{ral\+::cache\+::kpair}}
+
+
+A temporary object to represent a pair of two kernels linked into the execution graph.  
+
+
+
+
+{\ttfamily \#include $<$kpair.\+h$>$}
+
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:kpair\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=249pt]{classral_1_1cache_1_1kpair__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_adfd8907b7eb849f0678c6102454b04c5}\label{classral_1_1cache_1_1kpair_adfd8907b7eb849f0678c6102454b04c5}} 
+{\bfseries kpair} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ a, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ b, const \hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings} \&config=\hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings}\{\})
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_a4e75a8cd2ae6642e08ac3edc3c6a99fa}\label{classral_1_1cache_1_1kpair_a4e75a8cd2ae6642e08ac3edc3c6a99fa}} 
+{\bfseries kpair} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ a, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ b, const std\+::string \&port\+\_\+b, const \hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings} \&config=\hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings}\{\})
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_abec39e0081da8f31ad4bc3688cf90c07}\label{classral_1_1cache_1_1kpair_abec39e0081da8f31ad4bc3688cf90c07}} 
+{\bfseries kpair} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ a, const std\+::string \&port\+\_\+a, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ b, const std\+::string \&port\+\_\+b, const \hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings} \&config=\hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings}\{\})
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_afc0543bd566469749f17d1b95ee9f2c4}\label{classral_1_1cache_1_1kpair_afc0543bd566469749f17d1b95ee9f2c4}} 
+{\bfseries kpair} (const \hyperlink{classral_1_1cache_1_1kpair}{kpair} \&)=default
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_a5516e9525b807e652b1b3249e35dd579}\label{classral_1_1cache_1_1kpair_a5516e9525b807e652b1b3249e35dd579}} 
+{\bfseries kpair} (\hyperlink{classral_1_1cache_1_1kpair}{kpair} \&\&)=default
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_ace7cd04fde66e6f182b11b4811c351c5}\label{classral_1_1cache_1_1kpair_ace7cd04fde66e6f182b11b4811c351c5}} 
+bool {\bfseries has\+\_\+custom\+\_\+source} () const
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_af1f4d0a9980fa612df0517956248870b}\label{classral_1_1cache_1_1kpair_af1f4d0a9980fa612df0517956248870b}} 
+bool {\bfseries has\+\_\+custom\+\_\+target} () const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_aa317992d3bb0b1d2f05ad9ea23c598c2}\label{classral_1_1cache_1_1kpair_aa317992d3bb0b1d2f05ad9ea23c598c2}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ {\bfseries src}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_ab85ad0c3b409afad4f1407c025700246}\label{classral_1_1cache_1_1kpair_ab85ad0c3b409afad4f1407c025700246}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ {\bfseries dst}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_a8e58e8a2968febb38c715e9631ad568d}\label{classral_1_1cache_1_1kpair_a8e58e8a2968febb38c715e9631ad568d}} 
+const \hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings} {\bfseries cache\+\_\+machine\+\_\+config}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_ae433fb160a0d262ddaeef08041e69113}\label{classral_1_1cache_1_1kpair_ae433fb160a0d262ddaeef08041e69113}} 
+std\+::string {\bfseries src\+\_\+port\+\_\+name}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kpair_afc77653f6957aede14a5d55b73b18439}\label{classral_1_1cache_1_1kpair_afc77653f6957aede14a5d55b73b18439}} 
+std\+::string {\bfseries dst\+\_\+port\+\_\+name}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A temporary object to represent a pair of two kernels linked into the execution graph. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/kpair.\+h\end{DoxyCompactItemize}

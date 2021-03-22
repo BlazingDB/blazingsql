@@ -1,0 +1,848 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="bufferTransport_8cpp" kind="file" language="C++">
+    <compoundname>bufferTransport.cpp</compoundname>
+    <includes refid="bufferTransport_8hpp" local="yes">bufferTransport.hpp</includes>
+    <includes refid="CodeTimer_8h" local="yes">CodeTimer.h</includes>
+    <incdepgraph>
+      <node id="610">
+        <label>atomic</label>
+      </node>
+      <node id="645">
+        <label>config/GPUManager.cuh</label>
+      </node>
+      <node id="640">
+        <label>rmm/mr/device/managed_memory_resource.hpp</label>
+      </node>
+      <node id="609">
+        <label>execution_graph/logic_controllers/CacheMachine.h</label>
+        <link refid="CacheMachine_8h_source"/>
+        <childnode refid="610" relation="include">
+        </childnode>
+        <childnode refid="611" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="613" relation="include">
+        </childnode>
+        <childnode refid="614" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="615" relation="include">
+        </childnode>
+        <childnode refid="616" relation="include">
+        </childnode>
+        <childnode refid="617" relation="include">
+        </childnode>
+        <childnode refid="620" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+        <childnode refid="630" relation="include">
+        </childnode>
+        <childnode refid="632" relation="include">
+        </childnode>
+        <childnode refid="648" relation="include">
+        </childnode>
+        <childnode refid="602" relation="include">
+        </childnode>
+        <childnode refid="649" relation="include">
+        </childnode>
+        <childnode refid="659" relation="include">
+        </childnode>
+        <childnode refid="662" relation="include">
+        </childnode>
+        <childnode refid="671" relation="include">
+        </childnode>
+        <childnode refid="672" relation="include">
+        </childnode>
+      </node>
+      <node id="622">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="623" relation="include">
+        </childnode>
+        <childnode refid="624" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="625" relation="include">
+        </childnode>
+        <childnode refid="627" relation="include">
+        </childnode>
+      </node>
+      <node id="657">
+        <label>cudf/scalar/scalar_device_view.cuh</label>
+      </node>
+      <node id="662">
+        <label>communication/messages/GPUComponentMessage.h</label>
+        <link refid="GPUComponentMessage_8h_source"/>
+        <childnode refid="615" relation="include">
+        </childnode>
+        <childnode refid="650" relation="include">
+        </childnode>
+        <childnode refid="651" relation="include">
+        </childnode>
+        <childnode refid="652" relation="include">
+        </childnode>
+        <childnode refid="604" relation="include">
+        </childnode>
+        <childnode refid="631" relation="include">
+        </childnode>
+        <childnode refid="663" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="614" relation="include">
+        </childnode>
+        <childnode refid="664" relation="include">
+        </childnode>
+        <childnode refid="665" relation="include">
+        </childnode>
+        <childnode refid="666" relation="include">
+        </childnode>
+        <childnode refid="667" relation="include">
+        </childnode>
+        <childnode refid="626" relation="include">
+        </childnode>
+        <childnode refid="668" relation="include">
+        </childnode>
+        <childnode refid="669" relation="include">
+        </childnode>
+        <childnode refid="616" relation="include">
+        </childnode>
+        <childnode refid="670" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+        <childnode refid="627" relation="include">
+        </childnode>
+      </node>
+      <node id="646">
+        <label>sys/sysinfo.h</label>
+      </node>
+      <node id="655">
+        <label>cudf/scalar/scalar_factories.hpp</label>
+      </node>
+      <node id="599">
+        <label>bufferTransport.hpp</label>
+        <link refid="bufferTransport_8hpp_source"/>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="602" relation="include">
+        </childnode>
+        <childnode refid="603" relation="include">
+        </childnode>
+        <childnode refid="604" relation="include">
+        </childnode>
+        <childnode refid="606" relation="include">
+        </childnode>
+        <childnode refid="609" relation="include">
+        </childnode>
+      </node>
+      <node id="605">
+        <label>cstdint</label>
+      </node>
+      <node id="638">
+        <label>rmm/mr/device/owning_wrapper.hpp</label>
+      </node>
+      <node id="606">
+        <label>node.hpp</label>
+        <link refid="node_8hpp_source"/>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="608" relation="include">
+        </childnode>
+      </node>
+      <node id="643">
+        <label>rmm/mr/device/logging_resource_adaptor.hpp</label>
+      </node>
+      <node id="625">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="626" relation="include">
+        </childnode>
+        <childnode refid="623" relation="include">
+        </childnode>
+        <childnode refid="624" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+      </node>
+      <node id="631">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+      </node>
+      <node id="666">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="617">
+        <label>error.hpp</label>
+        <link refid="error_8hpp_source"/>
+        <childnode refid="618" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="619" relation="include">
+        </childnode>
+        <childnode refid="602" relation="include">
+        </childnode>
+      </node>
+      <node id="633">
+        <label>cassert</label>
+      </node>
+      <node id="639">
+        <label>rmm/mr/device/cuda_memory_resource.hpp</label>
+      </node>
+      <node id="642">
+        <label>rmm/mr/device/arena_memory_resource.hpp</label>
+      </node>
+      <node id="664">
+        <label>numeric</label>
+      </node>
+      <node id="636">
+        <label>rmm/cuda_stream_view.hpp</label>
+      </node>
+      <node id="607">
+        <label>string</label>
+      </node>
+      <node id="600">
+        <label>map</label>
+      </node>
+      <node id="668">
+        <label>cudf/null_mask.hpp</label>
+      </node>
+      <node id="651">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="627">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="616" relation="include">
+        </childnode>
+        <childnode refid="604" relation="include">
+        </childnode>
+        <childnode refid="628" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+      </node>
+      <node id="602">
+        <label>exception</label>
+      </node>
+      <node id="672">
+        <label>WaitingQueue.h</label>
+        <link refid="WaitingQueue_8h_source"/>
+        <childnode refid="610" relation="include">
+        </childnode>
+        <childnode refid="611" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="613" relation="include">
+        </childnode>
+        <childnode refid="614" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="615" relation="include">
+        </childnode>
+        <childnode refid="602" relation="include">
+        </childnode>
+      </node>
+      <node id="630">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="614" relation="include">
+        </childnode>
+        <childnode refid="631" relation="include">
+        </childnode>
+      </node>
+      <node id="598">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/bufferTransport.cpp</label>
+        <link refid="bufferTransport_8cpp"/>
+        <childnode refid="599" relation="include">
+        </childnode>
+        <childnode refid="620" relation="include">
+        </childnode>
+      </node>
+      <node id="671">
+        <label>CacheData.h</label>
+        <link refid="CacheData_8h_source"/>
+        <childnode refid="610" relation="include">
+        </childnode>
+        <childnode refid="611" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="613" relation="include">
+        </childnode>
+        <childnode refid="614" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="615" relation="include">
+        </childnode>
+        <childnode refid="616" relation="include">
+        </childnode>
+        <childnode refid="617" relation="include">
+        </childnode>
+        <childnode refid="620" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+        <childnode refid="630" relation="include">
+        </childnode>
+        <childnode refid="632" relation="include">
+        </childnode>
+        <childnode refid="648" relation="include">
+        </childnode>
+        <childnode refid="602" relation="include">
+        </childnode>
+        <childnode refid="649" relation="include">
+        </childnode>
+        <childnode refid="659" relation="include">
+        </childnode>
+        <childnode refid="662" relation="include">
+        </childnode>
+      </node>
+      <node id="649">
+        <label>io/data_provider/DataProvider.h</label>
+        <link refid="DataProvider_8h_source"/>
+        <childnode refid="615" relation="include">
+        </childnode>
+        <childnode refid="650" relation="include">
+        </childnode>
+        <childnode refid="651" relation="include">
+        </childnode>
+        <childnode refid="652" relation="include">
+        </childnode>
+        <childnode refid="653" relation="include">
+        </childnode>
+        <childnode refid="654" relation="include">
+        </childnode>
+        <childnode refid="655" relation="include">
+        </childnode>
+        <childnode refid="616" relation="include">
+        </childnode>
+        <childnode refid="656" relation="include">
+        </childnode>
+        <childnode refid="657" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="658" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+      </node>
+      <node id="670">
+        <label>cudf/strings/strings_column_view.hpp</label>
+      </node>
+      <node id="615">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="624">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="660">
+        <label>../Schema.h</label>
+        <link refid="Schema_8h_source"/>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="616" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+      </node>
+      <node id="653">
+        <label>arrow/io/interfaces.h</label>
+      </node>
+      <node id="613">
+        <label>condition_variable</label>
+      </node>
+      <node id="663">
+        <label>communication/messages/MessageUtil.cuh</label>
+      </node>
+      <node id="647">
+        <label>sys/statvfs.h</label>
+      </node>
+      <node id="656">
+        <label>cudf/utilities/type_dispatcher.hpp</label>
+      </node>
+      <node id="665">
+        <label>tuple</label>
+      </node>
+      <node id="650">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="629">
+        <label>stack</label>
+      </node>
+      <node id="601">
+        <label>vector</label>
+      </node>
+      <node id="604">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="605" relation="include">
+        </childnode>
+      </node>
+      <node id="603">
+        <label>blazingdb/io/Util/StringUtil.h</label>
+      </node>
+      <node id="669">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="667">
+        <label>cudf/column/column.hpp</label>
+      </node>
+      <node id="608">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="652">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="628">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="601" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="629" relation="include">
+        </childnode>
+        <childnode refid="614" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="608" relation="include">
+        </childnode>
+      </node>
+      <node id="659">
+        <label>io/data_parser/DataParser.h</label>
+        <link refid="DataParser_8h_source"/>
+        <childnode refid="660" relation="include">
+        </childnode>
+        <childnode refid="661" relation="include">
+        </childnode>
+        <childnode refid="649" relation="include">
+        </childnode>
+        <childnode refid="622" relation="include">
+        </childnode>
+        <childnode refid="653" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="601" relation="include">
+        </childnode>
+      </node>
+      <node id="616">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="644">
+        <label>rmm/mr/device/per_device_resource.hpp</label>
+      </node>
+      <node id="661">
+        <label>../DataType.h</label>
+        <link refid="DataType_8h_source"/>
+      </node>
+      <node id="648">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="608" relation="include">
+        </childnode>
+        <childnode refid="631" relation="include">
+        </childnode>
+        <childnode refid="612" relation="include">
+        </childnode>
+        <childnode refid="607" relation="include">
+        </childnode>
+        <childnode refid="600" relation="include">
+        </childnode>
+      </node>
+      <node id="618">
+        <label>iostream</label>
+      </node>
+      <node id="626">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="611">
+        <label>deque</label>
+      </node>
+      <node id="614">
+        <label>mutex</label>
+      </node>
+      <node id="635">
+        <label>cuda_runtime_api.h</label>
+      </node>
+      <node id="621">
+        <label>chrono</label>
+      </node>
+      <node id="658">
+        <label>blazingdb/io/FileSystem/Uri.h</label>
+      </node>
+      <node id="620">
+        <label>CodeTimer.h</label>
+        <link refid="CodeTimer_8h_source"/>
+        <childnode refid="621" relation="include">
+        </childnode>
+      </node>
+      <node id="637">
+        <label>rmm/mr/device/device_memory_resource.hpp</label>
+      </node>
+      <node id="632">
+        <label>bmr/BlazingMemoryResource.h</label>
+        <link refid="BlazingMemoryResource_8h_source"/>
+        <childnode refid="633" relation="include">
+        </childnode>
+        <childnode refid="610" relation="include">
+        </childnode>
+        <childnode refid="634" relation="include">
+        </childnode>
+        <childnode refid="635" relation="include">
+        </childnode>
+        <childnode refid="636" relation="include">
+        </childnode>
+        <childnode refid="637" relation="include">
+        </childnode>
+        <childnode refid="638" relation="include">
+        </childnode>
+        <childnode refid="639" relation="include">
+        </childnode>
+        <childnode refid="640" relation="include">
+        </childnode>
+        <childnode refid="641" relation="include">
+        </childnode>
+        <childnode refid="642" relation="include">
+        </childnode>
+        <childnode refid="643" relation="include">
+        </childnode>
+        <childnode refid="644" relation="include">
+        </childnode>
+        <childnode refid="645" relation="include">
+        </childnode>
+        <childnode refid="646" relation="include">
+        </childnode>
+        <childnode refid="647" relation="include">
+        </childnode>
+      </node>
+      <node id="641">
+        <label>rmm/mr/device/pool_memory_resource.hpp</label>
+      </node>
+      <node id="634">
+        <label>set</label>
+      </node>
+      <node id="623">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="619">
+        <label>cudf/utilities/error.hpp</label>
+      </node>
+      <node id="654">
+        <label>cudf/scalar/scalar.hpp</label>
+      </node>
+      <node id="612">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <innernamespace refid="namespacecomm">comm</innernamespace>
+    <innernamespace refid="namespacecomm_1_1detail">comm::detail</innernamespace>
+    <innernamespace refid="namespacestd_1_1chrono__literals">std::chrono_literals</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;bufferTransport.hpp&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;CodeTimer.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespacestd_1_1chrono__literals" kindref="compound">std::chrono_literals</ref>;</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespacefmt_1_1literals" kindref="compound">fmt::literals</ref>;</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespacecomm" kindref="compound">comm</ref><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">detail<sp/>{</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal">std::vector&lt;char&gt;<sp/>serialize_metadata_and_transports_and_buffer_sizes(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">ral::cache::MetadataDictionary</ref><sp/>&amp;<sp/>metadata,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;blazingdb::transport::ColumnTransport&gt;<sp/>&amp;<sp/>column_transports,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;ral::memory::blazing_chunked_column_info&gt;<sp/>&amp;<sp/>chunked_column_infos,</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;size_t&gt;<sp/>buffer_sizes)<sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>builds<sp/>the<sp/>cpu<sp/>host<sp/>buffer<sp/>that<sp/>we<sp/>are<sp/>going<sp/>to<sp/>send</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>first<sp/>lets<sp/>serialize<sp/>and<sp/>send<sp/>metadata</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>metadata_buffer;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>it<sp/>:<sp/>metadata.<ref refid="classral_1_1cache_1_1MetadataDictionary_1abdc2863d96dc839565f2078471f4c9f7" kindref="member">get_values</ref>())<sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metadata_buffer<sp/>+=<sp/>it.first<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;%==%&quot;</highlight><highlight class="normal"><sp/>+<sp/>it.second<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;char&gt;<sp/>buffer,<sp/>tmp_buffer;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(metadata_buffer.size());</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>metadata_buffer.begin(),<sp/>metadata_buffer.end());</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(column_transports.size());<sp/></highlight><highlight class="comment">//<sp/>tells<sp/>us<sp/>how<sp/>many<sp/>transports<sp/>will<sp/>be<sp/>sent</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::vector_to_byte_vector(column_transports);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>lets<sp/>serialize<sp/>now<sp/>the<sp/>chunked_column_infos</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(chunked_column_infos.size());<sp/><sp/></highlight><highlight class="comment">//<sp/>tells<sp/>us<sp/>how<sp/>many<sp/>chunked_column_infos<sp/>there<sp/>are</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>&amp;chunked_column_info<sp/>:<sp/>chunked_column_infos){</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>first<sp/>we<sp/>serialize<sp/>chunk_index</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(chunked_column_info.chunk_index.size());<sp/></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::vector_to_byte_vector(chunked_column_info.chunk_index);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>then<sp/>we<sp/>serialize<sp/>offset</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(chunked_column_info.offset.size());<sp/></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::vector_to_byte_vector(chunked_column_info.offset);</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>then<sp/>we<sp/>serialize<sp/>size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(chunked_column_info.size.size());<sp/></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::vector_to_byte_vector(chunked_column_info.size);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>finally<sp/>we<sp/>serialize<sp/>use_size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(chunked_column_info.use_size);<sp/></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::to_byte_vector(buffer_sizes.size());<sp/></highlight><highlight class="comment">//<sp/>tells<sp/>us<sp/>how<sp/>many<sp/>buffers<sp/>will<sp/>be<sp/>sent</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>tmp_buffer<sp/>=<sp/>detail::vector_to_byte_vector(buffer_sizes);</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>buffer.insert(buffer.end(),<sp/>tmp_buffer.begin(),<sp/>tmp_buffer.end());</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>buffer;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal">std::tuple&lt;ral::cache::MetadataDictionary,<sp/>std::vector&lt;blazingdb::transport::ColumnTransport&gt;,<sp/></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;ral::memory::blazing_chunked_column_info&gt;,<sp/>std::vector&lt;size_t&gt;<sp/>&gt;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector&lt;char&gt;<sp/>data){</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ptr_offset<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>first<sp/>lets<sp/>deserialize<sp/>the<sp/>metadata</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>metadata_buffer_size<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data());</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>metadata_buffer(</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data.data()<sp/>+<sp/>ptr_offset,</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data.data()<sp/>+<sp/>ptr_offset<sp/>+<sp/>metadata_buffer_size);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/>metadata_buffer_size;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">ral::cache::MetadataDictionary</ref><sp/>dictionary;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>metadata_item<sp/>:<sp/>StringUtil::split(metadata_buffer,</highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">)){</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(metadata_item.empty())<sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>key_value<sp/>=<sp/>StringUtil::split(metadata_item,</highlight><highlight class="stringliteral">&quot;%==%&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(key_value.size()<sp/>==<sp/>1){</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dictionary.<ref refid="classral_1_1cache_1_1MetadataDictionary_1a99828bf2a71b8e06d568420e5c2b460d" kindref="member">add_value</ref>(key_value[0],</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight><highlight class="keywordflow">else</highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dictionary.<ref refid="classral_1_1cache_1_1MetadataDictionary_1a99828bf2a71b8e06d568420e5c2b460d" kindref="member">add_value</ref>(key_value[0],key_value[1]);</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>next<sp/>lets<sp/>deserialize<sp/>column_transports</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>column_transports_size<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>column_transports<sp/>=<sp/>vector_from_byte_vector&lt;blazingdb::transport::ColumnTransport&gt;(</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data.data()<sp/>+<sp/>ptr_offset,<sp/>column_transports_size);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/>column_transports_size<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">blazingdb::transport::ColumnTransport</ref>);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>next<sp/>we<sp/>deserialize<sp/>chunked_column_infos</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>num_chunked_column_info<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;ral::memory::blazing_chunked_column_info&gt;<sp/>chunked_column_infos(num_chunked_column_info);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>num_chunked_column_info;<sp/>i++){</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>first<sp/>we<sp/>deserialize<sp/>chunk_index</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>num_chunk_index<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>chunked_column_infos[i].chunk_index<sp/>=<sp/>vector_from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset,<sp/>num_chunk_index);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/>num_chunk_index<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>then<sp/>we<sp/>deserialize<sp/>offset</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>num_offset<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>chunked_column_infos[i].offset<sp/>=<sp/>vector_from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset,<sp/>num_offset);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/>num_offset<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>then<sp/>we<sp/>deserialize<sp/>size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>num_size<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>chunked_column_infos[i].size<sp/>=<sp/>vector_from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset,<sp/>num_size);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/>num_size<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>finally<sp/>we<sp/>deserialize<sp/>use_size</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>chunked_column_infos[i].use_size<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>finally<sp/>we<sp/>deserialize<sp/>buffer_sizes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>buffer_size<sp/>=<sp/>from_byte_vector&lt;size_t&gt;(</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data.data()<sp/>+<sp/>ptr_offset);</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/>ptr_offset<sp/>+=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(size_t);</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>buffer_sizes<sp/>=<sp/>vector_from_byte_vector&lt;size_t&gt;(</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>data.data()<sp/>+<sp/>ptr_offset,<sp/>buffer_size);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>std::make_tuple(dictionary,<sp/>column_transports,<sp/>chunked_column_infos,<sp/>buffer_sizes);</highlight></codeline>
+<codeline lineno="150"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>detail</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight></codeline>
+<codeline lineno="154" refid="classcomm_1_1buffer__transport_1a012bb1c7d1f7a2e9512815cafd95ef80" refkind="member"><highlight class="normal">buffer_transport::buffer_transport(<ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">ral::cache::MetadataDictionary</ref><sp/>metadata,</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/>std::vector&lt;size_t&gt;<sp/>buffer_sizes,</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/>std::vector&lt;blazingdb::transport::ColumnTransport&gt;<sp/>column_transports,<sp/>std::vector&lt;ral::memory::blazing_chunked_column_info&gt;<sp/>chunked_column_infos,<sp/>std::vector&lt;node&gt;<sp/>destinations,<sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>require_acknowledge)</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/>:<sp/>column_transports{column_transports},<sp/>chunked_column_infos{chunked_column_infos},<sp/>metadata{metadata},<sp/>buffer_sizes{buffer_sizes},<sp/><ref refid="classcomm_1_1buffer__transport_1af9c04a8af736e05980d62b7448142b30" kindref="member">transmitted_begin_frames</ref>(0),<sp/><ref refid="classcomm_1_1buffer__transport_1a1c8254316bfcb05204a196bece986f68" kindref="member">transmitted_frames</ref>(0),</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>destinations{destinations}<sp/>,<sp/>require_acknowledge{require_acknowledge}<sp/><sp/>{</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>iterate<sp/>for<sp/>workers<sp/>this<sp/>is<sp/>destined<sp/>for</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(require_acknowledge){</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>&amp;<sp/>destination<sp/>:<sp/>destinations){</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>transmitted_acknowledgements[destination.id()]<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal">buffer_transport::~buffer_transport(){</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173" refid="classcomm_1_1buffer__transport_1a0a7ae6691d0a182c4567f3001f96aefe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classcomm_1_1buffer__transport_1a0a7ae6691d0a182c4567f3001f96aefe" kindref="member">buffer_transport::send</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<sp/>buffer,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>buffer_size){</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/>send_impl(buffer,<sp/>buffer_size);</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/>buffer_sent++;</highlight></codeline>
+<codeline lineno="176"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>buffer_transport::increment_frame_transmission()<sp/>{</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_lock&lt;std::mutex&gt;<sp/>lock(mutex);</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classcomm_1_1buffer__transport_1a1c8254316bfcb05204a196bece986f68" kindref="member">transmitted_frames</ref>++;</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/>completion_condition_variable.notify_all();</highlight></codeline>
+<codeline lineno="184"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>buffer_transport::increment_begin_transmission()<sp/>{</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_lock&lt;std::mutex&gt;<sp/>lock(mutex);</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classcomm_1_1buffer__transport_1af9c04a8af736e05980d62b7448142b30" kindref="member">transmitted_begin_frames</ref>++;</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/>completion_condition_variable.notify_all();</highlight></codeline>
+<codeline lineno="190"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>buffer_transport::wait_for_begin_transmission()<sp/>{</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classCodeTimer" kindref="compound">CodeTimer</ref><sp/>blazing_timer;</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_lock&lt;std::mutex&gt;<sp/>lock(mutex);</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal">(!completion_condition_variable.wait_for(lock,<sp/>1000ms,<sp/>[&amp;blazing_timer,<sp/></highlight><highlight class="keyword">this</highlight><highlight class="normal">]<sp/>{</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>bool<sp/>done_waiting<sp/>=<sp/>transmitted_begin_frames<sp/>&gt;=<sp/>destinations.size();</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(!done_waiting<sp/>&amp;&amp;<sp/>blazing_timer.elapsed_time()<sp/>&gt;<sp/>990)<sp/>{</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;spdlog::logger&gt;<sp/>logger<sp/>=<sp/>spdlog::get(</highlight><highlight class="stringliteral">&quot;batch_logger&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if(logger)<sp/>{</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>logger-&gt;warn(</highlight><highlight class="stringliteral">&quot;|||{info}|{duration}||||&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;info&quot;</highlight><highlight class="normal">_a=</highlight><highlight class="stringliteral">&quot;buffer_transport::wait_for_begin_transmission()<sp/>timed<sp/>out.<sp/>transmitted_begin_frames:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(transmitted_begin_frames)<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;<sp/>destinations.size():<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(destinations.size()),</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;duration&quot;</highlight><highlight class="normal">_a=blazing_timer.elapsed_time());</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>done_waiting;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/>})){}</highlight></codeline>
+<codeline lineno="208"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"></highlight></codeline>
+<codeline lineno="211" refid="classcomm_1_1buffer__transport_1aef710177ed4367311b1d8e70acead7c2" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classcomm_1_1buffer__transport_1aef710177ed4367311b1d8e70acead7c2" kindref="member">buffer_transport::wait_until_complete</ref>()<sp/>{</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal">(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>destination<sp/>:<sp/>destinations){</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classCodeTimer" kindref="compound">CodeTimer</ref><sp/>blazing_timer;</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_lock&lt;std::mutex&gt;<sp/>lock(mutex);</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal">(!completion_condition_variable.wait_for(lock,<sp/>1000ms,<sp/>[&amp;blazing_timer,<sp/></highlight><highlight class="keyword">this</highlight><highlight class="normal">]<sp/>{</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>bool<sp/>done_waiting<sp/>=<sp/>transmitted_frames<sp/>&gt;=<sp/>(buffer_sizes.size()<sp/>*<sp/>destinations.size());</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if(require_acknowledge){</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>done_waiting<sp/>=<sp/>done_waiting<sp/>&amp;&amp;<sp/>std::all_of(transmitted_acknowledgements.begin(),<sp/>transmitted_acknowledgements.end(),<sp/>[](const<sp/>auto&amp;<sp/>elem)<sp/>{<sp/>return<sp/>elem.second;<sp/>});</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(!done_waiting<sp/>&amp;&amp;<sp/>blazing_timer.elapsed_time()<sp/>&gt;<sp/>990)<sp/>{</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::string<sp/>missing_parts;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::for_each(transmitted_acknowledgements.begin(),</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>transmitted_acknowledgements.end(),</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>[&amp;missing_parts](</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::pair&lt;std::string,bool&gt;<sp/>&amp;elem)<sp/>{</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(!elem.second){</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>missing_parts<sp/>+=<sp/>elem.first<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;,&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>});</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;spdlog::logger&gt;<sp/>logger<sp/>=<sp/>spdlog::get(</highlight><highlight class="stringliteral">&quot;batch_logger&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(logger)<sp/>{</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>logger-&gt;warn(</highlight><highlight class="stringliteral">&quot;|||{info}|{duration}|{missing_parts}|||&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;info&quot;</highlight><highlight class="normal">_a=</highlight><highlight class="stringliteral">&quot;buffer_transport::wait_until_complete()<sp/>timed<sp/>out.<sp/>transmitted_frames:<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(<ref refid="classcomm_1_1buffer__transport_1a1c8254316bfcb05204a196bece986f68" kindref="member">transmitted_frames</ref>)<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;<sp/>buffer_sizes.size():<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(buffer_sizes.size())<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;<sp/>destinations.size():<sp/>&quot;</highlight><highlight class="normal"><sp/>+<sp/>std::to_string(destinations.size()),</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;missing_parts&quot;</highlight><highlight class="normal">_a=missing_parts,</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;duration&quot;</highlight><highlight class="normal">_a=blazing_timer.elapsed_time());</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>done_waiting;</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/>})){}</highlight></codeline>
+<codeline lineno="241"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"></highlight></codeline>
+<codeline lineno="243"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>comm</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/bufferTransport.cpp"/>
+  </compounddef>
+</doxygen>

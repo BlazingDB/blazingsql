@@ -1,0 +1,267 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classdbg__macro_1_1DebugOutput" kind="class" language="C++" prot="public">
+    <compoundname>dbg_macro::DebugOutput</compoundname>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1a9ede72463d49a7b9d20fa98286d3994b" prot="private" static="no" mutable="no">
+        <type>const bool</type>
+        <definition>const bool dbg_macro::DebugOutput::m_stderr_is_a_tty</definition>
+        <argsstring></argsstring>
+        <name>m_stderr_is_a_tty</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="274" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="274" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1ad459d372f3c594ef26a1149863947530" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string dbg_macro::DebugOutput::m_filepath</definition>
+        <argsstring></argsstring>
+        <name>m_filepath</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="276" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="276" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1a185cc83139a905980aa8f69ec5e6b5d1" prot="private" static="no" mutable="no">
+        <type>const int</type>
+        <definition>const int dbg_macro::DebugOutput::m_line</definition>
+        <argsstring></argsstring>
+        <name>m_line</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="277" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="277" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1acd744ffcb0718f82acab152c62a1dc6c" prot="private" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string dbg_macro::DebugOutput::m_function_name</definition>
+        <argsstring></argsstring>
+        <name>m_function_name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="278" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="278" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1a657fa3e6dfe669faa1e72003b9d01508" prot="private" static="no" mutable="no">
+        <type>const std::string</type>
+        <definition>const std::string dbg_macro::DebugOutput::m_expression</definition>
+        <argsstring></argsstring>
+        <name>m_expression</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="279" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="279" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1a72afb1fc0e69d51c709fc94da908e112" prot="private" static="yes" mutable="no">
+        <type>constexpr int</type>
+        <definition>constexpr int dbg_macro::DebugOutput::MAX_PATH_LENGTH</definition>
+        <argsstring></argsstring>
+        <name>MAX_PATH_LENGTH</name>
+        <initializer>= 20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="281" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="281" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1af792403f93f75adb0e53c8a735076c73" prot="private" static="yes" mutable="no">
+        <type>constexpr const char *const</type>
+        <definition>constexpr const char* const dbg_macro::DebugOutput::ANSI_EMPTY</definition>
+        <argsstring></argsstring>
+        <name>ANSI_EMPTY</name>
+        <initializer>= &quot;&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="283" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="283" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1ae2ba08ac881d48758a1ba018d65d9643" prot="private" static="yes" mutable="no">
+        <type>constexpr const char *const</type>
+        <definition>constexpr const char* const dbg_macro::DebugOutput::ANSI_DEBUG</definition>
+        <argsstring></argsstring>
+        <name>ANSI_DEBUG</name>
+        <initializer>= &quot;\x1b[02m&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="284" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="284" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1a911e2805513f342d69fe3dd33e57e94a" prot="private" static="yes" mutable="no">
+        <type>constexpr const char *const</type>
+        <definition>constexpr const char* const dbg_macro::DebugOutput::ANSI_EXPRESSION</definition>
+        <argsstring></argsstring>
+        <name>ANSI_EXPRESSION</name>
+        <initializer>= &quot;\x1b[36m&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="285" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="285" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1af97895c0f0206a23f3aa8fe5af3654de" prot="private" static="yes" mutable="no">
+        <type>constexpr const char *const</type>
+        <definition>constexpr const char* const dbg_macro::DebugOutput::ANSI_VALUE</definition>
+        <argsstring></argsstring>
+        <name>ANSI_VALUE</name>
+        <initializer>= &quot;\x1b[01m&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="286" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="286" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1afdab9e1ffe58af2a380269940035a314" prot="private" static="yes" mutable="no">
+        <type>constexpr const char *const</type>
+        <definition>constexpr const char* const dbg_macro::DebugOutput::ANSI_TYPE</definition>
+        <argsstring></argsstring>
+        <name>ANSI_TYPE</name>
+        <initializer>= &quot;\x1b[32m&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="287" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="287" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classdbg__macro_1_1DebugOutput_1adc98d98dfbbbd598612690ea46b4bee7" prot="private" static="yes" mutable="no">
+        <type>constexpr const char *const</type>
+        <definition>constexpr const char* const dbg_macro::DebugOutput::ANSI_RESET</definition>
+        <argsstring></argsstring>
+        <name>ANSI_RESET</name>
+        <initializer>= &quot;\x1b[0m&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="288" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="288" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classdbg__macro_1_1DebugOutput_1a9f70b10a16e1fc63012aa25cea32973e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>dbg_macro::DebugOutput::DebugOutput</definition>
+        <argsstring>(const char *filepath, int line, const char *function_name, const char *expression)</argsstring>
+        <name>DebugOutput</name>
+        <param>
+          <type>const char *</type>
+          <declname>filepath</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>line</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>function_name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>expression</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="227" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="227" bodyend="239"/>
+      </memberdef>
+      <memberdef kind="function" id="classdbg__macro_1_1DebugOutput_1a9614125a8b550e40c348c18cb660780b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>T &amp;&amp;</type>
+        <definition>T&amp;&amp; dbg_macro::DebugOutput::print</definition>
+        <argsstring>(T &amp;&amp;value) const</argsstring>
+        <name>print</name>
+        <param>
+          <type>T &amp;&amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="242" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="242" bodyend="263"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="classdbg__macro_1_1DebugOutput_1ae0b7eb5b01916821d2f8f31f318b601c" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char* dbg_macro::DebugOutput::ansi</definition>
+        <argsstring>(const char *code) const</argsstring>
+        <name>ansi</name>
+        <param>
+          <type>const char *</type>
+          <declname>code</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="266" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="266" bodyend="272"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="225" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="225" bodyend="289"/>
+    <listofallmembers>
+      <member refid="classdbg__macro_1_1DebugOutput_1ae0b7eb5b01916821d2f8f31f318b601c" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ansi</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1ae2ba08ac881d48758a1ba018d65d9643" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ANSI_DEBUG</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1af792403f93f75adb0e53c8a735076c73" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ANSI_EMPTY</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a911e2805513f342d69fe3dd33e57e94a" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ANSI_EXPRESSION</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1adc98d98dfbbbd598612690ea46b4bee7" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ANSI_RESET</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1afdab9e1ffe58af2a380269940035a314" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ANSI_TYPE</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1af97895c0f0206a23f3aa8fe5af3654de" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>ANSI_VALUE</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a9f70b10a16e1fc63012aa25cea32973e" prot="public" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>DebugOutput</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a657fa3e6dfe669faa1e72003b9d01508" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>m_expression</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1ad459d372f3c594ef26a1149863947530" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>m_filepath</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1acd744ffcb0718f82acab152c62a1dc6c" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>m_function_name</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a185cc83139a905980aa8f69ec5e6b5d1" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>m_line</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a9ede72463d49a7b9d20fa98286d3994b" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>m_stderr_is_a_tty</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a72afb1fc0e69d51c709fc94da908e112" prot="private" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>MAX_PATH_LENGTH</name></member>
+      <member refid="classdbg__macro_1_1DebugOutput_1a9614125a8b550e40c348c18cb660780b" prot="public" virt="non-virtual"><scope>dbg_macro::DebugOutput</scope><name>print</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

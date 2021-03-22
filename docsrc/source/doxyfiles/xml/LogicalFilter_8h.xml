@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="LogicalFilter_8h" kind="file" language="C++">
+    <compoundname>LogicalFilter.h</compoundname>
+    <includes refid="Context_8h" local="no">execution_graph/Context.h</includes>
+    <includes refid="LogicPrimitives_8h" local="yes">LogicPrimitives.h</includes>
+    <includedby refid="engine_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/cython/engine.cpp</includedby>
+    <includedby refid="BatchJoinProcessing_8cpp" local="no">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp</includedby>
+    <includedby refid="BatchProcessing_8cpp" local="no">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp</includedby>
+    <includedby refid="LogicalFilter_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp</includedby>
+    <includedby refid="DataLoader_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.cpp</includedby>
+    <includedby refid="SkipDataProcessor_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/skip_data/SkipDataProcessor.cpp</includedby>
+    <incdepgraph>
+      <node id="3980">
+        <label>LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="3981" relation="include">
+        </childnode>
+        <childnode refid="3982" relation="include">
+        </childnode>
+        <childnode refid="3978" relation="include">
+        </childnode>
+        <childnode refid="3979" relation="include">
+        </childnode>
+        <childnode refid="3974" relation="include">
+        </childnode>
+        <childnode refid="3983" relation="include">
+        </childnode>
+        <childnode refid="3985" relation="include">
+        </childnode>
+      </node>
+      <node id="3988">
+        <label>cstdint</label>
+      </node>
+      <node id="3983">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="3984" relation="include">
+        </childnode>
+        <childnode refid="3981" relation="include">
+        </childnode>
+        <childnode refid="3982" relation="include">
+        </childnode>
+        <childnode refid="3978" relation="include">
+        </childnode>
+        <childnode refid="3979" relation="include">
+        </childnode>
+        <childnode refid="3974" relation="include">
+        </childnode>
+      </node>
+      <node id="3977">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="3978" relation="include">
+        </childnode>
+        <childnode refid="3979" relation="include">
+        </childnode>
+      </node>
+      <node id="3979">
+        <label>string</label>
+      </node>
+      <node id="3975">
+        <label>map</label>
+      </node>
+      <node id="3985">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="3974" relation="include">
+        </childnode>
+        <childnode refid="3979" relation="include">
+        </childnode>
+        <childnode refid="3978" relation="include">
+        </childnode>
+        <childnode refid="3986" relation="include">
+        </childnode>
+        <childnode refid="3987" relation="include">
+        </childnode>
+        <childnode refid="3989" relation="include">
+        </childnode>
+        <childnode refid="3980" relation="include">
+        </childnode>
+      </node>
+      <node id="3973">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="3974" relation="include">
+        </childnode>
+        <childnode refid="3975" relation="include">
+        </childnode>
+        <childnode refid="3976" relation="include">
+        </childnode>
+        <childnode refid="3977" relation="include">
+        </childnode>
+      </node>
+      <node id="3982">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="3990">
+        <label>stack</label>
+      </node>
+      <node id="3974">
+        <label>vector</label>
+      </node>
+      <node id="3987">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="3988" relation="include">
+        </childnode>
+      </node>
+      <node id="3991">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="3989">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="3974" relation="include">
+        </childnode>
+        <childnode refid="3979" relation="include">
+        </childnode>
+        <childnode refid="3990" relation="include">
+        </childnode>
+        <childnode refid="3976" relation="include">
+        </childnode>
+        <childnode refid="3978" relation="include">
+        </childnode>
+        <childnode refid="3991" relation="include">
+        </childnode>
+      </node>
+      <node id="3986">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="3984">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="3976">
+        <label>mutex</label>
+      </node>
+      <node id="3981">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="3978">
+        <label>memory</label>
+      </node>
+      <node id="3972">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.h</label>
+        <link refid="LogicalFilter_8h"/>
+        <childnode refid="3973" relation="include">
+        </childnode>
+        <childnode refid="3980" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1processor">ral::processor</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;execution_graph/Context.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;LogicPrimitives.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref>{</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">processor{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>is_logical_filter(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part);</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>applyBooleanFilter(</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>CudfColumnView<sp/>&amp;<sp/>boolValues);</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>process_filter(</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>query_part,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref><sp/>*<sp/>context);</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>check_if_has_nulls(CudfTableView<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">&amp;<sp/>input,<sp/>std::vector&lt;cudf::size_type&gt;<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">&amp;<sp/>keys);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>process_distribution_table(</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>&amp;<sp/>table,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>&amp;<sp/>columnIndices,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref><sp/>*<sp/>context);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>processor</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.h"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,70 @@
+\hypertarget{classcomm_1_1message__sender}{}\section{comm\+:\+:message\+\_\+sender Class Reference}
+\label{classcomm_1_1message__sender}\index{comm\+::message\+\_\+sender@{comm\+::message\+\_\+sender}}
+
+
+A Class that can be used to poll messages and then send them off.  
+
+
+
+
+{\ttfamily \#include $<$message\+Sender.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classcomm_1_1message__sender_a0908364a7c34e29380f7a309b1f65c14}{message\+\_\+sender} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output\+\_\+cache, const std\+::map$<$ std\+::string, \hyperlink{classcomm_1_1node}{node} $>$ \&node\+\_\+address\+\_\+map, int num\+\_\+threads, ucp\+\_\+context\+\_\+h context, ucp\+\_\+worker\+\_\+h origin, int ral\+\_\+id, comm\+::blazing\+\_\+protocol protocol, bool require\+\_\+acknowledge)
+\begin{DoxyCompactList}\small\item\em Constructs a \hyperlink{classcomm_1_1message__sender}{message\+\_\+sender}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classcomm_1_1message__sender_ae17b0a7069bfa71991a39c932680eb01}\label{classcomm_1_1message__sender_ae17b0a7069bfa71991a39c932680eb01}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ {\bfseries get\+\_\+output\+\_\+cache} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__sender_af686fdcc4f5d1c078f02ff1988725c06}\label{classcomm_1_1message__sender_af686fdcc4f5d1c078f02ff1988725c06}} 
+void \hyperlink{classcomm_1_1message__sender_af686fdcc4f5d1c078f02ff1988725c06}{run\+\_\+polling} ()
+\begin{DoxyCompactList}\small\item\em A polling function that listens on a cache for data and send it off via some protocol. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__sender_aa62c8d7a6c5f9b41c69ae9d3699fb985}\label{classcomm_1_1message__sender_aa62c8d7a6c5f9b41c69ae9d3699fb985}} 
+static \hyperlink{classcomm_1_1message__sender}{message\+\_\+sender} $\ast$ {\bfseries get\+\_\+instance} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__sender_a30526fdd6ad63ee220b8a7cbe0f6d100}\label{classcomm_1_1message__sender_a30526fdd6ad63ee220b8a7cbe0f6d100}} 
+static void {\bfseries initialize\+\_\+instance} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output\+\_\+cache, std\+::map$<$ std\+::string, \hyperlink{classcomm_1_1node}{node} $>$ node\+\_\+address\+\_\+map, int num\+\_\+threads, ucp\+\_\+context\+\_\+h context, ucp\+\_\+worker\+\_\+h origin\+\_\+node, int ral\+\_\+id, comm\+::blazing\+\_\+protocol protocol, bool require\+\_\+acknowledge)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A Class that can be used to poll messages and then send them off. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classcomm_1_1message__sender_a0908364a7c34e29380f7a309b1f65c14}\label{classcomm_1_1message__sender_a0908364a7c34e29380f7a309b1f65c14}} 
+\index{comm\+::message\+\_\+sender@{comm\+::message\+\_\+sender}!message\+\_\+sender@{message\+\_\+sender}}
+\index{message\+\_\+sender@{message\+\_\+sender}!comm\+::message\+\_\+sender@{comm\+::message\+\_\+sender}}
+\subsubsection{\texorpdfstring{message\+\_\+sender()}{message\_sender()}}
+{\footnotesize\ttfamily comm\+::message\+\_\+sender\+::message\+\_\+sender (\begin{DoxyParamCaption}\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$}]{output\+\_\+cache,  }\item[{const std\+::map$<$ std\+::string, \hyperlink{classcomm_1_1node}{node} $>$ \&}]{node\+\_\+address\+\_\+map,  }\item[{int}]{num\+\_\+threads,  }\item[{ucp\+\_\+context\+\_\+h}]{context,  }\item[{ucp\+\_\+worker\+\_\+h}]{origin,  }\item[{int}]{ral\+\_\+id,  }\item[{comm\+::blazing\+\_\+protocol}]{protocol,  }\item[{bool}]{require\+\_\+acknowledge }\end{DoxyParamCaption})}
+
+
+
+Constructs a \hyperlink{classcomm_1_1message__sender}{message\+\_\+sender}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em output\+\_\+cache} & The cache machine from where to obtain the data to send \\
+\hline
+{\em node\+\_\+address\+\_\+map} & A map from node id to Node \\
+\hline
+{\em num\+\_\+threads} & Number of threads the \hyperlink{classcomm_1_1message__sender}{message\+\_\+sender} will use to send data concurrently \\
+\hline
+{\em context} & The ucp\+\_\+context\+\_\+h \\
+\hline
+{\em origin} & The ucp\+\_\+worker\+\_\+h \\
+\hline
+{\em ral\+\_\+id} & The ral\+\_\+id \\
+\hline
+{\em protocol} & The comm\+::blazing\+\_\+protocol \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/communication/\+Communication\+Interface/message\+Sender.\+hpp\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/communication/\+Communication\+Interface/message\+Sender.\+cpp\end{DoxyCompactItemize}

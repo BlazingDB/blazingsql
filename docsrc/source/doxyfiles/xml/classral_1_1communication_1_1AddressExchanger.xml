@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1communication_1_1AddressExchanger" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>ral::communication::AddressExchanger</compoundname>
+    <derivedcompoundref refid="classral_1_1communication_1_1AddressExchangerForReceiver" prot="public" virt="non-virtual">ral::communication::AddressExchangerForReceiver</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1communication_1_1AddressExchangerForSender" prot="public" virt="non-virtual">ral::communication::AddressExchangerForSender</derivedcompoundref>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1communication_1_1AddressExchanger_1a3bb71364f0c14281838adda5d6a90c5e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="classral_1_1communication_1_1UcpWorkerAddress" kindref="compound">UcpWorkerAddress</ref></type>
+        <definition>const UcpWorkerAddress ral::communication::AddressExchanger::Exchange</definition>
+        <argsstring>(const UcpWorkerAddress &amp;ucpWorkerAddress)</argsstring>
+        <name>Exchange</name>
+        <param>
+          <type>const <ref refid="classral_1_1communication_1_1UcpWorkerAddress" kindref="compound">UcpWorkerAddress</ref> &amp;</type>
+          <declname>ucpWorkerAddress</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="45" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="45" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1communication_1_1AddressExchanger_1a471d68aeb123276a007fde516ae9bc15" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>int</type>
+        <definition>virtual int ral::communication::AddressExchanger::fd</definition>
+        <argsstring>()=0</argsstring>
+        <name>fd</name>
+        <reimplementedby refid="classral_1_1communication_1_1AddressExchangerForSender_1adaf94458ab22f538905644ff818be6f4">fd</reimplementedby>
+        <reimplementedby refid="classral_1_1communication_1_1AddressExchangerForReceiver_1ac1b9066fdc95871b783dfae3c742df82">fd</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="77" column="1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classral_1_1communication_1_1AddressExchanger_1ab976b52f00f63554e798d3372bdb8caf" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1communication_1_1AddressExchanger" kindref="compound">AddressExchanger</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; AddressExchanger &gt; ral::communication::AddressExchanger::MakeForSender</definition>
+        <argsstring>(const std::uint16_t port)</argsstring>
+        <name>MakeForSender</name>
+        <param>
+          <type>const std::uint16_t</type>
+          <declname>port</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="72" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="262" bodyend="264"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1communication_1_1AddressExchanger_1abbb8262eced0853ab6293def89f6ef87" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1communication_1_1AddressExchanger" kindref="compound">AddressExchanger</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; AddressExchanger &gt; ral::communication::AddressExchanger::MakeForReceiver</definition>
+        <argsstring>(const std::uint16_t port, const char *hostname)</argsstring>
+        <name>MakeForReceiver</name>
+        <param>
+          <type>const std::uint16_t</type>
+          <declname>port</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>hostname</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="75" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="267" bodyend="270"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="classral_1_1communication_1_1AddressExchanger_1af8f84c125b3f4f2c7fc67baf4502fb02" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ral::communication::AddressExchanger::Exchange</definition>
+        <argsstring>(void *peerData, const int fd, const void *localData, const std::size_t length)</argsstring>
+        <name>Exchange</name>
+        <param>
+          <type>void *</type>
+          <declname>peerData</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>fd</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>localData</declname>
+        </param>
+        <param>
+          <type>const std::size_t</type>
+          <declname>length</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="80" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="80" bodyend="88"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="0">
+        <label>ral::communication::AddressExchanger</label>
+        <link refid="classral_1_1communication_1_1AddressExchanger"/>
+      </node>
+      <node id="1">
+        <label>ral::communication::AddressExchangerForReceiver</label>
+        <link refid="classral_1_1communication_1_1AddressExchangerForReceiver"/>
+        <childnode refid="0" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ral::communication::AddressExchangerForSender</label>
+        <link refid="classral_1_1communication_1_1AddressExchangerForSender"/>
+        <childnode refid="0" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="43" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="43" bodyend="89"/>
+    <listofallmembers>
+      <member refid="classral_1_1communication_1_1AddressExchanger_1a3bb71364f0c14281838adda5d6a90c5e" prot="public" virt="non-virtual"><scope>ral::communication::AddressExchanger</scope><name>Exchange</name></member>
+      <member refid="classral_1_1communication_1_1AddressExchanger_1af8f84c125b3f4f2c7fc67baf4502fb02" prot="private" virt="non-virtual"><scope>ral::communication::AddressExchanger</scope><name>Exchange</name></member>
+      <member refid="classral_1_1communication_1_1AddressExchanger_1a471d68aeb123276a007fde516ae9bc15" prot="public" virt="pure-virtual"><scope>ral::communication::AddressExchanger</scope><name>fd</name></member>
+      <member refid="classral_1_1communication_1_1AddressExchanger_1abbb8262eced0853ab6293def89f6ef87" prot="public" virt="non-virtual"><scope>ral::communication::AddressExchanger</scope><name>MakeForReceiver</name></member>
+      <member refid="classral_1_1communication_1_1AddressExchanger_1ab976b52f00f63554e798d3372bdb8caf" prot="public" virt="non-virtual"><scope>ral::communication::AddressExchanger</scope><name>MakeForSender</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

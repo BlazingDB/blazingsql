@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_ceca262b700df98c9d16826bbc770c22" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/distribution</compoundname>
+    <innerfile refid="primitives_8cpp">primitives.cpp</innerfile>
+    <innerfile refid="primitives_8h">primitives.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/distribution/"/>
+  </compounddef>
+</doxygen>

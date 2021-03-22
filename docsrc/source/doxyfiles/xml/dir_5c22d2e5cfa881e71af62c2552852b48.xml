@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_5c22d2e5cfa881e71af62c2552852b48" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication</compoundname>
+    <innerdir refid="dir_70dba28866851c34cd90b268c3ad76df">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface</innerdir>
+    <innerdir refid="dir_c30fa4fbfe268d6cd7618b2943ccf505">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/factory</innerdir>
+    <innerdir refid="dir_23bd0f278815f8e6b8b25c569893cfd7">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/messages</innerdir>
+    <innerfile refid="CommunicationData_8cpp">CommunicationData.cpp</innerfile>
+    <innerfile refid="CommunicationData_8h">CommunicationData.h</innerfile>
+    <innerfile refid="ucx__init_8h">ucx_init.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/"/>
+  </compounddef>
+</doxygen>

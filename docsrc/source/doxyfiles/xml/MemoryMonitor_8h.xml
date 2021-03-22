@@ -1,0 +1,225 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="MemoryMonitor_8h" kind="file" language="C++">
+    <compoundname>MemoryMonitor.h</compoundname>
+    <includes local="no">condition_variable</includes>
+    <includes local="no">mutex</includes>
+    <includes local="no">chrono</includes>
+    <includes local="yes">ExceptionHandling/BlazingThread.h</includes>
+    <includes local="no">map</includes>
+    <includedby refid="MemoryMonitor_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/MemoryMonitor.cpp</includedby>
+    <includedby refid="graph_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h</includedby>
+    <incdepgraph>
+      <node id="271">
+        <label>map</label>
+      </node>
+      <node id="267">
+        <label>condition_variable</label>
+      </node>
+      <node id="270">
+        <label>ExceptionHandling/BlazingThread.h</label>
+      </node>
+      <node id="266">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/MemoryMonitor.h</label>
+        <link refid="MemoryMonitor_8h"/>
+        <childnode refid="267" relation="include">
+        </childnode>
+        <childnode refid="268" relation="include">
+        </childnode>
+        <childnode refid="269" relation="include">
+        </childnode>
+        <childnode refid="270" relation="include">
+        </childnode>
+        <childnode refid="271" relation="include">
+        </childnode>
+      </node>
+      <node id="268">
+        <label>mutex</label>
+      </node>
+      <node id="269">
+        <label>chrono</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="287">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp</label>
+        <link refid="messageReceiver_8hpp_source"/>
+        <childnode refid="288" relation="include">
+        </childnode>
+        <childnode refid="286" relation="include">
+        </childnode>
+        <childnode refid="289" relation="include">
+        </childnode>
+      </node>
+      <node id="283">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h</label>
+        <link refid="BatchWindowFunctionProcessing_8h_source"/>
+        <childnode refid="279" relation="include">
+        </childnode>
+      </node>
+      <node id="277">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h</label>
+        <link refid="BatchProcessing_8h_source"/>
+        <childnode refid="278" relation="include">
+        </childnode>
+        <childnode refid="280" relation="include">
+        </childnode>
+        <childnode refid="281" relation="include">
+        </childnode>
+        <childnode refid="282" relation="include">
+        </childnode>
+        <childnode refid="283" relation="include">
+        </childnode>
+      </node>
+      <node id="278">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchOrderByProcessing.h</label>
+        <link refid="BatchOrderByProcessing_8h_source"/>
+        <childnode refid="279" relation="include">
+        </childnode>
+      </node>
+      <node id="276">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h</label>
+        <link refid="kpair_8h_source"/>
+        <childnode refid="273" relation="include">
+        </childnode>
+      </node>
+      <node id="288">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp</label>
+        <link refid="messageListener_8hpp_source"/>
+      </node>
+      <node id="289">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h</label>
+        <link refid="ucx__init_8h_source"/>
+      </node>
+      <node id="275">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h</label>
+        <link refid="kernel_8h_source"/>
+        <childnode refid="273" relation="include">
+        </childnode>
+        <childnode refid="276" relation="include">
+        </childnode>
+        <childnode refid="277" relation="include">
+        </childnode>
+        <childnode refid="284" relation="include">
+        </childnode>
+        <childnode refid="285" relation="include">
+        </childnode>
+      </node>
+      <node id="279">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</label>
+        <link refid="PhysicalPlanGenerator_8h_source"/>
+      </node>
+      <node id="286">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp</label>
+        <link refid="protocols_8hpp_source"/>
+        <childnode refid="287" relation="include">
+        </childnode>
+        <childnode refid="290" relation="include">
+        </childnode>
+      </node>
+      <node id="272">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/MemoryMonitor.h</label>
+        <link refid="MemoryMonitor_8h"/>
+        <childnode refid="273" relation="include">
+        </childnode>
+      </node>
+      <node id="273">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h</label>
+        <link refid="graph_8h_source"/>
+        <childnode refid="274" relation="include">
+        </childnode>
+        <childnode refid="275" relation="include">
+        </childnode>
+        <childnode refid="277" relation="include">
+        </childnode>
+        <childnode refid="286" relation="include">
+        </childnode>
+      </node>
+      <node id="290">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageSender.hpp</label>
+        <link refid="messageSender_8hpp_source"/>
+      </node>
+      <node id="285">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h</label>
+        <link refid="executor_8h_source"/>
+      </node>
+      <node id="274">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/CalciteInterpreter.h</label>
+        <link refid="CalciteInterpreter_8h_source"/>
+      </node>
+      <node id="284">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/distributing_kernel.h</label>
+        <link refid="distributing__kernel_8h_source"/>
+        <childnode refid="278" relation="include">
+        </childnode>
+        <childnode refid="280" relation="include">
+        </childnode>
+        <childnode refid="281" relation="include">
+        </childnode>
+      </node>
+      <node id="280">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h</label>
+        <link refid="BatchAggregationProcessing_8h_source"/>
+        <childnode refid="279" relation="include">
+        </childnode>
+      </node>
+      <node id="282">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchUnionProcessing.h</label>
+        <link refid="BatchUnionProcessing_8h_source"/>
+        <childnode refid="279" relation="include">
+        </childnode>
+      </node>
+      <node id="281">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h</label>
+        <link refid="BatchJoinProcessing_8h_source"/>
+        <childnode refid="279" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classral_1_1MemoryMonitor" prot="public">ral::MemoryMonitor</innerclass>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1batch">ral::batch</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;condition_variable&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;mutex&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;chrono&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ExceptionHandling/BlazingThread.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;map&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classBlazingMemoryResource" kindref="compound">BlazingMemoryResource</ref>;</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/><sp/></highlight><highlight class="normal">batch{</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">tree_processor;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">node;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal">}<sp/></highlight><highlight class="comment">//namespace<sp/>batch</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16" refid="classral_1_1MemoryMonitor" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1MemoryMonitor" kindref="compound">MemoryMonitor</ref><sp/>{</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classral_1_1MemoryMonitor" kindref="compound">MemoryMonitor</ref>(std::shared_ptr&lt;ral::batch::tree_processor&gt;<sp/>tree,<sp/>std::map&lt;std::string,<sp/>std::string&gt;<sp/>config_options);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>start();</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>finalize();</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>finished;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::mutex<sp/>finished_lock;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::condition_variable<sp/>condition;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::batch::tree_processor&gt;<sp/>tree;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::chrono::milliseconds<sp/>period;</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classBlazingMemoryResource" kindref="compound">BlazingMemoryResource</ref>*<sp/>resource;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>BlazingThread<sp/>monitor_thread;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>need_to_free_memory();</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>downgradeCaches(<ref refid="structral_1_1batch_1_1node" kindref="compound">ral::batch::node</ref>*<sp/>starting_node);</highlight></codeline>
+<codeline lineno="33"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/MemoryMonitor.h"/>
+  </compounddef>
+</doxygen>

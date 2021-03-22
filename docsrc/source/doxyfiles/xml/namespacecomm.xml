@@ -1,0 +1,272 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespacecomm" kind="namespace" language="C++">
+    <compoundname>comm</compoundname>
+    <innerclass refid="structcomm_1_1blazing__ucp__tag" prot="public">comm::blazing_ucp_tag</innerclass>
+    <innerclass refid="classcomm_1_1buffer__transport" prot="public">comm::buffer_transport</innerclass>
+    <innerclass refid="classcomm_1_1graphs__info" prot="public">comm::graphs_info</innerclass>
+    <innerclass refid="classcomm_1_1message__listener" prot="public">comm::message_listener</innerclass>
+    <innerclass refid="classcomm_1_1message__receiver" prot="public">comm::message_receiver</innerclass>
+    <innerclass refid="classcomm_1_1message__sender" prot="public">comm::message_sender</innerclass>
+    <innerclass refid="classcomm_1_1node" prot="public">comm::node</innerclass>
+    <innerclass refid="classcomm_1_1tcp__buffer__transport" prot="public">comm::tcp_buffer_transport</innerclass>
+    <innerclass refid="classcomm_1_1tcp__message__listener" prot="public">comm::tcp_message_listener</innerclass>
+    <innerclass refid="classcomm_1_1ucp__progress__manager" prot="public">comm::ucp_progress_manager</innerclass>
+    <innerclass refid="classcomm_1_1ucx__buffer__transport" prot="public">comm::ucx_buffer_transport</innerclass>
+    <innerclass refid="classcomm_1_1ucx__message__listener" prot="public">comm::ucx_message_listener</innerclass>
+    <innerclass refid="structcomm_1_1ucx__request" prot="public">comm::ucx_request</innerclass>
+    <innernamespace refid="namespacecomm_1_1detail">comm::detail</innernamespace>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="protocols_8hpp_1a5e4fda95f678d6d0597522281c71799c" prot="public" static="no">
+        <name>status_code</name>
+        <enumvalue id="dummy_1a5e4fda95f678d6d0597522281c71799caccc0377a8afbf50e7094f5c23a8af223" prot="public">
+          <name>INVALID</name>
+          <initializer>= -1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="dummy_1a5e4fda95f678d6d0597522281c71799cae0aa021e21dddbd6d8cecec71e9cf564" prot="public">
+          <name>OK</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="dummy_1a5e4fda95f678d6d0597522281c71799cabb1ca97ec761fc37101737ba0aa2e7c5" prot="public">
+          <name>ERROR</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="55" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="55" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="enum" id="protocols_8hpp_1a874c084e940581650ac0852237f3c304" prot="public" static="no">
+        <name>blazing_protocol</name>
+        <enumvalue id="protocols_8hpp_1a874c084e940581650ac0852237f3c304a08a940b0d7eb94cf45c9c38e9b6b5519" prot="public">
+          <name>ucx</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="protocols_8hpp_1a874c084e940581650ac0852237f3c304a399950af7c99ab27d9848a400b45a3c7" prot="public">
+          <name>tcp</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="63" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="62" bodyend="66"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="protocols_8cpp_1ad44c9a652630650cf3cc312490233944" prot="public" static="no" mutable="no">
+        <type>std::mutex</type>
+        <definition>std::mutex comm::instance_mutex</definition>
+        <argsstring></argsstring>
+        <name>instance_mutex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" line="107" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="107" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="protocols_8cpp_1a63a92f9496679f77e39d42d1a331a9cf" prot="public" static="no" mutable="no">
+        <type><ref refid="classcomm_1_1ucp__progress__manager" kindref="compound">ucp_progress_manager</ref> *</type>
+        <definition>ucp_progress_manager* comm::instance</definition>
+        <argsstring></argsstring>
+        <name>instance</name>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" line="108" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="protocols_8cpp_1af97052af394d68ced67a49144c90db98" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; comm::atomic_message_id</definition>
+        <argsstring></argsstring>
+        <name>atomic_message_id</name>
+        <initializer>= std::atomic&lt;int&gt;(0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" line="264" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="264" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="protocols_8hpp_1acc79dbc83a65d84f8b0ff3cd054131b0" prot="public" static="yes" mutable="no">
+        <type>const ucp_tag_t</type>
+        <definition>const ucp_tag_t comm::begin_tag_mask</definition>
+        <argsstring></argsstring>
+        <name>begin_tag_mask</name>
+        <initializer>=        0xFFFF000000000000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="162" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="162" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="protocols_8hpp_1a92eee89b1f3cf5264b941f7ddcc50c82" prot="public" static="yes" mutable="no">
+        <type>const ucp_tag_t</type>
+        <definition>const ucp_tag_t comm::message_tag_mask</definition>
+        <argsstring></argsstring>
+        <name>message_tag_mask</name>
+        <initializer>=      0x0000FFFFFFFFFFFF</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="163" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="protocols_8hpp_1a2c3d39f637fdd75b2832032d737e4117" prot="public" static="yes" mutable="no">
+        <type>const ucp_tag_t</type>
+        <definition>const ucp_tag_t comm::acknownledge_tag_mask</definition>
+        <argsstring></argsstring>
+        <name>acknownledge_tag_mask</name>
+        <initializer>= 0xFFFFFFFFFFFFFFFF</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="164" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="164" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="messageListener_8cpp_1a96dfaea2cc9f8a538e7cc90931d52772" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::poll_for_frames</definition>
+        <argsstring>(std::shared_ptr&lt; message_receiver &gt; receiver, ucp_tag_t tag, ucp_worker_h ucp_worker, const std::size_t request_size)</argsstring>
+        <name>poll_for_frames</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classcomm_1_1message__receiver" kindref="compound">message_receiver</ref> &gt;</type>
+          <declname>receiver</declname>
+        </param>
+        <param>
+          <type>ucp_tag_t</type>
+          <declname>tag</declname>
+        </param>
+        <param>
+          <type>ucp_worker_h</type>
+          <declname>ucp_worker</declname>
+        </param>
+        <param>
+          <type>const std::size_t</type>
+          <declname>request_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp" line="19" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp" bodystart="19" bodyend="81"/>
+      </memberdef>
+      <memberdef kind="function" id="messageListener_8cpp_1a1395c8882256f25cb816090f4ef57276" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::recv_begin_callback_c</definition>
+        <argsstring>(std::shared_ptr&lt; ucp_tag_recv_info_t &gt; info, std::shared_ptr&lt; std::vector&lt; char &gt; &gt; data_buffer, size_t request_size, std::shared_ptr&lt; ral::cache::CacheMachine &gt; input_cache)</argsstring>
+        <name>recv_begin_callback_c</name>
+        <param>
+          <type>std::shared_ptr&lt; ucp_tag_recv_info_t &gt;</type>
+          <declname>info</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; std::vector&lt; char &gt; &gt;</type>
+          <declname>data_buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>request_size</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>input_cache</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp" bodystart="84" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="serializer_8cpp_1a7fd15c31dc49df173a59a475f63760b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; comm::deserialize_from_gpu_raw_buffers</definition>
+        <argsstring>(const std::vector&lt; blazingdb::transport::ColumnTransport &gt; &amp;columns_offsets, const std::vector&lt; rmm::device_buffer &gt; &amp;raw_buffers, cudaStream_t stream=0)</argsstring>
+        <name>deserialize_from_gpu_raw_buffers</name>
+        <param>
+          <type>const std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">blazingdb::transport::ColumnTransport</ref> &gt; &amp;</type>
+          <declname>columns_offsets</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; rmm::device_buffer &gt; &amp;</type>
+          <declname>raw_buffers</declname>
+        </param>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+<para>Deserializes column data and metadata into a BlazingTable. </para>        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>columns_offsets</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A vector of ColumnTransport containing column metadata </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>raw_buffers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A vector of device_buffer containing column data</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A unique_ptr to BlazingTable created with data from the columns_offsets and raw_buffers vectors. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/serializer.cpp" line="10" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/serializer.cpp" bodystart="10" bodyend="70"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/bufferTransport.cpp" line="7" column="1"/>
+  </compounddef>
+</doxygen>

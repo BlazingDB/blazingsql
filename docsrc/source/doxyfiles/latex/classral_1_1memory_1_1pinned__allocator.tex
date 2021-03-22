@@ -1,0 +1,56 @@
+\hypertarget{classral_1_1memory_1_1pinned__allocator}{}\section{ral\+:\+:memory\+:\+:pinned\+\_\+allocator Class Reference}
+\label{classral_1_1memory_1_1pinned__allocator}\index{ral\+::memory\+::pinned\+\_\+allocator@{ral\+::memory\+::pinned\+\_\+allocator}}
+
+
+Inheritance diagram for ral\+:\+:memory\+:\+:pinned\+\_\+allocator\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=217pt]{classral_1_1memory_1_1pinned__allocator__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:memory\+:\+:pinned\+\_\+allocator\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=217pt]{classral_1_1memory_1_1pinned__allocator__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_a487a8565a7efb61984a21d5751de3a30}\label{classral_1_1memory_1_1pinned__allocator_a487a8565a7efb61984a21d5751de3a30}} 
+void {\bfseries set\+Ucp\+Context} (ucp\+\_\+context\+\_\+h context)
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_ac8ef40eac914f8f6761eb342ac2da2a2}\label{classral_1_1memory_1_1pinned__allocator_ac8ef40eac914f8f6761eb342ac2da2a2}} 
+virtual ucp\+\_\+mem\+\_\+h {\bfseries get\+Ucp\+Memory\+Handle} () const
+\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_a43b29a370a25b86b7754d514194a184e}\label{classral_1_1memory_1_1pinned__allocator_a43b29a370a25b86b7754d514194a184e}} 
+void {\bfseries do\+\_\+allocate} (void $\ast$$\ast$ptr, std\+::size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_a8d27e20282e57a4350446891e1851129}\label{classral_1_1memory_1_1pinned__allocator_a8d27e20282e57a4350446891e1851129}} 
+void {\bfseries do\+\_\+deallocate} (void $\ast$ptr)
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_a6c76501acab8d6bfa975633c6ab957f2}\label{classral_1_1memory_1_1pinned__allocator_a6c76501acab8d6bfa975633c6ab957f2}} 
+bool {\bfseries use\+\_\+ucx}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_aaab66ee7b19c2dc0bc005c979bd7c389}\label{classral_1_1memory_1_1pinned__allocator_aaab66ee7b19c2dc0bc005c979bd7c389}} 
+ucp\+\_\+context\+\_\+h {\bfseries context}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1pinned__allocator_ad410fbbcc3cb4701cd73eb694191fd14}\label{classral_1_1memory_1_1pinned__allocator_ad410fbbcc3cb4701cd73eb694191fd14}} 
+ucp\+\_\+mem\+\_\+h {\bfseries mem\+\_\+handle}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Buffer\+Provider.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Buffer\+Provider.\+cpp\end{DoxyCompactItemize}

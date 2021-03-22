@@ -1,0 +1,13 @@
+.. _exhale_function_GroupBy_8cpp_1a2f504df8b0f66353af33784f2abc318a:
+
+Function ral::operators::get_aggregation_output_type
+====================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::operators::get_aggregation_output_type(cudf::type_id, AggregateKind, bool)

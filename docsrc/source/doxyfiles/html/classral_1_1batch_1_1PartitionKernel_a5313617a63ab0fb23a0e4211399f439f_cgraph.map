@@ -1,0 +1,10 @@
+<map id="ral::batch::PartitionKernel::run" name="ral::batch::PartitionKernel::run">
+<area shape="rect" id="node2" href="$classral_1_1batch_1_1BatchSequence.html#a5fe181e6183df338739e61eb512c23a4" title="ral::batch::BatchSequence\l::next" alt="" coords="275,5,451,47"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="983,159,1105,200"/>
+<area shape="rect" id="node4" href="$classral_1_1cache_1_1distributing__kernel.html#a532f4eb42963c4e76199f9250c483a09" title="Sends the partition counter to all other nodes. These sent counters represent the number of messages ..." alt="" coords="248,152,479,193"/>
+<area shape="rect" id="node8" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="773,253,896,295"/>
+<area shape="rect" id="node9" href="$classral_1_1cache_1_1distributing__kernel.html#ae5f1a597fc3716c344b54b6d0d6af311" title="Get the total partition counters associated to a message tracker. The total counter returned by this ..." alt="" coords="253,299,474,340"/>
+<area shape="rect" id="node5" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="735,123,935,164"/>
+<area shape="rect" id="node6" href="$classral_1_1cache_1_1distributing__kernel.html#aa2c88f7cefd4bb5eee4058c7059c277e" title="Sends a table with their corresponding metadata. " alt="" coords="527,181,687,223"/>
+<area shape="rect" id="node7" href="$classral_1_1cache_1_1MetadataDictionary.html#abdc2863d96dc839565f2078471f4c9f7" title="ral::cache::MetadataDictionary\l::get_values" alt="" coords="735,188,935,229"/>
+</map>

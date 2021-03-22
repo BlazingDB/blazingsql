@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceral_1_1communication" kind="namespace" language="C++">
+    <compoundname>ral::communication</compoundname>
+    <innerclass refid="classral_1_1communication_1_1AddressExchanger" prot="public">ral::communication::AddressExchanger</innerclass>
+    <innerclass refid="classral_1_1communication_1_1AddressExchangerForReceiver" prot="public">ral::communication::AddressExchangerForReceiver</innerclass>
+    <innerclass refid="classral_1_1communication_1_1AddressExchangerForSender" prot="public">ral::communication::AddressExchangerForSender</innerclass>
+    <innerclass refid="classral_1_1communication_1_1CommunicationData" prot="public">ral::communication::CommunicationData</innerclass>
+    <innerclass refid="classral_1_1communication_1_1ErrorHandling" prot="public">ral::communication::ErrorHandling</innerclass>
+    <innerclass refid="classral_1_1communication_1_1UcpWorkerAddress" prot="public">ral::communication::UcpWorkerAddress</innerclass>
+    <innernamespace refid="namespaceral_1_1communication_1_1messages">ral::communication::messages</innernamespace>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc" prot="public" static="yes" mutable="no">
+        <type>class ral::communication::ErrorHandling</type>
+        <definition>class ral::communication::ErrorHandling  ral::communication::err_handling_opt</definition>
+        <argsstring></argsstring>
+        <name>err_handling_opt</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="345" column="1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="ucx__init_8h_1ab8486812a4b51e738caa24c8d1800f6a" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class Callable</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>static void ral::communication::CheckError</definition>
+        <argsstring>(const bool condition, const std::string &amp;message, Callable &amp;&amp;callable)</argsstring>
+        <name>CheckError</name>
+        <param>
+          <type>const bool</type>
+          <declname>condition</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>message</declname>
+        </param>
+        <param>
+          <type>Callable &amp;&amp;</type>
+          <declname>callable</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="18" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1a4499fa0218119a4c55a6d3b63cdd1ae5" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ral::communication::CheckError</definition>
+        <argsstring>(const bool condition, const std::string &amp;message)</argsstring>
+        <name>CheckError</name>
+        <param>
+          <type>const bool</type>
+          <declname>condition</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>message</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="28" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="28" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1a9098c52c7bc582d2afc2f38e2d5db772" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ral::communication::request_init</definition>
+        <argsstring>(void *request)</argsstring>
+        <name>request_init</name>
+        <param>
+          <type>void *</type>
+          <declname>request</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="272" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="272" bodyend="277"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1a147b01f6f64d5d82985cc7133a721d5f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ucp_context_h</type>
+        <definition>ucp_context_h ral::communication::CreateUcpContext</definition>
+        <argsstring>()</argsstring>
+        <name>CreateUcpContext</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="281" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="281" bodyend="308"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1ad67691c140a81b916304104c85619856" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ucp_worker_h</type>
+        <definition>ucp_worker_h ral::communication::CreatetUcpWorker</definition>
+        <argsstring>(ucp_context_h ucp_context)</argsstring>
+        <name>CreatetUcpWorker</name>
+        <param>
+          <type>ucp_context_h</type>
+          <declname>ucp_context</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="310" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="310" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1a652269547de9c0936000e7c876f41ae1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1communication_1_1UcpWorkerAddress" kindref="compound">UcpWorkerAddress</ref></type>
+        <definition>UcpWorkerAddress ral::communication::GetUcpWorkerAddress</definition>
+        <argsstring>(ucp_worker_h ucp_worker)</argsstring>
+        <name>GetUcpWorkerAddress</name>
+        <param>
+          <type>ucp_worker_h</type>
+          <declname>ucp_worker</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="326" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="326" bodyend="339"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1afa8e50abadeee855775e8ceb2ba342c4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ral::communication::failure_handler</definition>
+        <argsstring>(void *arg, ucp_ep_h, ucs_status_t status)</argsstring>
+        <name>failure_handler</name>
+        <param>
+          <type>void *</type>
+          <declname>arg</declname>
+        </param>
+        <param>
+          <type>ucp_ep_h</type>
+        </param>
+        <param>
+          <type>ucs_status_t</type>
+          <declname>status</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="347" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="347" bodyend="352"/>
+      </memberdef>
+      <memberdef kind="function" id="ucx__init_8h_1a6480b48aabfed1c793e664591c646178" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>ucp_ep_h</type>
+        <definition>ucp_ep_h ral::communication::CreateUcpEp</definition>
+        <argsstring>(ucp_worker_h ucp_worker, const UcpWorkerAddress &amp;ucpWorkerAddress)</argsstring>
+        <name>CreateUcpEp</name>
+        <param>
+          <type>ucp_worker_h</type>
+          <declname>ucp_worker</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classral_1_1communication_1_1UcpWorkerAddress" kindref="compound">UcpWorkerAddress</ref> &amp;</type>
+          <declname>ucpWorkerAddress</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="354" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="354" bodyend="372"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationData.cpp" line="4" column="1"/>
+  </compounddef>
+</doxygen>

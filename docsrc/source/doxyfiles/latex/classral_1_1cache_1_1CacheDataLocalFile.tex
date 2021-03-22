@@ -1,0 +1,135 @@
+\hypertarget{classral_1_1cache_1_1CacheDataLocalFile}{}\section{ral\+:\+:cache\+:\+:Cache\+Data\+Local\+File Class Reference}
+\label{classral_1_1cache_1_1CacheDataLocalFile}\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+
+
+{\ttfamily \#include $<$Cache\+Data.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:cache\+:\+:Cache\+Data\+Local\+File\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=234pt]{classral_1_1cache_1_1CacheDataLocalFile__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:Cache\+Data\+Local\+File\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=234pt]{classral_1_1cache_1_1CacheDataLocalFile__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1cache_1_1CacheDataLocalFile_aa8f42a81e963c076ebdf7bc6bc53a323}{Cache\+Data\+Local\+File} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table, std\+::string orc\+\_\+files\+\_\+path, std\+::string ctx\+\_\+token)
+\item 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_a1d34227fbbf671e47119846ee2f2a0af}{decache} () override
+\item 
+size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_ab0853eca16df1149f4ac0efbf3faa556}{size\+In\+Bytes} () const override
+\item 
+size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_abc8a4d9edc7ffa21f15010c60a71189b}{file\+Size\+In\+Bytes} () const
+\item 
+void \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_a49c8d137ef2d0a30ee59025f91725567}{set\+\_\+names} (const std\+::vector$<$ std\+::string $>$ \&\hyperlink{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642}{names}) override
+\item 
+virtual \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_a47567f8650eae4b66e44df7e06f3def9}{$\sim$\+Cache\+Data\+Local\+File} ()
+\item 
+std\+::string \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_a21803499ee4d3ad088c2b5b81b91a042}{file\+Path} () const
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+A \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} that stores is data in an O\+RC file. This allows us to cache onto filesystems to allow larger queries to run on limited resources. This is the least performant cache in most instances. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_aa8f42a81e963c076ebdf7bc6bc53a323}\label{classral_1_1cache_1_1CacheDataLocalFile_aa8f42a81e963c076ebdf7bc6bc53a323}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!Cache\+Data\+Local\+File@{Cache\+Data\+Local\+File}}
+\index{Cache\+Data\+Local\+File@{Cache\+Data\+Local\+File}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{Cache\+Data\+Local\+File()}{CacheDataLocalFile()}}
+{\footnotesize\ttfamily ral\+::cache\+::\+Cache\+Data\+Local\+File\+::\+Cache\+Data\+Local\+File (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$}]{table,  }\item[{std\+::string}]{orc\+\_\+files\+\_\+path,  }\item[{std\+::string}]{ctx\+\_\+token }\end{DoxyParamCaption})}
+
+Constructor 
+\begin{DoxyParams}{Parameters}
+{\em table} & The Blazing\+Table that is converted into an O\+RC file and stored on disk. @ param orc\+\_\+files\+\_\+path The path where the file should be stored. @ param ctx\+\_\+id The context token to identify the query that generated the file. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_a47567f8650eae4b66e44df7e06f3def9}\label{classral_1_1cache_1_1CacheDataLocalFile_a47567f8650eae4b66e44df7e06f3def9}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!````~Cache\+Data\+Local\+File@{$\sim$\+Cache\+Data\+Local\+File}}
+\index{````~Cache\+Data\+Local\+File@{$\sim$\+Cache\+Data\+Local\+File}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{$\sim$\+Cache\+Data\+Local\+File()}{~CacheDataLocalFile()}}
+{\footnotesize\ttfamily virtual ral\+::cache\+::\+Cache\+Data\+Local\+File\+::$\sim$\+Cache\+Data\+Local\+File (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+Destructor 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_a1d34227fbbf671e47119846ee2f2a0af}\label{classral_1_1cache_1_1CacheDataLocalFile_a1d34227fbbf671e47119846ee2f2a0af}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!decache@{decache}}
+\index{decache@{decache}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{decache()}{decache()}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ ral\+::cache\+::\+Cache\+Data\+Local\+File\+::decache (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Constructor 
+\begin{DoxyParams}{Parameters}
+{\em table} & The Blazing\+Table that is converted into an O\+RC file and stored on disk. @ param orc\+\_\+files\+\_\+path The path where the file should be stored. \\
+\hline
+\end{DoxyParams}
+
+
+Implements \hyperlink{classral_1_1cache_1_1CacheData_a2db8fdd2151babd7a07f4c6e246b710c}{ral\+::cache\+::\+Cache\+Data}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_a21803499ee4d3ad088c2b5b81b91a042}\label{classral_1_1cache_1_1CacheDataLocalFile_a21803499ee4d3ad088c2b5b81b91a042}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!file\+Path@{file\+Path}}
+\index{file\+Path@{file\+Path}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{file\+Path()}{filePath()}}
+{\footnotesize\ttfamily std\+::string ral\+::cache\+::\+Cache\+Data\+Local\+File\+::file\+Path (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the file path of the O\+RC file. \begin{DoxyReturn}{Returns}
+The path to the O\+RC file. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_abc8a4d9edc7ffa21f15010c60a71189b}\label{classral_1_1cache_1_1CacheDataLocalFile_abc8a4d9edc7ffa21f15010c60a71189b}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!file\+Size\+In\+Bytes@{file\+Size\+In\+Bytes}}
+\index{file\+Size\+In\+Bytes@{file\+Size\+In\+Bytes}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{file\+Size\+In\+Bytes()}{fileSizeInBytes()}}
+{\footnotesize\ttfamily size\+\_\+t ral\+::cache\+::\+Cache\+Data\+Local\+File\+::file\+Size\+In\+Bytes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+Get the amount of disk space consumed by this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} Having this function allows us to have one api for seeing the consumption of all the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} objects that are currently in Caches. \begin{DoxyReturn}{Returns}
+The number of bytes the O\+RC file consumes. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_a49c8d137ef2d0a30ee59025f91725567}\label{classral_1_1cache_1_1CacheDataLocalFile_a49c8d137ef2d0a30ee59025f91725567}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!set\+\_\+names@{set\+\_\+names}}
+\index{set\+\_\+names@{set\+\_\+names}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{set\+\_\+names()}{set\_names()}}
+{\footnotesize\ttfamily void ral\+::cache\+::\+Cache\+Data\+Local\+File\+::set\+\_\+names (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Set the names of the columns to pass when decache if needed. 
+\begin{DoxyParams}{Parameters}
+{\em names} & a vector of the column names. \\
+\hline
+\end{DoxyParams}
+
+
+Implements \hyperlink{classral_1_1cache_1_1CacheData_a3bb1623a4266ba7c961d325023ff13c6}{ral\+::cache\+::\+Cache\+Data}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheDataLocalFile_ab0853eca16df1149f4ac0efbf3faa556}\label{classral_1_1cache_1_1CacheDataLocalFile_ab0853eca16df1149f4ac0efbf3faa556}} 
+\index{ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}!size\+In\+Bytes@{size\+In\+Bytes}}
+\index{size\+In\+Bytes@{size\+In\+Bytes}!ral\+::cache\+::\+Cache\+Data\+Local\+File@{ral\+::cache\+::\+Cache\+Data\+Local\+File}}
+\subsubsection{\texorpdfstring{size\+In\+Bytes()}{sizeInBytes()}}
+{\footnotesize\ttfamily size\+\_\+t ral\+::cache\+::\+Cache\+Data\+Local\+File\+::size\+In\+Bytes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Get the amount of G\+PU memory that the decached Blazing\+Table W\+O\+U\+LD consume. Having this function allows us to have one api for seeing how much G\+PU memory is necessary to decache the file from disk. \begin{DoxyReturn}{Returns}
+The number of bytes needed for the Blazing\+Table decache would generate. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classral_1_1cache_1_1CacheData_aaad8a726296574845f01f9380dcee40d}{ral\+::cache\+::\+Cache\+Data}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+cpp\end{DoxyCompactItemize}

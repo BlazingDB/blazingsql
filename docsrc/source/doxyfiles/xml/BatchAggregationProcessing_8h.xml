@@ -1,0 +1,873 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="BatchAggregationProcessing_8h" kind="file" language="C++">
+    <compoundname>BatchAggregationProcessing.h</compoundname>
+    <includes refid="BatchProcessing_8h" local="yes">BatchProcessing.h</includes>
+    <includes refid="distributing__kernel_8h" local="yes">taskflow/distributing_kernel.h</includes>
+    <includes refid="GroupBy_8h" local="yes">operators/GroupBy.h</includes>
+    <includedby refid="PhysicalPlanGenerator_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</includedby>
+    <includedby refid="BatchAggregationProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp</includedby>
+    <incdepgraph>
+      <node id="2339">
+        <label>atomic</label>
+      </node>
+      <node id="2380">
+        <label>config/GPUManager.cuh</label>
+      </node>
+      <node id="2375">
+        <label>rmm/mr/device/managed_memory_resource.hpp</label>
+      </node>
+      <node id="2416">
+        <label>functional</label>
+      </node>
+      <node id="2419">
+        <label>queue</label>
+      </node>
+      <node id="2338">
+        <label>CacheMachine.h</label>
+        <link refid="CacheMachine_8h_source"/>
+        <childnode refid="2339" relation="include">
+        </childnode>
+        <childnode refid="2340" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2342" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2346" relation="include">
+        </childnode>
+        <childnode refid="2347" relation="include">
+        </childnode>
+        <childnode refid="2348" relation="include">
+        </childnode>
+        <childnode refid="2352" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+        <childnode refid="2365" relation="include">
+        </childnode>
+        <childnode refid="2367" relation="include">
+        </childnode>
+        <childnode refid="2383" relation="include">
+        </childnode>
+        <childnode refid="2351" relation="include">
+        </childnode>
+        <childnode refid="2384" relation="include">
+        </childnode>
+        <childnode refid="2394" relation="include">
+        </childnode>
+        <childnode refid="2397" relation="include">
+        </childnode>
+        <childnode refid="2406" relation="include">
+        </childnode>
+        <childnode refid="2407" relation="include">
+        </childnode>
+      </node>
+      <node id="2354">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="2355" relation="include">
+        </childnode>
+        <childnode refid="2356" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2357" relation="include">
+        </childnode>
+        <childnode refid="2359" relation="include">
+        </childnode>
+      </node>
+      <node id="2392">
+        <label>cudf/scalar/scalar_device_view.cuh</label>
+      </node>
+      <node id="2397">
+        <label>communication/messages/GPUComponentMessage.h</label>
+        <link refid="GPUComponentMessage_8h_source"/>
+        <childnode refid="2346" relation="include">
+        </childnode>
+        <childnode refid="2385" relation="include">
+        </childnode>
+        <childnode refid="2386" relation="include">
+        </childnode>
+        <childnode refid="2387" relation="include">
+        </childnode>
+        <childnode refid="2360" relation="include">
+        </childnode>
+        <childnode refid="2366" relation="include">
+        </childnode>
+        <childnode refid="2398" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2399" relation="include">
+        </childnode>
+        <childnode refid="2400" relation="include">
+        </childnode>
+        <childnode refid="2401" relation="include">
+        </childnode>
+        <childnode refid="2402" relation="include">
+        </childnode>
+        <childnode refid="2358" relation="include">
+        </childnode>
+        <childnode refid="2403" relation="include">
+        </childnode>
+        <childnode refid="2404" relation="include">
+        </childnode>
+        <childnode refid="2347" relation="include">
+        </childnode>
+        <childnode refid="2405" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+        <childnode refid="2359" relation="include">
+        </childnode>
+      </node>
+      <node id="2381">
+        <label>sys/sysinfo.h</label>
+      </node>
+      <node id="2390">
+        <label>cudf/scalar/scalar_factories.hpp</label>
+      </node>
+      <node id="2410">
+        <label>kernel_type.h</label>
+        <link refid="kernel__type_8h_source"/>
+        <childnode refid="2343" relation="include">
+        </childnode>
+      </node>
+      <node id="2361">
+        <label>cstdint</label>
+      </node>
+      <node id="2373">
+        <label>rmm/mr/device/owning_wrapper.hpp</label>
+      </node>
+      <node id="2378">
+        <label>rmm/mr/device/logging_resource_adaptor.hpp</label>
+      </node>
+      <node id="2357">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="2358" relation="include">
+        </childnode>
+        <childnode refid="2355" relation="include">
+        </childnode>
+        <childnode refid="2356" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+      </node>
+      <node id="2366">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+      </node>
+      <node id="2401">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="2348">
+        <label>error.hpp</label>
+        <link refid="error_8hpp_source"/>
+        <childnode refid="2349" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2350" relation="include">
+        </childnode>
+        <childnode refid="2351" relation="include">
+        </childnode>
+      </node>
+      <node id="2368">
+        <label>cassert</label>
+      </node>
+      <node id="2374">
+        <label>rmm/mr/device/cuda_memory_resource.hpp</label>
+      </node>
+      <node id="2425">
+        <label>operators/GroupBy.h</label>
+        <link refid="GroupBy_8h_source"/>
+        <childnode refid="2365" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2400" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+        <childnode refid="2426" relation="include">
+        </childnode>
+        <childnode refid="2427" relation="include">
+        </childnode>
+        <childnode refid="2428" relation="include">
+        </childnode>
+        <childnode refid="2358" relation="include">
+        </childnode>
+      </node>
+      <node id="2377">
+        <label>rmm/mr/device/arena_memory_resource.hpp</label>
+      </node>
+      <node id="2399">
+        <label>numeric</label>
+      </node>
+      <node id="2371">
+        <label>rmm/cuda_stream_view.hpp</label>
+      </node>
+      <node id="2343">
+        <label>string</label>
+      </node>
+      <node id="2336">
+        <label>BatchProcessing.h</label>
+        <link refid="BatchProcessing_8h_source"/>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2338" relation="include">
+        </childnode>
+        <childnode refid="2408" relation="include">
+        </childnode>
+        <childnode refid="2395" relation="include">
+        </childnode>
+        <childnode refid="2420" relation="include">
+        </childnode>
+        <childnode refid="2409" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+      </node>
+      <node id="2426">
+        <label>cudf/aggregation.hpp</label>
+      </node>
+      <node id="2345">
+        <label>map</label>
+      </node>
+      <node id="2403">
+        <label>cudf/null_mask.hpp</label>
+      </node>
+      <node id="2412">
+        <label>kpair.h</label>
+        <link refid="kpair_8h_source"/>
+        <childnode refid="2411" relation="include">
+        </childnode>
+        <childnode refid="2409" relation="include">
+        </childnode>
+      </node>
+      <node id="2423">
+        <label>distribution/primitives.h</label>
+        <link refid="primitives_8h_source"/>
+        <childnode refid="2365" relation="include">
+        </childnode>
+        <childnode refid="2424" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+      </node>
+      <node id="2386">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="2359">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2347" relation="include">
+        </childnode>
+        <childnode refid="2360" relation="include">
+        </childnode>
+        <childnode refid="2362" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+      </node>
+      <node id="2351">
+        <label>exception</label>
+      </node>
+      <node id="2407">
+        <label>WaitingQueue.h</label>
+        <link refid="WaitingQueue_8h_source"/>
+        <childnode refid="2339" relation="include">
+        </childnode>
+        <childnode refid="2340" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2342" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2346" relation="include">
+        </childnode>
+        <childnode refid="2351" relation="include">
+        </childnode>
+      </node>
+      <node id="2365">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2366" relation="include">
+        </childnode>
+      </node>
+      <node id="2406">
+        <label>CacheData.h</label>
+        <link refid="CacheData_8h_source"/>
+        <childnode refid="2339" relation="include">
+        </childnode>
+        <childnode refid="2340" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2342" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2346" relation="include">
+        </childnode>
+        <childnode refid="2347" relation="include">
+        </childnode>
+        <childnode refid="2348" relation="include">
+        </childnode>
+        <childnode refid="2352" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+        <childnode refid="2365" relation="include">
+        </childnode>
+        <childnode refid="2367" relation="include">
+        </childnode>
+        <childnode refid="2383" relation="include">
+        </childnode>
+        <childnode refid="2351" relation="include">
+        </childnode>
+        <childnode refid="2384" relation="include">
+        </childnode>
+        <childnode refid="2394" relation="include">
+        </childnode>
+        <childnode refid="2397" relation="include">
+        </childnode>
+      </node>
+      <node id="2384">
+        <label>io/data_provider/DataProvider.h</label>
+        <link refid="DataProvider_8h_source"/>
+        <childnode refid="2346" relation="include">
+        </childnode>
+        <childnode refid="2385" relation="include">
+        </childnode>
+        <childnode refid="2386" relation="include">
+        </childnode>
+        <childnode refid="2387" relation="include">
+        </childnode>
+        <childnode refid="2388" relation="include">
+        </childnode>
+        <childnode refid="2389" relation="include">
+        </childnode>
+        <childnode refid="2390" relation="include">
+        </childnode>
+        <childnode refid="2347" relation="include">
+        </childnode>
+        <childnode refid="2391" relation="include">
+        </childnode>
+        <childnode refid="2392" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2393" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+      </node>
+      <node id="2405">
+        <label>cudf/strings/strings_column_view.hpp</label>
+      </node>
+      <node id="2346">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="2356">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="2415">
+        <label>utilities/ctpl_stl.h</label>
+        <link refid="ctpl__stl_8h_source"/>
+        <childnode refid="2416" relation="include">
+        </childnode>
+        <childnode refid="2417" relation="include">
+        </childnode>
+        <childnode refid="2339" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2351" relation="include">
+        </childnode>
+        <childnode refid="2418" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2419" relation="include">
+        </childnode>
+      </node>
+      <node id="2395">
+        <label>../Schema.h</label>
+        <link refid="Schema_8h_source"/>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2347" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+      </node>
+      <node id="2428">
+        <label>cudf/detail/aggregation/aggregation.hpp</label>
+      </node>
+      <node id="2388">
+        <label>arrow/io/interfaces.h</label>
+      </node>
+      <node id="2342">
+        <label>condition_variable</label>
+      </node>
+      <node id="2414">
+        <label>ExceptionHandling/BlazingThread.h</label>
+      </node>
+      <node id="2398">
+        <label>communication/messages/MessageUtil.cuh</label>
+      </node>
+      <node id="2382">
+        <label>sys/statvfs.h</label>
+      </node>
+      <node id="2391">
+        <label>cudf/utilities/type_dispatcher.hpp</label>
+      </node>
+      <node id="2400">
+        <label>tuple</label>
+      </node>
+      <node id="2418">
+        <label>future</label>
+      </node>
+      <node id="2385">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="2409">
+        <label>kernel.h</label>
+        <link refid="kernel_8h_source"/>
+        <childnode refid="2410" relation="include">
+        </childnode>
+        <childnode refid="2411" relation="include">
+        </childnode>
+        <childnode refid="2408" relation="include">
+        </childnode>
+      </node>
+      <node id="2363">
+        <label>stack</label>
+      </node>
+      <node id="2344">
+        <label>vector</label>
+      </node>
+      <node id="2360">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="2361" relation="include">
+        </childnode>
+      </node>
+      <node id="2404">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="2402">
+        <label>cudf/column/column.hpp</label>
+      </node>
+      <node id="2364">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="2387">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="2362">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2363" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2364" relation="include">
+        </childnode>
+      </node>
+      <node id="2394">
+        <label>io/data_parser/DataParser.h</label>
+        <link refid="DataParser_8h_source"/>
+        <childnode refid="2395" relation="include">
+        </childnode>
+        <childnode refid="2396" relation="include">
+        </childnode>
+        <childnode refid="2384" relation="include">
+        </childnode>
+        <childnode refid="2354" relation="include">
+        </childnode>
+        <childnode refid="2388" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+      </node>
+      <node id="2347">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="2413">
+        <label>bmr/MemoryMonitor.h</label>
+        <link refid="MemoryMonitor_8h_source"/>
+        <childnode refid="2342" relation="include">
+        </childnode>
+        <childnode refid="2337" relation="include">
+        </childnode>
+        <childnode refid="2353" relation="include">
+        </childnode>
+        <childnode refid="2414" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+      </node>
+      <node id="2379">
+        <label>rmm/mr/device/per_device_resource.hpp</label>
+      </node>
+      <node id="2396">
+        <label>../DataType.h</label>
+        <link refid="DataType_8h_source"/>
+      </node>
+      <node id="2383">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="2364" relation="include">
+        </childnode>
+        <childnode refid="2366" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+      </node>
+      <node id="2408">
+        <label>taskflow/graph.h</label>
+        <link refid="graph_8h_source"/>
+        <childnode refid="2409" relation="include">
+        </childnode>
+        <childnode refid="2412" relation="include">
+        </childnode>
+        <childnode refid="2338" relation="include">
+        </childnode>
+        <childnode refid="2413" relation="include">
+        </childnode>
+        <childnode refid="2415" relation="include">
+        </childnode>
+      </node>
+      <node id="2411">
+        <label>port.h</label>
+        <link refid="port_8h_source"/>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+        <childnode refid="2343" relation="include">
+        </childnode>
+        <childnode refid="2338" relation="include">
+        </childnode>
+      </node>
+      <node id="2349">
+        <label>iostream</label>
+      </node>
+      <node id="2358">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="2340">
+        <label>deque</label>
+      </node>
+      <node id="2337">
+        <label>mutex</label>
+      </node>
+      <node id="2370">
+        <label>cuda_runtime_api.h</label>
+      </node>
+      <node id="2353">
+        <label>chrono</label>
+      </node>
+      <node id="2393">
+        <label>blazingdb/io/FileSystem/Uri.h</label>
+      </node>
+      <node id="2352">
+        <label>CodeTimer.h</label>
+        <link refid="CodeTimer_8h_source"/>
+        <childnode refid="2353" relation="include">
+        </childnode>
+      </node>
+      <node id="2372">
+        <label>rmm/mr/device/device_memory_resource.hpp</label>
+      </node>
+      <node id="2417">
+        <label>thread</label>
+      </node>
+      <node id="2367">
+        <label>bmr/BlazingMemoryResource.h</label>
+        <link refid="BlazingMemoryResource_8h_source"/>
+        <childnode refid="2368" relation="include">
+        </childnode>
+        <childnode refid="2339" relation="include">
+        </childnode>
+        <childnode refid="2369" relation="include">
+        </childnode>
+        <childnode refid="2370" relation="include">
+        </childnode>
+        <childnode refid="2371" relation="include">
+        </childnode>
+        <childnode refid="2372" relation="include">
+        </childnode>
+        <childnode refid="2373" relation="include">
+        </childnode>
+        <childnode refid="2374" relation="include">
+        </childnode>
+        <childnode refid="2375" relation="include">
+        </childnode>
+        <childnode refid="2376" relation="include">
+        </childnode>
+        <childnode refid="2377" relation="include">
+        </childnode>
+        <childnode refid="2378" relation="include">
+        </childnode>
+        <childnode refid="2379" relation="include">
+        </childnode>
+        <childnode refid="2380" relation="include">
+        </childnode>
+        <childnode refid="2381" relation="include">
+        </childnode>
+        <childnode refid="2382" relation="include">
+        </childnode>
+      </node>
+      <node id="2422">
+        <label>taskflow/distributing_kernel.h</label>
+        <link refid="distributing__kernel_8h_source"/>
+        <childnode refid="2339" relation="include">
+        </childnode>
+        <childnode refid="2345" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2423" relation="include">
+        </childnode>
+        <childnode refid="2338" relation="include">
+        </childnode>
+        <childnode refid="2365" relation="include">
+        </childnode>
+        <childnode refid="2409" relation="include">
+        </childnode>
+      </node>
+      <node id="2335">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h</label>
+        <link refid="BatchAggregationProcessing_8h"/>
+        <childnode refid="2336" relation="include">
+        </childnode>
+        <childnode refid="2422" relation="include">
+        </childnode>
+        <childnode refid="2425" relation="include">
+        </childnode>
+      </node>
+      <node id="2376">
+        <label>rmm/mr/device/pool_memory_resource.hpp</label>
+      </node>
+      <node id="2369">
+        <label>set</label>
+      </node>
+      <node id="2355">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="2424">
+        <label>communication/factory/MessageFactory.h</label>
+        <link refid="MessageFactory_8h_source"/>
+      </node>
+      <node id="2420">
+        <label>io/DataLoader.h</label>
+        <link refid="DataLoader_8h_source"/>
+        <childnode refid="2421" relation="include">
+        </childnode>
+        <childnode refid="2394" relation="include">
+        </childnode>
+        <childnode refid="2384" relation="include">
+        </childnode>
+        <childnode refid="2388" relation="include">
+        </childnode>
+        <childnode refid="2365" relation="include">
+        </childnode>
+        <childnode refid="2344" relation="include">
+        </childnode>
+        <childnode refid="2341" relation="include">
+        </childnode>
+      </node>
+      <node id="2350">
+        <label>cudf/utilities/error.hpp</label>
+      </node>
+      <node id="2427">
+        <label>cudf/groupby.hpp</label>
+      </node>
+      <node id="2389">
+        <label>cudf/scalar/scalar.hpp</label>
+      </node>
+      <node id="2341">
+        <label>memory</label>
+      </node>
+      <node id="2421">
+        <label>FileSystem/Uri.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2430">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h</label>
+        <link refid="PhysicalPlanGenerator_8h_source"/>
+      </node>
+      <node id="2429">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h</label>
+        <link refid="BatchAggregationProcessing_8h"/>
+        <childnode refid="2430" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classral_1_1batch_1_1ComputeAggregateKernel" prot="public">ral::batch::ComputeAggregateKernel</innerclass>
+    <innerclass refid="classral_1_1batch_1_1DistributeAggregateKernel" prot="public">ral::batch::DistributeAggregateKernel</innerclass>
+    <innerclass refid="classral_1_1batch_1_1MergeAggregateKernel" prot="public">ral::batch::MergeAggregateKernel</innerclass>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1batch">ral::batch</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;BatchProcessing.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;taskflow/distributing_kernel.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;operators/GroupBy.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">batch<sp/>{</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1distributing__kernel" kindref="compound">ral::cache::distributing_kernel</ref>;</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/>ral::cache::kstatus;</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref>;</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">using</highlight><highlight class="normal"><sp/>ral::cache::kernel_type;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">using<sp/>namespace<sp/></highlight><highlight class="normal"><ref refid="namespacefmt_1_1literals" kindref="compound">fmt::literals</ref>;</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15" refid="classral_1_1batch_1_1ComputeAggregateKernel" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1batch_1_1ComputeAggregateKernel" kindref="compound">ComputeAggregateKernel</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref><sp/>{</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1batch_1_1ComputeAggregateKernel" kindref="compound">ComputeAggregateKernel</ref>(std::size_t<sp/>kernel_id,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>queryString,<sp/>std::shared_ptr&lt;Context&gt;<sp/>context,<sp/>std::shared_ptr&lt;ral::cache::graph&gt;<sp/>query_graph);</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>kernel_name()<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;ComputeAggregate&quot;</highlight><highlight class="normal">;}</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref><sp/>do_process(std::vector&lt;<sp/>std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cudaStream_t<sp/>stream,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/>kstatus<sp/>run();</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>std::pair&lt;bool,<sp/>uint64_t&gt;<sp/>get_estimated_output_num_rows();</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;AggregateKind&gt;<sp/>aggregation_types;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>group_column_indices;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>aggregation_input_expressions;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>aggregation_column_assigned_aliases;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36" refid="classral_1_1batch_1_1DistributeAggregateKernel" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1batch_1_1DistributeAggregateKernel" kindref="compound">DistributeAggregateKernel</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1distributing__kernel" kindref="compound">distributing_kernel</ref><sp/>{</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1batch_1_1DistributeAggregateKernel" kindref="compound">DistributeAggregateKernel</ref>(std::size_t<sp/>kernel_id,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>queryString,<sp/>std::shared_ptr&lt;Context&gt;<sp/>context,<sp/>std::shared_ptr&lt;ral::cache::graph&gt;<sp/>query_graph);</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>kernel_name()<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;DistributeAggregate&quot;</highlight><highlight class="normal">;}</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref><sp/>do_process(std::vector&lt;<sp/>std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cudaStream_t<sp/>stream,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/>kstatus<sp/>run();</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;int&gt;<sp/>group_column_indices;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>aggregation_input_expressions,<sp/>aggregation_column_assigned_aliases;<sp/></highlight><highlight class="comment">//<sp/>not<sp/>used<sp/>in<sp/>this<sp/>kernel</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;AggregateKind&gt;<sp/>aggregation_types;<sp/></highlight><highlight class="comment">//<sp/>not<sp/>used<sp/>in<sp/>this<sp/>kernel</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::size_type&gt;<sp/>columns_to_hash;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>set_empty_part_for_non_master_node<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;<sp/></highlight><highlight class="comment">//<sp/>this<sp/>is<sp/>only<sp/>for<sp/>aggregation<sp/>without<sp/>group<sp/>by</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="classral_1_1batch_1_1MergeAggregateKernel" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1batch_1_1MergeAggregateKernel" kindref="compound">MergeAggregateKernel</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref><sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1batch_1_1MergeAggregateKernel" kindref="compound">MergeAggregateKernel</ref>(std::size_t<sp/>kernel_id,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>&amp;<sp/>queryString,<sp/>std::shared_ptr&lt;Context&gt;<sp/>context,<sp/>std::shared_ptr&lt;ral::cache::graph&gt;<sp/>query_graph);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>std::string<sp/>kernel_name()<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;MergeAggregate&quot;</highlight><highlight class="normal">;}</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref><sp/>do_process(std::vector&lt;<sp/>std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cudaStream_t<sp/>stream,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/>kstatus<sp/>run();</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>batch</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h"/>
+  </compounddef>
+</doxygen>

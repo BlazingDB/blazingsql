@@ -1,0 +1,231 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="orc__metadata_8h" kind="file" language="C++">
+    <compoundname>orc_metadata.h</compoundname>
+    <includes refid="common__metadata_8h" local="yes">common_metadata.h</includes>
+    <includes local="no">cudf/io/orc_metadata.hpp</includes>
+    <includedby refid="common__metadata_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.cpp</includedby>
+    <includedby refid="orc__metadata_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.cpp</includedby>
+    <includedby refid="OrcParser_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/OrcParser.cpp</includedby>
+    <incdepgraph>
+      <node id="5855">
+        <label>cudf/io/orc_metadata.hpp</label>
+      </node>
+      <node id="5839">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="5840" relation="include">
+        </childnode>
+        <childnode refid="5841" relation="include">
+        </childnode>
+        <childnode refid="5842" relation="include">
+        </childnode>
+        <childnode refid="5843" relation="include">
+        </childnode>
+        <childnode refid="5844" relation="include">
+        </childnode>
+        <childnode refid="5845" relation="include">
+        </childnode>
+        <childnode refid="5847" relation="include">
+        </childnode>
+      </node>
+      <node id="5850">
+        <label>cstdint</label>
+      </node>
+      <node id="5845">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="5846" relation="include">
+        </childnode>
+        <childnode refid="5840" relation="include">
+        </childnode>
+        <childnode refid="5841" relation="include">
+        </childnode>
+        <childnode refid="5842" relation="include">
+        </childnode>
+        <childnode refid="5843" relation="include">
+        </childnode>
+        <childnode refid="5844" relation="include">
+        </childnode>
+      </node>
+      <node id="5843">
+        <label>string</label>
+      </node>
+      <node id="5847">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="5844" relation="include">
+        </childnode>
+        <childnode refid="5843" relation="include">
+        </childnode>
+        <childnode refid="5842" relation="include">
+        </childnode>
+        <childnode refid="5848" relation="include">
+        </childnode>
+        <childnode refid="5849" relation="include">
+        </childnode>
+        <childnode refid="5851" relation="include">
+        </childnode>
+        <childnode refid="5839" relation="include">
+        </childnode>
+      </node>
+      <node id="5837">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h</label>
+        <link refid="orc__metadata_8h"/>
+        <childnode refid="5838" relation="include">
+        </childnode>
+        <childnode refid="5855" relation="include">
+        </childnode>
+      </node>
+      <node id="5841">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="5852">
+        <label>stack</label>
+      </node>
+      <node id="5844">
+        <label>vector</label>
+      </node>
+      <node id="5849">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="5850" relation="include">
+        </childnode>
+      </node>
+      <node id="5854">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="5851">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="5844" relation="include">
+        </childnode>
+        <childnode refid="5843" relation="include">
+        </childnode>
+        <childnode refid="5852" relation="include">
+        </childnode>
+        <childnode refid="5853" relation="include">
+        </childnode>
+        <childnode refid="5842" relation="include">
+        </childnode>
+        <childnode refid="5854" relation="include">
+        </childnode>
+      </node>
+      <node id="5848">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="5846">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="5853">
+        <label>mutex</label>
+      </node>
+      <node id="5838">
+        <label>common_metadata.h</label>
+        <link refid="common__metadata_8h_source"/>
+        <childnode refid="5839" relation="include">
+        </childnode>
+      </node>
+      <node id="5840">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="5842">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="orc__metadata_8h_1a6952454c5b7dd29dc423f0f5fafd23d0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::type_id</type>
+        <definition>cudf::type_id to_dtype</definition>
+        <argsstring>(cudf::io::statistics_type stat_type)</argsstring>
+        <name>to_dtype</name>
+        <param>
+          <type>cudf::io::statistics_type</type>
+          <declname>stat_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h" line="7" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="orc__metadata_8h_1acf917e0fdd1fd9a6d522ee7ab35d1d90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void set_min_max</definition>
+        <argsstring>(std::vector&lt; std::vector&lt; int64_t &gt;&gt; &amp;minmax_metadata_table, cudf::io::column_statistics &amp;statistic, int col_index)</argsstring>
+        <name>set_min_max</name>
+        <param>
+          <type>std::vector&lt; std::vector&lt; int64_t &gt;&gt; &amp;</type>
+          <declname>minmax_metadata_table</declname>
+        </param>
+        <param>
+          <type>cudf::io::column_statistics &amp;</type>
+          <declname>statistic</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>col_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h" line="9" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="orc__metadata_8h_1a9d580a89d9f803997f675d1b92194445" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;ral::frame::BlazingTable&gt; get_minmax_metadata</definition>
+        <argsstring>(std::vector&lt; cudf::io::parsed_orc_statistics &gt; &amp;statistics, size_t total_stripes, int metadata_offset)</argsstring>
+        <name>get_minmax_metadata</name>
+        <param>
+          <type>std::vector&lt; cudf::io::parsed_orc_statistics &gt; &amp;</type>
+          <declname>statistics</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>total_stripes</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>metadata_offset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h" line="14" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.cpp" bodystart="156" bodyend="304"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>ORC_METADATA_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ORC_METADATA_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;common_metadata.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cudf/io/orc_metadata.hpp&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal">cudf::type_id<sp/>to_dtype(cudf::io::statistics_type<sp/>stat_type);</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>set_min_max(</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::vector&lt;int64_t&gt;&gt;<sp/>&amp;<sp/>minmax_metadata_table,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::io::column_statistics<sp/>&amp;<sp/>statistic,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>col_index);</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>get_minmax_metadata(</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::io::parsed_orc_statistics&gt;<sp/>&amp;<sp/>statistics,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>total_stripes,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>metadata_offset);</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/><sp/>//<sp/>ORC_METADATA_H_</highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h"/>
+  </compounddef>
+</doxygen>

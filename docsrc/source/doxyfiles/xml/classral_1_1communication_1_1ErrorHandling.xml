@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1communication_1_1ErrorHandling" kind="class" language="C++" prot="public">
+    <compoundname>ral::communication::ErrorHandling</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classral_1_1communication_1_1ErrorHandling_1a30f95be8eb78b16233acc854d910f081" prot="public" static="no" mutable="no">
+        <type>ucp_err_handling_mode_t</type>
+        <definition>ucp_err_handling_mode_t ral::communication::ErrorHandling::ucp_err_mode</definition>
+        <argsstring></argsstring>
+        <name>ucp_err_mode</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="343" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="343" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1communication_1_1ErrorHandling_1aed04282a9a8f2281cfc3b5a224ccaeaa" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ral::communication::ErrorHandling::failure</definition>
+        <argsstring></argsstring>
+        <name>failure</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="344" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="344" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="341" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="341" bodyend="345"/>
+    <listofallmembers>
+      <member refid="classral_1_1communication_1_1ErrorHandling_1aed04282a9a8f2281cfc3b5a224ccaeaa" prot="public" virt="non-virtual"><scope>ral::communication::ErrorHandling</scope><name>failure</name></member>
+      <member refid="classral_1_1communication_1_1ErrorHandling_1a30f95be8eb78b16233acc854d910f081" prot="public" virt="non-virtual"><scope>ral::communication::ErrorHandling</scope><name>ucp_err_mode</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

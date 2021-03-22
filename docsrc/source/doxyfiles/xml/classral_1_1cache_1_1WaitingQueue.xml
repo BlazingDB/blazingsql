@@ -1,0 +1,653 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1WaitingQueue" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::WaitingQueue</compoundname>
+    <includes refid="WaitingQueue_8h" local="no">WaitingQueue.h</includes>
+    <templateparamlist>
+      <param>
+        <type>typename</type>
+        <declname>message_ptr</declname>
+        <defname>message_ptr</defname>
+      </param>
+    </templateparamlist>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a09965d3c6e45012a7455b77ed169796a" prot="private" static="no" mutable="no">
+        <type>std::mutex</type>
+        <definition>std::mutex ral::cache::WaitingQueue&lt; message_ptr &gt;::mutex_</definition>
+        <argsstring></argsstring>
+        <name>mutex_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This mutex is used for making access to the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> thread-safe. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="451" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="451" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a51162ce883b5eb8af37b34d5fb895ddb" prot="private" static="no" mutable="no">
+        <type>std::deque&lt; message_ptr &gt;</type>
+        <definition>std::deque&lt;message_ptr&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::message_queue_</definition>
+        <argsstring></argsstring>
+        <name>message_queue_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="453" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="453" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a0cdd296ab3fc92fdc657d6ffc1b7ea91" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::finished</definition>
+        <argsstring></argsstring>
+        <name>finished</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Indicates if this <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is finished. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="454" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="454" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a1076b5b3c38a4bc0a2a04a7930a13c10" prot="private" static="no" mutable="no">
+        <type>std::condition_variable</type>
+        <definition>std::condition_variable ral::cache::WaitingQueue&lt; message_ptr &gt;::condition_variable_</definition>
+        <argsstring></argsstring>
+        <name>condition_variable_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Used to notify waiting functions </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="455" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="455" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a0a6aa79709da64695c01b85d2e0fc1fb" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ral::cache::WaitingQueue&lt; message_ptr &gt;::processed</definition>
+        <argsstring></argsstring>
+        <name>processed</name>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Count of messages added to the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="457" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="457" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a04da2e0a9c5735e9cefe539264819a53" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ral::cache::WaitingQueue&lt; message_ptr &gt;::timeout</definition>
+        <argsstring></argsstring>
+        <name>timeout</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="459" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="459" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a4ed55da4ea751bd3555457e20523214e" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::cache::WaitingQueue&lt; message_ptr &gt;::queue_name</definition>
+        <argsstring></argsstring>
+        <name>queue_name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="460" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="460" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1WaitingQueue_1a16f937f6220c5a37881c7526a580fa48" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::cache::WaitingQueue&lt; message_ptr &gt;::log_timeout</definition>
+        <argsstring></argsstring>
+        <name>log_timeout</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Whether or not to log when a timeout accurred. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="461" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="461" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1ac69033b0cfeead472b2b0beeed6de93c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::WaitingQueue&lt; message_ptr &gt;::WaitingQueue</definition>
+        <argsstring>(std::string queue_name, int timeout=60000, bool log_timeout=true)</argsstring>
+        <name>WaitingQueue</name>
+        <param>
+          <type>std::string</type>
+          <declname>queue_name</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>timeout</declname>
+          <defval>60000</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>log_timeout</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="39" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="39" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a09240aad671d08e2df7fe90b0a3a268b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::WaitingQueue&lt; message_ptr &gt;::~WaitingQueue</definition>
+        <argsstring>()=default</argsstring>
+        <name>~WaitingQueue</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Destructor </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="45" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a2c072bc505d3b6e48eef52b3adb98cfd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::WaitingQueue&lt; message_ptr &gt;::WaitingQueue</definition>
+        <argsstring>(WaitingQueue &amp;&amp;)=delete</argsstring>
+        <name>WaitingQueue</name>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="47" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1afc562f0200a6f5e1a9791473ea6398ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::WaitingQueue&lt; message_ptr &gt;::WaitingQueue</definition>
+        <argsstring>(const WaitingQueue &amp;)=delete</argsstring>
+        <name>WaitingQueue</name>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="48" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a46e9b5f6c88e3ad5a6b54ce2ee7ffbfa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> &amp;</type>
+        <definition>WaitingQueue&amp; ral::cache::WaitingQueue&lt; message_ptr &gt;::operator=</definition>
+        <argsstring>(WaitingQueue &amp;&amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="49" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1afd572305420b7188aab015b2949fe082" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> &amp;</type>
+        <definition>WaitingQueue&amp; ral::cache::WaitingQueue&lt; message_ptr &gt;::operator=</definition>
+        <argsstring>(const WaitingQueue &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="50" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a8049784eaf2ca3f33b3ed9accd2222d2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::put</definition>
+        <argsstring>(message_ptr item)</argsstring>
+        <name>put</name>
+        <param>
+          <type>message_ptr</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Put a message onto the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> using unique_lock. This message aquires a unique_lock and then pushes a message onto the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. It then increments the processed count and notifies the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>&apos;s condition variable. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>the message_ptr being added to the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="59" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="59" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1af3afa691f12cfe644d86e8c1f99a31ec" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int ral::cache::WaitingQueue&lt; message_ptr &gt;::processed_parts</definition>
+        <argsstring>()</argsstring>
+        <name>processed_parts</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get number of partitions processed. <simplesect kind="return"><para>number of partitions that have been inserted into this <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="70" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="70" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1af489dc4d0c5cb810109beb3e9ff97062" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::finish</definition>
+        <argsstring>()</argsstring>
+        <name>finish</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Finish lets us know that know more messages will come in. This exists so that if anyone is trying to pull from a queue that is already completed that operation will return nullptr so it will not block indefinitely. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="81" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="81" bodyend="85"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a33631ea402ae98a42b144bc3f1453341" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::WaitingQueue&lt; message_ptr &gt;::is_finished</definition>
+        <argsstring>()</argsstring>
+        <name>is_finished</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Lets us know if a <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> has finished running messages. <simplesect kind="return"><para>A bool indicating whether or not this <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is finished. receiving messages. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="92" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="92" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1abd7d9824f1b89ead2c937e1c6d64ba4f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::wait_for_count</definition>
+        <argsstring>(int count)</argsstring>
+        <name>wait_for_count</name>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Blocks executing thread until a certain number messages are reached. We often want to block a thread from proceeding until a certain number ouf messages exist in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. It also alerts us if we ever receive more messages than we expected. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="103" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="103" bodyend="130"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1afbc5898a999bb8b5257c5de1b656db1c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>message_ptr</type>
+        <definition>message_ptr ral::cache::WaitingQueue&lt; message_ptr &gt;::pop_or_wait</definition>
+        <argsstring>()</argsstring>
+        <name>pop_or_wait</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get a message_ptr if it exists in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> else wait. This function allows kernels to pull from the cache before a cache has <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> in it. If finish is called on the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> and no messages are left this returns nullptr. <simplesect kind="return"><para>A message_ptr that was pushed into the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> nullptr if the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is empty and finished. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="140" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="140" bodyend="166"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a259a82267567c6b5da96bd1bac53f6db" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>message_ptr</type>
+        <definition>message_ptr ral::cache::WaitingQueue&lt; message_ptr &gt;::pop_back</definition>
+        <argsstring>()</argsstring>
+        <name>pop_back</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get a message_ptr from the back of the queue if it exists in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> else return nullptr. <simplesect kind="return"><para>message_ptr from the back of the queue if it exists in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> else return nullptr. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="172" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="172" bodyend="181"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a2849a6f841c2958aba489237a24ec0df" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::WaitingQueue&lt; message_ptr &gt;::wait_for_next</definition>
+        <argsstring>()</argsstring>
+        <name>wait_for_next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Wait for the next message to be ready. <simplesect kind="return"><para>Waits for the next <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> to be available. Returns true when this is the case. Returns false if the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is both finished and empty. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="188" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="188" bodyend="208"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1ac365aaf9f942c2d5ac22087cbfaf5968" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::WaitingQueue&lt; message_ptr &gt;::has_next_now</definition>
+        <argsstring>()</argsstring>
+        <name>has_next_now</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Indicates if the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> has messages at this point in time. <simplesect kind="return"><para>A bool which is true if the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is not empty. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="213" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="213" bodyend="216"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a008f9d8254330dff1e653bd41fe43d9a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::wait_until_finished</definition>
+        <argsstring>()</argsstring>
+        <name>wait_until_finished</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Pauses a threads execution until this <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> has finished processing. Sometimes, like in the case of Joins, we might be waiting for a <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> to have finished before the next kernel can use the data it contains. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="224" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="224" bodyend="239"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a84d4f711f11a11970b381b5b5c5d5662" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::wait_until_num_bytes</definition>
+        <argsstring>(size_t num_bytes)</argsstring>
+        <name>wait_until_num_bytes</name>
+        <param>
+          <type>size_t</type>
+          <declname>num_bytes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Waits until a certain number of bytes exist in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> During some execution kernels it is better to wait for a certain amount of the total anticipated data to be available before processing the next batch. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>num_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of bytes that we will wait to exist in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> unless the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> has already had finished() called. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="249" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="249" bodyend="271"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1acbb3be52777e0a087a969b220377177a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::WaitingQueue&lt; message_ptr &gt;::get_next_size_in_bytes</definition>
+        <argsstring>()</argsstring>
+        <name>get_next_size_in_bytes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Let&apos;s us know the size of the next <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> to be pulled. Sometimes it is useful to know how much data we will be pulling in each <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> that we have accumulated for making estimates on how much more is going to be coming or seeing how far along we are. <simplesect kind="return"><para>The number of bytes consumed by the next message. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="280" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="280" bodyend="287"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a8225fd0f55e72bf630f261def644d527" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>message_ptr</type>
+        <definition>message_ptr ral::cache::WaitingQueue&lt; message_ptr &gt;::get_or_wait</definition>
+        <argsstring>(std::string message_id)</argsstring>
+        <name>get_or_wait</name>
+        <param>
+          <type>std::string</type>
+          <declname>message_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get a specific message from the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. Messages are always accompanied by a message_id though in some cases that id is empty string. This allows us to get a specific message from the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> and wait around for it to exist or for this <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> to be finished. If <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is finished and there are no messages we get a nullptr. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>message_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The id of the message that we want to get or wait for. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The message that has this id or nullptr if that message will never be able to arrive because the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is finished. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="300" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="300" bodyend="333"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a0ba9790cb2d41d01f7721b9972e4ff44" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>message_ptr</type>
+        <definition>message_ptr ral::cache::WaitingQueue&lt; message_ptr &gt;::pop_unsafe</definition>
+        <argsstring>()</argsstring>
+        <name>pop_unsafe</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Pop the front element WITHOUT thread safety. Allos us to pop from the front in situations where we have already acquired a unique_lock on this <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>&apos;s mutex. <simplesect kind="return"><para>The first message in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="341" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="341" bodyend="348"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a51a2c83824c2f9eefe8b938a19793645" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; message_ptr &gt;</type>
+        <definition>std::vector&lt;message_ptr&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::get_all</definition>
+        <argsstring>()</argsstring>
+        <name>get_all</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>gets all the messages </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="353" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="353" bodyend="356"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1ace97207416c27ecbe0d356c096edb499" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::get_all_message_ids</definition>
+        <argsstring>()</argsstring>
+        <name>get_all_message_ids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>gets all the message ids </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="361" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="361" bodyend="369"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a0f0d4eb7e1d573849af13ede6621f2ac" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; message_ptr &gt;</type>
+        <definition>std::vector&lt;message_ptr&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::get_all_or_wait</definition>
+        <argsstring>()</argsstring>
+        <name>get_all_or_wait</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Waits until all messages are ready then returns all of them. You should never call this function more than once on a <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> else race conditions can occur. <simplesect kind="return"><para>A vector of all the messages that were inserted into the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="378" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="378" bodyend="394"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1ad5ef46c8b24d7de3f2a00c4e6f927e0a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::unique_lock&lt; std::mutex &gt;</type>
+        <definition>std::unique_lock&lt;std::mutex&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::lock</definition>
+        <argsstring>()</argsstring>
+        <name>lock</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A function that returns a unique_lock using the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>&apos;s mutex. <simplesect kind="return"><para>A unique_lock </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="400" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="400" bodyend="403"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a6b0d10905ba8ab60f8d171d494e9ed7a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; message_ptr &gt;</type>
+        <definition>std::vector&lt;message_ptr&gt; ral::cache::WaitingQueue&lt; message_ptr &gt;::get_all_unsafe</definition>
+        <argsstring>()</argsstring>
+        <name>get_all_unsafe</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get all messagse in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> without locking. <simplesect kind="return"><para>A vector with all the messages in the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="409" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="409" bodyend="416"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a1ac476114c34c127aee7c43907088bea" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::put_all_unsafe</definition>
+        <argsstring>(std::vector&lt; message_ptr &gt; messages)</argsstring>
+        <name>put_all_unsafe</name>
+        <param>
+          <type>std::vector&lt; message_ptr &gt;</type>
+          <declname>messages</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Put a vector of messages onto the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> without locking. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>messages</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A vector of messages that will be pushed into the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="422" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="422" bodyend="426"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a523bc3b04a12b26ac57b8c77f0634fb5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::put_all</definition>
+        <argsstring>(std::vector&lt; message_ptr &gt; messages)</argsstring>
+        <name>put_all</name>
+        <param>
+          <type>std::vector&lt; message_ptr &gt;</type>
+          <declname>messages</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="429" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="429" bodyend="434"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1a95b0c2c59e10e91f666215ec4fc2e2f6" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::WaitingQueue&lt; message_ptr &gt;::empty</definition>
+        <argsstring>()</argsstring>
+        <name>empty</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Checks if the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is empty. <simplesect kind="return"><para>A bool indicating if the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is empty. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="440" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="440" bodyend="442"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1WaitingQueue_1ab0dab5dcc1da7aa90eb23a3ef1ab7500" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::WaitingQueue&lt; message_ptr &gt;::putWaitingQueue</definition>
+        <argsstring>(message_ptr item)</argsstring>
+        <name>putWaitingQueue</name>
+        <param>
+          <type>message_ptr</type>
+          <declname>item</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Adds a message to the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>item</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The message to add to the <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref>. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="448" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="448" bodyend="448"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A Queue that has built in methods for waiting operations. The purpose of <ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">WaitingQueue</ref> is to provide apis that get things out of the queue when they exist and wait for things when they don&apos;t without consuming many compute resources.This is accomplished through the use of a condition_variable and mutex locks. </para>    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" line="33" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/WaitingQueue.h" bodystart="33" bodyend="462"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a1076b5b3c38a4bc0a2a04a7930a13c10" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>condition_variable_</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a95b0c2c59e10e91f666215ec4fc2e2f6" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>empty</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1af489dc4d0c5cb810109beb3e9ff97062" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>finish</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a0cdd296ab3fc92fdc657d6ffc1b7ea91" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>finished</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a51a2c83824c2f9eefe8b938a19793645" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>get_all</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1ace97207416c27ecbe0d356c096edb499" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>get_all_message_ids</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a0f0d4eb7e1d573849af13ede6621f2ac" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>get_all_or_wait</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a6b0d10905ba8ab60f8d171d494e9ed7a" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>get_all_unsafe</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1acbb3be52777e0a087a969b220377177a" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>get_next_size_in_bytes</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a8225fd0f55e72bf630f261def644d527" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>get_or_wait</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1ac365aaf9f942c2d5ac22087cbfaf5968" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>has_next_now</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a33631ea402ae98a42b144bc3f1453341" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>is_finished</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1ad5ef46c8b24d7de3f2a00c4e6f927e0a" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>lock</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a16f937f6220c5a37881c7526a580fa48" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>log_timeout</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a51162ce883b5eb8af37b34d5fb895ddb" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>message_queue_</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a09965d3c6e45012a7455b77ed169796a" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>mutex_</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a46e9b5f6c88e3ad5a6b54ce2ee7ffbfa" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>operator=</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1afd572305420b7188aab015b2949fe082" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>operator=</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a259a82267567c6b5da96bd1bac53f6db" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>pop_back</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1afbc5898a999bb8b5257c5de1b656db1c" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>pop_or_wait</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a0ba9790cb2d41d01f7721b9972e4ff44" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>pop_unsafe</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a0a6aa79709da64695c01b85d2e0fc1fb" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>processed</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1af3afa691f12cfe644d86e8c1f99a31ec" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>processed_parts</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a8049784eaf2ca3f33b3ed9accd2222d2" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>put</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a523bc3b04a12b26ac57b8c77f0634fb5" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>put_all</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a1ac476114c34c127aee7c43907088bea" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>put_all_unsafe</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1ab0dab5dcc1da7aa90eb23a3ef1ab7500" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>putWaitingQueue</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a4ed55da4ea751bd3555457e20523214e" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>queue_name</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a04da2e0a9c5735e9cefe539264819a53" prot="private" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>timeout</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1abd7d9824f1b89ead2c937e1c6d64ba4f" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>wait_for_count</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a2849a6f841c2958aba489237a24ec0df" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>wait_for_next</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a008f9d8254330dff1e653bd41fe43d9a" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>wait_until_finished</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a84d4f711f11a11970b381b5b5c5d5662" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>wait_until_num_bytes</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1ac69033b0cfeead472b2b0beeed6de93c" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>WaitingQueue</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a2c072bc505d3b6e48eef52b3adb98cfd" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>WaitingQueue</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1afc562f0200a6f5e1a9791473ea6398ba" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>WaitingQueue</name></member>
+      <member refid="classral_1_1cache_1_1WaitingQueue_1a09240aad671d08e2df7fe90b0a3a268b" prot="public" virt="non-virtual"><scope>ral::cache::WaitingQueue</scope><name>~WaitingQueue</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1processor_1_1expr__output__type__visitor" kind="struct" language="C++" prot="public">
+    <compoundname>ral::processor::expr_output_type_visitor</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">node_visitor</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structral_1_1processor_1_1expr__output__type__visitor_1a492182828e8a75e0929d8898ab1b23c8" prot="private" static="no" mutable="no">
+        <type>cudf::data_type</type>
+        <definition>cudf::data_type ral::processor::expr_output_type_visitor::expr_output_type_</definition>
+        <argsstring></argsstring>
+        <name>expr_output_type_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="766" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="766" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1processor_1_1expr__output__type__visitor_1a37c0bf5db7b243f7ff9f1ae5ac3121bc" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; cudf::size_type &gt;</type>
+        <definition>std::vector&lt;cudf::size_type&gt; ral::processor::expr_output_type_visitor::variable_indices_</definition>
+        <argsstring></argsstring>
+        <name>variable_indices_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="767" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="767" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1processor_1_1expr__output__type__visitor_1aa48a0d941a6af8f591b22438f1b34934" prot="private" static="no" mutable="no">
+        <type>std::map&lt; const ral::parser::node *, cudf::data_type &gt;</type>
+        <definition>std::map&lt;const ral::parser::node*, cudf::data_type&gt; ral::processor::expr_output_type_visitor::node_to_type_map_</definition>
+        <argsstring></argsstring>
+        <name>node_to_type_map_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="769" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="769" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1processor_1_1expr__output__type__visitor_1a2aaa4f747e16c3d833076b575a9e66b3" prot="private" static="no" mutable="no">
+        <type>cudf::table_view</type>
+        <definition>cudf::table_view ral::processor::expr_output_type_visitor::table_</definition>
+        <argsstring></argsstring>
+        <name>table_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="770" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="770" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structral_1_1processor_1_1expr__output__type__visitor_1a85683c095c432e8f8a5b24c9e0b5f02c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::processor::expr_output_type_visitor::expr_output_type_visitor</definition>
+        <argsstring>(const cudf::table_view &amp;table)</argsstring>
+        <name>expr_output_type_visitor</name>
+        <param>
+          <type>const cudf::table_view &amp;</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="728" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="728" bodyend="728"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1expr__output__type__visitor_1a71cff76f357a59262a0c18f8d78cd596" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::processor::expr_output_type_visitor::visit</definition>
+        <argsstring>(const ral::parser::operad_node &amp;node) override</argsstring>
+        <name>visit</name>
+        <param>
+          <type>const ral::parser::operad_node &amp;</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="730" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="730" bodyend="744"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1expr__output__type__visitor_1a868e8c51f23119b9c4beefb42a2efbb1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::processor::expr_output_type_visitor::visit</definition>
+        <argsstring>(const ral::parser::operator_node &amp;node) override</argsstring>
+        <name>visit</name>
+        <param>
+          <type>const ral::parser::operator_node &amp;</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="746" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="746" bodyend="759"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1expr__output__type__visitor_1ae3797eb6fa5ad63159f751ff9a9ec874" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>cudf::data_type</type>
+        <definition>cudf::data_type ral::processor::expr_output_type_visitor::get_expr_output_type</definition>
+        <argsstring>()</argsstring>
+        <name>get_expr_output_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="761" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="761" bodyend="761"/>
+      </memberdef>
+      <memberdef kind="function" id="structral_1_1processor_1_1expr__output__type__visitor_1a11b37c8d0617b881f900860ec0679bdc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>const std::vector&lt; cudf::size_type &gt; &amp;</type>
+        <definition>const std::vector&lt;cudf::size_type&gt;&amp; ral::processor::expr_output_type_visitor::get_variable_indices</definition>
+        <argsstring>()</argsstring>
+        <name>get_variable_indices</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="763" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="763" bodyend="763"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A class that traverses an expression tree and calculates the final output type of the expression. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="206">
+        <label>ral::parser::node_visitor</label>
+      </node>
+      <node id="205">
+        <label>ral::processor::expr_output_type_visitor</label>
+        <link refid="structral_1_1processor_1_1expr__output__type__visitor"/>
+        <childnode refid="206" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="208">
+        <label>ral::parser::node_visitor</label>
+      </node>
+      <node id="207">
+        <label>ral::processor::expr_output_type_visitor</label>
+        <link refid="structral_1_1processor_1_1expr__output__type__visitor"/>
+        <childnode refid="208" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="726" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="725" bodyend="771"/>
+    <listofallmembers>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a492182828e8a75e0929d8898ab1b23c8" prot="private" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>expr_output_type_</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a85683c095c432e8f8a5b24c9e0b5f02c" prot="public" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>expr_output_type_visitor</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1ae3797eb6fa5ad63159f751ff9a9ec874" prot="public" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>get_expr_output_type</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a11b37c8d0617b881f900860ec0679bdc" prot="public" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>get_variable_indices</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1aa48a0d941a6af8f591b22438f1b34934" prot="private" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>node_to_type_map_</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a2aaa4f747e16c3d833076b575a9e66b3" prot="private" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>table_</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a37c0bf5db7b243f7ff9f1ae5ac3121bc" prot="private" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>variable_indices_</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a71cff76f357a59262a0c18f8d78cd596" prot="public" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>visit</name></member>
+      <member refid="structral_1_1processor_1_1expr__output__type__visitor_1a868e8c51f23119b9c4beefb42a2efbb1" prot="public" virt="non-virtual"><scope>ral::processor::expr_output_type_visitor</scope><name>visit</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

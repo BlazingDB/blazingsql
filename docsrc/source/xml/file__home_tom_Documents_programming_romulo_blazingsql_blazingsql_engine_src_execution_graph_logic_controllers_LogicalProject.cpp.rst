@@ -1,0 +1,114 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.cpp:
+
+File LogicalProject.cpp
+=======================
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp``)
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``Interpreter/interpreter_cpp.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_Interpreter_interpreter_cpp.h`)
+
+- ``LogicalProject.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.h`)
+
+- ``cudf/copying.hpp``
+
+- ``cudf/strings/capitalize.hpp``
+
+- ``cudf/strings/case.hpp``
+
+- ``cudf/strings/combine.hpp``
+
+- ``cudf/strings/contains.hpp``
+
+- ``cudf/strings/convert/convert_booleans.hpp``
+
+- ``cudf/strings/convert/convert_datetime.hpp``
+
+- ``cudf/strings/convert/convert_floats.hpp``
+
+- ``cudf/strings/convert/convert_integers.hpp``
+
+- ``cudf/strings/replace.hpp``
+
+- ``cudf/strings/replace_re.hpp``
+
+- ``cudf/strings/strip.hpp``
+
+- ``cudf/strings/substring.hpp``
+
+- ``cudf/unary.hpp``
+
+- ``execution_graph/logic_controllers/BlazingColumnOwner.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.h`)
+
+- ``parser/expression_utils.hpp`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp`)
+
+- ``spdlog/spdlog.h``
+
+- ``utilities/transform.hpp`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_utilities_transform.hpp`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__processor`
+
+- :ref:`namespace_ral__processor__strings`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structral_1_1processor_1_1expr__output__type__visitor`
+
+- :ref:`exhale_struct_structral_1_1processor_1_1strings_1_1cast__to__str__functor`
+
+- :ref:`exhale_class_classral_1_1processor_1_1function__evaluator__transformer`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_LogicalProject_8cpp_1a2000b070ee41c757de240fbb4959c232`
+
+- :ref:`exhale_function_LogicalProject_8cpp_1ab9f260d10cbd5a19467bf7c131a1fe6d`
+
+- :ref:`exhale_function_LogicalProject_8cpp_1a7fb707a934a4fa57400675a0727b0d5c`
+
+- :ref:`exhale_function_LogicalProject_8cpp_1a5339ddb750de84327f93af50c7babbbd`
+
+- :ref:`exhale_function_LogicalProject_8cpp_1a186318ac9040cd20e11b5d2bfcbf26c8`
+
+- :ref:`exhale_function_LogicalProject_8cpp_1a42081035b5d999d7867175c61370794b`
+

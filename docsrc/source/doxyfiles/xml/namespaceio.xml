@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceio" kind="namespace" language="C++">
+    <compoundname>io</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="protocols_8cpp_1a3cd5c8efc438b5d151b8dbf1fb5a2390" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void io::read_from_socket</definition>
+        <argsstring>(int socket_fd, void *data, size_t read_size)</argsstring>
+        <name>read_from_socket</name>
+        <param>
+          <type>int</type>
+          <declname>socket_fd</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>read_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="26" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="protocols_8cpp_1a683986f2324743d6603498b585220150" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void io::write_to_socket</definition>
+        <argsstring>(int socket_fd, const void *data, size_t write_size)</argsstring>
+        <name>write_to_socket</name>
+        <param>
+          <type>int</type>
+          <declname>socket_fd</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>write_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" line="59" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="59" bodyend="96"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" line="23" column="1"/>
+  </compounddef>
+</doxygen>

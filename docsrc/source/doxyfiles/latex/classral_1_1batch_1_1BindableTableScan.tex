@@ -1,0 +1,114 @@
+\hypertarget{classral_1_1batch_1_1BindableTableScan}{}\section{ral\+:\+:batch\+:\+:Bindable\+Table\+Scan Class Reference}
+\label{classral_1_1batch_1_1BindableTableScan}\index{ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}}
+
+
+This kernel loads the data and delivers only columns that are requested. It also filters the data if there are one or more filters, and sets their column aliases accordingly.  
+
+
+
+
+{\ttfamily \#include $<$Batch\+Processing.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:batch\+:\+:Bindable\+Table\+Scan\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=227pt]{classral_1_1batch_1_1BindableTableScan__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:batch\+:\+:Bindable\+Table\+Scan\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=328pt]{classral_1_1batch_1_1BindableTableScan__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1batch_1_1BindableTableScan_adc92c38cd526bfbf6b1586fbfa4058cc}{Bindable\+Table\+Scan} (std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}{kernel\+\_\+id}, const std\+::string \&query\+String, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1io_1_1data__provider}{ral\+::io\+::data\+\_\+provider} $>$ provider, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1io_1_1data__parser}{ral\+::io\+::data\+\_\+parser} $>$ parser, \hyperlink{classral_1_1io_1_1Schema}{ral\+::io\+::\+Schema} \&schema, std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ \hyperlink{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}{context}, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1graph}{ral\+::cache\+::graph} $>$ \hyperlink{classral_1_1cache_1_1kernel_a5fbb02292aff165a28ef25e75f0d89bd}{query\+\_\+graph})
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1BindableTableScan_a0a83091e678279f9de802ec8856ca705}\label{classral_1_1batch_1_1BindableTableScan_a0a83091e678279f9de802ec8856ca705}} 
+std\+::string {\bfseries kernel\+\_\+name} ()
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1BindableTableScan_abe5282c1203677b2c02dde35f122416c}\label{classral_1_1batch_1_1BindableTableScan_abe5282c1203677b2c02dde35f122416c}} 
+\hyperlink{structral_1_1execution_1_1task__result}{ral\+::execution\+::task\+\_\+result} {\bfseries do\+\_\+process} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ $>$ inputs, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output, cuda\+Stream\+\_\+t stream, const std\+::map$<$ std\+::string, std\+::string $>$ \&args) override
+\item 
+kstatus \hyperlink{classral_1_1batch_1_1BindableTableScan_a3215b390c1b588e165724b108038cbf9}{run} () override
+\item 
+std\+::pair$<$ bool, uint64\+\_\+t $>$ \hyperlink{classral_1_1batch_1_1BindableTableScan_aa5054a845227c869fd27869e1784eb4d}{get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows} () override
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+This kernel loads the data and delivers only columns that are requested. It also filters the data if there are one or more filters, and sets their column aliases accordingly. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1BindableTableScan_adc92c38cd526bfbf6b1586fbfa4058cc}\label{classral_1_1batch_1_1BindableTableScan_adc92c38cd526bfbf6b1586fbfa4058cc}} 
+\index{ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}!Bindable\+Table\+Scan@{Bindable\+Table\+Scan}}
+\index{Bindable\+Table\+Scan@{Bindable\+Table\+Scan}!ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}}
+\subsubsection{\texorpdfstring{Bindable\+Table\+Scan()}{BindableTableScan()}}
+{\footnotesize\ttfamily ral\+::batch\+::\+Bindable\+Table\+Scan\+::\+Bindable\+Table\+Scan (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{kernel\+\_\+id,  }\item[{const std\+::string \&}]{query\+String,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1io_1_1data__provider}{ral\+::io\+::data\+\_\+provider} $>$}]{provider,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1io_1_1data__parser}{ral\+::io\+::data\+\_\+parser} $>$}]{parser,  }\item[{\hyperlink{classral_1_1io_1_1Schema}{ral\+::io\+::\+Schema} \&}]{schema,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$}]{context,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1graph}{ral\+::cache\+::graph} $>$}]{query\+\_\+graph }\end{DoxyParamCaption})}
+
+Constructor for \hyperlink{classral_1_1batch_1_1BindableTableScan}{Bindable\+Table\+Scan} 
+\begin{DoxyParams}{Parameters}
+{\em kernel\+\_\+id} & Kernel identifier. \\
+\hline
+{\em query\+String} & Original logical expression that the kernel will execute. \\
+\hline
+{\em loader} & Data loader responsible for executing the batching load. \\
+\hline
+{\em schema} & Table schema associated to the data to be loaded. \\
+\hline
+{\em context} & Shared context associated to the running query. \\
+\hline
+{\em query\+\_\+graph} & Shared pointer of the current execution graph. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1BindableTableScan_aa5054a845227c869fd27869e1784eb4d}\label{classral_1_1batch_1_1BindableTableScan_aa5054a845227c869fd27869e1784eb4d}} 
+\index{ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}!get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows@{get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows}}
+\index{get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows@{get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows}!ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}}
+\subsubsection{\texorpdfstring{get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows()}{get\_estimated\_output\_num\_rows()}}
+{\footnotesize\ttfamily std\+::pair$<$ bool, uint64\+\_\+t $>$ ral\+::batch\+::\+Bindable\+Table\+Scan\+::get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Returns the estimated num\+\_\+rows for the output at one point. \begin{DoxyReturn}{Returns}
+A pair representing that there is no data to be processed, or the estimated number of output rows. 
+\end{DoxyReturn}
+
+
+Reimplemented from \hyperlink{classral_1_1cache_1_1kernel_abf40aaa022e3bf38c261977d0c2170cb}{ral\+::cache\+::kernel}.
+
+\mbox{\Hypertarget{classral_1_1batch_1_1BindableTableScan_a3215b390c1b588e165724b108038cbf9}\label{classral_1_1batch_1_1BindableTableScan_a3215b390c1b588e165724b108038cbf9}} 
+\index{ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}!run@{run}}
+\index{run@{run}!ral\+::batch\+::\+Bindable\+Table\+Scan@{ral\+::batch\+::\+Bindable\+Table\+Scan}}
+\subsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily kstatus ral\+::batch\+::\+Bindable\+Table\+Scan\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. \begin{DoxyReturn}{Returns}
+kstatus \textquotesingle{}stop\textquotesingle{} to halt processing, or \textquotesingle{}proceed\textquotesingle{} to continue processing. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classral_1_1cache_1_1kernel_a735b081cccae9574924e74ea6d293ef7}{ral\+::cache\+::kernel}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1batch_1_1BindableTableScan_a3215b390c1b588e165724b108038cbf9_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Processing.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Processing.\+cpp\end{DoxyCompactItemize}

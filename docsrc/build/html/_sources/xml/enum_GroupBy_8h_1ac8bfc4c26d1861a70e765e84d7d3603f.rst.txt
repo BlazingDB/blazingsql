@@ -1,0 +1,13 @@
+.. _exhale_enum_GroupBy_8h_1ac8bfc4c26d1861a70e765e84d7d3603f:
+
+Enum AggregateKind
+==================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.h`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: AggregateKind

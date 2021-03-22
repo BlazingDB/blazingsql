@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1port" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::port</compoundname>
+    <includes refid="port_8h" local="no">port.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1port_1ac8e579e7b4a5e0e9ee1051694b732708" prot="public" static="no" mutable="no">
+        <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> *</type>
+        <definition>kernel* ral::cache::port::kernel_</definition>
+        <argsstring></argsstring>
+        <name>kernel_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="88" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1port_1a8e70bbfe6180959f21a56bd76a6b743b" prot="public" static="no" mutable="no">
+        <type>std::map&lt; std::string, std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">CacheMachine</ref> &gt; &gt;</type>
+        <definition>std::map&lt;std::string, std::shared_ptr&lt;CacheMachine&gt; &gt; ral::cache::port::cache_machines_</definition>
+        <argsstring></argsstring>
+        <name>cache_machines_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="89" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a4991d849a145eeabf7d8fa2ebfaf01e3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::port::port</definition>
+        <argsstring>(kernel *const k)</argsstring>
+        <name>port</name>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> *const</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="53" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="53" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a77cb72b047d7940af868ae136bd148ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>virtual ral::cache::port::~port</definition>
+        <argsstring>()=default</argsstring>
+        <name>~port</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="55" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1ac188682dc9f01caa7754404261ef39fb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>PORTNAMES</declname>
+            <defname>PORTNAMES</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ral::cache::port::add_port</definition>
+        <argsstring>(PORTNAMES &amp;&amp;... ports)</argsstring>
+        <name>add_port</name>
+        <param>
+          <type>PORTNAMES &amp;&amp;...</type>
+          <declname>ports</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="58" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="58" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a0dc8040e17784860b766451848171bdf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::port::count</definition>
+        <argsstring>() const</argsstring>
+        <name>count</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="62" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="62" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a809c9029738a25c5c4c2d03d06763433" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::port::register_port</definition>
+        <argsstring>(std::string port_name)</argsstring>
+        <name>register_port</name>
+        <param>
+          <type>std::string</type>
+          <declname>port_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="64" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="6" bodyend="6"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a8638993db9a78603732e99d14a7f9bfb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">CacheMachine</ref> &gt; &amp;</type>
+        <definition>std::shared_ptr&lt; CacheMachine &gt; &amp; ral::cache::port::get_cache</definition>
+        <argsstring>(const std::string &amp;port_name=&quot;&quot;)</argsstring>
+        <name>get_cache</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>port_name</declname>
+          <defval>&quot;&quot;</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="66" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="8" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1ad953c937a1aa16e3e7dce3ccb3e457cc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::port::register_cache</definition>
+        <argsstring>(const std::string &amp;port_name, std::shared_ptr&lt; CacheMachine &gt; cache_machine)</argsstring>
+        <name>register_cache</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>port_name</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">CacheMachine</ref> &gt;</type>
+          <declname>cache_machine</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="68" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="30" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1af593d246e90b414eedfe0ae6b062099a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::port::finish</definition>
+        <argsstring>()</argsstring>
+        <name>finish</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="70" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="33" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a1b2a397860df89e9403ce73e99c7f4fc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">CacheMachine</ref> &gt; &amp;</type>
+        <definition>std::shared_ptr&lt;CacheMachine&gt;&amp; ral::cache::port::operator[]</definition>
+        <argsstring>(const std::string &amp;port_name)</argsstring>
+        <name>operator[]</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>port_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="72" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="72" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a682aff9077c4da30de69e9449feb89ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::port::all_finished</definition>
+        <argsstring>()</argsstring>
+        <name>all_finished</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="74" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="39" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1afebcebbb24ccd91b52275dd442cb2bd2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::port::is_finished</definition>
+        <argsstring>(const std::string &amp;port_name)</argsstring>
+        <name>is_finished</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>port_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="76" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="47" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a5a76f7c5a0a22ba25000eb86b66c7676" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>uint64_t ral::cache::port::total_bytes_added</definition>
+        <argsstring>()</argsstring>
+        <name>total_bytes_added</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="78" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="58" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a50ec17f630388609cd1d307a5adf3c5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>uint64_t ral::cache::port::total_rows_added</definition>
+        <argsstring>()</argsstring>
+        <name>total_rows_added</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="80" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="66" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1a412d716db14f528c7a3e655c61b2da6a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>uint64_t ral::cache::port::total_batches_added</definition>
+        <argsstring>()</argsstring>
+        <name>total_batches_added</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="82" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="74" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1port_1ac03157848a06e12eb28ad8f815d821c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>uint64_t ral::cache::port::get_num_rows_added</definition>
+        <argsstring>(const std::string &amp;port_name)</argsstring>
+        <name>get_num_rows_added</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>port_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp" bodystart="82" bodyend="91"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This class represent a diccionary of tuples &lt;port_name, cache_machine&gt; used by each kernel (input and outputs) into the execution graph. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="362">
+        <label>ral::cache::port</label>
+        <link refid="classral_1_1cache_1_1port"/>
+        <childnode refid="363" relation="usage">
+          <edgelabel>kernel_</edgelabel>
+        </childnode>
+      </node>
+      <node id="363">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+        <childnode refid="362" relation="usage">
+          <edgelabel>input_</edgelabel>
+          <edgelabel>output_</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" line="51" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h" bodystart="51" bodyend="90"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1port_1ac188682dc9f01caa7754404261ef39fb" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>add_port</name></member>
+      <member refid="classral_1_1cache_1_1port_1a682aff9077c4da30de69e9449feb89ec" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>all_finished</name></member>
+      <member refid="classral_1_1cache_1_1port_1a8e70bbfe6180959f21a56bd76a6b743b" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>cache_machines_</name></member>
+      <member refid="classral_1_1cache_1_1port_1a0dc8040e17784860b766451848171bdf" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>count</name></member>
+      <member refid="classral_1_1cache_1_1port_1af593d246e90b414eedfe0ae6b062099a" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>finish</name></member>
+      <member refid="classral_1_1cache_1_1port_1a8638993db9a78603732e99d14a7f9bfb" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>get_cache</name></member>
+      <member refid="classral_1_1cache_1_1port_1ac03157848a06e12eb28ad8f815d821c8" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>get_num_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1port_1afebcebbb24ccd91b52275dd442cb2bd2" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>is_finished</name></member>
+      <member refid="classral_1_1cache_1_1port_1ac8e579e7b4a5e0e9ee1051694b732708" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>kernel_</name></member>
+      <member refid="classral_1_1cache_1_1port_1a1b2a397860df89e9403ce73e99c7f4fc" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>operator[]</name></member>
+      <member refid="classral_1_1cache_1_1port_1a4991d849a145eeabf7d8fa2ebfaf01e3" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>port</name></member>
+      <member refid="classral_1_1cache_1_1port_1ad953c937a1aa16e3e7dce3ccb3e457cc" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>register_cache</name></member>
+      <member refid="classral_1_1cache_1_1port_1a809c9029738a25c5c4c2d03d06763433" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>register_port</name></member>
+      <member refid="classral_1_1cache_1_1port_1a412d716db14f528c7a3e655c61b2da6a" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>total_batches_added</name></member>
+      <member refid="classral_1_1cache_1_1port_1a5a76f7c5a0a22ba25000eb86b66c7676" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>total_bytes_added</name></member>
+      <member refid="classral_1_1cache_1_1port_1a50ec17f630388609cd1d307a5adf3c5c" prot="public" virt="non-virtual"><scope>ral::cache::port</scope><name>total_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1port_1a77cb72b047d7940af868ae136bd148ef" prot="public" virt="virtual"><scope>ral::cache::port</scope><name>~port</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

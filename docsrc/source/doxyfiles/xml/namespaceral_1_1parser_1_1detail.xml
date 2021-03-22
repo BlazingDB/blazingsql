@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceral_1_1parser_1_1detail" kind="namespace" language="C++">
+    <compoundname>ral::parser::detail</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="expression__tree_8cpp_1aad29dae270f932f9f093f76f01edc4f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::data_type</type>
+        <definition>cudf::data_type ral::parser::detail::infer_type_from_literal_token</definition>
+        <argsstring>(const lexer::token &amp;token)</argsstring>
+        <name>infer_type_from_literal_token</name>
+        <param>
+          <type>const lexer::token &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.cpp" line="218" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.cpp" bodystart="218" bodyend="246"/>
+      </memberdef>
+      <memberdef kind="function" id="expression__tree_8cpp_1a4e9eb3341ae44fdc9f5a2220c1d35af9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::data_type</type>
+        <definition>cudf::data_type ral::parser::detail::type_from_type_token</definition>
+        <argsstring>(const lexer::token &amp;token)</argsstring>
+        <name>type_from_type_token</name>
+        <param>
+          <type>const lexer::token &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.cpp" line="248" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.cpp" bodystart="248" bodyend="289"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_tree.cpp" line="7" column="1"/>
+  </compounddef>
+</doxygen>

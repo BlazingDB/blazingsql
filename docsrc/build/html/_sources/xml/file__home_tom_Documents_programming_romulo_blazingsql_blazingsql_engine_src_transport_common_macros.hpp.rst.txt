@@ -1,0 +1,42 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_transport_common_macros.hpp:
+
+File macros.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_transport_common>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/macros.hpp``)
+--------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_transport_common_macros.hpp.rst
+
+
+
+
+
+
+
+
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_macros_8hpp_1ade19f4e52fc5aab97fe63cd9b6211ba0`
+
+- :ref:`exhale_define_macros_8hpp_1acfe076ad7b5cdd1d2d24f354a32ca3fc`
+
+- :ref:`exhale_define_macros_8hpp_1ad16a64e310d7bf98602d75ca0295e779`
+

@@ -1,0 +1,41 @@
+\hypertarget{classral_1_1io_1_1parquet__parser}{}\section{ral\+:\+:io\+:\+:parquet\+\_\+parser Class Reference}
+\label{classral_1_1io_1_1parquet__parser}\index{ral\+::io\+::parquet\+\_\+parser@{ral\+::io\+::parquet\+\_\+parser}}
+
+
+Inheritance diagram for ral\+:\+:io\+:\+:parquet\+\_\+parser\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=191pt]{classral_1_1io_1_1parquet__parser__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:io\+:\+:parquet\+\_\+parser\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=191pt]{classral_1_1io_1_1parquet__parser__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1parquet__parser_a92203135608653a5a7a7594a63ef4a64}\label{classral_1_1io_1_1parquet__parser_a92203135608653a5a7a7594a63ef4a64}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries parse\+\_\+batch} (\hyperlink{structral_1_1io_1_1data__handle}{ral\+::io\+::data\+\_\+handle} handle, const \hyperlink{classral_1_1io_1_1Schema}{Schema} \&schema, std\+::vector$<$ int $>$ column\+\_\+indices, std\+::vector$<$ cudf\+::size\+\_\+type $>$ row\+\_\+groups)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1parquet__parser_aeae0917773d88f50a6851b3a79973520}\label{classral_1_1io_1_1parquet__parser_aeae0917773d88f50a6851b3a79973520}} 
+void {\bfseries parse\+\_\+schema} (std\+::shared\+\_\+ptr$<$ arrow\+::io\+::\+Random\+Access\+File $>$ file, \hyperlink{classral_1_1io_1_1Schema}{Schema} \&schema)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1parquet__parser_a30b2c688d97fe7c0532d4d0481c333ae}\label{classral_1_1io_1_1parquet__parser_a30b2c688d97fe7c0532d4d0481c333ae}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries get\+\_\+metadata} (std\+::vector$<$ std\+::shared\+\_\+ptr$<$ arrow\+::io\+::\+Random\+Access\+File $>$$>$ files, int offset)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1parquet__parser_abf6b588cc6ce92c92af20d9c298007a8}\label{classral_1_1io_1_1parquet__parser_abf6b588cc6ce92c92af20d9c298007a8}} 
+Data\+Type {\bfseries type} () const override
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/io/data\+\_\+parser/Parquet\+Parser.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/io/data\+\_\+parser/Parquet\+Parser.\+cpp\end{DoxyCompactItemize}

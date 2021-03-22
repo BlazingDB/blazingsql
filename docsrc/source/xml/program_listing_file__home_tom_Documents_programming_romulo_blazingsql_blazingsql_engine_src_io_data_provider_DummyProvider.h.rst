@@ -1,0 +1,72 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_provider_DummyProvider.h:
+
+Program Listing for File DummyProvider.h
+========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_provider_DummyProvider.h>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DummyProvider.h``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   /*
+    * uridataprovider.h
+    *
+    *  Created on: Nov 29, 2018
+    *      Author: felipe
+    */
+   
+   #ifndef DUMMYPROVIDER_H_
+   #define DUMMYPROVIDER_H_
+   
+   #include "DataProvider.h"
+   #include "FileSystem/Uri.h"
+   #include <arrow/io/interfaces.h>
+   #include <memory>
+   #include <vector>
+   
+   
+   namespace ral {
+   namespace io {
+   
+   class dummy_data_provider : public data_provider {
+   public:
+       dummy_data_provider() {}
+   
+       std::shared_ptr<data_provider> clone() override {
+           return std::make_shared<dummy_data_provider>();
+       }
+   
+       virtual ~dummy_data_provider() {}
+   
+       bool has_next() { return false; }
+   
+       void reset() {
+           // does nothing
+       }
+   
+       data_handle get_next(bool /*open_file*/ = true) {
+           data_handle handle;
+           handle.file_handle = nullptr;
+           return handle;
+       }
+   
+   
+       std::vector<data_handle> get_some(std::size_t /*num_files*/, bool /*open_file*/ = true) { return {}; }
+   
+       void close_file_handles() {
+           // does nothing
+       }
+       
+       size_t get_num_handles(){
+           return 1;
+       }
+   
+   private:
+   };
+   
+   } /* namespace io */
+   } /* namespace ral */
+   
+   #endif /* DUMMYPROVIDER_H_ */

@@ -1,0 +1,631 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1io_1_1Schema" kind="class" language="C++" prot="public">
+    <compoundname>ral::io::Schema</compoundname>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1af8ea73065a64795da47c6530456043d3" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::io::Schema::names</definition>
+        <argsstring></argsstring>
+        <name>names</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="80" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1aad9768c82837894d7cb29e3eb3ddd970" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; size_t &gt;</type>
+        <definition>std::vector&lt;size_t&gt; ral::io::Schema::calcite_to_file_indices</definition>
+        <argsstring></argsstring>
+        <name>calcite_to_file_indices</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="81" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1a47629953f1b18fd1a732cdcc63ee0aaa" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; cudf::type_id &gt;</type>
+        <definition>std::vector&lt;cudf::type_id&gt; ral::io::Schema::types</definition>
+        <argsstring></argsstring>
+        <name>types</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="82" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1ac59419bb52129977bc53f91d8cb9f3b0" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; bool &gt;</type>
+        <definition>std::vector&lt;bool&gt; ral::io::Schema::in_file</definition>
+        <argsstring></argsstring>
+        <name>in_file</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="83" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1ac93b96b41a608add62625405ff63f05b" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::io::Schema::files</definition>
+        <argsstring></argsstring>
+        <name>files</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1af738ec61a1c858d7e7b712cac31787d2" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::vector&lt; int &gt; &gt;</type>
+        <definition>std::vector&lt;std::vector&lt;int&gt; &gt; ral::io::Schema::row_groups_ids</definition>
+        <argsstring></argsstring>
+        <name>row_groups_ids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="85" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1Schema_1a1d91b9b52b92b4ec53f586ec91063c9a" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::io::Schema::has_header_csv</definition>
+        <argsstring></argsstring>
+        <name>has_header_csv</name>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="86" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a8a8e64728738b391f4a712e32c882328" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::Schema::Schema</definition>
+        <argsstring>()</argsstring>
+        <name>Schema</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="21" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="40" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1ad5677d1c413fdbb2b302d55158e8f9a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::Schema::Schema</definition>
+        <argsstring>(std::vector&lt; std::string &gt; names, std::vector&lt; size_t &gt; calcite_to_file_indices, std::vector&lt; cudf::type_id &gt; types, std::vector&lt; std::vector&lt; int &gt;&gt; row_groups_ids={})</argsstring>
+        <name>Schema</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>names</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; size_t &gt;</type>
+          <declname>calcite_to_file_indices</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::type_id &gt;</type>
+          <declname>types</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::vector&lt; int &gt;&gt;</type>
+          <declname>row_groups_ids</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="13" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a72ab7081f47daa868987f0def1dc7324" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::Schema::Schema</definition>
+        <argsstring>(std::vector&lt; std::string &gt; names, std::vector&lt; size_t &gt; calcite_to_file_indices, std::vector&lt; cudf::type_id &gt; types, std::vector&lt; bool &gt; in_file, std::vector&lt; std::vector&lt; int &gt;&gt; row_groups_ids={})</argsstring>
+        <name>Schema</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>names</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; size_t &gt;</type>
+          <declname>calcite_to_file_indices</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::type_id &gt;</type>
+          <declname>types</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; bool &gt;</type>
+          <declname>in_file</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::vector&lt; int &gt;&gt;</type>
+          <declname>row_groups_ids</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="29" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="23" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a7127c5eaf8aff04d89e7cdea28ef3ce8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::Schema::Schema</definition>
+        <argsstring>(std::vector&lt; std::string &gt; names, std::vector&lt; cudf::type_id &gt; types)</argsstring>
+        <name>Schema</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>names</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::type_id &gt;</type>
+          <declname>types</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="35" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a101d607e65e556dd91ebb9e86a133dc7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::Schema::Schema</definition>
+        <argsstring>(const Schema &amp;)=default</argsstring>
+        <name>Schema</name>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="37" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1ab07d34c02b98b34d80b4aa5fd18156a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+        <definition>Schema&amp; ral::io::Schema::operator=</definition>
+        <argsstring>(const Schema &amp;)=default</argsstring>
+        <name>operator=</name>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="39" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1ac972581002961398bd4eb8e6160eeb6b" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>ral::io::Schema::~Schema</definition>
+        <argsstring>()</argsstring>
+        <name>~Schema</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="41" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="43" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a1caf1be9e6f2661113fb65f79adf3804" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt; std::string &gt; ral::io::Schema::get_names</definition>
+        <argsstring>() const</argsstring>
+        <name>get_names</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="43" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="47" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a62fec8bebabfaffd202cdafb8890b2c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::io::Schema::set_names</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;names)</argsstring>
+        <name>set_names</name>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="44" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="49" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a7b3794e4d9fab810ecdeac9c50c5ab25" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt; std::string &gt; ral::io::Schema::get_files</definition>
+        <argsstring>() const</argsstring>
+        <name>get_files</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="45" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="61" bodyend="61"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a600d2b8054199d240e7369201110d3ab" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; bool &gt;</type>
+        <definition>std::vector&lt; bool &gt; ral::io::Schema::get_in_file</definition>
+        <argsstring>() const</argsstring>
+        <name>get_in_file</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="46" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="71" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a608e6c054dd10d92ea4a96dd968fab5e" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::Schema::all_in_file</definition>
+        <argsstring>() const</argsstring>
+        <name>all_in_file</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="47" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="73" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a17c135c4be793339b7cdd61d0ce8f511" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; cudf::type_id &gt;</type>
+        <definition>std::vector&lt; cudf::type_id &gt; ral::io::Schema::get_dtypes</definition>
+        <argsstring>() const</argsstring>
+        <name>get_dtypes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="48" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="63" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1ab4a678f32499a8a758c80d04e7298342" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; cudf::data_type &gt;</type>
+        <definition>std::vector&lt; cudf::data_type &gt; ral::io::Schema::get_data_types</definition>
+        <argsstring>() const</argsstring>
+        <name>get_data_types</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="49" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="53" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a17b9855455952df8a80748510322b4e7" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::type_id</type>
+        <definition>cudf::type_id ral::io::Schema::get_dtype</definition>
+        <argsstring>(size_t schema_index) const</argsstring>
+        <name>get_dtype</name>
+        <param>
+          <type>size_t</type>
+          <declname>schema_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="65" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a3aa7f563ec5fdbe83de9926b4bfae19f" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::io::Schema::get_name</definition>
+        <argsstring>(size_t schema_index) const</argsstring>
+        <name>get_name</name>
+        <param>
+          <type>size_t</type>
+          <declname>schema_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="51" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="67" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a17514bd3d13a571e02d00cce6ba961f7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; size_t &gt;</type>
+        <definition>std::vector&lt;size_t&gt; ral::io::Schema::get_calcite_to_file_indices</definition>
+        <argsstring>() const</argsstring>
+        <name>get_calcite_to_file_indices</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="52" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="52" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1af5b0407feaf0afecd538693072a867b1" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref></type>
+        <definition>Schema ral::io::Schema::fileSchema</definition>
+        <argsstring>(size_t current_file_index) const</argsstring>
+        <name>fileSchema</name>
+        <param>
+          <type>size_t</type>
+          <declname>current_file_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="53" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="94" bodyend="110"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1af3517c3b2f3f41cac7d9f3b287408f4d" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::io::Schema::get_num_columns</definition>
+        <argsstring>() const</argsstring>
+        <name>get_num_columns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="55" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="69" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1aac839b62501adda102c8b7257f9d5633" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt; int &gt; ral::io::Schema::get_rowgroup_ids</definition>
+        <argsstring>(size_t file_index) const</argsstring>
+        <name>get_rowgroup_ids</name>
+        <param>
+          <type>size_t</type>
+          <declname>file_index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="57" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="128" bodyend="134"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1aaa7576bfb5d3458a5c4cfff78df78f1d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::vector&lt; int &gt; &gt;</type>
+        <definition>std::vector&lt; std::vector&lt; int &gt; &gt; ral::io::Schema::get_rowgroups</definition>
+        <argsstring>()</argsstring>
+        <name>get_rowgroups</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="58" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="136" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a5248e9fa03b9d864959c96c8f82d99c7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ral::io::Schema::get_total_num_rowgroups</definition>
+        <argsstring>()</argsstring>
+        <name>get_total_num_rowgroups</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="59" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="140" bodyend="146"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a2f130b5190211d97f912326944c6d63e" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::Schema::get_has_header_csv</definition>
+        <argsstring>() const</argsstring>
+        <name>get_has_header_csv</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="61" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="77" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a4f6aaf2fd0c6182b96ab07eb592cf21c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::io::Schema::set_has_header_csv</definition>
+        <argsstring>(bool has_header)</argsstring>
+        <name>set_has_header_csv</name>
+        <param>
+          <type>bool</type>
+          <declname>has_header</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="62" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="79" bodyend="81"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a7cc826068d65da7e2cea7ff57614d6a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::io::Schema::add_file</definition>
+        <argsstring>(std::string file)</argsstring>
+        <name>add_file</name>
+        <param>
+          <type>std::string</type>
+          <declname>file</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="64" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="90" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a57b5cabad19de4a46507c734a9f6986a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::io::Schema::add_column</definition>
+        <argsstring>(std::string name, cudf::type_id type, size_t file_index, bool is_in_file=true)</argsstring>
+        <name>add_column</name>
+        <param>
+          <type>std::string</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>cudf::type_id</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>file_index</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>is_in_file</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="66" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="83" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a70957a4ea7b4ad480eb4b35539b5d395" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::io::Schema::makeEmptyBlazingTable</definition>
+        <argsstring>(const std::vector&lt; int &gt; &amp;column_indices) const</argsstring>
+        <name>makeEmptyBlazingTable</name>
+        <param>
+          <type>const std::vector&lt; int &gt; &amp;</type>
+          <declname>column_indices</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="71" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.cpp" bodystart="112" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1afee4e891bb45e62cf51b68252f08e35f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::Schema::operator==</definition>
+        <argsstring>(const Schema &amp;rhs) const</argsstring>
+        <name>operator==</name>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+          <declname>rhs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="73" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="73" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1Schema_1a7918d0f7e65ce804258a59901c8911a3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::Schema::operator!=</definition>
+        <argsstring>(const Schema &amp;rhs)</argsstring>
+        <name>operator!=</name>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+          <declname>rhs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="77" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="77" bodyend="77"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" line="19" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/Schema.h" bodystart="19" bodyend="87"/>
+    <listofallmembers>
+      <member refid="classral_1_1io_1_1Schema_1a57b5cabad19de4a46507c734a9f6986a" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>add_column</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a7cc826068d65da7e2cea7ff57614d6a2" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>add_file</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a608e6c054dd10d92ea4a96dd968fab5e" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>all_in_file</name></member>
+      <member refid="classral_1_1io_1_1Schema_1aad9768c82837894d7cb29e3eb3ddd970" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>calcite_to_file_indices</name></member>
+      <member refid="classral_1_1io_1_1Schema_1ac93b96b41a608add62625405ff63f05b" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>files</name></member>
+      <member refid="classral_1_1io_1_1Schema_1af5b0407feaf0afecd538693072a867b1" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>fileSchema</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a17514bd3d13a571e02d00cce6ba961f7" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_calcite_to_file_indices</name></member>
+      <member refid="classral_1_1io_1_1Schema_1ab4a678f32499a8a758c80d04e7298342" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_data_types</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a17b9855455952df8a80748510322b4e7" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_dtype</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a17c135c4be793339b7cdd61d0ce8f511" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_dtypes</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a7b3794e4d9fab810ecdeac9c50c5ab25" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_files</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a2f130b5190211d97f912326944c6d63e" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_has_header_csv</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a600d2b8054199d240e7369201110d3ab" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_in_file</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a3aa7f563ec5fdbe83de9926b4bfae19f" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_name</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a1caf1be9e6f2661113fb65f79adf3804" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_names</name></member>
+      <member refid="classral_1_1io_1_1Schema_1af3517c3b2f3f41cac7d9f3b287408f4d" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_num_columns</name></member>
+      <member refid="classral_1_1io_1_1Schema_1aac839b62501adda102c8b7257f9d5633" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_rowgroup_ids</name></member>
+      <member refid="classral_1_1io_1_1Schema_1aaa7576bfb5d3458a5c4cfff78df78f1d" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_rowgroups</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a5248e9fa03b9d864959c96c8f82d99c7" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>get_total_num_rowgroups</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a1d91b9b52b92b4ec53f586ec91063c9a" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>has_header_csv</name></member>
+      <member refid="classral_1_1io_1_1Schema_1ac59419bb52129977bc53f91d8cb9f3b0" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>in_file</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a70957a4ea7b4ad480eb4b35539b5d395" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>makeEmptyBlazingTable</name></member>
+      <member refid="classral_1_1io_1_1Schema_1af8ea73065a64795da47c6530456043d3" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>names</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a7918d0f7e65ce804258a59901c8911a3" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>operator!=</name></member>
+      <member refid="classral_1_1io_1_1Schema_1ab07d34c02b98b34d80b4aa5fd18156a4" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>operator=</name></member>
+      <member refid="classral_1_1io_1_1Schema_1afee4e891bb45e62cf51b68252f08e35f" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>operator==</name></member>
+      <member refid="classral_1_1io_1_1Schema_1af738ec61a1c858d7e7b712cac31787d2" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>row_groups_ids</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a8a8e64728738b391f4a712e32c882328" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>Schema</name></member>
+      <member refid="classral_1_1io_1_1Schema_1ad5677d1c413fdbb2b302d55158e8f9a9" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>Schema</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a72ab7081f47daa868987f0def1dc7324" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>Schema</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a7127c5eaf8aff04d89e7cdea28ef3ce8" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>Schema</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a101d607e65e556dd91ebb9e86a133dc7" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>Schema</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a4f6aaf2fd0c6182b96ab07eb592cf21c" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>set_has_header_csv</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a62fec8bebabfaffd202cdafb8890b2c3" prot="public" virt="non-virtual"><scope>ral::io::Schema</scope><name>set_names</name></member>
+      <member refid="classral_1_1io_1_1Schema_1a47629953f1b18fd1a732cdcc63ee0aaa" prot="private" virt="non-virtual"><scope>ral::io::Schema</scope><name>types</name></member>
+      <member refid="classral_1_1io_1_1Schema_1ac972581002961398bd4eb8e6160eeb6b" prot="public" virt="virtual"><scope>ral::io::Schema</scope><name>~Schema</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

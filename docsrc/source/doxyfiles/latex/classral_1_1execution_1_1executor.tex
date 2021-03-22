@@ -1,0 +1,44 @@
+\hypertarget{classral_1_1execution_1_1executor}{}\section{ral\+:\+:execution\+:\+:executor Class Reference}
+\label{classral_1_1execution_1_1executor}\index{ral\+::execution\+::executor@{ral\+::execution\+::executor}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a6e6ac943f9eaf839cc0e41eb23439072}\label{classral_1_1execution_1_1executor_a6e6ac943f9eaf839cc0e41eb23439072}} 
+void {\bfseries execute} ()
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a09da28a656f7612cc886a846bb6d64af}\label{classral_1_1execution_1_1executor_a09da28a656f7612cc886a846bb6d64af}} 
+std\+::exception\+\_\+ptr {\bfseries last\+\_\+exception} ()
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_aaed7cfdaada8399996aed20602d8daa8}\label{classral_1_1execution_1_1executor_aaed7cfdaada8399996aed20602d8daa8}} 
+bool {\bfseries has\+\_\+exception} ()
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_aa11c54e453247b7f83d6670eea50bfcd}\label{classral_1_1execution_1_1executor_aa11c54e453247b7f83d6670eea50bfcd}} 
+size\+\_\+t {\bfseries add\+\_\+task} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ inputs, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output, \hyperlink{classral_1_1cache_1_1kernel}{ral\+::cache\+::kernel} $\ast$kernel, const std\+::map$<$ std\+::string, std\+::string $>$ \&args=\{\})
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a77fdef46e83963032e67583e4d5392ca}\label{classral_1_1execution_1_1executor_a77fdef46e83963032e67583e4d5392ca}} 
+void {\bfseries add\+\_\+task} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ inputs, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output, \hyperlink{classral_1_1cache_1_1kernel}{ral\+::cache\+::kernel} $\ast$kernel, size\+\_\+t attempts, size\+\_\+t task\+\_\+id, const std\+::map$<$ std\+::string, std\+::string $>$ \&args=\{\})
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a2877afac758bb887955083a58f645e25}\label{classral_1_1execution_1_1executor_a2877afac758bb887955083a58f645e25}} 
+void {\bfseries add\+\_\+task} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1execution_1_1task}{task} $>$ \hyperlink{classral_1_1execution_1_1task}{task})
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a2eee292b6f3aa81c120431cc64e155f0}\label{classral_1_1execution_1_1executor_a2eee292b6f3aa81c120431cc64e155f0}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1execution_1_1task}{task} $>$ {\bfseries remove\+\_\+task\+\_\+from\+\_\+back} ()
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a898f9b6d96ea8994790ea4a142ddb4f5}\label{classral_1_1execution_1_1executor_a898f9b6d96ea8994790ea4a142ddb4f5}} 
+void {\bfseries notify\+\_\+memory\+\_\+safety\+\_\+cv} ()
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a79eb5575c98cca07b162018e50e91e4b}\label{classral_1_1execution_1_1executor_a79eb5575c98cca07b162018e50e91e4b}} 
+static \hyperlink{classral_1_1execution_1_1executor}{executor} $\ast$ {\bfseries get\+\_\+instance} ()
+\item 
+\mbox{\Hypertarget{classral_1_1execution_1_1executor_a0bd22a4c3d346642f762193878c6395b}\label{classral_1_1execution_1_1executor_a0bd22a4c3d346642f762193878c6395b}} 
+static void {\bfseries init\+\_\+executor} (int num\+\_\+threads, double processing\+\_\+memory\+\_\+limit\+\_\+threshold)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/executor.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/executor.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,13 @@
+.. _exhale_function_engine_8cpp_1a577dc37868768e8bd68ce62cf3042fa5:
+
+Function fix_column_names_duplicated
+====================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_engine.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: fix_column_names_duplicated(std::vector<std::string>&)

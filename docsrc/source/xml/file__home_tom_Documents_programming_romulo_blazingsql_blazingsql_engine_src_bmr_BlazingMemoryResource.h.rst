@@ -1,0 +1,109 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_BlazingMemoryResource.h:
+
+File BlazingMemoryResource.h
+============================
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BlazingMemoryResource.h``)
+--------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_BlazingMemoryResource.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``atomic``
+
+- ``cassert``
+
+- ``config/GPUManager.cuh``
+
+- ``cuda_runtime_api.h``
+
+- ``rmm/cuda_stream_view.hpp``
+
+- ``rmm/mr/device/arena_memory_resource.hpp``
+
+- ``rmm/mr/device/cuda_memory_resource.hpp``
+
+- ``rmm/mr/device/device_memory_resource.hpp``
+
+- ``rmm/mr/device/logging_resource_adaptor.hpp``
+
+- ``rmm/mr/device/managed_memory_resource.hpp``
+
+- ``rmm/mr/device/owning_wrapper.hpp``
+
+- ``rmm/mr/device/per_device_resource.hpp``
+
+- ``rmm/mr/device/pool_memory_resource.hpp``
+
+- ``set``
+
+- ``sys/statvfs.h``
+
+- ``sys/sysinfo.h``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_BlazingMemoryResource.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_initializer.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_MemoryMonitor.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheData.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_initialize.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BlazingHostTable.cpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classblazing__device__memory__resource`
+
+- :ref:`exhale_class_classblazing__disk__memory__resource`
+
+- :ref:`exhale_class_classblazing__host__memory__resource`
+
+- :ref:`exhale_class_classBlazingMemoryResource`
+
+- :ref:`exhale_class_classinternal__blazing__device__memory__resource`
+
+- :ref:`exhale_class_classinternal__blazing__host__memory__resource`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a`
+

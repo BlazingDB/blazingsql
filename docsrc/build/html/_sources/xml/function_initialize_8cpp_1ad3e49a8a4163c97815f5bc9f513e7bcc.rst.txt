@@ -1,0 +1,13 @@
+.. _exhale_function_initialize_8cpp_1ad3e49a8a4163c97815f5bc9f513e7bcc:
+
+Function log_level_str_to_enum
+==============================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_initialize.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: log_level_str_to_enum(std::string)

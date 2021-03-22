@@ -1,0 +1,459 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1batch_1_1JoinPartitionKernel" kind="class" language="C++" prot="public">
+    <compoundname>ral::batch::JoinPartitionKernel</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1distributing__kernel" prot="public" virt="non-virtual">ral::cache::distributing_kernel</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1a077cf59bcdb395b921d9ad1f70ec0700" prot="private" static="no" mutable="no">
+        <type>std::pair&lt; bool, bool &gt;</type>
+        <definition>std::pair&lt;bool, bool&gt; ral::batch::JoinPartitionKernel::scatter_left_right</definition>
+        <argsstring></argsstring>
+        <name>scatter_left_right</name>
+        <initializer>= {false, false}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="126" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1a221e9317a2fab91937e0d94c4c04eda5" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::batch::JoinPartitionKernel::join_type</definition>
+        <argsstring></argsstring>
+        <name>join_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="129" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1aaa6872758492f6b8dcd76311969a9bf2" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::batch::JoinPartitionKernel::condition</definition>
+        <argsstring></argsstring>
+        <name>condition</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="130" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1abd131eb857e44564fd13a7e8017c31a5" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::batch::JoinPartitionKernel::filter_statement</definition>
+        <argsstring></argsstring>
+        <name>filter_statement</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="131" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1a06d719ec1eb3575b7627d6d5270da0d6" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; cudf::size_type &gt;</type>
+        <definition>std::vector&lt;cudf::size_type&gt; ral::batch::JoinPartitionKernel::left_column_indices</definition>
+        <argsstring></argsstring>
+        <name>left_column_indices</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="132" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1a50ba0e1d3de31fd4ca38729f1be3f8d2" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; cudf::size_type &gt;</type>
+        <definition>std::vector&lt;cudf::size_type&gt; ral::batch::JoinPartitionKernel::right_column_indices</definition>
+        <argsstring></argsstring>
+        <name>right_column_indices</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="132" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1ae062d4ec2f308d5d98e2e1e61797e456" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; cudf::data_type &gt;</type>
+        <definition>std::vector&lt;cudf::data_type&gt; ral::batch::JoinPartitionKernel::join_column_common_types</definition>
+        <argsstring></argsstring>
+        <name>join_column_common_types</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="133" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="133" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1aa11771273b404711e3a9ca5ba3442c1e" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::batch::JoinPartitionKernel::normalize_left</definition>
+        <argsstring></argsstring>
+        <name>normalize_left</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="134" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="134" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1JoinPartitionKernel_1a1f7cccbc1f9a20e49ca385ce4d72746d" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::batch::JoinPartitionKernel::normalize_right</definition>
+        <argsstring></argsstring>
+        <name>normalize_right</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="134" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="134" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1ab00bc71c00af4f74de196e3da32fd4c8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::batch::JoinPartitionKernel::JoinPartitionKernel</definition>
+        <argsstring>(std::size_t kernel_id, const std::string &amp;queryString, std::shared_ptr&lt; Context &gt; context, std::shared_ptr&lt; ral::cache::graph &gt; query_graph)</argsstring>
+        <name>JoinPartitionKernel</name>
+        <param>
+          <type>std::size_t</type>
+          <declname>kernel_id</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>queryString</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">Context</ref> &gt;</type>
+          <declname>context</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1graph" kindref="compound">ral::cache::graph</ref> &gt;</type>
+          <declname>query_graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="95" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="563" bodyend="572"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1a7d12bd8488952a938c26b10e3346928b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref></type>
+        <definition>ral::execution::task_result ral::batch::JoinPartitionKernel::do_process</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; ral::frame::BlazingTable &gt;&gt; inputs, std::shared_ptr&lt; ral::cache::CacheMachine &gt; output, cudaStream_t stream, const std::map&lt; std::string, std::string &gt; &amp;args) override</argsstring>
+        <name>do_process</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;&gt;</type>
+          <declname>inputs</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="97" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="968" bodyend="1060"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1a7c96cd734ef57582b2bd8c2a7a86329e" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>kstatus</type>
+        <definition>kstatus ral::batch::JoinPartitionKernel::run</definition>
+        <argsstring>() override</argsstring>
+        <name>run</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7">run</reimplements>
+        <briefdescription>
+<para>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>kstatus &apos;stop&apos; to halt processing, or &apos;proceed&apos; to continue processing. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="101" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="1062" bodyend="1140"/>
+        <references refid="classral_1_1cache_1_1kernel_1a014bae9051f8ae95341be2f967b135c5" compoundref="kernel_8h" startline="247">ral::cache::kernel::input_</references>
+        <references refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" compoundref="kernel_8h" startline="82" endline="82">ral::cache::kernel::get_id</references>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1aba8cb636feb452194f2259fffc43e7b1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::batch::JoinPartitionKernel::get_join_type</definition>
+        <argsstring>()</argsstring>
+        <name>get_join_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="103" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="1142" bodyend="1144"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1ae29e055fe2769b081fc10b9a91725a16" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::string</type>
+        <definition>std::string ral::batch::JoinPartitionKernel::kernel_name</definition>
+        <argsstring>()</argsstring>
+        <name>kernel_name</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1aafcb0f431c87f166a778a6cce0d36d51">kernel_name</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="105" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="105" bodyend="105"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1a68670ac298acf769ca1781c634382d69" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::batch::JoinPartitionKernel::computeNormalizationData</definition>
+        <argsstring>(const std::vector&lt; cudf::data_type &gt; &amp;left_types, const std::vector&lt; cudf::data_type &gt; &amp;right_types)</argsstring>
+        <name>computeNormalizationData</name>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>left_types</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>right_types</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="109" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="575" bodyend="587"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1a5caf0d3c76283ad9b4ed08e091346d74" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::pair&lt; bool, bool &gt;</type>
+        <definition>std::pair&lt; bool, bool &gt; ral::batch::JoinPartitionKernel::determine_if_we_are_scattering_a_small_table</definition>
+        <argsstring>(const ral::cache::CacheData &amp;left_cache_data, const ral::cache::CacheData &amp;right_cache_data)</argsstring>
+        <name>determine_if_we_are_scattering_a_small_table</name>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &amp;</type>
+          <declname>left_cache_data</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &amp;</type>
+          <declname>right_cache_data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="111" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="589" bodyend="773"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1a49c54525230b6cb1cd2011ec12ef56c6" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::batch::JoinPartitionKernel::perform_standard_hash_partitioning</definition>
+        <argsstring>(std::unique_ptr&lt; ral::cache::CacheData &gt; left_cache_data, std::unique_ptr&lt; ral::cache::CacheData &gt; right_cache_data, std::shared_ptr&lt; ral::cache::CacheMachine &gt; left_input, std::shared_ptr&lt; ral::cache::CacheMachine &gt; right_input)</argsstring>
+        <name>perform_standard_hash_partitioning</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt;</type>
+          <declname>left_cache_data</declname>
+        </param>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt;</type>
+          <declname>right_cache_data</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>left_input</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>right_input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="114" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="775" bodyend="881"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1JoinPartitionKernel_1aff33c3a4a1efaed5ea154e67d302b345" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::batch::JoinPartitionKernel::small_table_scatter_distribution</definition>
+        <argsstring>(std::unique_ptr&lt; ral::cache::CacheData &gt; small_cache_data, std::unique_ptr&lt; ral::cache::CacheData &gt; big_cache_data, std::shared_ptr&lt; ral::cache::CacheMachine &gt; small_input, std::shared_ptr&lt; ral::cache::CacheMachine &gt; big_input)</argsstring>
+        <name>small_table_scatter_distribution</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt;</type>
+          <declname>small_cache_data</declname>
+        </param>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt;</type>
+          <declname>big_cache_data</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>small_input</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>big_input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="120" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp" bodystart="883" bodyend="966"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="249">
+        <label>ral::batch::JoinPartitionKernel</label>
+        <link refid="classral_1_1batch_1_1JoinPartitionKernel"/>
+        <childnode refid="250" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="250">
+        <label>ral::cache::distributing_kernel</label>
+        <link refid="classral_1_1cache_1_1distributing__kernel"/>
+        <childnode refid="251" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="251">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="252">
+        <label>ral::batch::JoinPartitionKernel</label>
+        <link refid="classral_1_1batch_1_1JoinPartitionKernel"/>
+        <childnode refid="253" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="255">
+        <label>ral::cache::port</label>
+        <link refid="classral_1_1cache_1_1port"/>
+        <childnode refid="254" relation="usage">
+          <edgelabel>kernel_</edgelabel>
+        </childnode>
+      </node>
+      <node id="253">
+        <label>ral::cache::distributing_kernel</label>
+        <link refid="classral_1_1cache_1_1distributing__kernel"/>
+        <childnode refid="254" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="254">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+        <childnode refid="255" relation="usage">
+          <edgelabel>input_</edgelabel>
+          <edgelabel>output_</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" line="93" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h" bodystart="93" bodyend="135"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1kernel_1a9b0a80f937f10357ae62638b6f0461d4" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>add_task</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af6b7b538f6a692393f314a4f1037d4a6" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad8cd102392bbece14178c0ebf9f0c6bc" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94e93c7bb81d9a3a7729fa84a7cf07c1" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1a943284f948c1f1486b04e6b02cdc3e19" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>broadcast</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a68670ac298acf769ca1781c634382d69" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>computeNormalizationData</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1aaa6872758492f6b8dcd76311969a9bf2" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>condition</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>context</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a5caf0d3c76283ad9b4ed08e091346d74" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>determine_if_we_are_scattering_a_small_table</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1a7dd5d1d4ee0081e8570a893209d3c4bf" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>distributing_kernel</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a7d12bd8488952a938c26b10e3346928b" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625" prot="public" virt="virtual" ambiguityscope="ral::cache::distributing_kernel::"><scope>ral::batch::JoinPartitionKernel</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33a881d5e40d033e53a73f3c7ede5d03" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>estimate_operating_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a37da9a64d455f2b833e1e7576c9a17d2" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>estimate_output_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8ac24c565e0d29b390d40e7ef3366486" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>execution_done</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0619a9c1e4952dc353dcfa079910a84a" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>expression</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1abd131eb857e44564fd13a7e8017c31a5" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>filter_statement</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a3c5beb224576167cd7f9488e68d8ff62" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>finished_tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6d078d50dd69a9444fcd5d73f378e2d1" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_context</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abf40aaa022e3bf38c261977d0c2170cb" prot="public" virt="virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_estimated_output_num_rows</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_id</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1aba8cb636feb452194f2259fffc43e7b1" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_join_type</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa9e353759b65c2c53571cf80b0213d31" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_message_id</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1ae5f1a597fc3716c344b54b6d0d6af311" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_total_partition_counts</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a146246668880ca685f22d208e638578b" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>get_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a913add84b5ad4c0bb09f7a609fe8e311" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>has_limit_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a21dc72f0714ddc2b4b2187592d05ba77" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>has_parent</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1a304a30bf1847aab1dd6a9779bbc80929" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>increment_node_count</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a014bae9051f8ae95341be2f967b135c5" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>input_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8af91bb80e9153e307e07c3010c217a" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>input_all_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>input_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a75d3db3d361445cd14da3186b8b15036" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>input_cache_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a25cd1d59552733027ba6396cd9e41004" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>input_cache_num_rows_added</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1ae062d4ec2f308d5d98e2e1e61797e456" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>join_column_common_types</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a221e9317a2fab91937e0d94c4c04eda5" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>join_type</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1ab00bc71c00af4f74de196e3da32fd4c8" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>JoinPartitionKernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a533e4ae37fc18a6c8638f30ee8459d8f" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>kernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af711082b1f602bacc21d679d318648f7" prot="protected" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>kernel_cv</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a2fd708656cb056a41ec635b8bdc4acfe" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>kernel_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8e336a4bc07932d5fc243409324cdcc1" prot="protected" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>kernel_mutex</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1ae29e055fe2769b081fc10b9a91725a16" prot="public" virt="virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>kernel_name</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a923841bcb8d995048c58d51a6c39caf7" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>kernel_type_id</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a06d719ec1eb3575b7627d6d5270da0d6" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>left_column_indices</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a415a4613c3eac81c1f65340e0866d26e" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>limit_rows_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae891570bebe342865bc0f30ac369efe8" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>logger</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1aa11771273b404711e3a9ca5ba3442c1e" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>normalize_left</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a1f7cccbc1f9a20e49ca385ce4d72746d" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>normalize_right</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0d4a11f11203e46edff09aafc3935688" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>notify_complete</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aacb25cb9e49377bca219769f0eb82aef" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>notify_fail</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abb0b2c6bdc9e3379cc675e57270b207b" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>operator[]</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6eac1b9f1e6efb3bb9942ba7bbf66a94" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>output_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad1b8b87c5008b3bce16fe45da84eccdd" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>parent_id_</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a49c54525230b6cb1cd2011ec12ef56c6" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>perform_standard_hash_partitioning</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a45abece009eed9fc7555f55ecc55f5dd" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>query_graph</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a50ba0e1d3de31fd4ca38729f1be3f8d2" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>right_column_indices</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a7c96cd734ef57582b2bd8c2a7a86329e" prot="public" virt="virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>run</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1ae2f86983ba3baca3a1f37ad7a6fc9326" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>scatter</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1a077cf59bcdb395b921d9ad1f70ec0700" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>scatter_left_right</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1ac84717592ca882bcae7efd6a20ea2863" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>scatterParts</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1aa2c88f7cefd4bb5eee4058c7059c277e" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>send_message</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1a532f4eb42963c4e76199f9250c483a09" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>send_total_partition_counts</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1a6466f289452c10450861276054b751da" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>set_number_of_message_trackers</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a150ae499b8aef4669714e791f2bea9e9" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>set_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae4a8519fe026454fe5385122c1e02615" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>set_type_id</name></member>
+      <member refid="classral_1_1batch_1_1JoinPartitionKernel_1aff33c3a4a1efaed5ea154e67d302b345" prot="private" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>small_table_scatter_distribution</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a24ef14f94bf23f483736043ca6f95b7e" prot="protected" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a57a0078f5ab3991b32e9ea92989eab42" prot="protected" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>total_input_bytes_processed</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a87d2048b2c50e1124eaaed09b3c18758" prot="public" virt="non-virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>total_input_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1distributing__kernel_1a19afe37abf9e6a2f29f2a83d45ecf093" prot="public" virt="virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>~distributing_kernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a08658078acd31ec27af290f6712fa017" prot="public" virt="virtual"><scope>ral::batch::JoinPartitionKernel</scope><name>~kernel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="DebuggingUtils_8h" kind="file" language="C++">
+    <compoundname>DebuggingUtils.h</compoundname>
+    <includes refid="LogicPrimitives_8h" local="yes">execution_graph/logic_controllers/LogicPrimitives.h</includes>
+    <includedby refid="BatchProcessing_8cpp" local="no">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp</includedby>
+    <includedby refid="CacheData_8cpp" local="no">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp</includedby>
+    <includedby refid="CacheMachine_8cpp" local="no">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheMachine.cpp</includedby>
+    <includedby refid="distributing__kernel_8cpp" local="no">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp</includedby>
+    <includedby refid="DebuggingUtils_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp</includedby>
+    <incdepgraph>
+      <node id="7035">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="7036" relation="include">
+        </childnode>
+        <childnode refid="7037" relation="include">
+        </childnode>
+        <childnode refid="7038" relation="include">
+        </childnode>
+        <childnode refid="7039" relation="include">
+        </childnode>
+        <childnode refid="7040" relation="include">
+        </childnode>
+        <childnode refid="7041" relation="include">
+        </childnode>
+        <childnode refid="7043" relation="include">
+        </childnode>
+      </node>
+      <node id="7046">
+        <label>cstdint</label>
+      </node>
+      <node id="7041">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="7042" relation="include">
+        </childnode>
+        <childnode refid="7036" relation="include">
+        </childnode>
+        <childnode refid="7037" relation="include">
+        </childnode>
+        <childnode refid="7038" relation="include">
+        </childnode>
+        <childnode refid="7039" relation="include">
+        </childnode>
+        <childnode refid="7040" relation="include">
+        </childnode>
+      </node>
+      <node id="7039">
+        <label>string</label>
+      </node>
+      <node id="7043">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="7040" relation="include">
+        </childnode>
+        <childnode refid="7039" relation="include">
+        </childnode>
+        <childnode refid="7038" relation="include">
+        </childnode>
+        <childnode refid="7044" relation="include">
+        </childnode>
+        <childnode refid="7045" relation="include">
+        </childnode>
+        <childnode refid="7047" relation="include">
+        </childnode>
+        <childnode refid="7035" relation="include">
+        </childnode>
+      </node>
+      <node id="7037">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="7048">
+        <label>stack</label>
+      </node>
+      <node id="7040">
+        <label>vector</label>
+      </node>
+      <node id="7045">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="7046" relation="include">
+        </childnode>
+      </node>
+      <node id="7050">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="7047">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="7040" relation="include">
+        </childnode>
+        <childnode refid="7039" relation="include">
+        </childnode>
+        <childnode refid="7048" relation="include">
+        </childnode>
+        <childnode refid="7049" relation="include">
+        </childnode>
+        <childnode refid="7038" relation="include">
+        </childnode>
+        <childnode refid="7050" relation="include">
+        </childnode>
+      </node>
+      <node id="7044">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="7042">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="7049">
+        <label>mutex</label>
+      </node>
+      <node id="7034">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.h</label>
+        <link refid="DebuggingUtils_8h"/>
+        <childnode refid="7035" relation="include">
+        </childnode>
+      </node>
+      <node id="7036">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="7038">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1utilities">ral::utilities</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>_BLAZING_DEBUG_UTILS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>_BLAZING_DEBUG_UTILS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/>NOTE:</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>The<sp/>cmake<sp/>will<sp/>set<sp/>the<sp/>precondition<sp/>definiton<sp/>&apos;SQLDBGUTILS&apos;<sp/>when:</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*<sp/>-<sp/>the<sp/>build<sp/>type<sp/>is<sp/>Release<sp/>or</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*<sp/>-<sp/>the<sp/>build<sp/>type<sp/>is<sp/>RelWithDebInfo<sp/>or</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>-<sp/>we<sp/>are<sp/>in<sp/>a<sp/>conda<sp/>build<sp/>process</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*<sp/>So,<sp/>when<sp/>&apos;SQLDBGUTILS&apos;<sp/>is<sp/>defined<sp/>the<sp/>ral<sp/>will<sp/>link<sp/>against<sp/>gtest<sp/>and<sp/></highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/>cudf<sp/>test<sp/>utils<sp/>and<sp/>we<sp/>will<sp/>be<sp/>able<sp/>to<sp/>use<sp/>print_*<sp/>functions</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;execution_graph/logic_controllers/LogicPrimitives.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="comment">//<sp/>#include<sp/>&quot;execution_graph/logic_controllers/CacheMachine.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">utilities<sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal">std::string<sp/>type_string(cudf::data_type<sp/>dtype);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>print_blazing_table_view(<ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>table_view,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>table_name=</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>print_blazing_table_view_schema(<ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>table_view,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>table_name=</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal">std::string<sp/>blazing_table_view_schema_to_string(<ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref><sp/>table_view,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::string<sp/>table_name);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="comment">//<sp/>std::string<sp/>cache_data_schema_to_string(ral::cache::CacheData<sp/>*<sp/>cache_data);</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>utilities</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/><sp/>//_BLAZING_DEBUG_UTILS_H</highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.h"/>
+  </compounddef>
+</doxygen>

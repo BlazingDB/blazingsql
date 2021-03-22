@@ -1,0 +1,7 @@
+<map id="ral::batch::Print::run" name="ral::batch::Print::run">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html#aac90d80ed296715da2a7736691847270" title="Returns the input cache. " alt="" coords="217,5,340,47"/>
+<area shape="rect" id="node4" href="$classral_1_1batch_1_1BatchSequence.html#af62f1f620ac02a018737af8a89eb4881" title="ral::batch::BatchSequence\l::wait_for_next" alt="" coords="191,71,367,112"/>
+<area shape="rect" id="node6" href="$classral_1_1batch_1_1BatchSequence.html#a5fe181e6183df338739e61eb512c23a4" title="ral::batch::BatchSequence\l::next" alt="" coords="191,136,367,177"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="415,5,537,47"/>
+<area shape="rect" id="node5" href="$classral_1_1cache_1_1kernel.html#a146246668880ca685f22d208e638578b" title="Returns the kernel type identifier. " alt="" coords="415,71,537,112"/>
+</map>

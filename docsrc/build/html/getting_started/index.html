@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting started &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Engine" href="../engine/index.html" />
+    <link rel="prev" title="Welcome to BlazingSQL’s documentation!" href="../index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../xml/library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+          
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#id2" class="nav-link">Getting started</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#import-packages" class="nav-link">Import packages</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#connect-a-storage-plugin" class="nav-link">Connect a Storage Plugin</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#create-tables" class="nav-link">Create Tables</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#run-sql" class="nav-link">Run SQL</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#explain" class="nav-link">Explain</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#drop-tables" class="nav-link">Drop Tables</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#handing-off-a-gdf" class="nav-link">Handing off a GDF</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#run-distributed-sql" class="nav-link">Run Distributed SQL</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/getting_started/index.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="getting-started">
+<span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>Getting started with Blazing Notebooks: From zero to working with RAPIDS/BlazingSQL in under 10 minutes.
+This is a crash course on BlazingSQL. If you have used Apache Spark with PySpark, this should be very familiar to you.
+We are going to show off the main features of a BlazingSQL instance in this guide.</p>
+<div class="section" id="id2">
+<h2>Getting started<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="import-packages">
+<h3>Import packages<a class="headerlink" href="#import-packages" title="Permalink to this headline">¶</a></h3>
+<p>First, import the required libraries. BlazingSQL uses cuDF to handoff results,
+so it’s always a good idea to import it as well. For more information on cuDF,
+please check out the <a class="reference external" href="https://docs.rapids.ai">RAPIDS.ai Documentation Page</a>.</p>
+<p>You must establish a BlazingContext to connect to a BlazingSQL
+instance to create tables,
+run queries, and basically do anything with BlazingSQL.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blazingsql</span> <span class="kn">import</span> <span class="n">BlazingContext</span>
+
+<span class="n">bc</span> <span class="o">=</span> <span class="n">BlazingContext</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="connect-a-storage-plugin">
+<h3>Connect a Storage Plugin<a class="headerlink" href="#connect-a-storage-plugin" title="Permalink to this headline">¶</a></h3>
+<p>BlazingSQL can
+<a class="reference external" href="https://docs.blazingdb.com/docs/connecting-data-sources">connect multiple storage solutions</a>
+in order to query files from numerous local and/or distributed filesystems.</p>
+<p>Here, we are showing how you would connect to an <a class="reference external" href="https://docs.blazingdb.com/docs/s3">AWS S3</a> bucket.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bc</span><span class="o">.</span><span class="n">s3</span><span class="p">(</span><span class="s1">&#39;dir_name&#39;</span><span class="p">,</span>
+    <span class="n">bucket_name</span><span class="o">=</span><span class="s1">&#39;bucket_name&#39;</span><span class="p">,</span>
+    <span class="n">access_key_id</span><span class="o">=</span><span class="s1">&#39;access_key&#39;</span><span class="p">,</span>
+    <span class="n">secrect_key</span><span class="o">=</span><span class="s1">&#39;secret_key&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-tables">
+<h3>Create Tables<a class="headerlink" href="#create-tables" title="Permalink to this headline">¶</a></h3>
+<p>BlazingSQL can query raw files or in-memory DataFrames,
+but you must create a table to run a query.
+We’re going to create three tables; two, from files in AWS S3,
+and one from a local, already existent, GPU DataFrame (GDF).</p>
+<p>For more info check the <a class="reference external" href="https://docs.blazingdb.com/docs/creating-tables">Blazing SQL API documentation</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># create table 01 from CSV file</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s1">&#39;table_name_01&#39;</span><span class="p">,</span> <span class="s1">&#39;s3://dir_name/file1.csv&#39;</span><span class="p">)</span>
+
+<span class="c1"># create table 02 from Parquet file</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s1">&#39;table_name_02&#39;</span><span class="p">,</span> <span class="s1">&#39;s3://dir_name/file2.parquet&#39;</span><span class="p">)</span>
+
+<span class="c1"># create table 03 from cuDF DataFrame</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s1">&#39;table_name_03&#39;</span><span class="p">,</span> <span class="n">existing_gdf</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/docs/blazingsql/blazingcontext_api/create_tables.ipynb">Launch Demo</a></p>
+</div>
+<div class="section" id="run-sql">
+<h3>Run SQL<a class="headerlink" href="#run-sql" title="Permalink to this headline">¶</a></h3>
+<p>Once you have created your tables, you will now be able to use SQL to query said tables.
+BlazingSQL processes every file as a GDF, which means you can run federated
+queries over multiple data sources and file formats.</p>
+<p>You can read more about our supported SQL in the <a class="reference external" href="https://docs.blazingdb.com/docs/queries">General SQL</a>
+reference section of the Blazing SQL API documentation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    SELECT a.* FROM table_name_01 AS a</span>
+<span class="s1">    UNION ALL</span>
+<span class="s1">    SELECT b.* FROM table_name_02 as b</span>
+<span class="s1">    UNION ALL</span>
+<span class="s1">    SELECT c.* FROM table_name_03 as c</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="c1"># type(gdf) == cudf.core.dataframe.DataFrame</span>
+<span class="n">gdf</span> <span class="o">=</span> <span class="n">bc</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/docs/blazingsql/blazingcontext_api/create_tables.ipynb">Launch Demo</a></p>
+</div>
+<div class="section" id="explain">
+<h3>Explain<a class="headerlink" href="#explain" title="Permalink to this headline">¶</a></h3>
+<p>To better understand what’s going on, BlazingContext’s <code class="code docutils literal notranslate"><span class="pre">.explain()</span></code> method can
+be called to break down a given query’s algebra plan (query execution plan).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># define a query</span>
+<span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    SELECT a.* FROM table_name_01 AS a</span>
+<span class="s1">    UNION ALL</span>
+<span class="s1">    SELECT b.* FROM table_name_02 as b</span>
+<span class="s1">    UNION ALL</span>
+<span class="s1">    SELECT c.* FROM table_name_03 as c</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="c1"># what&#39;s going on when this query runs?</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/docs/blazingsql/blazingcontext_api/blazingcontext.ipynb#.explain()">Launch Demo</a></p>
+</div>
+<div class="section" id="drop-tables">
+<h3>Drop Tables<a class="headerlink" href="#drop-tables" title="Permalink to this headline">¶</a></h3>
+<p>To drop a table from BlazingContext we call <code class="code docutils literal notranslate"><span class="pre">drop_table</span></code> and pass in the name of the table to drop.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># drop table 01</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="s1">&#39;table_name_01&#39;</span><span class="p">)</span>
+
+<span class="c1"># drop table 03</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="s1">&#39;table_name_03&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/docs/blazingsql/blazingcontext_api/blazingcontext.ipynb#.drop_table()">Launch Demo</a></p>
+</div>
+<div class="section" id="handing-off-a-gdf">
+<h3>Handing off a GDF<a class="headerlink" href="#handing-off-a-gdf" title="Permalink to this headline">¶</a></h3>
+<p>The resulting GDF resides in GPU memory.
+The GDF is built on <a class="reference external" href="https://arrow.apache.org">Apache Arrow</a> and interoperates
+with the rest of the RAPIDS.ai ecosystem.</p>
+<p>For example, we can run typical pandas-like commands but using cuDF.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">gdf</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">gdf</span><span class="o">.</span><span class="n">var</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="n">gdf</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Or, we can pass the result GDF to a Pandas DataFrame:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="c1"># from cuDF DataFrame to pandas DataFrame</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>But the real power is passing to other GPU accelerated libraries.
+cuML offers the algorithms found in SK-Learn but operates on GDFs.
+Here we are passing GDFs to cuML for use in training linear regression algorithm.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cuml</span>
+<span class="kn">from</span> <span class="nn">cuml</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+
+<span class="c1"># create model</span>
+<span class="n">lr</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;eig&quot;</span><span class="p">)</span>
+
+<span class="c1"># train model</span>
+<span class="n">reg</span> <span class="o">=</span> <span class="n">lr</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train_gdf</span><span class="p">,</span> <span class="n">y_train_gdf</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Coefficients:&quot;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">reg</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot; Y intercept:&quot;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">reg</span><span class="o">.</span><span class="n">intercept_</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-distributed-sql">
+<h3>Run Distributed SQL<a class="headerlink" href="#run-distributed-sql" title="Permalink to this headline">¶</a></h3>
+<p>BlazingSQL strives to make it easy to scale up a workload. With minimal code changes,
+we can make queries run on an arbitrary number of GPUs.
+The results are returned as a Dask-cuDF, a partitioned GPU DataFrame,
+distributed across the number of GPUs in a cluster.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blazingsql</span> <span class="kn">import</span> <span class="n">BlazingContext</span>
+<span class="kn">import</span> <span class="nn">cudf</span>
+<span class="kn">import</span> <span class="nn">dask_cudf</span>
+<span class="kn">import</span> <span class="nn">dask</span>
+<span class="kn">from</span> <span class="nn">dask.distributed</span> <span class="kn">import</span> <span class="n">Client</span>
+
+<span class="c1"># set Dask Client</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="s1">&#39;127.0.0.1:8786&#39;</span><span class="p">)</span>
+<span class="c1"># start Blazing Context</span>
+<span class="n">bc</span> <span class="o">=</span> <span class="n">BlazingContext</span><span class="p">(</span><span class="n">dask_client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+
+<span class="c1"># register AWS S3 bucket to Blazing Context</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">s3</span><span class="p">(</span><span class="s1">&#39;dir_name&#39;</span>
+    <span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="s1">&#39;bucket_name&#39;</span>
+    <span class="p">,</span> <span class="n">access_key_id</span><span class="o">=</span><span class="s1">&#39;access_key&#39;</span>
+    <span class="p">,</span> <span class="n">secret_key</span><span class="o">=</span><span class="s1">&#39;secret_key&#39;</span>
+<span class="p">)</span>
+
+<span class="n">table_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;s3://dir_name/parquet_dir/1_0_0.parquet&#39;</span>
+    <span class="p">,</span> <span class="s1">&#39;s3://dir_name/parquet_dir/1_1_0.parquet&#39;</span>
+    <span class="p">,</span> <span class="s1">&#39;s3://dir_name/parquet_dir/1_2_0.parquet&#39;</span>
+<span class="p">]</span>
+
+<span class="c1"># create table from multiple Parquet files</span>
+<span class="n">bc</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s1">&#39;table_name&#39;</span><span class="p">,</span> <span class="n">table_list</span><span class="p">)</span>
+
+<span class="c1"># query the table (returns cuDF DataFrame)</span>
+<span class="n">gdf</span> <span class="o">=</span> <span class="n">bc</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s1">&#39;SELECT COUNT(*) FROM table_name&#39;</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">gdf</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="../index.html" title="previous page">Welcome to BlazingSQL’s documentation!</a>
+    <a class='right-next' id="next-link" href="../engine/index.html" title="next page">Engine</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

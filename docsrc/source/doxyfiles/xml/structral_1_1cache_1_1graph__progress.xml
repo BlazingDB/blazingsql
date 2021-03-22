@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1cache_1_1graph__progress" kind="struct" language="C++" prot="public">
+    <compoundname>ral::cache::graph_progress</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structral_1_1cache_1_1graph__progress_1afe755dbb160094c2e7aace654cfa0bac" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::cache::graph_progress::kernel_descriptions</definition>
+        <argsstring></argsstring>
+        <name>kernel_descriptions</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="39" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1cache_1_1graph__progress_1ac9cad17f41a341135275ed5e97235b1b" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; bool &gt;</type>
+        <definition>std::vector&lt;bool&gt; ral::cache::graph_progress::finished</definition>
+        <argsstring></argsstring>
+        <name>finished</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="40" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1cache_1_1graph__progress_1a4bbc49809dcfabb2badaa51ae1912433" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; ral::cache::graph_progress::batches_completed</definition>
+        <argsstring></argsstring>
+        <name>batches_completed</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="41" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="38" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="38" bodyend="42"/>
+    <listofallmembers>
+      <member refid="structral_1_1cache_1_1graph__progress_1a4bbc49809dcfabb2badaa51ae1912433" prot="public" virt="non-virtual"><scope>ral::cache::graph_progress</scope><name>batches_completed</name></member>
+      <member refid="structral_1_1cache_1_1graph__progress_1ac9cad17f41a341135275ed5e97235b1b" prot="public" virt="non-virtual"><scope>ral::cache::graph_progress</scope><name>finished</name></member>
+      <member refid="structral_1_1cache_1_1graph__progress_1afe755dbb160094c2e7aace654cfa0bac" prot="public" virt="non-virtual"><scope>ral::cache::graph_progress</scope><name>kernel_descriptions</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

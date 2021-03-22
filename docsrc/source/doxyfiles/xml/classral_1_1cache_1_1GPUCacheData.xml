@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1GPUCacheData" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::GPUCacheData</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1CacheData" prot="public" virt="non-virtual">ral::cache::CacheData</basecompoundref>
+    <includes refid="CacheData_8h" local="no">CacheData.h</includes>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1GPUCacheData_1a2a960bdb89bb40964a9c317f1b06fd8c" prot="protected" static="no" mutable="no">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;ral::frame::BlazingTable&gt; ral::cache::GPUCacheData::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stores the data to be returned in decache </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="321" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="321" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1aecac4050bf35d52a069842bda9e01906" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::GPUCacheData::GPUCacheData</definition>
+        <argsstring>(std::unique_ptr&lt; ral::frame::BlazingTable &gt; table)</argsstring>
+        <name>GPUCacheData</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BlazingTable that is moved into the <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref>. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="266" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="266" bodyend="267"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1a0844305a3dca5ec2582254b3ba83f7d7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::GPUCacheData::GPUCacheData</definition>
+        <argsstring>(std::unique_ptr&lt; ral::frame::BlazingTable &gt; table, const MetadataDictionary &amp;metadata)</argsstring>
+        <name>GPUCacheData</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">MetadataDictionary</ref> &amp;</type>
+          <declname>metadata</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BlazingTable that is moved into the <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref>. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>metadata</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The metadata that will be used in transport and planning. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="274" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="274" bodyend="277"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1a7efe1d821067ba5266df18adb701bf5f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;ral::frame::BlazingTable&gt; ral::cache::GPUCacheData::decache</definition>
+        <argsstring>() override</argsstring>
+        <name>decache</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1a2db8fdd2151babd7a07f4c6e246b710c">decache</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Move the BlazingTable out of this Cache This function only exists so that we can interact with all cache data by calling decache on them. <simplesect kind="return"><para>The BlazingTable that was used to construct this <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref>. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="285" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="285" bodyend="285"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1a4fc8aecb334114f0ef07ce37be0e8900" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::GPUCacheData::sizeInBytes</definition>
+        <argsstring>() const override</argsstring>
+        <name>sizeInBytes</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1aaad8a726296574845f01f9380dcee40d">sizeInBytes</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the amount of GPU memory consumed by this <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> Having this function allows us to have one api for seeing the consumption of all the <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> objects that are currently in Caches. <simplesect kind="return"><para>The number of bytes the BlazingTable consumes. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="293" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="293" bodyend="293"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1a35d56396384cd4380141d47291d3e55f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void ral::cache::GPUCacheData::set_names</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;names) override</argsstring>
+        <name>set_names</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1a3bb1623a4266ba7c961d325023ff13c6">set_names</reimplements>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the names of the columns of a BlazingTable. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>names</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>a vector of the column names. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="299" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="299" bodyend="301"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1ad592cf9835ac4b7f0056a8a1e7f0fe10" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual ral::cache::GPUCacheData::~GPUCacheData</definition>
+        <argsstring>()</argsstring>
+        <name>~GPUCacheData</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Destructor </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="306" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="306" bodyend="306"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1af2765b19b50907081b1e73c07a2155eb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref></type>
+        <definition>ral::frame::BlazingTableView ral::cache::GPUCacheData::getTableView</definition>
+        <argsstring>()</argsstring>
+        <name>getTableView</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get a <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref> of the underlying data. This allows you to read the data while it remains in cache. <simplesect kind="return"><para>a view of the data in this instance. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="313" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="313" bodyend="315"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1GPUCacheData_1acfb3dca58fcf14708e1b57f84d8b0f50" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::GPUCacheData::set_data</definition>
+        <argsstring>(std::unique_ptr&lt; ral::frame::BlazingTable &gt; table)</argsstring>
+        <name>set_data</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="317" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="317" bodyend="319"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> that keeps its dataframe in GPU memory. This is a <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> representation that wraps a <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref>. It is the most performant since its construction and decaching are basically no ops. </para>    </detaileddescription>
+    <inheritancegraph>
+      <node id="227">
+        <label>ral::cache::CacheData</label>
+        <link refid="classral_1_1cache_1_1CacheData"/>
+      </node>
+      <node id="226">
+        <label>ral::cache::GPUCacheData</label>
+        <link refid="classral_1_1cache_1_1GPUCacheData"/>
+        <childnode refid="227" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="229">
+        <label>ral::cache::CacheData</label>
+        <link refid="classral_1_1cache_1_1CacheData"/>
+        <childnode refid="230" relation="usage">
+          <edgelabel>metadata</edgelabel>
+        </childnode>
+      </node>
+      <node id="230">
+        <label>ral::cache::MetadataDictionary</label>
+        <link refid="classral_1_1cache_1_1MetadataDictionary"/>
+      </node>
+      <node id="228">
+        <label>ral::cache::GPUCacheData</label>
+        <link refid="classral_1_1cache_1_1GPUCacheData"/>
+        <childnode refid="229" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="260" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="260" bodyend="322"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1CacheData_1acf9d130e22baac61d4689c52e36b9c17" prot="protected" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>cache_type</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a257a4e0a13e894093e8ae37da1612c62" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7967efd36e3cbf3b35b7010f138fcbce" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7a43a46a362c8fe93a7af81debbeca1b" prot="protected" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>col_names</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1a2a960bdb89bb40964a9c317f1b06fd8c" prot="protected" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>data</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1a7efe1d821067ba5266df18adb701bf5f" prot="public" virt="virtual"><scope>ral::cache::GPUCacheData</scope><name>decache</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1af70878c08fae1935cd0a39999cabf6fb" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>downgradeCacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a747bc7b9113756471ce8a7bce2c46689" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>get_schema</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a6669c7c34305f2099cede2be98433604" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>get_type</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7e3fea5c3558948f4c461998f7ef434b" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>getMetadata</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1af2765b19b50907081b1e73c07a2155eb" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>getTableView</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1aecac4050bf35d52a069842bda9e01906" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>GPUCacheData</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1a0844305a3dca5ec2582254b3ba83f7d7" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>GPUCacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aaeb232ef3aa8c2a3d86e1169ed2e8152" prot="protected" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>metadata</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a4cdddfb8e552e0e3e91877ae80e5fc9e" prot="protected" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>n_rows</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aa2c8d58823d781cc1f8e6e589d897642" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>names</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1acddfe8617004fc875fff972ae5b1f616" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>num_columns</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a14a5b9fadf872c12d633e38bb6f9f07d" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>num_rows</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aec9a1b3c0fb78cfdb3bd5494bcee2d8f" prot="protected" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>schema</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1acfb3dca58fcf14708e1b57f84d8b0f50" prot="public" virt="non-virtual"><scope>ral::cache::GPUCacheData</scope><name>set_data</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1a35d56396384cd4380141d47291d3e55f" prot="public" virt="virtual"><scope>ral::cache::GPUCacheData</scope><name>set_names</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1a4fc8aecb334114f0ef07ce37be0e8900" prot="public" virt="virtual"><scope>ral::cache::GPUCacheData</scope><name>sizeInBytes</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1ac66a4910198d677594609b455c4ecde8" prot="public" virt="virtual"><scope>ral::cache::GPUCacheData</scope><name>~CacheData</name></member>
+      <member refid="classral_1_1cache_1_1GPUCacheData_1ad592cf9835ac4b7f0056a8a1e7f0fe10" prot="public" virt="virtual"><scope>ral::cache::GPUCacheData</scope><name>~GPUCacheData</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

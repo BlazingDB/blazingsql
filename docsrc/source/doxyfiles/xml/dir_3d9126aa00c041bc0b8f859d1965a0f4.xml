@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_3d9126aa00c041bc0b8f859d1965a0f4" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src</compoundname>
+    <innerdir refid="dir_38c2bd7572a77c1ffe77ed1911ac7732">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr</innerdir>
+    <innerdir refid="dir_5c22d2e5cfa881e71af62c2552852b48">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication</innerdir>
+    <innerdir refid="dir_d722d97ad1b93c206f2110f32287420d">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/cython</innerdir>
+    <innerdir refid="dir_ceca262b700df98c9d16826bbc770c22">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/distribution</innerdir>
+    <innerdir refid="dir_584494fa6823cebb8a18a1afa1bb3372">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph</innerdir>
+    <innerdir refid="dir_e2dc5e007704bb8cf674c4f12d6cf300">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/Interpreter</innerdir>
+    <innerdir refid="dir_ca1f0cd6417c875f36bda237f81fbbd7">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io</innerdir>
+    <innerdir refid="dir_fbe5a589ea46bb540a386099680bc41c">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/operators</innerdir>
+    <innerdir refid="dir_3bc096819d9dacb7fe54e26c712c2685">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser</innerdir>
+    <innerdir refid="dir_223127ddf0a574e1e402f504200aaf95">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/skip_data</innerdir>
+    <innerdir refid="dir_5c58e0f6e167b41891c40da09280b2c4">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport</innerdir>
+    <innerdir refid="dir_538f2cc728413b738dd8bc79cdfaa762">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities</innerdir>
+    <innerfile refid="CalciteExpressionParsing_8cpp">CalciteExpressionParsing.cpp</innerfile>
+    <innerfile refid="CalciteExpressionParsing_8h">CalciteExpressionParsing.h</innerfile>
+    <innerfile refid="CalciteInterpreter_8cpp">CalciteInterpreter.cpp</innerfile>
+    <innerfile refid="CalciteInterpreter_8h">CalciteInterpreter.h</innerfile>
+    <innerfile refid="CodeTimer_8h">CodeTimer.h</innerfile>
+    <innerfile refid="error_8hpp">error.hpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/"/>
+  </compounddef>
+</doxygen>

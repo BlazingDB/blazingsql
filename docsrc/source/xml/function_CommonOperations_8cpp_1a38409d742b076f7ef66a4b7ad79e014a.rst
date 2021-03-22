@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8cpp_1a38409d742b076f7ef66a4b7ad79e014a:
+
+Function ral::utilities::create_empty_table(const std::vector<cudf::type_id>&)
+==============================================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_utilities_CommonOperations.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::create_empty_table(const std::vector<cudf::type_id>&)

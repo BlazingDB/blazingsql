@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structcomm_1_1ucx__request" kind="struct" language="C++" prot="public">
+    <compoundname>comm::ucx_request</compoundname>
+    <includes refid="messageReceiver_8hpp" local="no">messageReceiver.hpp</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcomm_1_1ucx__request_1a8242cf9e0c361bb9b626c2309cb48bab" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::ucx_request::completed</definition>
+        <argsstring></argsstring>
+        <name>completed</name>
+        <briefdescription>
+<para>!!!!!!!!!! do not modify this struct this has to match what is found in </para>        </briefdescription>
+        <detaileddescription>
+<para>Completion flag that we do not use. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="24" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structcomm_1_1ucx__request_1a7042a8a653b19b41f71e0726be4da6f1" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::ucx_request::uid</definition>
+        <argsstring></argsstring>
+        <name>uid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>We store a map of request uid ==&gt; <ref refid="classcomm_1_1buffer__transport" kindref="compound">buffer_transport</ref> to manage completion of send </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A struct that lets us access the request that the end points ucx-py generates. </para>    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="20" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="20" bodyend="26"/>
+    <listofallmembers>
+      <member refid="structcomm_1_1ucx__request_1a8242cf9e0c361bb9b626c2309cb48bab" prot="public" virt="non-virtual"><scope>comm::ucx_request</scope><name>completed</name></member>
+      <member refid="structcomm_1_1ucx__request_1a7042a8a653b19b41f71e0726be4da6f1" prot="public" virt="non-virtual"><scope>comm::ucx_request</scope><name>uid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

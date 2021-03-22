@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Program Listing for File MemoryMonitor.cpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_MemoryMonitor.cpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="program-listing-for-file-memorymonitor-cpp">
+<span id="program-listing-file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-bmr-memorymonitor-cpp"></span><h1>Program Listing for File MemoryMonitor.cpp<a class="headerlink" href="#program-listing-for-file-memorymonitor-cpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_MemoryMonitor.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-bmr-memorymonitor-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/MemoryMonitor.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;MemoryMonitor.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;BlazingMemoryResource.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;execution_graph/logic_controllers/PhysicalPlanGenerator.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;execution_graph/logic_controllers/taskflow/executor.h&quot;</span><span class="cp"></span>
+
+<span class="k">namespace</span> <span class="n">ral</span> <span class="p">{</span>
+
+    <span class="n">MemoryMonitor</span><span class="o">::</span><span class="n">MemoryMonitor</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">batch</span><span class="o">::</span><span class="n">tree_processor</span><span class="o">&gt;</span> <span class="n">tree</span><span class="p">,</span>
+                                 <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">config_options</span><span class="p">)</span>
+    <span class="o">:</span> <span class="n">finished</span><span class="p">(</span><span class="nb">false</span><span class="p">),</span> <span class="n">tree</span><span class="p">(</span><span class="n">tree</span><span class="p">),</span> <span class="n">resource</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blazing_device_memory_resource</span><span class="o">::</span><span class="n">getInstance</span><span class="p">())</span> <span class="p">{</span>
+
+        <span class="n">period</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">50</span><span class="p">);</span>
+        <span class="k">auto</span> <span class="n">it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;MEMORY_MONITOR_PERIOD&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">())</span> <span class="p">{</span>
+            <span class="n">period</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">stoull</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;MEMORY_MONITOR_PERIOD&quot;</span><span class="p">]));</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kt">bool</span> <span class="n">MemoryMonitor</span><span class="o">::</span><span class="n">need_to_free_memory</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_memory_used</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_memory_limit</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">MemoryMonitor</span><span class="o">::</span><span class="n">finalize</span><span class="p">(){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">finished_lock</span><span class="p">);</span>
+        <span class="n">finished</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+        <span class="n">lock</span><span class="p">.</span><span class="n">unlock</span><span class="p">();</span>
+        <span class="n">condition</span><span class="p">.</span><span class="n">notify_all</span><span class="p">();</span>
+        <span class="k">this</span><span class="o">-&gt;</span><span class="n">monitor_thread</span><span class="p">.</span><span class="n">join</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">MemoryMonitor</span><span class="o">::</span><span class="n">start</span><span class="p">(){</span>
+
+        <span class="k">this</span><span class="o">-&gt;</span><span class="n">monitor_thread</span> <span class="o">=</span> <span class="n">BlazingThread</span><span class="p">([</span><span class="k">this</span><span class="p">](){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">finished_lock</span><span class="p">);</span>
+            <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">condition</span><span class="p">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span> <span class="n">period</span><span class="p">,</span> <span class="p">[</span><span class="k">this</span><span class="p">]</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">finished</span><span class="p">;</span> <span class="p">})){</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">need_to_free_memory</span><span class="p">()){</span>
+                    <span class="n">downgradeCaches</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tree</span><span class="o">-&gt;</span><span class="n">root</span><span class="p">);</span>
+
+                    <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+
+                    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">task</span><span class="o">&gt;&gt;</span> <span class="n">tasks</span><span class="p">;</span>
+                     <span class="c1">// if after downgrading all caches there is still too much consumption, lets try to downgrade data in tasks</span>
+                     <span class="c1">// Lets pull tasks from the back of the queue, since they are ones that will not be operated on immediatelly</span>
+                    <span class="k">while</span> <span class="p">(</span><span class="n">need_to_free_memory</span><span class="p">()){</span>
+
+                        <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">task</span><span class="o">&gt;</span> <span class="n">task</span> <span class="o">=</span> <span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">remove_task_from_back</span><span class="p">();</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">task</span> <span class="o">!=</span> <span class="k">nullptr</span><span class="p">){</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+                                <span class="n">logger</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;{query_id}|||{info}|||||&quot;</span><span class="p">,</span>
+                                    <span class="s">&quot;query_id&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">tree</span><span class="o">-&gt;</span><span class="n">context</span><span class="o">-&gt;</span><span class="n">getContextToken</span><span class="p">(),</span>
+                                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;MemoryMonitor about to free memory from tasks&quot;</span><span class="p">);</span>
+                            <span class="p">}</span>
+                            <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheData</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">inputs</span> <span class="o">=</span> <span class="n">task</span><span class="o">-&gt;</span><span class="n">release_inputs</span><span class="p">();</span>
+                            <span class="k">for</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">inputs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+                                <span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">downgradeCacheData</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">tree</span><span class="o">-&gt;</span><span class="n">context</span><span class="p">));</span>
+                            <span class="p">}</span>
+                            <span class="n">task</span><span class="o">-&gt;</span><span class="n">set_inputs</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">inputs</span><span class="p">));</span>
+                            <span class="n">tasks</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">task</span><span class="p">));</span>
+                        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                            <span class="k">break</span><span class="p">;</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                    <span class="c1">// we have now decached the inputs from either enough tasks to get below the memory limit or there are no more tasks to work with</span>
+                    <span class="c1">// Now lets add the tasks back to the queue in the same order they were in</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">tasks</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">){</span>
+                        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">tasks</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">){</span>
+                            <span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">add_task</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">tasks</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                    <span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">notify_memory_safety_cv</span><span class="p">();</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">tasks</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">){</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+                            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;{query_id}|||{info}|||||&quot;</span><span class="p">,</span>
+                                <span class="s">&quot;query_id&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">tree</span><span class="o">-&gt;</span><span class="n">context</span><span class="o">-&gt;</span><span class="n">getContextToken</span><span class="p">(),</span>
+                                <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;MemoryMonitor successfully freed memory from tasks&quot;</span><span class="p">);</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">MemoryMonitor</span><span class="o">::</span><span class="n">downgradeCaches</span><span class="p">(</span><span class="n">ral</span><span class="o">::</span><span class="n">batch</span><span class="o">::</span><span class="n">node</span><span class="o">*</span> <span class="n">starting_node</span><span class="p">){</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">kernel_unit</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// we want to skip the output node</span>
+            <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">kernel_unit</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">cache_machines_</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+                    <span class="n">iter</span> <span class="o">!=</span> <span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">kernel_unit</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">cache_machines_</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">size_t</span> <span class="n">amount_downgraded</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+                <span class="k">do</span> <span class="p">{</span>
+                    <span class="n">amount_downgraded</span> <span class="o">=</span> <span class="n">iter</span><span class="o">-&gt;</span><span class="n">second</span><span class="o">-&gt;</span><span class="n">downgradeCacheData</span><span class="p">();</span>
+                <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">amount_downgraded</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">need_to_free_memory</span><span class="p">());</span> <span class="c1">// if amount_downgraded is 0 then there is was nothing left to downgrade</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">need_to_free_memory</span><span class="p">()){</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">children</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+                <span class="n">downgradeCaches</span><span class="p">(</span><span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">get</span><span class="p">());</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">children</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">){</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">BlazingThread</span><span class="o">&gt;</span> <span class="n">threads</span><span class="p">;</span>
+                <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">node</span> <span class="p">:</span> <span class="n">starting_node</span><span class="o">-&gt;</span><span class="n">children</span><span class="p">){</span>
+                    <span class="n">threads</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">BlazingThread</span><span class="p">([</span><span class="k">this</span><span class="p">,</span> <span class="n">node</span><span class="p">](){</span>
+                        <span class="k">this</span><span class="o">-&gt;</span><span class="n">downgradeCaches</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+                    <span class="p">}));</span>
+                <span class="p">}</span>
+                <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span> <span class="kr">thread</span> <span class="o">:</span> <span class="n">threads</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="kr">thread</span><span class="p">.</span><span class="n">join</span><span class="p">();</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>  <span class="c1">// namespace ral</span>
+</pre></div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

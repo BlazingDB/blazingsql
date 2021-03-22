@@ -1,0 +1,5 @@
+<map id="ral::batch::Filter::run" name="ral::batch::Filter::run">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html#aac90d80ed296715da2a7736691847270" title="Returns the input cache. " alt="" coords="192,5,315,47"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="363,64,485,105"/>
+<area shape="rect" id="node4" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="192,123,315,164"/>
+</map>

@@ -1,0 +1,25 @@
+.. _exhale_class_classral_1_1processor_1_1function__evaluator__transformer:
+
+Class function_evaluator_transformer
+====================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.cpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public node_transformer``
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: ral::processor::function_evaluator_transformer
+   :members:
+   :protected-members:
+   :undoc-members:

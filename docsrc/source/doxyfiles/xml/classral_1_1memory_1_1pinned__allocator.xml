@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1memory_1_1pinned__allocator" kind="class" language="C++" prot="public">
+    <compoundname>ral::memory::pinned_allocator</compoundname>
+    <basecompoundref refid="classral_1_1memory_1_1base__allocator" prot="public" virt="non-virtual">ral::memory::base_allocator</basecompoundref>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classral_1_1memory_1_1pinned__allocator_1a6c76501acab8d6bfa975633c6ab957f2" prot="protected" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::memory::pinned_allocator::use_ucx</definition>
+        <argsstring></argsstring>
+        <name>use_ucx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="94" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1memory_1_1pinned__allocator_1aaab66ee7b19c2dc0bc005c979bd7c389" prot="protected" static="no" mutable="no">
+        <type>ucp_context_h</type>
+        <definition>ucp_context_h ral::memory::pinned_allocator::context</definition>
+        <argsstring></argsstring>
+        <name>context</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="95" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1memory_1_1pinned__allocator_1ad410fbbcc3cb4701cd73eb694191fd14" prot="protected" static="no" mutable="no">
+        <type>ucp_mem_h</type>
+        <definition>ucp_mem_h ral::memory::pinned_allocator::mem_handle</definition>
+        <argsstring></argsstring>
+        <name>mem_handle</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="96" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1memory_1_1pinned__allocator_1a6ff48a1115e679d14519fd091e483257" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::memory::pinned_allocator::pinned_allocator</definition>
+        <argsstring>()</argsstring>
+        <name>pinned_allocator</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="82" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.cpp" bodystart="19" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1memory_1_1pinned__allocator_1a487a8565a7efb61984a21d5751de3a30" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::memory::pinned_allocator::setUcpContext</definition>
+        <argsstring>(ucp_context_h context)</argsstring>
+        <name>setUcpContext</name>
+        <param>
+          <type>ucp_context_h</type>
+          <declname>context</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.cpp" bodystart="23" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1memory_1_1pinned__allocator_1ac8ef40eac914f8f6761eb342ac2da2a2" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>ucp_mem_h</type>
+        <definition>virtual ucp_mem_h ral::memory::pinned_allocator::getUcpMemoryHandle</definition>
+        <argsstring>() const</argsstring>
+        <name>getUcpMemoryHandle</name>
+        <reimplements refid="classral_1_1memory_1_1base__allocator_1a9be5143f73c55fc9b30b270ada544b01">getUcpMemoryHandle</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="86" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="86" bodyend="89"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classral_1_1memory_1_1pinned__allocator_1a43b29a370a25b86b7754d514194a184e" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void ral::memory::pinned_allocator::do_allocate</definition>
+        <argsstring>(void **ptr, std::size_t size)</argsstring>
+        <name>do_allocate</name>
+        <reimplements refid="classral_1_1memory_1_1base__allocator_1ad6b8fa2aae326028c98fc36342b06ddc">do_allocate</reimplements>
+        <param>
+          <type>void **</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>std::size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="92" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.cpp" bodystart="45" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1memory_1_1pinned__allocator_1a8d27e20282e57a4350446891e1851129" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void ral::memory::pinned_allocator::do_deallocate</definition>
+        <argsstring>(void *ptr)</argsstring>
+        <name>do_deallocate</name>
+        <reimplements refid="classral_1_1memory_1_1base__allocator_1a934af0fdfb53ac5912e29e355580c703">do_deallocate</reimplements>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="93" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.cpp" bodystart="75" bodyend="88"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="358">
+        <label>ral::memory::base_allocator</label>
+        <link refid="classral_1_1memory_1_1base__allocator"/>
+      </node>
+      <node id="357">
+        <label>ral::memory::pinned_allocator</label>
+        <link refid="classral_1_1memory_1_1pinned__allocator"/>
+        <childnode refid="358" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="360">
+        <label>ral::memory::base_allocator</label>
+        <link refid="classral_1_1memory_1_1base__allocator"/>
+      </node>
+      <node id="359">
+        <label>ral::memory::pinned_allocator</label>
+        <link refid="classral_1_1memory_1_1pinned__allocator"/>
+        <childnode refid="360" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="80" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="80" bodyend="97"/>
+    <listofallmembers>
+      <member refid="classral_1_1memory_1_1base__allocator_1af9f28272471b5c21700ec726703091db" prot="public" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>allocate</name></member>
+      <member refid="classral_1_1memory_1_1base__allocator_1a56625f1d1d96b794ccf19fbc9ca5f41a" prot="public" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>base_allocator</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1aaab66ee7b19c2dc0bc005c979bd7c389" prot="protected" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>context</name></member>
+      <member refid="classral_1_1memory_1_1base__allocator_1a5e5f35c397e7c906ca9e9c7b3aaaa473" prot="public" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>deallocate</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1a43b29a370a25b86b7754d514194a184e" prot="protected" virt="virtual"><scope>ral::memory::pinned_allocator</scope><name>do_allocate</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1a8d27e20282e57a4350446891e1851129" prot="protected" virt="virtual"><scope>ral::memory::pinned_allocator</scope><name>do_deallocate</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1ac8ef40eac914f8f6761eb342ac2da2a2" prot="public" virt="virtual"><scope>ral::memory::pinned_allocator</scope><name>getUcpMemoryHandle</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1ad410fbbcc3cb4701cd73eb694191fd14" prot="protected" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>mem_handle</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1a6ff48a1115e679d14519fd091e483257" prot="public" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>pinned_allocator</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1a487a8565a7efb61984a21d5751de3a30" prot="public" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>setUcpContext</name></member>
+      <member refid="classral_1_1memory_1_1pinned__allocator_1a6c76501acab8d6bfa975633c6ab957f2" prot="protected" virt="non-virtual"><scope>ral::memory::pinned_allocator</scope><name>use_ucx</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

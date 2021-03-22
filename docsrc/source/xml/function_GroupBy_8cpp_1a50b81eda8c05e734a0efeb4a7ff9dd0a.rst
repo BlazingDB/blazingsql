@@ -1,0 +1,13 @@
+.. _exhale_function_GroupBy_8cpp_1a50b81eda8c05e734a0efeb4a7ff9dd0a:
+
+Function ral::operators::compute_aggregations_without_groupby
+=============================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::operators::compute_aggregations_without_groupby(const ral::frame::BlazingTableView&, const std::vector<std::string>&, const std::vector<AggregateKind>&, const std::vector<std::string>&)

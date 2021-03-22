@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1io_1_1data__provider" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>ral::io::data_provider</compoundname>
+    <derivedcompoundref refid="classral_1_1io_1_1dummy__data__provider" prot="public" virt="non-virtual">ral::io::dummy_data_provider</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1gdf__data__provider" prot="public" virt="non-virtual">ral::io::gdf_data_provider</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1uri__data__provider" prot="public" virt="non-virtual">ral::io::uri_data_provider</derivedcompoundref>
+    <includes refid="DataProvider_8h" local="no">DataProvider.h</includes>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1afff64b38ec3107e2e63edf6773ab7414" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__provider" kindref="compound">data_provider</ref> &gt;</type>
+        <definition>virtual std::shared_ptr&lt;data_provider&gt; ral::io::data_provider::clone</definition>
+        <argsstring>()=0</argsstring>
+        <name>clone</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1ab159944ce014fc2cc3f88f8963d60dc6">clone</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1a00dc20eb09d4ef4578d31fd2ed5cc051">clone</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1a6a1f9ddcfc0337174d2d6e25e21423c0">clone</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="63" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1a92176228bbef65093853e2e2165a6d71" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>bool</type>
+        <definition>virtual bool ral::io::data_provider::has_next</definition>
+        <argsstring>()=0</argsstring>
+        <name>has_next</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1a18a1c55f0a6042dfa5edc6bc0235b518">has_next</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1af7ad84e9da11d439efe9328db3531855">has_next</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1a1815b5e9fa0b323b0cf9c0ff932a1c4b">has_next</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>tells us if this provider can generate more arrow::io::RandomAccessFile instances </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="68" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1ab762cbdb9fd702a61b48785c84e91536" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void ral::io::data_provider::reset</definition>
+        <argsstring>()=0</argsstring>
+        <name>reset</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1a109b92459b919a31171a6ec00eee0eeb">reset</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1a6bd49396fc1bdeacd68566915e29a15f">reset</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1aaab8f4f12a00b546a4cc01260d9199c8">reset</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Resets file read count to 0 for file based DataProvider </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="73" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1aa49cde8c92f3bc4e9fcbe2e8f34e7ba3" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type><ref refid="structral_1_1io_1_1data__handle" kindref="compound">data_handle</ref></type>
+        <definition>virtual data_handle ral::io::data_provider::get_next</definition>
+        <argsstring>(bool open_file=true)=0</argsstring>
+        <name>get_next</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1a0e0f9cf9d1c6b4878236746e6c83c108">get_next</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1a6770bc3c6f51365ecd3c7cc16babb7ff">get_next</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1a189c193c14fdabc3dd84dca1385688d0">get_next</reimplementedby>
+        <param>
+          <type>bool</type>
+          <declname>open_file</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>gets us the next arrow::io::RandomAccessFile </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="78" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>std::vector&lt; <ref refid="structral_1_1io_1_1data__handle" kindref="compound">data_handle</ref> &gt;</type>
+        <definition>virtual std::vector&lt;data_handle&gt; ral::io::data_provider::get_some</definition>
+        <argsstring>(std::size_t num_files, bool open_file=true)=0</argsstring>
+        <name>get_some</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1a5ceffe12bf6a535db61b30575f634c8f">get_some</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1a53be24f2a445940e82c15b324c7b7c5f">get_some</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1a26fdba323411bb0b8270f735e6e5ee77">get_some</reimplementedby>
+        <param>
+          <type>std::size_t</type>
+          <declname>num_files</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>open_file</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, trying to get too many file handles will cause a crash. Using <ref refid="classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548" kindref="member">get_some()</ref> forces breaking up the process of getting file_handles. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="84" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1afa6216bccde854b011ed098e114ba8b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void ral::io::data_provider::close_file_handles</definition>
+        <argsstring>()=0</argsstring>
+        <name>close_file_handles</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1a045c1295dc520dccc4db4cf753824e96">close_file_handles</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1afb66fcd6bc0ac46a75d195f160f9ec45">close_file_handles</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1a4a78cce759b9bee4d09ceee3014644d2">close_file_handles</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Closes currently open set of file handles maintained by the provider </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="89" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__provider_1a00ff9cc629a869d7b7e6a67c90056749" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>size_t</type>
+        <definition>virtual size_t ral::io::data_provider::get_num_handles</definition>
+        <argsstring>()=0</argsstring>
+        <name>get_num_handles</name>
+        <reimplementedby refid="classral_1_1io_1_1dummy__data__provider_1a05a005b12166902815522d924af87aed">get_num_handles</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1uri__data__provider_1a89a2e8bd07ce00025d62e877ae56a871">get_num_handles</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__data__provider_1a681eb5bce251e2dc1895a2941d41931f">get_num_handles</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the number of data_handles that will be provided. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="94" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A class we can use which will be the base for all of our data providers </para>    </detaileddescription>
+    <inheritancegraph>
+      <node id="166">
+        <label>ral::io::dummy_data_provider</label>
+        <link refid="classral_1_1io_1_1dummy__data__provider"/>
+        <childnode refid="165" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="168">
+        <label>ral::io::uri_data_provider</label>
+        <link refid="classral_1_1io_1_1uri__data__provider"/>
+        <childnode refid="165" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="167">
+        <label>ral::io::gdf_data_provider</label>
+        <link refid="classral_1_1io_1_1gdf__data__provider"/>
+        <childnode refid="165" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="165">
+        <label>ral::io::data_provider</label>
+        <link refid="classral_1_1io_1_1data__provider"/>
+      </node>
+    </inheritancegraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" line="60" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_provider/DataProvider.h" bodystart="60" bodyend="97"/>
+    <listofallmembers>
+      <member refid="classral_1_1io_1_1data__provider_1afff64b38ec3107e2e63edf6773ab7414" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>clone</name></member>
+      <member refid="classral_1_1io_1_1data__provider_1afa6216bccde854b011ed098e114ba8b3" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>close_file_handles</name></member>
+      <member refid="classral_1_1io_1_1data__provider_1aa49cde8c92f3bc4e9fcbe2e8f34e7ba3" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>get_next</name></member>
+      <member refid="classral_1_1io_1_1data__provider_1a00ff9cc629a869d7b7e6a67c90056749" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>get_num_handles</name></member>
+      <member refid="classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>get_some</name></member>
+      <member refid="classral_1_1io_1_1data__provider_1a92176228bbef65093853e2e2165a6d71" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>has_next</name></member>
+      <member refid="classral_1_1io_1_1data__provider_1ab762cbdb9fd702a61b48785c84e91536" prot="public" virt="pure-virtual"><scope>ral::io::data_provider</scope><name>reset</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

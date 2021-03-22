@@ -1,0 +1,25 @@
+.. _exhale_class_classral_1_1communication_1_1AddressExchangerForSender:
+
+Class AddressExchangerForSender
+===============================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_ucx_init.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public ral::communication::AddressExchanger`` (:ref:`exhale_class_classral_1_1communication_1_1AddressExchanger`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: ral::communication::AddressExchangerForSender
+   :members:
+   :protected-members:
+   :undoc-members:

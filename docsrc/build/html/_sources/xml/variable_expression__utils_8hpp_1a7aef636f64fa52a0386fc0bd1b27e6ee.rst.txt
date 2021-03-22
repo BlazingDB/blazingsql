@@ -1,0 +1,13 @@
+.. _exhale_variable_expression__utils_8hpp_1a7aef636f64fa52a0386fc0bd1b27e6ee:
+
+Variable LOGICAL_COMPUTE_WINDOW_TEXT
+====================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: LOGICAL_COMPUTE_WINDOW_TEXT

@@ -1,0 +1,120 @@
+\hypertarget{classral_1_1batch_1_1OutputKernel}{}\section{ral\+:\+:batch\+:\+:Output\+Kernel Class Reference}
+\label{classral_1_1batch_1_1OutputKernel}\index{ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}}
+
+
+This kernel represents the last step of the execution graph. Basically it allows to extract the result of the different levels of memory abstractions in the form of a concrete table.  
+
+
+
+
+{\ttfamily \#include $<$Batch\+Processing.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:batch\+:\+:Output\+Kernel\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=200pt]{classral_1_1batch_1_1OutputKernel__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:batch\+:\+:Output\+Kernel\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=300pt]{classral_1_1batch_1_1OutputKernel__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1batch_1_1OutputKernel_a549eabea0f9512043cfb21a0ebc38597}{Output\+Kernel} (std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}{kernel\+\_\+id}, std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ \hyperlink{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}{context})
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_ab8d330592b4cf70d0bb6c8c88e1f88d2}\label{classral_1_1batch_1_1OutputKernel_ab8d330592b4cf70d0bb6c8c88e1f88d2}} 
+std\+::string {\bfseries kernel\+\_\+name} ()
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_a99f5b52ae12cb7941eb2c5a102c33d65}\label{classral_1_1batch_1_1OutputKernel_a99f5b52ae12cb7941eb2c5a102c33d65}} 
+\hyperlink{structral_1_1execution_1_1task__result}{ral\+::execution\+::task\+\_\+result} {\bfseries do\+\_\+process} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ $>$, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$, cuda\+Stream\+\_\+t, const std\+::map$<$ std\+::string, std\+::string $>$ \&) override
+\item 
+kstatus \hyperlink{classral_1_1batch_1_1OutputKernel_a53519f315635c5e83e958fda42300f9a}{run} () override
+\item 
+frame\+\_\+type \hyperlink{classral_1_1batch_1_1OutputKernel_adc3b6153007602790ee9045740fce823}{release} ()
+\item 
+bool \hyperlink{classral_1_1batch_1_1OutputKernel_aeab17b971b0dbef6f892561e120b149c}{is\+\_\+done} ()
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+frame\+\_\+type \hyperlink{classral_1_1batch_1_1OutputKernel_a7dc0969924e0203fc30d9efa0063ddef}{output}
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_a8d8a608d11ed0741b57f4518db83883d}\label{classral_1_1batch_1_1OutputKernel_a8d8a608d11ed0741b57f4518db83883d}} 
+std\+::atomic$<$ bool $>$ {\bfseries done}
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+This kernel represents the last step of the execution graph. Basically it allows to extract the result of the different levels of memory abstractions in the form of a concrete table. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_a549eabea0f9512043cfb21a0ebc38597}\label{classral_1_1batch_1_1OutputKernel_a549eabea0f9512043cfb21a0ebc38597}} 
+\index{ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}!Output\+Kernel@{Output\+Kernel}}
+\index{Output\+Kernel@{Output\+Kernel}!ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}}
+\subsubsection{\texorpdfstring{Output\+Kernel()}{OutputKernel()}}
+{\footnotesize\ttfamily ral\+::batch\+::\+Output\+Kernel\+::\+Output\+Kernel (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{kernel\+\_\+id,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$}]{context }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Constructor for \hyperlink{classral_1_1batch_1_1OutputKernel}{Output\+Kernel} 
+\begin{DoxyParams}{Parameters}
+{\em kernel\+\_\+id} & Kernel identifier. \\
+\hline
+{\em context} & Shared context associated to the running query. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_aeab17b971b0dbef6f892561e120b149c}\label{classral_1_1batch_1_1OutputKernel_aeab17b971b0dbef6f892561e120b149c}} 
+\index{ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}!is\+\_\+done@{is\+\_\+done}}
+\index{is\+\_\+done@{is\+\_\+done}!ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}}
+\subsubsection{\texorpdfstring{is\+\_\+done()}{is\_done()}}
+{\footnotesize\ttfamily bool ral\+::batch\+::\+Output\+Kernel\+::is\+\_\+done (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Returns true when the \hyperlink{classral_1_1batch_1_1OutputKernel}{Output\+Kernel} is done \mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_adc3b6153007602790ee9045740fce823}\label{classral_1_1batch_1_1OutputKernel_adc3b6153007602790ee9045740fce823}} 
+\index{ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}!release@{release}}
+\index{release@{release}!ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}}
+\subsubsection{\texorpdfstring{release()}{release()}}
+{\footnotesize\ttfamily frame\+\_\+type ral\+::batch\+::\+Output\+Kernel\+::release (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Returns the vector containing the final processed output. \begin{DoxyReturn}{Returns}
+frame\+\_\+type A vector of unique\+\_\+ptr of Blazing\+Tables. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_a53519f315635c5e83e958fda42300f9a}\label{classral_1_1batch_1_1OutputKernel_a53519f315635c5e83e958fda42300f9a}} 
+\index{ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}!run@{run}}
+\index{run@{run}!ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}}
+\subsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily kstatus ral\+::batch\+::\+Output\+Kernel\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. \begin{DoxyReturn}{Returns}
+kstatus \textquotesingle{}stop\textquotesingle{} to halt processing, or \textquotesingle{}proceed\textquotesingle{} to continue processing. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classral_1_1cache_1_1kernel_a735b081cccae9574924e74ea6d293ef7}{ral\+::cache\+::kernel}.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1OutputKernel_a7dc0969924e0203fc30d9efa0063ddef}\label{classral_1_1batch_1_1OutputKernel_a7dc0969924e0203fc30d9efa0063ddef}} 
+\index{ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}!output@{output}}
+\index{output@{output}!ral\+::batch\+::\+Output\+Kernel@{ral\+::batch\+::\+Output\+Kernel}}
+\subsubsection{\texorpdfstring{output}{output}}
+{\footnotesize\ttfamily frame\+\_\+type ral\+::batch\+::\+Output\+Kernel\+::output\hspace{0.3cm}{\ttfamily [protected]}}
+
+Vector of tables with the final output. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Processing.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Processing.\+cpp\end{DoxyCompactItemize}

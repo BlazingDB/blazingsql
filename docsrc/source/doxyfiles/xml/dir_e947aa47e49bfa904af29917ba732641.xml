@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_e947aa47e49bfa904af29917ba732641" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common</compoundname>
+    <innerfile refid="dbg_8hpp">dbg.hpp</innerfile>
+    <innerfile refid="macros_8hpp">macros.hpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/"/>
+  </compounddef>
+</doxygen>

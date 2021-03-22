@@ -1,0 +1,13 @@
+.. _exhale_function_LogicalProject_8cpp_1a7fb707a934a4fa57400675a0727b0d5c:
+
+Function ral::processor::strings::evaluate_string_case_when_else
+================================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::processor::strings::evaluate_string_case_when_else(const cudf::table_view&, const std::string&, const std::string&, const std::string&)

@@ -1,0 +1,905 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Program Listing for File initialize.cpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_initialize.cpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="program-listing-for-file-initialize-cpp">
+<span id="program-listing-file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-cython-initialize-cpp"></span><h1>Program Listing for File initialize.cpp<a class="headerlink" href="#program-listing-for-file-initialize-cpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_initialize.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-cython-initialize-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/cython/initialize.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;clocale&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;arpa/inet.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;net/if.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;sys/ioctl.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;sys/stat.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;execinfo.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;signal.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;ucp/api/ucp.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;spdlog/spdlog.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;spdlog/async.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;spdlog/sinks/basic_file_sink.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;spdlog/sinks/stdout_color_sinks.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;spdlog/sinks/rotating_file_sink.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;algorithm&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;cuda_runtime.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;memory&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;chrono&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;thread&gt;         // std::this_thread::sleep_for</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;fstream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;utility&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;memory&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;blazingdb/io/Config/BlazingContext.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;blazingdb/io/Library/Logging/CoutOutput.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;blazingdb/io/Library/Logging/Logger.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;blazingdb/io/Library/Logging/ServiceLogging.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;blazingdb/io/Util/StringUtil.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;communication/ucx_init.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationData.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationInterface/protocols.hpp&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;bmr/initializer.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;bmr/BlazingMemoryResource.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;error.hpp&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;cudf/detail/gather.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationInterface/node.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationInterface/protocols.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationInterface/messageSender.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationInterface/messageListener.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;execution_graph/logic_controllers/taskflow/kernel.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;execution_graph/logic_controllers/taskflow/executor.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;error.hpp&quot;</span><span class="cp"></span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">fmt</span><span class="o">::</span><span class="n">literals</span><span class="p">;</span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;execution_graph/logic_controllers/CacheMachine.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;engine/initialize.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;engine/static.h&quot; // this contains function call for getProductDetails</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;engine/engine.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;sys/socket.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;sys/types.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;netinet/in.h&gt;</span><span class="cp"></span>
+
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">fmt</span><span class="o">::</span><span class="n">literals</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">blazing_context_ref_counter</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+    <span class="k">static</span> <span class="n">blazing_context_ref_counter</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Myers&#39; singleton. Thread safe and unique. Note: C++11 required.</span>
+        <span class="k">static</span> <span class="n">blazing_context_ref_counter</span> <span class="n">instance</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kt">size_t</span> <span class="n">get_count</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span> <span class="p">}</span>
+    <span class="kt">void</span> <span class="n">increase</span><span class="p">()</span> <span class="p">{</span> <span class="o">++</span><span class="n">count</span><span class="p">;</span> <span class="p">}</span> <span class="c1">// +1</span>
+    <span class="kt">void</span> <span class="n">decrease</span><span class="p">()</span> <span class="p">{</span> <span class="n">assert</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span> <span class="o">--</span><span class="n">count</span><span class="p">;</span> <span class="p">}</span> <span class="c1">// -1 (assert if the count &lt; 0)</span>
+
+<span class="k">private</span><span class="o">:</span>
+    <span class="kt">size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">void</span> <span class="nf">handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">sig</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">array</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
+  <span class="kt">size_t</span> <span class="n">size</span><span class="p">;</span>
+  <span class="c1">// get void*&#39;s for all entries on the stack</span>
+  <span class="n">size</span> <span class="o">=</span> <span class="n">backtrace</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+  <span class="c1">// print out all the frames to stderr</span>
+  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Error: signal %d:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">sig</span><span class="p">);</span>
+  <span class="n">backtrace_symbols_fd</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">STDERR_FILENO</span><span class="p">);</span>
+  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">get_ip</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span> <span class="n">iface_name</span> <span class="o">=</span> <span class="s">&quot;eno1&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="n">ifreq</span> <span class="n">ifr</span><span class="p">;</span>
+
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_DGRAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="cm">/* I want to get an IPv4 IP address */</span>
+    <span class="n">ifr</span><span class="p">.</span><span class="n">ifr_addr</span><span class="p">.</span><span class="n">sa_family</span> <span class="o">=</span> <span class="n">AF_INET</span><span class="p">;</span>
+
+    <span class="cm">/* I want IP address attached to &quot;eth0&quot; */</span>
+    <span class="n">strncpy</span><span class="p">(</span><span class="n">ifr</span><span class="p">.</span><span class="n">ifr_name</span><span class="p">,</span> <span class="n">iface_name</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span> <span class="n">IFNAMSIZ</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+
+    <span class="n">ioctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">SIOCGIFADDR</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ifr</span><span class="p">);</span>
+
+    <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+
+    <span class="cm">/* display result */</span>
+    <span class="c1">// printf(&quot;%s\n&quot;, inet_ntoa(((struct sockaddr_in *)&amp;ifr.ifr_addr)-&gt;sin_addr));</span>
+    <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">the_ip</span><span class="p">(</span><span class="n">inet_ntoa</span><span class="p">(((</span><span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">ifr</span><span class="p">.</span><span class="n">ifr_addr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">sin_addr</span><span class="p">));</span>
+
+    <span class="k">return</span> <span class="n">the_ip</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">auto</span> <span class="n">log_level_str_to_enum</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">level</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">level</span> <span class="o">==</span> <span class="s">&quot;critical&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">critical</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">level</span> <span class="o">==</span> <span class="s">&quot;err&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">err</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">level</span> <span class="o">==</span> <span class="s">&quot;info&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">info</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">level</span> <span class="o">==</span> <span class="s">&quot;debug&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">debug</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">level</span> <span class="o">==</span> <span class="s">&quot;trace&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">trace</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">level</span> <span class="o">==</span> <span class="s">&quot;warn&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">warn</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">off</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// simple_log: true (no timestamp or log level)</span>
+<span class="kt">void</span> <span class="n">create_logger</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">fileName</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">loggingName</span><span class="p">,</span>
+    <span class="kt">uint16_t</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">flush_level</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">logger_level_wanted</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">max_size_logging</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">simple_log</span><span class="o">=</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">existing_logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">loggingName</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">existing_logger</span><span class="p">){</span> <span class="c1">// if logger already exists, dont initialize again</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">auto</span> <span class="n">stdout_sink</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">sinks</span><span class="o">::</span><span class="n">stdout_color_sink_mt</span><span class="o">&gt;</span><span class="p">();</span>
+    <span class="n">stdout_sink</span><span class="o">-&gt;</span><span class="n">set_pattern</span><span class="p">(</span><span class="s">&quot;[%T.%e] [%^%l%$] %v&quot;</span><span class="p">);</span>
+    <span class="n">stdout_sink</span><span class="o">-&gt;</span><span class="n">set_level</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">err</span><span class="p">);</span>
+
+    <span class="c1">// TODO: discuss how we should handle this</span>
+    <span class="c1">// if max_num_files = 4 -&gt; will have: RAL.0.log, RAL.0.1.log, RAL.0.2.log, RAL.0.3.log, RAL.0.4.log</span>
+    <span class="k">auto</span> <span class="n">max_num_files</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">rotating_sink</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">sinks</span><span class="o">::</span><span class="n">rotating_file_sink_mt</span><span class="o">&gt;</span> <span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">,</span> <span class="n">max_num_files</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">simple_log</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">rotating_sink</span><span class="o">-&gt;</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;%v&quot;</span><span class="p">));</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">rotating_sink</span><span class="o">-&gt;</span><span class="n">set_pattern</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;%Y-%m-%d %T.%e|{}|%^%l%$|%v&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="c1">// We want ALL levels of info to be registered. So using by default `trace` level</span>
+    <span class="n">rotating_sink</span><span class="o">-&gt;</span><span class="n">set_level</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">trace</span><span class="p">);</span>
+    <span class="n">spdlog</span><span class="o">::</span><span class="n">sinks_init_list</span> <span class="n">sink_list</span> <span class="o">=</span> <span class="p">{</span><span class="n">stdout_sink</span><span class="p">,</span> <span class="n">rotating_sink</span><span class="p">};</span>
+    <span class="k">auto</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">async_logger</span><span class="o">&gt;</span><span class="p">(</span><span class="n">loggingName</span><span class="p">,</span> <span class="n">sink_list</span><span class="p">,</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">thread_pool</span><span class="p">(),</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">async_overflow_policy</span><span class="o">::</span><span class="n">block</span><span class="p">);</span>
+
+    <span class="c1">// level of logs</span>
+    <span class="n">logger</span><span class="o">-&gt;</span><span class="n">set_level</span><span class="p">(</span><span class="n">log_level_str_to_enum</span><span class="p">(</span><span class="n">logger_level_wanted</span><span class="p">));</span>
+
+    <span class="n">spdlog</span><span class="o">::</span><span class="n">register_logger</span><span class="p">(</span><span class="n">logger</span><span class="p">);</span>
+
+    <span class="n">spdlog</span><span class="o">::</span><span class="n">flush_on</span><span class="p">(</span><span class="n">log_level_str_to_enum</span><span class="p">(</span><span class="n">flush_level</span><span class="p">));</span>
+    <span class="n">spdlog</span><span class="o">::</span><span class="n">flush_every</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">seconds</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+<span class="p">}</span>
+
+
+<span class="c1">//=============================================================================</span>
+
+<span class="kt">bool</span> <span class="n">isEmptyFile</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">ifstream</span><span class="o">&amp;</span> <span class="n">pFile</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">pFile</span><span class="p">.</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="n">std</span><span class="o">::</span><span class="n">ifstream</span><span class="o">::</span><span class="n">traits_type</span><span class="o">::</span><span class="n">eof</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">printLoggerHeader</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">pathLogger</span><span class="p">,</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">nameLogger</span><span class="p">){</span>
+    <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">{</span><span class="s">&quot;queries_logger&quot;</span><span class="p">,</span>      <span class="s">&quot;ral_id|query_id|start_time|plan|query&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;kernels_logger&quot;</span><span class="p">,</span>      <span class="s">&quot;ral_id|query_id|kernel_id|is_kernel|kernel_type|description&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;kernels_edges_logger&quot;</span><span class="p">,</span><span class="s">&quot;ral_id|query_id|source|sink&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;task_logger&quot;</span><span class="p">,</span>         <span class="s">&quot;time_started|ral_id|query_id|kernel_id|duration_decaching|duration_execution|input_num_rows|input_num_bytes&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;cache_events_logger&quot;</span><span class="p">,</span> <span class="s">&quot;ral_id|query_id|message_id|cache_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end|description&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;batch_logger&quot;</span><span class="p">,</span>        <span class="s">&quot;log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;input_comms&quot;</span><span class="p">,</span>         <span class="s">&quot;unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&quot;output_comms&quot;</span><span class="p">,</span>        <span class="s">&quot;unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase&quot;</span><span class="p">}</span>
+    <span class="p">};</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">ifstream</span> <span class="n">fileLogger</span><span class="p">(</span><span class="n">pathLogger</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">fileLogger</span><span class="p">.</span><span class="n">good</span><span class="p">())</span> <span class="p">{</span>
+        <span class="kt">bool</span> <span class="n">emptyLogger</span> <span class="o">=</span> <span class="n">isEmptyFile</span><span class="p">(</span><span class="n">fileLogger</span><span class="p">);</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">emptyLogger</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">nameLogger</span><span class="p">);</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+                <span class="n">logger</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">(</span><span class="n">headers</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">nameLogger</span><span class="p">));</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="n">std</span><span class="o">::</span><span class="n">mutex</span> <span class="n">initialize_lock</span><span class="p">;</span>
+<span class="kt">bool</span> <span class="n">initialized</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">CacheMachine</span><span class="o">&gt;</span><span class="p">,</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">CacheMachine</span><span class="o">&gt;</span> <span class="o">&gt;</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">initialize</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">ralId</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">worker_id</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">network_iface_name</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="n">ralCommunicationPort</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">NodeMetaDataUCP</span><span class="o">&gt;</span> <span class="n">workers_ucp_info</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">singleNode</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">config_options</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">allocation_mode</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">initial_pool_size</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">maximum_pool_size</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">enable_logging</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">init_lock</span><span class="p">(</span><span class="n">initialize_lock</span><span class="p">);</span>
+
+    <span class="kt">float</span> <span class="n">device_mem_resouce_consumption_thresh</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">config_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">config_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">device_mem_resouce_consumption_thresh</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stof</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">logging_dir</span> <span class="o">=</span> <span class="s">&quot;blazing_log&quot;</span><span class="p">;</span>
+    <span class="n">config_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;BLAZING_LOGGING_DIRECTORY&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">config_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">logging_dir</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;BLAZING_LOGGING_DIRECTORY&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="kt">bool</span> <span class="n">logging_directory_missing</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="n">stat</span> <span class="n">sb</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">stat</span><span class="p">(</span><span class="n">logging_dir</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">sb</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">S_ISDIR</span><span class="p">(</span><span class="n">sb</span><span class="p">.</span><span class="n">st_mode</span><span class="p">))){</span> <span class="c1">// logging_dir does not exist</span>
+    <span class="c1">// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server</span>
+    <span class="c1">// having all RALs independently trying to create a directory simulatenously can cause problems</span>
+        <span class="n">logging_directory_missing</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+        <span class="n">logging_dir</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">allocator_logging_file</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">enable_logging</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">logging_directory_missing</span><span class="p">){</span>
+        <span class="n">allocator_logging_file</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/allocator.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">BlazingRMMInitialize</span><span class="p">(</span><span class="n">allocation_mode</span><span class="p">,</span> <span class="n">initial_pool_size</span><span class="p">,</span> <span class="n">maximum_pool_size</span><span class="p">,</span> <span class="n">allocator_logging_file</span><span class="p">,</span> <span class="n">device_mem_resouce_consumption_thresh</span><span class="p">);</span>
+
+    <span class="c1">// ---------------------------------------------------------------------------</span>
+    <span class="c1">// DISCLAIMER</span>
+    <span class="c1">// TODO: Support proper locale support for non-US cases (percy)</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">setlocale</span><span class="p">(</span><span class="n">LC_ALL</span><span class="p">,</span> <span class="s">&quot;en_US.UTF-8&quot;</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">setlocale</span><span class="p">(</span><span class="n">LC_NUMERIC</span><span class="p">,</span> <span class="s">&quot;en_US.UTF-8&quot;</span><span class="p">);</span>
+    <span class="c1">// ---------------------------------------------------------------------------</span>
+
+    <span class="c1">//signal(SIGSEGV, handler);   // install our handler. This is for debugging.</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">ralHost</span> <span class="o">=</span> <span class="n">get_ip</span><span class="p">(</span><span class="n">network_iface_name</span><span class="p">);</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">initLogMsg</span> <span class="o">=</span> <span class="s">&quot;INITIALIZING RAL. RAL ID: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span>  <span class="o">+</span> <span class="s">&quot;, &quot;</span><span class="p">;</span>
+    <span class="n">initLogMsg</span> <span class="o">=</span> <span class="n">initLogMsg</span> <span class="o">+</span> <span class="s">&quot;RAL Host: &quot;</span> <span class="o">+</span> <span class="n">ralHost</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralCommunicationPort</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span><span class="p">;</span>
+    <span class="n">initLogMsg</span> <span class="o">=</span> <span class="n">initLogMsg</span> <span class="o">+</span> <span class="s">&quot;Network Interface: &quot;</span> <span class="o">+</span> <span class="n">network_iface_name</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span><span class="p">;</span>
+    <span class="n">initLogMsg</span> <span class="o">=</span> <span class="n">initLogMsg</span> <span class="o">+</span> <span class="p">(</span><span class="n">singleNode</span> <span class="o">?</span> <span class="s">&quot;, Is Single Node, &quot;</span> <span class="o">:</span> <span class="s">&quot;, Is Not Single Node, &quot;</span><span class="p">);</span>
+
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">env_cuda_device</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;CUDA_VISIBLE_DEVICES&quot;</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">env_cuda_device_str</span> <span class="o">=</span> <span class="n">env_cuda_device</span> <span class="o">==</span> <span class="k">nullptr</span> <span class="o">?</span> <span class="s">&quot;&quot;</span> <span class="o">:</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="n">env_cuda_device</span><span class="p">);</span>
+    <span class="n">initLogMsg</span> <span class="o">=</span> <span class="n">initLogMsg</span> <span class="o">+</span> <span class="s">&quot;CUDA_VISIBLE_DEVICES is set to: &quot;</span> <span class="o">+</span> <span class="n">env_cuda_device_str</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span><span class="p">;</span>
+
+
+    <span class="kt">bool</span> <span class="n">require_acknowledge</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="c1">// TODO: the require acknowledge feature is currently not working, for now it is permanently disabled</span>
+    <span class="c1">// auto iter = config_options.find(&quot;REQUIRE_ACKNOWLEDGE&quot;);</span>
+    <span class="c1">// if (iter != config_options.end()){</span>
+    <span class="c1">//  require_acknowledge = (config_options[&quot;REQUIRE_ACKNOWLEDGE&quot;] == &quot;true&quot; ||</span>
+    <span class="c1">//                          config_options[&quot;REQUIRE_ACKNOWLEDGE&quot;] == &quot;True&quot; ||</span>
+    <span class="c1">//                          config_options[&quot;REQUIRE_ACKNOWLEDGE&quot;] == &quot;1&quot; ||</span>
+    <span class="c1">//                          config_options[&quot;REQUIRE_ACKNOWLEDGE&quot;] == &quot;TRUE&quot; );</span>
+    <span class="c1">// }</span>
+
+    <span class="kt">size_t</span> <span class="n">buffers_size</span> <span class="o">=</span> <span class="mi">1048576</span><span class="p">;</span>  <span class="c1">// 1 MBs</span>
+    <span class="k">auto</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;TRANSPORT_BUFFER_BYTE_SIZE&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">iter</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">buffers_size</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stoi</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;TRANSPORT_BUFFER_BYTE_SIZE&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="kt">int</span> <span class="n">num_comm_threads</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+    <span class="n">iter</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;MAX_SEND_MESSAGE_THREADS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">iter</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">num_comm_threads</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stoi</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;MAX_SEND_MESSAGE_THREADS&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="kt">int</span> <span class="n">num_buffers</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span>
+    <span class="n">iter</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;TRANSPORT_POOL_NUM_BUFFERS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">iter</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">num_buffers</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stoi</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;TRANSPORT_POOL_NUM_BUFFERS&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="c1">//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side</span>
+    <span class="n">assert</span><span class="p">(</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()</span> <span class="p">);</span>
+    <span class="kt">float</span> <span class="n">host_memory_quota</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stof</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD&quot;</span><span class="p">]);</span>
+
+    <span class="n">blazing_host_memory_resource</span><span class="o">::</span><span class="n">getInstance</span><span class="p">().</span><span class="n">initialize</span><span class="p">(</span><span class="n">host_memory_quota</span><span class="p">);</span>
+
+    <span class="c1">// Init AWS S3</span>
+    <span class="n">BlazingContext</span><span class="o">::</span><span class="n">getInstance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">initExternalSystems</span><span class="p">();</span>
+
+    <span class="kt">int</span> <span class="n">executor_threads</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">exec_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;EXECUTOR_THREADS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">exec_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">executor_threads</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stoi</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;EXECUTOR_THREADS&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">flush_level</span> <span class="o">=</span> <span class="s">&quot;warn&quot;</span><span class="p">;</span>
+
+    <span class="k">auto</span> <span class="n">log_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;LOGGING_FLUSH_LEVEL&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">log_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">flush_level</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;LOGGING_FLUSH_LEVEL&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">enable_general_engine_logs</span><span class="p">;</span>
+    <span class="n">log_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;ENABLE_GENERAL_ENGINE_LOGS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">log_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">enable_general_engine_logs</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;ENABLE_GENERAL_ENGINE_LOGS&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">enable_comms_logs</span><span class="p">;</span>
+    <span class="n">log_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;ENABLE_COMMS_LOGS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">log_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">enable_comms_logs</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;ENABLE_COMMS_LOGS&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">enable_task_logs</span><span class="p">;</span>
+    <span class="n">log_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;ENABLE_TASK_LOGS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">log_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">enable_task_logs</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;ENABLE_TASK_LOGS&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">enable_other_engine_logs</span><span class="p">;</span>
+    <span class="n">log_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;ENABLE_OTHER_ENGINE_LOGS&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">log_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">enable_other_engine_logs</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;ENABLE_OTHER_ENGINE_LOGS&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">logger_level_wanted</span> <span class="o">=</span> <span class="s">&quot;trace&quot;</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">log_level_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;LOGGING_LEVEL&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">log_level_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">logger_level_wanted</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;LOGGING_LEVEL&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">max_size_logging</span> <span class="o">=</span> <span class="mi">1073741824</span><span class="p">;</span> <span class="c1">// 1 GB</span>
+    <span class="k">auto</span> <span class="n">size_log_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;LOGGING_MAX_SIZE_PER_FILE&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size_log_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">max_size_logging</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stoi</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;LOGGING_MAX_SIZE_PER_FILE&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="n">comm</span><span class="o">::</span><span class="n">blazing_protocol</span> <span class="n">protocol</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">blazing_protocol</span><span class="o">::</span><span class="n">tcp</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">protocol_value</span> <span class="o">=</span> <span class="n">StringUtil</span><span class="o">::</span><span class="n">toLower</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;PROTOCOL&quot;</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">protocol_value</span> <span class="o">==</span> <span class="s">&quot;ucx&quot;</span><span class="p">){</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">blazing_protocol</span><span class="o">::</span><span class="n">ucx</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">initialized</span><span class="p">){</span>
+
+        <span class="c1">// spdlog batch logger</span>
+        <span class="n">spdlog</span><span class="o">::</span><span class="n">shutdown</span><span class="p">();</span>
+
+        <span class="n">spdlog</span><span class="o">::</span><span class="n">init_thread_pool</span><span class="p">(</span><span class="mi">8192</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">enable_general_engine_logs</span><span class="o">==</span><span class="s">&quot;True&quot;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">batchLoggerFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/RAL.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">batchLoggerFileName</span><span class="p">,</span> <span class="s">&quot;batch_logger&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">batchLoggerFileName</span><span class="p">,</span> <span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">enable_comms_logs</span><span class="o">==</span><span class="s">&quot;True&quot;</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">outputCommunicationLoggerFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/output_comms.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">outputCommunicationLoggerFileName</span><span class="p">,</span> <span class="s">&quot;output_comms&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">outputCommunicationLoggerFileName</span><span class="p">,</span> <span class="s">&quot;output_comms&quot;</span><span class="p">);</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">inputCommunicationLoggerFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/input_comms.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">inputCommunicationLoggerFileName</span><span class="p">,</span> <span class="s">&quot;input_comms&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">inputCommunicationLoggerFileName</span><span class="p">,</span> <span class="s">&quot;input_comms&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">enable_other_engine_logs</span><span class="o">==</span><span class="s">&quot;True&quot;</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">queriesFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/bsql_queries.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">queriesFileName</span><span class="p">,</span> <span class="s">&quot;queries_logger&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">queriesFileName</span><span class="p">,</span> <span class="s">&quot;queries_logger&quot;</span><span class="p">);</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">kernelsFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/bsql_kernels.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">kernelsFileName</span><span class="p">,</span> <span class="s">&quot;kernels_logger&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">kernelsFileName</span><span class="p">,</span> <span class="s">&quot;kernels_logger&quot;</span><span class="p">);</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">kernelsEdgesFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/bsql_kernels_edges.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">kernelsEdgesFileName</span><span class="p">,</span> <span class="s">&quot;kernels_edges_logger&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">kernelsEdgesFileName</span><span class="p">,</span> <span class="s">&quot;kernels_edges_logger&quot;</span><span class="p">);</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">cacheEventsFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/bsql_cache_events.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">cacheEventsFileName</span><span class="p">,</span> <span class="s">&quot;cache_events_logger&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">cacheEventsFileName</span><span class="p">,</span> <span class="s">&quot;cache_events_logger&quot;</span><span class="p">);</span>
+
+        <span class="p">}</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">enable_task_logs</span><span class="o">==</span><span class="s">&quot;True&quot;</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">tasksFileName</span> <span class="o">=</span> <span class="n">logging_dir</span> <span class="o">+</span> <span class="s">&quot;/bsql_kernel_tasks.&quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;.log&quot;</span><span class="p">;</span>
+            <span class="n">create_logger</span><span class="p">(</span><span class="n">tasksFileName</span><span class="p">,</span> <span class="s">&quot;task_logger&quot;</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span> <span class="n">flush_level</span><span class="p">,</span> <span class="n">logger_level_wanted</span><span class="p">,</span> <span class="n">max_size_logging</span><span class="p">);</span>
+            <span class="n">printLoggerHeader</span><span class="p">(</span><span class="n">tasksFileName</span><span class="p">,</span> <span class="s">&quot;task_logger&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">logging_directory_missing</span><span class="p">){</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span><span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;BLAZING_LOGGING_DIRECTORY not found. It was not created.&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+        <span class="n">logger</span><span class="o">-&gt;</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span><span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">initLogMsg</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">product_details</span> <span class="o">=</span> <span class="n">getProductDetails</span><span class="p">();</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">product_details_str</span> <span class="o">=</span> <span class="s">&quot;Product Details: &quot;</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">it</span> <span class="o">=</span> <span class="n">product_details</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">it</span> <span class="o">!=</span> <span class="n">product_details</span><span class="p">.</span><span class="n">end</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">product_details_str</span> <span class="o">+=</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">first</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span> <span class="o">+</span> <span class="s">&quot;; &quot;</span><span class="p">;</span>
+        <span class="n">it</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+        <span class="n">logger</span><span class="o">-&gt;</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span><span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">product_details_str</span><span class="p">);</span>
+    <span class="p">}</span>
+
+
+    <span class="n">blazing_device_memory_resource</span><span class="o">*</span> <span class="n">resource</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">blazing_device_memory_resource</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">alloc_info</span> <span class="o">=</span> <span class="s">&quot;allocation_mode: &quot;</span> <span class="o">+</span> <span class="n">allocation_mode</span><span class="p">;</span>
+    <span class="n">alloc_info</span> <span class="o">+=</span> <span class="s">&quot;, total_memory: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_total_memory</span><span class="p">());</span>
+    <span class="n">alloc_info</span> <span class="o">+=</span> <span class="s">&quot;, memory_limit: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_memory_limit</span><span class="p">());</span>
+    <span class="n">alloc_info</span> <span class="o">+=</span> <span class="s">&quot;, type: &quot;</span> <span class="o">+</span> <span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_type</span><span class="p">();</span>
+    <span class="n">alloc_info</span> <span class="o">+=</span> <span class="s">&quot;, initial_pool_size: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">initial_pool_size</span><span class="p">);</span>
+    <span class="n">alloc_info</span> <span class="o">+=</span> <span class="s">&quot;, maximum_pool_size: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">maximum_pool_size</span><span class="p">);</span>
+    <span class="n">alloc_info</span> <span class="o">+=</span> <span class="s">&quot;, allocator_logging_file: &quot;</span> <span class="o">+</span> <span class="n">allocator_logging_file</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+        <span class="n">logger</span><span class="o">-&gt;</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span><span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">alloc_info</span><span class="p">);</span>
+    <span class="p">}</span>
+
+
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">orc_files_path</span><span class="p">;</span>
+    <span class="n">iter</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;BLAZING_CACHE_DIRECTORY&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">iter</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">orc_files_path</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">[</span><span class="s">&quot;BLAZING_CACHE_DIRECTORY&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">singleNode</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">orc_files_path</span> <span class="o">+=</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">ralId</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">auto</span> <span class="o">&amp;</span> <span class="n">communicationData</span> <span class="o">=</span> <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CommunicationData</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+    <span class="n">communicationData</span><span class="p">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">orc_files_path</span><span class="p">);</span>
+
+    <span class="k">auto</span> <span class="n">output_input_caches</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">CacheMachine</span><span class="o">&gt;</span><span class="p">(</span><span class="k">nullptr</span><span class="p">,</span> <span class="s">&quot;messages_out&quot;</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span><span class="n">CACHE_LEVEL_CPU</span> <span class="p">),</span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">CacheMachine</span><span class="o">&gt;</span><span class="p">(</span><span class="k">nullptr</span><span class="p">,</span> <span class="s">&quot;messages_in&quot;</span><span class="p">,</span> <span class="nb">false</span><span class="p">));</span>
+
+    <span class="n">ucp_context_h</span> <span class="n">ucp_context</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+    <span class="c1">// start ucp servers</span>
+    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">singleNode</span><span class="p">){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">comm</span><span class="o">::</span><span class="n">node</span><span class="o">&gt;</span> <span class="n">nodes_info_map</span><span class="p">;</span>
+
+        <span class="n">ucp_worker_h</span> <span class="n">self_worker</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">protocol</span> <span class="o">==</span> <span class="n">comm</span><span class="o">::</span><span class="n">blazing_protocol</span><span class="o">::</span><span class="n">ucx</span><span class="p">){</span>
+            <span class="n">ucp_context</span> <span class="o">=</span> <span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">ucp_context_h</span><span class="o">&gt;</span><span class="p">(</span><span class="n">workers_ucp_info</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">context_handle</span><span class="p">);</span>
+
+            <span class="n">self_worker</span> <span class="o">=</span> <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CreatetUcpWorker</span><span class="p">(</span><span class="n">ucp_context</span><span class="p">);</span>
+
+            <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">UcpWorkerAddress</span> <span class="n">ucpWorkerAddress</span> <span class="o">=</span> <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">GetUcpWorkerAddress</span><span class="p">(</span><span class="n">self_worker</span><span class="p">);</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">UcpWorkerAddress</span><span class="o">&gt;</span> <span class="n">peer_addresses_map</span><span class="p">;</span>
+            <span class="k">auto</span> <span class="n">th</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="p">([</span><span class="n">ralCommunicationPort</span><span class="p">,</span> <span class="n">total_peers</span><span class="o">=</span><span class="n">workers_ucp_info</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">peer_addresses_map</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">,</span> <span class="n">workers_ucp_info</span><span class="p">](){</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">AddressExchangerForSender</span> <span class="n">exchanger</span><span class="p">(</span><span class="n">ralCommunicationPort</span><span class="p">);</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">total_peers</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">workers_ucp_info</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">worker_id</span> <span class="o">==</span> <span class="n">worker_id</span><span class="p">){</span>
+                        <span class="k">continue</span><span class="p">;</span>
+                    <span class="p">}</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">acceptConnection</span><span class="p">()){</span>
+                        <span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+
+                        <span class="c1">// Receive worker_id size</span>
+                        <span class="kt">size_t</span> <span class="n">worker_id_buff_size</span><span class="p">;</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">recv</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">worker_id_buff_size</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="n">MSG_WAITALL</span><span class="p">);</span>
+                        <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="s">&quot;recv worker_id_buff_size&quot;</span><span class="p">);</span>
+
+                        <span class="c1">// Receive worker_id</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">worker_id</span><span class="p">(</span><span class="n">worker_id_buff_size</span><span class="p">,</span> <span class="sc">&#39;\0&#39;</span><span class="p">);</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">recv</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">worker_id</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">worker_id</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">MSG_WAITALL</span><span class="p">);</span>
+                        <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="n">worker_id</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="s">&quot;recv worker_id&quot;</span><span class="p">);</span>
+
+                        <span class="c1">// Receive ucp_worker_address size</span>
+                        <span class="kt">size_t</span> <span class="n">ucp_worker_address_size</span><span class="p">;</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">recv</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">ucp_worker_address_size</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="n">MSG_WAITALL</span><span class="p">);</span>
+                        <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="s">&quot;recv ucp_worker_address_size&quot;</span><span class="p">);</span>
+
+                        <span class="c1">// Receive ucp_worker_address</span>
+                        <span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="k">new</span> <span class="n">std</span><span class="o">::</span><span class="kt">uint8_t</span><span class="p">[</span><span class="n">ucp_worker_address_size</span><span class="p">];</span>
+                        <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">UcpWorkerAddress</span> <span class="n">peerUcpWorkerAddress</span><span class="p">{</span>
+                                <span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">ucp_address_t</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+                                <span class="n">ucp_worker_address_size</span><span class="p">};</span>
+
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">recv</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="n">peerUcpWorkerAddress</span><span class="p">.</span><span class="n">address</span><span class="p">,</span> <span class="n">ucp_worker_address_size</span><span class="p">,</span> <span class="n">MSG_WAITALL</span><span class="p">);</span>
+                        <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ucp_worker_address_size</span><span class="p">,</span> <span class="s">&quot;recv ucp_worker_address&quot;</span><span class="p">);</span>
+
+                        <span class="n">peer_addresses_map</span><span class="p">.</span><span class="n">emplace</span><span class="p">(</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">peerUcpWorkerAddress</span><span class="p">);</span>
+
+                        <span class="n">exchanger</span><span class="p">.</span><span class="n">closeCurrentConnection</span><span class="p">();</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">});</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">seconds</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+            <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;&amp;</span><span class="nl">worker_info</span> <span class="p">:</span> <span class="n">workers_ucp_info</span><span class="p">){</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span> <span class="o">==</span> <span class="n">worker_id</span><span class="p">){</span>
+                    <span class="k">continue</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">AddressExchangerForReceiver</span> <span class="n">exchanger</span><span class="p">(</span><span class="n">worker_info</span><span class="p">.</span><span class="n">port</span><span class="p">,</span> <span class="n">worker_info</span><span class="p">.</span><span class="n">ip</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+                <span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>
+
+                <span class="c1">// Send worker_id size</span>
+                <span class="kt">size_t</span> <span class="n">worker_id_buff_size</span> <span class="o">=</span> <span class="n">worker_id</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">send</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">worker_id_buff_size</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="s">&quot;send worker_id_buff_size&quot;</span><span class="p">);</span>
+
+                <span class="c1">// Send worker_id</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">send</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="n">worker_id</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">worker_id</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="mi">0</span><span class="p">);</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="n">worker_id</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="s">&quot;send worker_id&quot;</span><span class="p">);</span>
+
+                <span class="c1">// Send ucp_worker_address size</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">send</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">ucpWorkerAddress</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">),</span> <span class="s">&quot;send ucp_worker_address_size&quot;</span><span class="p">);</span>
+
+                <span class="c1">// Send ucp_worker_address</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">send</span><span class="p">(</span><span class="n">exchanger</span><span class="p">.</span><span class="n">fd</span><span class="p">(),</span> <span class="n">ucpWorkerAddress</span><span class="p">.</span><span class="n">address</span><span class="p">,</span> <span class="n">ucpWorkerAddress</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CheckError</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ucpWorkerAddress</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="s">&quot;send ucp_worker_address&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+
+            <span class="n">th</span><span class="p">.</span><span class="n">join</span><span class="p">();</span>
+
+            <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;&amp;</span><span class="nl">worker_info</span> <span class="p">:</span> <span class="n">workers_ucp_info</span><span class="p">){</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span> <span class="o">==</span> <span class="n">worker_id</span><span class="p">){</span>
+                    <span class="k">continue</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">UcpWorkerAddress</span> <span class="n">peerUcpWorkerAddress</span> <span class="o">=</span> <span class="n">peer_addresses_map</span><span class="p">[</span><span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span><span class="p">];</span>
+                <span class="n">ucp_ep_h</span> <span class="n">ucp_ep</span> <span class="o">=</span> <span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CreateUcpEp</span><span class="p">(</span><span class="n">self_worker</span><span class="p">,</span> <span class="n">peerUcpWorkerAddress</span><span class="p">);</span>
+
+                <span class="c1">// std::cout &lt;&lt; &#39;[&#39; &lt;&lt; std::hex &lt;&lt; std::this_thread::get_id()</span>
+                <span class="c1">//                  &lt;&lt; &quot;] local: &quot; &lt;&lt; std::hex</span>
+                <span class="c1">//                  &lt;&lt; *reinterpret_cast&lt;std::size_t *&gt;(ucpWorkerAddress.address) &lt;&lt; &#39; &#39;</span>
+                <span class="c1">//                  &lt;&lt; ucpWorkerAddress.length &lt;&lt; std::endl</span>
+                <span class="c1">//                  &lt;&lt; &#39;[&#39; &lt;&lt; std::hex &lt;&lt; std::this_thread::get_id()</span>
+                <span class="c1">//                  &lt;&lt; &quot;] peer: &quot; &lt;&lt; std::hex</span>
+                <span class="c1">//                  &lt;&lt; *reinterpret_cast&lt;std::size_t *&gt;(peerUcpWorkerAddress.address)</span>
+                <span class="c1">//                  &lt;&lt;&#39; &#39; &lt;&lt; peerUcpWorkerAddress.length &lt;&lt; std::endl;</span>
+
+                <span class="c1">// auto worker_info = workers_ucp_info[0];</span>
+                <span class="n">nodes_info_map</span><span class="p">.</span><span class="n">emplace</span><span class="p">(</span><span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">comm</span><span class="o">::</span><span class="n">node</span><span class="p">(</span><span class="n">ralId</span><span class="p">,</span> <span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">ucp_ep</span><span class="p">,</span> <span class="n">self_worker</span><span class="p">));</span>
+            <span class="p">}</span>
+
+            <span class="n">comm</span><span class="o">::</span><span class="n">ucx_message_listener</span><span class="o">::</span><span class="n">initialize_message_listener</span><span class="p">(</span>
+                <span class="n">ucp_context</span><span class="p">,</span> <span class="n">self_worker</span><span class="p">,</span><span class="n">nodes_info_map</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span> <span class="n">output_input_caches</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
+            <span class="n">comm</span><span class="o">::</span><span class="n">ucx_message_listener</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">poll_begin_message_tag</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+            <span class="n">output_input_caches</span><span class="p">.</span><span class="n">second</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">ucx_message_listener</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">get_input_cache</span><span class="p">();</span>
+
+        <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+
+
+            <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;&amp;</span><span class="nl">worker_info</span> <span class="p">:</span> <span class="n">workers_ucp_info</span><span class="p">){</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span> <span class="o">==</span> <span class="n">worker_id</span><span class="p">){</span>
+                    <span class="k">continue</span><span class="p">;</span>
+                <span class="p">}</span>
+
+                <span class="n">nodes_info_map</span><span class="p">.</span><span class="n">emplace</span><span class="p">(</span><span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">comm</span><span class="o">::</span><span class="n">node</span><span class="p">(</span><span class="n">ralId</span><span class="p">,</span> <span class="n">worker_info</span><span class="p">.</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">worker_info</span><span class="p">.</span><span class="n">ip</span><span class="p">,</span> <span class="n">worker_info</span><span class="p">.</span><span class="n">port</span><span class="p">));</span>
+            <span class="p">}</span>
+
+            <span class="n">comm</span><span class="o">::</span><span class="n">tcp_message_listener</span><span class="o">::</span><span class="n">initialize_message_listener</span><span class="p">(</span><span class="n">nodes_info_map</span><span class="p">,</span><span class="n">ralCommunicationPort</span><span class="p">,</span><span class="n">num_comm_threads</span><span class="p">,</span> <span class="n">output_input_caches</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
+            <span class="n">comm</span><span class="o">::</span><span class="n">tcp_message_listener</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">start_polling</span><span class="p">();</span>
+            <span class="n">ralCommunicationPort</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">tcp_message_listener</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">get_port</span><span class="p">();</span> <span class="c1">// if the listener was already initialized, we want to get the port that was originally set and send that back to python side</span>
+            <span class="n">output_input_caches</span><span class="p">.</span><span class="n">second</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">tcp_message_listener</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">get_input_cache</span><span class="p">();</span>
+        <span class="p">}</span>
+        <span class="n">comm</span><span class="o">::</span><span class="n">message_sender</span><span class="o">::</span><span class="n">initialize_instance</span><span class="p">(</span><span class="n">output_input_caches</span><span class="p">.</span><span class="n">first</span><span class="p">,</span>
+            <span class="n">nodes_info_map</span><span class="p">,</span>
+            <span class="n">num_comm_threads</span><span class="p">,</span> <span class="n">ucp_context</span><span class="p">,</span> <span class="n">self_worker</span><span class="p">,</span> <span class="n">ralId</span><span class="p">,</span><span class="n">protocol</span><span class="p">,</span><span class="n">require_acknowledge</span><span class="p">);</span>
+        <span class="n">comm</span><span class="o">::</span><span class="n">message_sender</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">run_polling</span><span class="p">();</span>
+
+        <span class="n">output_input_caches</span><span class="p">.</span><span class="n">first</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">message_sender</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">get_output_cache</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kt">bool</span> <span class="n">map_ucx</span> <span class="o">=</span> <span class="n">protocol</span> <span class="o">==</span> <span class="n">comm</span><span class="o">::</span><span class="n">blazing_protocol</span><span class="o">::</span><span class="n">ucx</span><span class="p">;</span>
+    <span class="n">ral</span><span class="o">::</span><span class="n">memory</span><span class="o">::</span><span class="n">set_allocation_pools</span><span class="p">(</span><span class="n">buffers_size</span><span class="p">,</span> <span class="n">num_buffers</span><span class="p">,</span>
+                                        <span class="n">buffers_size</span><span class="p">,</span> <span class="n">num_buffers</span><span class="p">,</span> <span class="n">map_ucx</span><span class="p">,</span> <span class="n">ucp_context</span><span class="p">);</span>
+
+    <span class="kt">double</span> <span class="n">processing_memory_limit_threshold</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">;</span>
+    <span class="n">config_it</span> <span class="o">=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">config_it</span> <span class="o">!=</span> <span class="n">config_options</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">processing_memory_limit_threshold</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stod</span><span class="p">(</span><span class="n">config_options</span><span class="p">[</span><span class="s">&quot;BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD&quot;</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">init_executor</span><span class="p">(</span><span class="n">executor_threads</span><span class="p">,</span> <span class="n">processing_memory_limit_threshold</span><span class="p">);</span>
+    <span class="n">initialized</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="n">blazing_context_ref_counter</span><span class="o">::</span><span class="n">getInstance</span><span class="p">().</span><span class="n">increase</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="n">output_input_caches</span><span class="p">,</span> <span class="n">ralCommunicationPort</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">clear_graphs</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int32_t</span><span class="o">&gt;</span> <span class="n">ctx_tokens</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span> <span class="nl">ctx_token</span> <span class="p">:</span> <span class="n">ctx_tokens</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//printf(&quot;will deregister the graph with token: %d\n&quot;, ctx_token);</span>
+    <span class="k">auto</span> <span class="n">graph</span> <span class="o">=</span> <span class="n">comm</span><span class="o">::</span><span class="n">graphs_info</span><span class="o">::</span><span class="n">getInstance</span><span class="p">().</span><span class="n">get_graph</span><span class="p">(</span><span class="n">ctx_token</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">graph</span> <span class="o">!=</span> <span class="k">nullptr</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">//printf(&quot;\tnot null\n&quot;);</span>
+      <span class="k">try</span> <span class="p">{</span>
+        <span class="c1">// TODO percy felipe william rommel threads/futures in c++ cannot be cancel by</span>
+        <span class="c1">// itself we need to program that logic: We should implement some sort</span>
+        <span class="c1">// of interruption logic for the kernel threads/futures and then clean</span>
+        <span class="c1">// its memory. For now we are using getExecuteGraphResult for the</span>
+        <span class="c1">// finalize caller and this will ensure to free all the memory.</span>
+        <span class="c1">// Related with -&gt; https://github.com/BlazingDB/blazingsql/issues/1363</span>
+        <span class="k">auto</span> <span class="n">freeThis</span> <span class="o">=</span> <span class="n">getExecuteGraphResult</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">ctx_token</span><span class="p">);</span>
+        <span class="c1">// printf(&quot;\tdone!\n&quot;);</span>
+      <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">throw</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">finalize</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int32_t</span><span class="o">&gt;</span> <span class="n">ctx_tokens</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">clear_graphs</span><span class="p">(</span><span class="n">ctx_tokens</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">blazing_context_ref_counter</span><span class="o">::</span><span class="n">getInstance</span><span class="p">().</span><span class="n">get_count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">BlazingContext</span><span class="o">::</span><span class="n">getInstance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">shutDownExternalSystems</span><span class="p">();</span>
+
+    <span class="c1">// TODO BlazingRMMFinalize and cudaDeviceReset percy william felipe rommel</span>
+    <span class="c1">// if we want to finalize all the engine properly we need to implement</span>
+    <span class="c1">// first many parts: thread interruptions, free memory from incomplete</span>
+    <span class="c1">// threads, notify every ral node to shutdown the processing, etc.</span>
+    <span class="c1">// More details here -&gt; https://github.com/BlazingDB/blazingsql/issues/1363</span>
+
+    <span class="c1">// BlazingRMMFinalize();</span>
+
+    <span class="n">spdlog</span><span class="o">::</span><span class="n">shutdown</span><span class="p">();</span>
+
+    <span class="c1">//cudaDeviceReset();</span>
+  <span class="p">}</span>
+
+  <span class="n">blazing_context_ref_counter</span><span class="o">::</span><span class="n">getInstance</span><span class="p">().</span><span class="n">decrease</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">error_code_t</span> <span class="n">initialize_C</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">ralId</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">worker_id</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">network_iface_name</span><span class="p">,</span>
+
+    <span class="kt">int</span> <span class="n">ralCommunicationPort</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">NodeMetaDataUCP</span><span class="o">&gt;</span> <span class="n">workers_ucp_info</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">singleNode</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">config_options</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">allocation_mode</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">initial_pool_size</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">maximum_pool_size</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">enable_logging</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="n">initialize</span><span class="p">(</span><span class="n">ralId</span><span class="p">,</span>
+            <span class="n">worker_id</span><span class="p">,</span>
+            <span class="n">network_iface_name</span><span class="p">,</span>
+            <span class="n">ralCommunicationPort</span><span class="p">,</span>
+            <span class="n">workers_ucp_info</span><span class="p">,</span>
+            <span class="n">singleNode</span><span class="p">,</span>
+            <span class="n">config_options</span><span class="p">,</span>
+            <span class="n">allocation_mode</span><span class="p">,</span>
+            <span class="n">initial_pool_size</span><span class="p">,</span>
+            <span class="n">maximum_pool_size</span><span class="p">,</span>
+            <span class="n">enable_logging</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">E_SUCCESS</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">E_EXCEPTION</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">error_code_t</span> <span class="n">finalize_C</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int32_t</span><span class="o">&gt;</span> <span class="n">ctx_tokens</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="n">finalize</span><span class="p">(</span><span class="n">ctx_tokens</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">E_SUCCESS</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">E_EXCEPTION</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">size_t</span> <span class="n">getFreeMemory</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">BlazingMemoryResource</span><span class="o">*</span> <span class="n">resource</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">blazing_device_memory_resource</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+    <span class="kt">size_t</span> <span class="n">total_free_memory</span> <span class="o">=</span> <span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_memory_limit</span><span class="p">()</span> <span class="o">-</span> <span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_memory_used</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">total_free_memory</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">resetMaxMemoryUsed</span><span class="p">(</span><span class="kt">int</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">blazing_device_memory_resource</span><span class="o">*</span> <span class="n">resource</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">blazing_device_memory_resource</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+    <span class="n">resource</span><span class="o">-&gt;</span><span class="n">reset_max_memory_used</span><span class="p">(</span><span class="n">to</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">size_t</span> <span class="n">getMaxMemoryUsed</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">blazing_device_memory_resource</span><span class="o">*</span> <span class="n">resource</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">blazing_device_memory_resource</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">resource</span><span class="o">-&gt;</span><span class="n">get_max_memory_used</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

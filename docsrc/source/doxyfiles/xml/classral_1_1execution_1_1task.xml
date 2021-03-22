@@ -1,0 +1,296 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1execution_1_1task" kind="class" language="C++" prot="public">
+    <compoundname>ral::execution::task</compoundname>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1a30865550f3312875d234c37938e16d52" prot="protected" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData &gt; &gt; ral::execution::task::inputs</definition>
+        <argsstring></argsstring>
+        <name>inputs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="53" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1a69b46153c6ae2aee16c767ead2f67c4a" prot="protected" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; ral::execution::task::output</definition>
+        <argsstring></argsstring>
+        <name>output</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="54" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1ab215212c02873b4435a002619c512de4" prot="protected" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ral::execution::task::task_id</definition>
+        <argsstring></argsstring>
+        <name>task_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="55" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1a994c38701c3461b9b1c51058c87952f0" prot="protected" static="no" mutable="no">
+        <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref> *</type>
+        <definition>ral::cache::kernel* ral::execution::task::kernel</definition>
+        <argsstring></argsstring>
+        <name>kernel</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="56" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1adc16ddbbeb544104e23f4f1acbed6d06" prot="protected" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ral::execution::task::attempts</definition>
+        <argsstring></argsstring>
+        <name>attempts</name>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="57" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1a2155c914c1ff875fe6be20d2248e3899" prot="protected" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ral::execution::task::attempts_limit</definition>
+        <argsstring></argsstring>
+        <name>attempts_limit</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="58" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1a1023c8598988094cda50cb63145b8912" prot="protected" static="no" mutable="no">
+        <type>std::map&lt; std::string, std::string &gt;</type>
+        <definition>std::map&lt;std::string, std::string&gt; ral::execution::task::args</definition>
+        <argsstring></argsstring>
+        <name>args</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="59" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classral_1_1execution_1_1task_1a51027de29a91b194d52dec9091cd3037" prot="public" static="no" mutable="no">
+        <type>std::shared_ptr&lt; spdlog::logger &gt;</type>
+        <definition>std::shared_ptr&lt;spdlog::logger&gt; ral::execution::task::task_logger</definition>
+        <argsstring></argsstring>
+        <name>task_logger</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="62" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1a6ba325f45c584b8e74fc56371baa2e17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::execution::task::task</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; ral::cache::CacheData &gt; &gt; inputs, std::shared_ptr&lt; ral::cache::CacheMachine &gt; output, size_t task_id, ral::cache::kernel *kernel, size_t attempts_limit, const std::map&lt; std::string, std::string &gt; &amp;args, size_t attempts=0)</argsstring>
+        <name>task</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt; &gt;</type>
+          <declname>inputs</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>task_id</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref> *</type>
+          <declname>kernel</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>attempts_limit</declname>
+        </param>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>attempts</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="45" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1ad4b6bafee29648cb7893a521342a69ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::execution::task::run</definition>
+        <argsstring>(cudaStream_t stream, executor *executor)</argsstring>
+        <name>run</name>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref> *</type>
+          <declname>executor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Function which runs the kernel process on the inputs and puts results into output. This function does not modify the inputs and can throw an exception. In the case it throws an exception it gets placed back in the executor if it was a memory exception. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="37" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="74" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1a5491844e693a3d05bf55be12cf503e7d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::execution::task::complete</definition>
+        <argsstring>()</argsstring>
+        <name>complete</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="38" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="178" bodyend="180"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1a4cc54125fe1f1589e154dec76de66c42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::execution::task::fail</definition>
+        <argsstring>()</argsstring>
+        <name>fail</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="39" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="182" bodyend="184"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1afb6c1d63c7469d41a63cd436be7caec5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::execution::task::task_memory_needed</definition>
+        <argsstring>()</argsstring>
+        <name>task_memory_needed</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="40" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="60" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1a6b0526afb984d7f2e7fb83fd7c1913ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt; &gt;</type>
+        <definition>std::vector&lt; std::unique_ptr&lt; ral::cache::CacheData &gt; &gt; ral::execution::task::release_inputs</definition>
+        <argsstring>()</argsstring>
+        <name>release_inputs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This function releases the inputs of a task so that they can be manipulated. They then need to be set again with set_inputs </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="45" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="186" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1execution_1_1task_1a9d1c2ebe66d6ada25cc1eccb246774b9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::execution::task::set_inputs</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; ral::cache::CacheData &gt; &gt; inputs)</argsstring>
+        <name>set_inputs</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">ral::cache::CacheData</ref> &gt; &gt;</type>
+          <declname>inputs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This function set the inputs of a task. It is meant to be used in conjunction with release_inputs </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp" bodystart="190" bodyend="192"/>
+        <references refid="classblazing__device__memory__resource_1a31735d61d23aef05666c7c3f981c86fe" compoundref="BlazingMemoryResource_8h" startline="99" endline="103">blazing_device_memory_resource::getInstance</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="405">
+        <label>ral::cache::port</label>
+        <link refid="classral_1_1cache_1_1port"/>
+        <childnode refid="404" relation="usage">
+          <edgelabel>kernel_</edgelabel>
+        </childnode>
+      </node>
+      <node id="404">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+        <childnode refid="405" relation="usage">
+          <edgelabel>input_</edgelabel>
+          <edgelabel>output_</edgelabel>
+        </childnode>
+      </node>
+      <node id="403">
+        <label>ral::execution::task</label>
+        <link refid="classral_1_1execution_1_1task"/>
+        <childnode refid="404" relation="usage">
+          <edgelabel>kernel</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" line="22" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h" bodystart="22" bodyend="63"/>
+    <listofallmembers>
+      <member refid="classral_1_1execution_1_1task_1a1023c8598988094cda50cb63145b8912" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>args</name></member>
+      <member refid="classral_1_1execution_1_1task_1adc16ddbbeb544104e23f4f1acbed6d06" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>attempts</name></member>
+      <member refid="classral_1_1execution_1_1task_1a2155c914c1ff875fe6be20d2248e3899" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>attempts_limit</name></member>
+      <member refid="classral_1_1execution_1_1task_1a5491844e693a3d05bf55be12cf503e7d" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>complete</name></member>
+      <member refid="classral_1_1execution_1_1task_1a4cc54125fe1f1589e154dec76de66c42" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>fail</name></member>
+      <member refid="classral_1_1execution_1_1task_1a30865550f3312875d234c37938e16d52" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>inputs</name></member>
+      <member refid="classral_1_1execution_1_1task_1a994c38701c3461b9b1c51058c87952f0" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>kernel</name></member>
+      <member refid="classral_1_1execution_1_1task_1a69b46153c6ae2aee16c767ead2f67c4a" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>output</name></member>
+      <member refid="classral_1_1execution_1_1task_1a6b0526afb984d7f2e7fb83fd7c1913ec" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>release_inputs</name></member>
+      <member refid="classral_1_1execution_1_1task_1ad4b6bafee29648cb7893a521342a69ec" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>run</name></member>
+      <member refid="classral_1_1execution_1_1task_1a9d1c2ebe66d6ada25cc1eccb246774b9" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>set_inputs</name></member>
+      <member refid="classral_1_1execution_1_1task_1a6ba325f45c584b8e74fc56371baa2e17" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>task</name></member>
+      <member refid="classral_1_1execution_1_1task_1ab215212c02873b4435a002619c512de4" prot="protected" virt="non-virtual"><scope>ral::execution::task</scope><name>task_id</name></member>
+      <member refid="classral_1_1execution_1_1task_1a51027de29a91b194d52dec9091cd3037" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>task_logger</name></member>
+      <member refid="classral_1_1execution_1_1task_1afb6c1d63c7469d41a63cd436be7caec5" prot="public" virt="non-virtual"><scope>ral::execution::task</scope><name>task_memory_needed</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

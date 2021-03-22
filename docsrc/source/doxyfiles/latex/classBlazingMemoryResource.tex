@@ -1,0 +1,43 @@
+\hypertarget{classBlazingMemoryResource}{}\section{Blazing\+Memory\+Resource Class Reference}
+\label{classBlazingMemoryResource}\index{Blazing\+Memory\+Resource@{Blazing\+Memory\+Resource}}
+
+
+This interface represents a custom memory resource used in the cache system. The Cache Machines uses singleton references to device, host and disk memory resources. Each object of the Cache\+Machine class has knownlegde about the status of the memory resource by using {\ttfamily get\+\_\+memory\+\_\+limit} and {\ttfamily get\+\_\+memory\+\_\+used} methods.  
+
+
+
+
+{\ttfamily \#include $<$Blazing\+Memory\+Resource.\+h$>$}
+
+
+
+Inheritance diagram for Blazing\+Memory\+Resource\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classBlazingMemoryResource__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classBlazingMemoryResource_abd562a80dbab3fd1d174f8e6ec4547f0}\label{classBlazingMemoryResource_abd562a80dbab3fd1d174f8e6ec4547f0}} 
+virtual size\+\_\+t {\bfseries get\+\_\+from\+\_\+driver\+\_\+used\+\_\+memory} ()=0
+\item 
+\mbox{\Hypertarget{classBlazingMemoryResource_a1436e73e3554c721a5a972fcf21bc91f}\label{classBlazingMemoryResource_a1436e73e3554c721a5a972fcf21bc91f}} 
+virtual size\+\_\+t {\bfseries get\+\_\+memory\+\_\+limit} ()=0
+\item 
+\mbox{\Hypertarget{classBlazingMemoryResource_a89e616e15446e4bfd013d55b714f1fc9}\label{classBlazingMemoryResource_a89e616e15446e4bfd013d55b714f1fc9}} 
+virtual size\+\_\+t {\bfseries get\+\_\+memory\+\_\+used} ()=0
+\item 
+\mbox{\Hypertarget{classBlazingMemoryResource_a5e3c23ce2c2b065bed12f9b29a9976f6}\label{classBlazingMemoryResource_a5e3c23ce2c2b065bed12f9b29a9976f6}} 
+virtual size\+\_\+t {\bfseries get\+\_\+total\+\_\+memory} ()=0
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This interface represents a custom memory resource used in the cache system. The Cache Machines uses singleton references to device, host and disk memory resources. Each object of the Cache\+Machine class has knownlegde about the status of the memory resource by using {\ttfamily get\+\_\+memory\+\_\+limit} and {\ttfamily get\+\_\+memory\+\_\+used} methods. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Blazing\+Memory\+Resource.\+h\end{DoxyCompactItemize}

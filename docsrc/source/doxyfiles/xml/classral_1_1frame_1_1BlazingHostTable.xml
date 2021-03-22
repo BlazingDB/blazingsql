@@ -1,0 +1,290 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1frame_1_1BlazingHostTable" kind="class" language="C++" prot="public">
+    <compoundname>ral::frame::BlazingHostTable</compoundname>
+    <includes refid="BlazingHostTable_8h" local="no">BlazingHostTable.h</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingHostTable_1aaa05891ebd0f629030e0bd416fbbfb14" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">ColumnTransport</ref> &gt;</type>
+        <definition>std::vector&lt;ColumnTransport&gt; ral::frame::BlazingHostTable::columns_offsets</definition>
+        <argsstring></argsstring>
+        <name>columns_offsets</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="57" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingHostTable_1acd8e783b3b276a04e8a0af047cecc5b3" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__chunked__column__info" kindref="compound">ral::memory::blazing_chunked_column_info</ref> &gt;</type>
+        <definition>std::vector&lt;ral::memory::blazing_chunked_column_info&gt; ral::frame::BlazingHostTable::chunked_column_infos</definition>
+        <argsstring></argsstring>
+        <name>chunked_column_infos</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="58" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingHostTable_1a25be65b7259ef909bc13ab9cb0bf7ff6" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="structral_1_1memory_1_1blazing__allocation__chunk" kindref="compound">ral::memory::blazing_allocation_chunk</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;ral::memory::blazing_allocation_chunk&gt; &gt; ral::frame::BlazingHostTable::allocations</definition>
+        <argsstring></argsstring>
+        <name>allocations</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="59" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingHostTable_1afbe2995a98131460269ffe257c35124a" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ral::frame::BlazingHostTable::part_id</definition>
+        <argsstring></argsstring>
+        <name>part_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="62" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1ad61570c773d3d83c788d1a66ef657b1f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingHostTable::BlazingHostTable</definition>
+        <argsstring>(const std::vector&lt; ColumnTransport &gt; &amp;columns_offsets, std::vector&lt; ral::memory::blazing_chunked_column_info &gt; &amp;&amp;chunked_column_infos, std::vector&lt; std::unique_ptr&lt; ral::memory::blazing_allocation_chunk &gt;&gt; &amp;&amp;allocations)</argsstring>
+        <name>BlazingHostTable</name>
+        <param>
+          <type>const std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">ColumnTransport</ref> &gt; &amp;</type>
+          <declname>columns_offsets</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__chunked__column__info" kindref="compound">ral::memory::blazing_chunked_column_info</ref> &gt; &amp;&amp;</type>
+          <declname>chunked_column_infos</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="structral_1_1memory_1_1blazing__allocation__chunk" kindref="compound">ral::memory::blazing_allocation_chunk</ref> &gt;&gt; &amp;&amp;</type>
+          <declname>allocations</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="11" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a12b8967bbc21dc6c3b9c660af6b9f42f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingHostTable::~BlazingHostTable</definition>
+        <argsstring>()</argsstring>
+        <name>~BlazingHostTable</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="30" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="21" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a81bf7375e4c76c00615a141243edd891" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; cudf::data_type &gt;</type>
+        <definition>std::vector&lt; cudf::data_type &gt; ral::frame::BlazingHostTable::get_schema</definition>
+        <argsstring>() const</argsstring>
+        <name>get_schema</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="32" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="30" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1afc36b1cebafd2be252e1fe86f358c047" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt; std::string &gt; ral::frame::BlazingHostTable::names</definition>
+        <argsstring>() const</argsstring>
+        <name>names</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="39" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1ad48051c54ff7a7bce9261fcd58f1815c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::frame::BlazingHostTable::set_names</definition>
+        <argsstring>(std::vector&lt; std::string &gt; names)</argsstring>
+        <name>set_names</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="36" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="46" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a8c79df309ba2224a497e3ff26d22c399" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::size_type</type>
+        <definition>cudf::size_type ral::frame::BlazingHostTable::num_rows</definition>
+        <argsstring>() const</argsstring>
+        <name>num_rows</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="38" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="52" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a7d1f2bc7f684b2494f54af56fac94555" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::size_type</type>
+        <definition>cudf::size_type ral::frame::BlazingHostTable::num_columns</definition>
+        <argsstring>() const</argsstring>
+        <name>num_columns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="40" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="56" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a55117c800b864710d6ebcc72cfec23fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::frame::BlazingHostTable::sizeInBytes</definition>
+        <argsstring>()</argsstring>
+        <name>sizeInBytes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="42" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="60" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1ad919bd6ff9ebd4601fe0171d9b1c4ca1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::frame::BlazingHostTable::setPartitionId</definition>
+        <argsstring>(const size_t &amp;part_id)</argsstring>
+        <name>setPartitionId</name>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>part_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="44" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="68" bodyend="70"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a5d5a24d3d43fc074264a88e66d544ffa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::frame::BlazingHostTable::get_part_id</definition>
+        <argsstring>()</argsstring>
+        <name>get_part_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="46" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="72" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a3e510befe328cce2016555fe4f6c32bc" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>const std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">ColumnTransport</ref> &gt; &amp;</type>
+        <definition>const std::vector&lt; ColumnTransport &gt; &amp; ral::frame::BlazingHostTable::get_columns_offsets</definition>
+        <argsstring>() const</argsstring>
+        <name>get_columns_offsets</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="48" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="76" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1afc324a9367a9bd0bea7a171c782e91d2" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; BlazingTable &gt; ral::frame::BlazingHostTable::get_gpu_table</definition>
+        <argsstring>() const</argsstring>
+        <name>get_gpu_table</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="82" bodyend="114"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a916b3247a17306ad2a53ea032f03407a" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__allocation__chunk" kindref="compound">ral::memory::blazing_allocation_chunk</ref> &gt;</type>
+        <definition>std::vector&lt; ral::memory::blazing_allocation_chunk &gt; ral::frame::BlazingHostTable::get_raw_buffers</definition>
+        <argsstring>() const</argsstring>
+        <name>get_raw_buffers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="52" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="116" bodyend="127"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingHostTable_1a6c8bd9f79e0f7eb27ae007a4acf8a9b4" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>const std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__chunked__column__info" kindref="compound">ral::memory::blazing_chunked_column_info</ref> &gt; &amp;</type>
+        <definition>const std::vector&lt; ral::memory::blazing_chunked_column_info &gt; &amp; ral::frame::BlazingHostTable::get_blazing_chunked_column_infos</definition>
+        <argsstring>() const</argsstring>
+        <name>get_blazing_chunked_column_infos</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="54" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp" bodystart="129" bodyend="131"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A class that represents the <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> store in host memory. This implementation uses only raw allocations, ColumnTransports and chunked_column_infos that represent a <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref>. The reference to implement this class was based on the way how <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> objects are send/received by the communication library. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h" bodystart="23" bodyend="63"/>
+    <listofallmembers>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a25be65b7259ef909bc13ab9cb0bf7ff6" prot="private" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>allocations</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1ad61570c773d3d83c788d1a66ef657b1f" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>BlazingHostTable</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1acd8e783b3b276a04e8a0af047cecc5b3" prot="private" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>chunked_column_infos</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1aaa05891ebd0f629030e0bd416fbbfb14" prot="private" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>columns_offsets</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a6c8bd9f79e0f7eb27ae007a4acf8a9b4" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>get_blazing_chunked_column_infos</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a3e510befe328cce2016555fe4f6c32bc" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>get_columns_offsets</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1afc324a9367a9bd0bea7a171c782e91d2" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>get_gpu_table</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a5d5a24d3d43fc074264a88e66d544ffa" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>get_part_id</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a916b3247a17306ad2a53ea032f03407a" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>get_raw_buffers</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a81bf7375e4c76c00615a141243edd891" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>get_schema</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1afc36b1cebafd2be252e1fe86f358c047" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>names</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a7d1f2bc7f684b2494f54af56fac94555" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>num_columns</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a8c79df309ba2224a497e3ff26d22c399" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>num_rows</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1afbe2995a98131460269ffe257c35124a" prot="private" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>part_id</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1ad48051c54ff7a7bce9261fcd58f1815c" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>set_names</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1ad919bd6ff9ebd4601fe0171d9b1c4ca1" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>setPartitionId</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a55117c800b864710d6ebcc72cfec23fc" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>sizeInBytes</name></member>
+      <member refid="classral_1_1frame_1_1BlazingHostTable_1a12b8967bbc21dc6c3b9c660af6b9f42f" prot="public" virt="non-virtual"><scope>ral::frame::BlazingHostTable</scope><name>~BlazingHostTable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

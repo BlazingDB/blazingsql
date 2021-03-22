@@ -1,0 +1,13 @@
+.. _exhale_function_ArgsUtil_8cpp_1a11edc1f5eed8fe67aa8f6ca4dd905d8b:
+
+Function ral::io::getJsonReaderOptions
+======================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_ArgsUtil.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::getJsonReaderOptions(const std::map<std::string, std::string>&, cudf::io::arrow_io_source&)

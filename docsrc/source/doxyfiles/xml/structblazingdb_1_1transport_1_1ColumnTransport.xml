@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structblazingdb_1_1transport_1_1ColumnTransport" kind="struct" language="C++" prot="public">
+    <compoundname>blazingdb::transport::ColumnTransport</compoundname>
+    <innerclass refid="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData" prot="public">blazingdb::transport::ColumnTransport::MetaData</innerclass>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1acf9500e94299bb1e6658731e6840fe16" prot="public" static="no" mutable="no">
+        <type><ref refid="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData" kindref="compound">MetaData</ref></type>
+        <definition>MetaData blazingdb::transport::ColumnTransport::metadata</definition>
+        <argsstring></argsstring>
+        <name>metadata</name>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="15" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1a425f4e29b911f369487f7229d6f51847" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="16" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1ae8252232b90d35c7ef1281d37e297e82" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::valid</definition>
+        <argsstring></argsstring>
+        <name>valid</name>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="17" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1aab04290a0ff26b843aa944e85d4072fe" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::strings_data</definition>
+        <argsstring></argsstring>
+        <name>strings_data</name>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1a82c325aab3b26ca3be341a1560137a47" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::strings_offsets</definition>
+        <argsstring></argsstring>
+        <name>strings_offsets</name>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="19" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1a1756c2a5479abc9b6ba4d4f3163e1756" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::strings_nullmask</definition>
+        <argsstring></argsstring>
+        <name>strings_nullmask</name>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="20" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1a83f81a9f176c37204cc357937b10ce95" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::strings_data_size</definition>
+        <argsstring></argsstring>
+        <name>strings_data_size</name>
+        <initializer>{0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="21" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1ae70474c73ba8318eb51cb2031702847d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int blazingdb::transport::ColumnTransport::strings_offsets_size</definition>
+        <argsstring></argsstring>
+        <name>strings_offsets_size</name>
+        <initializer>{0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="22" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structblazingdb_1_1transport_1_1ColumnTransport_1a35528b121caf111beb1a984941d358af" prot="public" static="no" mutable="no">
+        <type>std::size_t</type>
+        <definition>std::size_t blazingdb::transport::ColumnTransport::size_in_bytes</definition>
+        <argsstring></argsstring>
+        <name>size_in_bytes</name>
+        <initializer>{0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="24" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="119">
+        <label>blazingdb::transport::ColumnTransport::MetaData</label>
+        <link refid="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData"/>
+      </node>
+      <node id="118">
+        <label>blazingdb::transport::ColumnTransport</label>
+        <link refid="structblazingdb_1_1transport_1_1ColumnTransport"/>
+        <childnode refid="119" relation="usage">
+          <edgelabel>metadata</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" line="8" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/ColumnTransport.h" bodystart="8" bodyend="25"/>
+    <listofallmembers>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1a425f4e29b911f369487f7229d6f51847" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>data</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1acf9500e94299bb1e6658731e6840fe16" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>metadata</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1a35528b121caf111beb1a984941d358af" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>size_in_bytes</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1aab04290a0ff26b843aa944e85d4072fe" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>strings_data</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1a83f81a9f176c37204cc357937b10ce95" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>strings_data_size</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1a1756c2a5479abc9b6ba4d4f3163e1756" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>strings_nullmask</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1a82c325aab3b26ca3be341a1560137a47" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>strings_offsets</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1ae70474c73ba8318eb51cb2031702847d" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>strings_offsets_size</name></member>
+      <member refid="structblazingdb_1_1transport_1_1ColumnTransport_1ae8252232b90d35c7ef1281d37e297e82" prot="public" virt="non-virtual"><scope>blazingdb::transport::ColumnTransport</scope><name>valid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

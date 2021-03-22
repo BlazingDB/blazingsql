@@ -1,0 +1,13 @@
+.. _exhale_function_GroupBy_8cpp_1ab1daa1a0b910da1b7ec77bdf9afbc28a:
+
+Function ral::operators::get_aggregation_operation
+==================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::operators::get_aggregation_operation(std::string)

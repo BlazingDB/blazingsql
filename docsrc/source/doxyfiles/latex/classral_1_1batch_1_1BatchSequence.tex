@@ -1,0 +1,117 @@
+\hypertarget{classral_1_1batch_1_1BatchSequence}{}\section{ral\+:\+:batch\+:\+:Batch\+Sequence Class Reference}
+\label{classral_1_1batch_1_1BatchSequence}\index{ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}}
+
+
+This is the standard data sequencer that just pulls data from an input cache one batch at a time.  
+
+
+
+
+{\ttfamily \#include $<$Batch\+Processing.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1batch_1_1BatchSequence_a1012a9622924b621edd667400038b24d}{Batch\+Sequence} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ cache=nullptr, const \hyperlink{classral_1_1cache_1_1kernel}{ral\+::cache\+::kernel} $\ast$\hyperlink{classral_1_1cache_1_1kernel}{kernel}=nullptr, bool ordered=true)
+\item 
+void \hyperlink{classral_1_1batch_1_1BatchSequence_a92ce0d4e310caded265fceab3f4c266a}{set\+\_\+source} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ cache)
+\item 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ \hyperlink{classral_1_1batch_1_1BatchSequence_a5fe181e6183df338739e61eb512c23a4}{next} ()
+\item 
+bool \hyperlink{classral_1_1batch_1_1BatchSequence_af62f1f620ac02a018737af8a89eb4881}{wait\+\_\+for\+\_\+next} ()
+\item 
+bool \hyperlink{classral_1_1batch_1_1BatchSequence_a0ed0531f11f65b4e7391da23c2a2de12}{has\+\_\+next\+\_\+now} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This is the standard data sequencer that just pulls data from an input cache one batch at a time. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1BatchSequence_a1012a9622924b621edd667400038b24d}\label{classral_1_1batch_1_1BatchSequence_a1012a9622924b621edd667400038b24d}} 
+\index{ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}!Batch\+Sequence@{Batch\+Sequence}}
+\index{Batch\+Sequence@{Batch\+Sequence}!ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}}
+\subsubsection{\texorpdfstring{Batch\+Sequence()}{BatchSequence()}}
+{\footnotesize\ttfamily ral\+::batch\+::\+Batch\+Sequence\+::\+Batch\+Sequence (\begin{DoxyParamCaption}\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$}]{cache = {\ttfamily nullptr},  }\item[{const \hyperlink{classral_1_1cache_1_1kernel}{ral\+::cache\+::kernel} $\ast$}]{kernel = {\ttfamily nullptr},  }\item[{bool}]{ordered = {\ttfamily true} }\end{DoxyParamCaption})}
+
+Constructor for the \hyperlink{classral_1_1batch_1_1BatchSequence}{Batch\+Sequence} 
+\begin{DoxyParams}{Parameters}
+{\em cache} & The input cache from where the data will be pulled. \\
+\hline
+{\em kernel} & The kernel that will actually receive the pulled data. \\
+\hline
+{\em ordered} & Indicates whether the order should be kept at data pulling. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1BatchSequence_a0ed0531f11f65b4e7391da23c2a2de12}\label{classral_1_1batch_1_1BatchSequence_a0ed0531f11f65b4e7391da23c2a2de12}} 
+\index{ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}!has\+\_\+next\+\_\+now@{has\+\_\+next\+\_\+now}}
+\index{has\+\_\+next\+\_\+now@{has\+\_\+next\+\_\+now}!ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}}
+\subsubsection{\texorpdfstring{has\+\_\+next\+\_\+now()}{has\_next\_now()}}
+{\footnotesize\ttfamily bool ral\+::batch\+::\+Batch\+Sequence\+::has\+\_\+next\+\_\+now (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Indicates if the message queue is not empty at this point on time. \begin{DoxyReturn}{Returns}
+true There is at least one message in the queue. 
+
+false Message queue is empty. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1batch_1_1BatchSequence_a5fe181e6183df338739e61eb512c23a4}\label{classral_1_1batch_1_1BatchSequence_a5fe181e6183df338739e61eb512c23a4}} 
+\index{ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}!next@{next}}
+\index{next@{next}!ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}}
+\subsubsection{\texorpdfstring{next()}{next()}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ ral\+::batch\+::\+Batch\+Sequence\+::next (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Get the next message as a unique pointer to a Blazing\+Table. If there are no more messages on the queue we get a nullptr. \begin{DoxyReturn}{Returns}
+Unique pointer to a Blazing\+Table containing the next decached message. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1batch_1_1BatchSequence_a5fe181e6183df338739e61eb512c23a4_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1batch_1_1BatchSequence_a92ce0d4e310caded265fceab3f4c266a}\label{classral_1_1batch_1_1BatchSequence_a92ce0d4e310caded265fceab3f4c266a}} 
+\index{ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}!set\+\_\+source@{set\+\_\+source}}
+\index{set\+\_\+source@{set\+\_\+source}!ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}}
+\subsubsection{\texorpdfstring{set\+\_\+source()}{set\_source()}}
+{\footnotesize\ttfamily void ral\+::batch\+::\+Batch\+Sequence\+::set\+\_\+source (\begin{DoxyParamCaption}\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$}]{cache }\end{DoxyParamCaption})}
+
+Updates the input cache machine. 
+\begin{DoxyParams}{Parameters}
+{\em cache} & The pointer to the new input cache. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1batch_1_1BatchSequence_af62f1f620ac02a018737af8a89eb4881}\label{classral_1_1batch_1_1BatchSequence_af62f1f620ac02a018737af8a89eb4881}} 
+\index{ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}!wait\+\_\+for\+\_\+next@{wait\+\_\+for\+\_\+next}}
+\index{wait\+\_\+for\+\_\+next@{wait\+\_\+for\+\_\+next}!ral\+::batch\+::\+Batch\+Sequence@{ral\+::batch\+::\+Batch\+Sequence}}
+\subsubsection{\texorpdfstring{wait\+\_\+for\+\_\+next()}{wait\_for\_next()}}
+{\footnotesize\ttfamily bool ral\+::batch\+::\+Batch\+Sequence\+::wait\+\_\+for\+\_\+next (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Blocks executing thread until a new message is ready or when the message queue is empty. \begin{DoxyReturn}{Returns}
+true A new message is ready. 
+
+false There are no more messages on the cache. 
+\end{DoxyReturn}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{classral_1_1batch_1_1BatchSequence_af62f1f620ac02a018737af8a89eb4881_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1batch_1_1BatchSequence_af62f1f620ac02a018737af8a89eb4881_icgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Processing.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Processing.\+cpp\end{DoxyCompactItemize}

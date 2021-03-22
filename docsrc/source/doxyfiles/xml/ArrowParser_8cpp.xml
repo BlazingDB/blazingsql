@@ -1,0 +1,291 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="ArrowParser_8cpp" kind="file" language="C++">
+    <compoundname>ArrowParser.cpp</compoundname>
+    <includes refid="ArrowParser_8h" local="yes">ArrowParser.h</includes>
+    <includes local="yes">arrow/api.h</includes>
+    <incdepgraph>
+      <node id="5443">
+        <label>arrow/table.h</label>
+      </node>
+      <node id="5444">
+        <label>arrow/api.h</label>
+      </node>
+      <node id="5416">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="5417" relation="include">
+        </childnode>
+        <childnode refid="5418" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5413" relation="include">
+        </childnode>
+        <childnode refid="5414" relation="include">
+        </childnode>
+        <childnode refid="5420" relation="include">
+        </childnode>
+        <childnode refid="5422" relation="include">
+        </childnode>
+      </node>
+      <node id="5439">
+        <label>cudf/scalar/scalar_device_view.cuh</label>
+      </node>
+      <node id="5437">
+        <label>cudf/scalar/scalar_factories.hpp</label>
+      </node>
+      <node id="5424">
+        <label>cstdint</label>
+      </node>
+      <node id="5420">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="5421" relation="include">
+        </childnode>
+        <childnode refid="5417" relation="include">
+        </childnode>
+        <childnode refid="5418" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5413" relation="include">
+        </childnode>
+        <childnode refid="5414" relation="include">
+        </childnode>
+      </node>
+      <node id="5413">
+        <label>string</label>
+      </node>
+      <node id="5440">
+        <label>map</label>
+      </node>
+      <node id="5409">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.cpp</label>
+        <link refid="ArrowParser_8cpp"/>
+        <childnode refid="5410" relation="include">
+        </childnode>
+        <childnode refid="5444" relation="include">
+        </childnode>
+      </node>
+      <node id="5433">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="5422">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="5414" relation="include">
+        </childnode>
+        <childnode refid="5413" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5415" relation="include">
+        </childnode>
+        <childnode refid="5423" relation="include">
+        </childnode>
+        <childnode refid="5425" relation="include">
+        </childnode>
+        <childnode refid="5416" relation="include">
+        </childnode>
+      </node>
+      <node id="5430">
+        <label>../data_provider/DataProvider.h</label>
+        <link refid="DataProvider_8h_source"/>
+        <childnode refid="5431" relation="include">
+        </childnode>
+        <childnode refid="5432" relation="include">
+        </childnode>
+        <childnode refid="5433" relation="include">
+        </childnode>
+        <childnode refid="5434" relation="include">
+        </childnode>
+        <childnode refid="5435" relation="include">
+        </childnode>
+        <childnode refid="5436" relation="include">
+        </childnode>
+        <childnode refid="5437" relation="include">
+        </childnode>
+        <childnode refid="5415" relation="include">
+        </childnode>
+        <childnode refid="5438" relation="include">
+        </childnode>
+        <childnode refid="5439" relation="include">
+        </childnode>
+        <childnode refid="5440" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5414" relation="include">
+        </childnode>
+        <childnode refid="5441" relation="include">
+        </childnode>
+        <childnode refid="5416" relation="include">
+        </childnode>
+      </node>
+      <node id="5431">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="5418">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="5412">
+        <label>../Schema.h</label>
+        <link refid="Schema_8h_source"/>
+        <childnode refid="5413" relation="include">
+        </childnode>
+        <childnode refid="5414" relation="include">
+        </childnode>
+        <childnode refid="5415" relation="include">
+        </childnode>
+        <childnode refid="5416" relation="include">
+        </childnode>
+      </node>
+      <node id="5435">
+        <label>arrow/io/interfaces.h</label>
+      </node>
+      <node id="5438">
+        <label>cudf/utilities/type_dispatcher.hpp</label>
+      </node>
+      <node id="5432">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="5426">
+        <label>stack</label>
+      </node>
+      <node id="5414">
+        <label>vector</label>
+      </node>
+      <node id="5423">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="5424" relation="include">
+        </childnode>
+      </node>
+      <node id="5428">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="5410">
+        <label>ArrowParser.h</label>
+        <link refid="ArrowParser_8h_source"/>
+        <childnode refid="5411" relation="include">
+        </childnode>
+        <childnode refid="5414" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5435" relation="include">
+        </childnode>
+        <childnode refid="5442" relation="include">
+        </childnode>
+        <childnode refid="5443" relation="include">
+        </childnode>
+      </node>
+      <node id="5434">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="5425">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="5414" relation="include">
+        </childnode>
+        <childnode refid="5413" relation="include">
+        </childnode>
+        <childnode refid="5426" relation="include">
+        </childnode>
+        <childnode refid="5427" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5428" relation="include">
+        </childnode>
+      </node>
+      <node id="5411">
+        <label>DataParser.h</label>
+        <link refid="DataParser_8h_source"/>
+        <childnode refid="5412" relation="include">
+        </childnode>
+        <childnode refid="5429" relation="include">
+        </childnode>
+        <childnode refid="5430" relation="include">
+        </childnode>
+        <childnode refid="5416" relation="include">
+        </childnode>
+        <childnode refid="5435" relation="include">
+        </childnode>
+        <childnode refid="5419" relation="include">
+        </childnode>
+        <childnode refid="5414" relation="include">
+        </childnode>
+      </node>
+      <node id="5415">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="5442">
+        <label>io/io.h</label>
+      </node>
+      <node id="5429">
+        <label>../DataType.h</label>
+        <link refid="DataType_8h_source"/>
+      </node>
+      <node id="5421">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="5427">
+        <label>mutex</label>
+      </node>
+      <node id="5441">
+        <label>blazingdb/io/FileSystem/Uri.h</label>
+      </node>
+      <node id="5417">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="5436">
+        <label>cudf/scalar/scalar.hpp</label>
+      </node>
+      <node id="5419">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1io">ral::io</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>GDFParser.cpp</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*<sp/><sp/>Created<sp/>on:<sp/>Apr<sp/>30,<sp/>2019</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/>Author:<sp/>felipe</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ArrowParser.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;arrow/api.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceio" kindref="compound">io</ref><sp/>{</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal">arrow_parser::arrow_parser(std::shared_ptr&lt;<sp/>arrow::Table<sp/>&gt;<sp/>table):<sp/><sp/>table(table)<sp/>{</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO<sp/>Auto-generated<sp/>constructor<sp/>stub</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>std::cout&lt;&lt;</highlight><highlight class="stringliteral">&quot;the<sp/>total<sp/>num<sp/>rows<sp/>is<sp/>&quot;</highlight><highlight class="normal">&lt;&lt;table-&gt;num_rows()&lt;&lt;std::endl;</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>WSM<sp/>TODO<sp/>table_schema<sp/>news<sp/>to<sp/>be<sp/>newed<sp/>up<sp/>and<sp/>copy<sp/>in<sp/>the<sp/>properties</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal">arrow_parser::~arrow_parser()<sp/>{}</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>arrow_parser::parse_schema(std::shared_ptr&lt;arrow::io::RandomAccessFile&gt;<sp/></highlight><highlight class="comment">/*file*/</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classral_1_1io_1_1Schema" kindref="compound">ral::io::Schema</ref><sp/>&amp;<sp/><sp/></highlight><highlight class="comment">/*schema*/</highlight><highlight class="normal">){</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::string&gt;<sp/>names;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudf::type_id&gt;<sp/>types;</highlight></codeline>
+<codeline lineno="28"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="31"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.cpp"/>
+  </compounddef>
+</doxygen>

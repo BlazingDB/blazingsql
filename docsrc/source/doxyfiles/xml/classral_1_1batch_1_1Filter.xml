@@ -1,0 +1,241 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1batch_1_1Filter" kind="class" language="C++" prot="public">
+    <compoundname>ral::batch::Filter</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1kernel" prot="public" virt="non-virtual">ral::cache::kernel</basecompoundref>
+    <includes refid="BatchProcessing_8h" local="no">BatchProcessing.h</includes>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1batch_1_1Filter_1a65d965cdb5585989d29100bc633bc0d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::batch::Filter::Filter</definition>
+        <argsstring>(std::size_t kernel_id, const std::string &amp;queryString, std::shared_ptr&lt; Context &gt; context, std::shared_ptr&lt; ral::cache::graph &gt; query_graph)</argsstring>
+        <name>Filter</name>
+        <param>
+          <type>std::size_t</type>
+          <declname>kernel_id</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>queryString</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">Context</ref> &gt;</type>
+          <declname>context</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1graph" kindref="compound">ral::cache::graph</ref> &gt;</type>
+          <declname>query_graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor for <ref refid="classral_1_1batch_1_1TableScan" kindref="compound">TableScan</ref> <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kernel_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Kernel identifier. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>queryString</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Original logical expression that the kernel will execute. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>context</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Shared context associated to the running query. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>query_graph</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Shared pointer of the current execution graph. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="249" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="411" bodyend="415"/>
+        <references refid="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd" compoundref="kernel_8h" startline="253">ral::cache::kernel::query_graph</references>
+        <references refid="classral_1_1cache_1_1kernel_1a0619a9c1e4952dc353dcfa079910a84a" compoundref="kernel_8h" startline="246">ral::cache::kernel::expression</references>
+        <references refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" compoundref="kernel_8h" startline="254">ral::cache::kernel::context</references>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Filter_1a4ba9b310322ee8f94629d1aa062bb9e9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::string</type>
+        <definition>std::string ral::batch::Filter::kernel_name</definition>
+        <argsstring>()</argsstring>
+        <name>kernel_name</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1aafcb0f431c87f166a778a6cce0d36d51">kernel_name</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="251" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="251" bodyend="251"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Filter_1a3d46742d030eea1a17b1f3ae2fef0be0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref></type>
+        <definition>ral::execution::task_result ral::batch::Filter::do_process</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; ral::frame::BlazingTable &gt; &gt; inputs, std::shared_ptr&lt; ral::cache::CacheMachine &gt; output, cudaStream_t stream, const std::map&lt; std::string, std::string &gt; &amp;args) override</argsstring>
+        <name>do_process</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt; &gt;</type>
+          <declname>inputs</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="253" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="417" bodyend="433"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Filter_1acae535218dc139f0db24b80cb39353c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>kstatus</type>
+        <definition>kstatus ral::batch::Filter::run</definition>
+        <argsstring>() override</argsstring>
+        <name>run</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7">run</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. <simplesect kind="return"><para>kstatus &apos;stop&apos; to halt processing, or &apos;proceed&apos; to continue processing. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="263" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="435" bodyend="481"/>
+        <references refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" compoundref="kernel_8cpp" startline="36" endline="39">ral::cache::kernel::input_cache</references>
+        <references refid="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc" compoundref="kernel_8cpp" startline="31" endline="34">ral::cache::kernel::output_cache</references>
+        <references refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" compoundref="kernel_8h" startline="254">ral::cache::kernel::context</references>
+        <references refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" compoundref="kernel_8h" startline="82" endline="82">ral::cache::kernel::get_id</references>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Filter_1a74c13588fc770a4f487aeef39bd27174" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>std::pair&lt; bool, uint64_t &gt;</type>
+        <definition>std::pair&lt; bool, uint64_t &gt; ral::batch::Filter::get_estimated_output_num_rows</definition>
+        <argsstring>() override</argsstring>
+        <name>get_estimated_output_num_rows</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1abf40aaa022e3bf38c261977d0c2170cb">get_estimated_output_num_rows</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns the estimated num_rows for the output at one point. <simplesect kind="return"><para>A pair representing that there is no data to be processed, or the estimated number of output rows. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="269" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="483" bodyend="496"/>
+        <references refid="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd" compoundref="kernel_8h" startline="253">ral::cache::kernel::query_graph</references>
+        <references refid="classral_1_1cache_1_1kernel_1a2fd708656cb056a41ec635b8bdc4acfe" compoundref="kernel_8h" startline="249">ral::cache::kernel::kernel_id</references>
+        <references refid="classral_1_1cache_1_1kernel_1a6eac1b9f1e6efb3bb9942ba7bbf66a94" compoundref="kernel_8h" startline="248">ral::cache::kernel::output_</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This kernel filters the data according to the specified conditions. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="209">
+        <label>ral::batch::Filter</label>
+        <link refid="classral_1_1batch_1_1Filter"/>
+        <childnode refid="210" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="210">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="211">
+        <label>ral::batch::Filter</label>
+        <link refid="classral_1_1batch_1_1Filter"/>
+        <childnode refid="212" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="213">
+        <label>ral::cache::port</label>
+        <link refid="classral_1_1cache_1_1port"/>
+        <childnode refid="212" relation="usage">
+          <edgelabel>kernel_</edgelabel>
+        </childnode>
+      </node>
+      <node id="212">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+        <childnode refid="213" relation="usage">
+          <edgelabel>input_</edgelabel>
+          <edgelabel>output_</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="240" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="240" bodyend="270"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1kernel_1a9b0a80f937f10357ae62638b6f0461d4" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>add_task</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af6b7b538f6a692393f314a4f1037d4a6" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad8cd102392bbece14178c0ebf9f0c6bc" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94e93c7bb81d9a3a7729fa84a7cf07c1" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>context</name></member>
+      <member refid="classral_1_1batch_1_1Filter_1a3d46742d030eea1a17b1f3ae2fef0be0" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625" prot="public" virt="virtual" ambiguityscope="ral::cache::kernel::"><scope>ral::batch::Filter</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33a881d5e40d033e53a73f3c7ede5d03" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>estimate_operating_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a37da9a64d455f2b833e1e7576c9a17d2" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>estimate_output_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8ac24c565e0d29b390d40e7ef3366486" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>execution_done</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0619a9c1e4952dc353dcfa079910a84a" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>expression</name></member>
+      <member refid="classral_1_1batch_1_1Filter_1a65d965cdb5585989d29100bc633bc0d8" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>Filter</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a3c5beb224576167cd7f9488e68d8ff62" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>finished_tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6d078d50dd69a9444fcd5d73f378e2d1" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>get_context</name></member>
+      <member refid="classral_1_1batch_1_1Filter_1a74c13588fc770a4f487aeef39bd27174" prot="public" virt="virtual"><scope>ral::batch::Filter</scope><name>get_estimated_output_num_rows</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>get_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa9e353759b65c2c53571cf80b0213d31" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>get_message_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a146246668880ca685f22d208e638578b" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>get_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a913add84b5ad4c0bb09f7a609fe8e311" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>has_limit_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a21dc72f0714ddc2b4b2187592d05ba77" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>has_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a014bae9051f8ae95341be2f967b135c5" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>input_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8af91bb80e9153e307e07c3010c217a" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>input_all_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>input_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a75d3db3d361445cd14da3186b8b15036" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>input_cache_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a25cd1d59552733027ba6396cd9e41004" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>input_cache_num_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a533e4ae37fc18a6c8638f30ee8459d8f" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>kernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af711082b1f602bacc21d679d318648f7" prot="protected" virt="non-virtual"><scope>ral::batch::Filter</scope><name>kernel_cv</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a2fd708656cb056a41ec635b8bdc4acfe" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>kernel_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8e336a4bc07932d5fc243409324cdcc1" prot="protected" virt="non-virtual"><scope>ral::batch::Filter</scope><name>kernel_mutex</name></member>
+      <member refid="classral_1_1batch_1_1Filter_1a4ba9b310322ee8f94629d1aa062bb9e9" prot="public" virt="virtual"><scope>ral::batch::Filter</scope><name>kernel_name</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a923841bcb8d995048c58d51a6c39caf7" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>kernel_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a415a4613c3eac81c1f65340e0866d26e" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>limit_rows_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae891570bebe342865bc0f30ac369efe8" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>logger</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0d4a11f11203e46edff09aafc3935688" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>notify_complete</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aacb25cb9e49377bca219769f0eb82aef" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>notify_fail</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abb0b2c6bdc9e3379cc675e57270b207b" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>operator[]</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6eac1b9f1e6efb3bb9942ba7bbf66a94" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>output_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad1b8b87c5008b3bce16fe45da84eccdd" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>parent_id_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a45abece009eed9fc7555f55ecc55f5dd" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>query_graph</name></member>
+      <member refid="classral_1_1batch_1_1Filter_1acae535218dc139f0db24b80cb39353c2" prot="public" virt="virtual"><scope>ral::batch::Filter</scope><name>run</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a150ae499b8aef4669714e791f2bea9e9" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>set_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae4a8519fe026454fe5385122c1e02615" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>set_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a24ef14f94bf23f483736043ca6f95b7e" prot="protected" virt="non-virtual"><scope>ral::batch::Filter</scope><name>tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a57a0078f5ab3991b32e9ea92989eab42" prot="protected" virt="non-virtual"><scope>ral::batch::Filter</scope><name>total_input_bytes_processed</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a87d2048b2c50e1124eaaed09b3c18758" prot="public" virt="non-virtual"><scope>ral::batch::Filter</scope><name>total_input_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a08658078acd31ec27af290f6712fa017" prot="public" virt="virtual"><scope>ral::batch::Filter</scope><name>~kernel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

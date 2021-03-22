@@ -1,0 +1,247 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="common__metadata_8h" kind="file" language="C++">
+    <compoundname>common_metadata.h</compoundname>
+    <includes refid="LogicPrimitives_8h" local="yes">execution_graph/logic_controllers/LogicPrimitives.h</includes>
+    <includedby refid="orc__metadata_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h</includedby>
+    <includedby refid="parquet__metadata_8h" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/parquet_metadata.h</includedby>
+    <incdepgraph>
+      <node id="5793">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="5794" relation="include">
+        </childnode>
+        <childnode refid="5795" relation="include">
+        </childnode>
+        <childnode refid="5796" relation="include">
+        </childnode>
+        <childnode refid="5797" relation="include">
+        </childnode>
+        <childnode refid="5798" relation="include">
+        </childnode>
+        <childnode refid="5799" relation="include">
+        </childnode>
+        <childnode refid="5801" relation="include">
+        </childnode>
+      </node>
+      <node id="5804">
+        <label>cstdint</label>
+      </node>
+      <node id="5799">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="5800" relation="include">
+        </childnode>
+        <childnode refid="5794" relation="include">
+        </childnode>
+        <childnode refid="5795" relation="include">
+        </childnode>
+        <childnode refid="5796" relation="include">
+        </childnode>
+        <childnode refid="5797" relation="include">
+        </childnode>
+        <childnode refid="5798" relation="include">
+        </childnode>
+      </node>
+      <node id="5797">
+        <label>string</label>
+      </node>
+      <node id="5801">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="5798" relation="include">
+        </childnode>
+        <childnode refid="5797" relation="include">
+        </childnode>
+        <childnode refid="5796" relation="include">
+        </childnode>
+        <childnode refid="5802" relation="include">
+        </childnode>
+        <childnode refid="5803" relation="include">
+        </childnode>
+        <childnode refid="5805" relation="include">
+        </childnode>
+        <childnode refid="5793" relation="include">
+        </childnode>
+      </node>
+      <node id="5795">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="5806">
+        <label>stack</label>
+      </node>
+      <node id="5798">
+        <label>vector</label>
+      </node>
+      <node id="5803">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="5804" relation="include">
+        </childnode>
+      </node>
+      <node id="5808">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="5805">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="5798" relation="include">
+        </childnode>
+        <childnode refid="5797" relation="include">
+        </childnode>
+        <childnode refid="5806" relation="include">
+        </childnode>
+        <childnode refid="5807" relation="include">
+        </childnode>
+        <childnode refid="5796" relation="include">
+        </childnode>
+        <childnode refid="5808" relation="include">
+        </childnode>
+      </node>
+      <node id="5802">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="5800">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="5807">
+        <label>mutex</label>
+      </node>
+      <node id="5792">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h</label>
+        <link refid="common__metadata_8h"/>
+        <childnode refid="5793" relation="include">
+        </childnode>
+      </node>
+      <node id="5794">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="5796">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="5810">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h</label>
+        <link refid="orc__metadata_8h_source"/>
+      </node>
+      <node id="5809">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h</label>
+        <link refid="common__metadata_8h"/>
+        <childnode refid="5810" relation="include">
+        </childnode>
+        <childnode refid="5811" relation="include">
+        </childnode>
+      </node>
+      <node id="5811">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/parquet_metadata.h</label>
+        <link refid="parquet__metadata_8h_source"/>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="common__metadata_8h_1a8350d1144fb1d2d0fc0bb9a21431b162" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;ral::frame::BlazingTable&gt; make_dummy_metadata_table_from_col_names</definition>
+        <argsstring>(std::vector&lt; std::string &gt; col_names)</argsstring>
+        <name>make_dummy_metadata_table_from_col_names</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>col_names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h" line="6" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.cpp" bodystart="7" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="common__metadata_8h_1a3bc24cd23a9ed819a3ed8ed553870db0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; make_cudf_column_from_vector</definition>
+        <argsstring>(cudf::data_type dtype, std::basic_string&lt; char &gt; &amp;vector, unsigned long column_size)</argsstring>
+        <name>make_cudf_column_from_vector</name>
+        <param>
+          <type>cudf::data_type</type>
+          <declname>dtype</declname>
+        </param>
+        <param>
+          <type>std::basic_string&lt; char &gt; &amp;</type>
+          <declname>vector</declname>
+        </param>
+        <param>
+          <type>unsigned long</type>
+          <declname>column_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h" line="8" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.cpp" bodystart="40" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="function" id="common__metadata_8h_1ae4843d0599066b5576a86a0fd0fb1264" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; make_empty_column</definition>
+        <argsstring>(cudf::data_type type)</argsstring>
+        <name>make_empty_column</name>
+        <param>
+          <type>cudf::data_type</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h" line="11" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="common__metadata_8h_1af5268c1eb1fa3829fd3f7b7964da888d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::basic_string&lt; char &gt;</type>
+        <definition>std::basic_string&lt;char&gt; get_typed_vector_content</definition>
+        <argsstring>(cudf::type_id dtype, std::vector&lt; int64_t &gt; &amp;vector)</argsstring>
+        <name>get_typed_vector_content</name>
+        <param>
+          <type>cudf::type_id</type>
+          <declname>dtype</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; int64_t &gt; &amp;</type>
+          <declname>vector</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h" line="13" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.cpp" bodystart="53" bodyend="121"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>METADATA_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>METADATA_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;execution_graph/logic_controllers/LogicPrimitives.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal">std::unique_ptr&lt;ral::frame::BlazingTable&gt;<sp/>make_dummy_metadata_table_from_col_names(std::vector&lt;std::string&gt;<sp/>col_names);</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal">std::unique_ptr&lt;cudf::column&gt;<sp/>make_cudf_column_from_vector(</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::data_type<sp/>dtype,<sp/>std::basic_string&lt;char&gt;<sp/>&amp;vector,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>column_size);</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal">std::unique_ptr&lt;cudf::column&gt;<sp/>make_empty_column(cudf::data_type<sp/>type);</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal">std::basic_string&lt;char&gt;<sp/>get_typed_vector_content(</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/>cudf::type_id<sp/>dtype,<sp/>std::vector&lt;int64_t&gt;<sp/>&amp;vector);</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/><sp/>//<sp/>METADATA_H_</highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h"/>
+  </compounddef>
+</doxygen>

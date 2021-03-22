@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceral_1_1processor" kind="namespace" language="C++">
+    <compoundname>ral::processor</compoundname>
+    <innerclass refid="structral_1_1processor_1_1expr__output__type__visitor" prot="public">ral::processor::expr_output_type_visitor</innerclass>
+    <innerclass refid="classral_1_1processor_1_1function__evaluator__transformer" prot="public">ral::processor::function_evaluator_transformer</innerclass>
+    <innernamespace refid="namespaceral_1_1processor_1_1strings">ral::processor::strings</innernamespace>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="LogicalFilter_8cpp_1a0db26593dd6dc92737c463ac2eb32da9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::processor::is_logical_filter</definition>
+        <argsstring>(const std::string &amp;query_part)</argsstring>
+        <name>is_logical_filter</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query_part</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" line="22" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" bodystart="22" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="LogicalFilter_8cpp_1ac80076659007bb28071b9158e87eb2cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::processor::applyBooleanFilter</definition>
+        <argsstring>(const ral::frame::BlazingTableView &amp;table, const CudfColumnView &amp;boolValues)</argsstring>
+        <name>applyBooleanFilter</name>
+        <param>
+          <type>const <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref> &amp;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>const CudfColumnView &amp;</type>
+          <declname>boolValues</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Takes a table and applies a boolean filter to it </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" bodystart="26" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="LogicalFilter_8cpp_1a3363cf58becb234cbd2cef5bb549eeb9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::processor::process_filter</definition>
+        <argsstring>(const ral::frame::BlazingTableView &amp;table_view, const std::string &amp;query_part, blazingdb::manager::Context *)</argsstring>
+        <name>process_filter</name>
+        <param>
+          <type>const <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref> &amp;</type>
+          <declname>table_view</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query_part</declname>
+        </param>
+        <param>
+          <type><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref> *</type>
+          <defname>context</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" bodystart="35" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="function" id="LogicalFilter_8cpp_1aa5305e25f5181a011552366b38768f8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::processor::check_if_has_nulls</definition>
+        <argsstring>(CudfTableView const &amp;input, std::vector&lt; cudf::size_type &gt; const &amp;keys)</argsstring>
+        <name>check_if_has_nulls</name>
+        <param>
+          <type>CudfTableView const &amp;</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::size_type &gt; const &amp;</type>
+          <declname>keys</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" line="63" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" bodystart="63" bodyend="70"/>
+      </memberdef>
+      <memberdef kind="function" id="LogicalFilter_8h_1ab1c35937a56792f8ba7d7983f2b09742" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;ral::frame::BlazingTable&gt; ral::processor::process_distribution_table</definition>
+        <argsstring>(const ral::frame::BlazingTableView &amp;table, std::vector&lt; int &gt; &amp;columnIndices, blazingdb::manager::Context *context)</argsstring>
+        <name>process_distribution_table</name>
+        <param>
+          <type>const <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref> &amp;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; int &gt; &amp;</type>
+          <declname>columnIndices</declname>
+        </param>
+        <param>
+          <type><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref> *</type>
+          <declname>context</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>This function is only used by bc.partition </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.h" line="28" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="LogicalProject_8cpp_1a2000b070ee41c757de240fbb4959c232" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">ral::frame::BlazingColumn</ref> &gt; &gt;</type>
+        <definition>std::vector&lt; std::unique_ptr&lt; ral::frame::BlazingColumn &gt; &gt; ral::processor::evaluate_expressions</definition>
+        <argsstring>(const cudf::table_view &amp;table, const std::vector&lt; std::string &gt; &amp;expressions)</argsstring>
+        <name>evaluate_expressions</name>
+        <param>
+          <type>const cudf::table_view &amp;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>expressions</declname>
+        </param>
+        <briefdescription>
+<para>Evaluates multiple expressions consisting of arithmetic operations and SQL functions. </para>        </briefdescription>
+        <detaileddescription>
+<para>The computation of the results consist of two steps:<orderedlist>
+<listitem><para>We evaluate all complex operations operations one by one. Complex operations are operations that can&apos;t be mapped as f(input_table[row]) =&gt; output_table[row] for a given row in a table e.g. string functions</para></listitem><listitem><para>We batch all simple operations and evaluate all of them in a single GPU kernel call. Simple operations are operations that can be mapped as f(input_table[row]) =&gt; output_table[row] for a given row in a table e.g. arithmetic operations and cast between primitive types </para></listitem></orderedlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="773" bodyend="922"/>
+      </memberdef>
+      <memberdef kind="function" id="LogicalProject_8cpp_1ab9f260d10cbd5a19467bf7c131a1fe6d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::processor::process_project</definition>
+        <argsstring>(std::unique_ptr&lt; ral::frame::BlazingTable &gt; blazing_table_in, const std::string &amp;query_part, blazingdb::manager::Context *)</argsstring>
+        <name>process_project</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+          <declname>blazing_table_in</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>query_part</declname>
+        </param>
+        <param>
+          <type><ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">blazingdb::manager::Context</ref> *</type>
+          <defname>context</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="924" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="924" bodyend="945"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp" line="10" column="1"/>
+  </compounddef>
+</doxygen>

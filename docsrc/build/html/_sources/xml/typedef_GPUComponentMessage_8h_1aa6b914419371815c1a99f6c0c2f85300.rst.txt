@@ -1,0 +1,13 @@
+.. _exhale_typedef_GPUComponentMessage_8h_1aa6b914419371815c1a99f6c0c2f85300:
+
+Typedef ral::communication::messages::gpu_raw_buffer_container
+==============================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_messages_GPUComponentMessage.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: ral::communication::messages::gpu_raw_buffer_container

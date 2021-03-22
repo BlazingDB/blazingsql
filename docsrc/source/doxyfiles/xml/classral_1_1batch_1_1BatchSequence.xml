@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1batch_1_1BatchSequence" kind="class" language="C++" prot="public">
+    <compoundname>ral::batch::BatchSequence</compoundname>
+    <includes refid="BatchProcessing_8h" local="no">BatchProcessing.h</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1batch_1_1BatchSequence_1a197995edec52cd475dcfdfdcba036a3e" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; ral::batch::BatchSequence::cache</definition>
+        <argsstring></argsstring>
+        <name>cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Cache machine from which the data will be pulled. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="63" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1BatchSequence_1aa8db1867ceb905f57dd825ff8e2f0a4c" prot="private" static="no" mutable="no">
+        <type>const <ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref> *</type>
+        <definition>const ral::cache::kernel* ral::batch::BatchSequence::kernel</definition>
+        <argsstring></argsstring>
+        <name>kernel</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Pointer to the kernel that will receive the cache data. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="64" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1BatchSequence_1aedf0415838530b53c428289ffff2b4cf" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::batch::BatchSequence::ordered</definition>
+        <argsstring></argsstring>
+        <name>ordered</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Indicates whether the order should be kept when pulling data from the cache. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="65" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1batch_1_1BatchSequence_1a1012a9622924b621edd667400038b24d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::batch::BatchSequence::BatchSequence</definition>
+        <argsstring>(std::shared_ptr&lt; ral::cache::CacheMachine &gt; cache=nullptr, const ral::cache::kernel *kernel=nullptr, bool ordered=true)</argsstring>
+        <name>BatchSequence</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>cache</declname>
+          <defval>nullptr</defval>
+        </param>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref> *</type>
+          <declname>kernel</declname>
+          <defval>nullptr</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>ordered</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor for the <ref refid="classral_1_1batch_1_1BatchSequence" kindref="compound">BatchSequence</ref> <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>cache</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The input cache from where the data will be pulled. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>kernel</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The kernel that will actually receive the pulled data. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ordered</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Indicates whether the order should be kept at data pulling. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="33" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="18" bodyend="20"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1BatchSequence_1a92ce0d4e310caded265fceab3f4c266a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::batch::BatchSequence::set_source</definition>
+        <argsstring>(std::shared_ptr&lt; ral::cache::CacheMachine &gt; cache)</argsstring>
+        <name>set_source</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>cache</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Updates the input cache machine. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>cache</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The pointer to the new input cache. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="39" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="22" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1BatchSequence_1a5fe181e6183df338739e61eb512c23a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::batch::BatchSequence::next</definition>
+        <argsstring>()</argsstring>
+        <name>next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the next message as a unique pointer to a BlazingTable. If there are no more messages on the queue we get a nullptr. <simplesect kind="return"><para>Unique pointer to a BlazingTable containing the next decached message. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="46" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="26" bodyend="32"/>
+        <referencedby refid="classral_1_1batch_1_1PartitionKernel_1a5313617a63ab0fb23a0e4211399f439f" compoundref="BatchOrderByProcessing_8cpp" startline="373" endline="458">ral::batch::PartitionKernel::run</referencedby>
+        <referencedby refid="classral_1_1batch_1_1Print_1aaa9c9b3999fa088344f8505fcf201721" compoundref="BatchProcessing_8cpp" startline="502" endline="510">ral::batch::Print::run</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1BatchSequence_1af62f1f620ac02a018737af8a89eb4881" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::batch::BatchSequence::wait_for_next</definition>
+        <argsstring>()</argsstring>
+        <name>wait_for_next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Blocks executing thread until a new message is ready or when the message queue is empty. <simplesect kind="return"><para>true A new message is ready. </para></simplesect>
+<simplesect kind="return"><para>false There are no more messages on the cache. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="53" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="34" bodyend="40"/>
+        <references refid="classral_1_1cache_1_1kernel_1a146246668880ca685f22d208e638578b" compoundref="kernel_8h" startline="89" endline="89">ral::cache::kernel::get_type_id</references>
+        <references refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" compoundref="kernel_8h" startline="82" endline="82">ral::cache::kernel::get_id</references>
+        <referencedby refid="classral_1_1batch_1_1Print_1aaa9c9b3999fa088344f8505fcf201721" compoundref="BatchProcessing_8cpp" startline="502" endline="510">ral::batch::Print::run</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1BatchSequence_1a0ed0531f11f65b4e7391da23c2a2de12" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::batch::BatchSequence::has_next_now</definition>
+        <argsstring>()</argsstring>
+        <name>has_next_now</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Indicates if the message queue is not empty at this point on time. <simplesect kind="return"><para>true There is at least one message in the queue. </para></simplesect>
+<simplesect kind="return"><para>false Message queue is empty. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="60" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="42" bodyend="44"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This is the standard data sequencer that just pulls data from an input cache one batch at a time. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="25" bodyend="66"/>
+    <listofallmembers>
+      <member refid="classral_1_1batch_1_1BatchSequence_1a1012a9622924b621edd667400038b24d" prot="public" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>BatchSequence</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1a197995edec52cd475dcfdfdcba036a3e" prot="private" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>cache</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1a0ed0531f11f65b4e7391da23c2a2de12" prot="public" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>has_next_now</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1aa8db1867ceb905f57dd825ff8e2f0a4c" prot="private" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>kernel</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1a5fe181e6183df338739e61eb512c23a4" prot="public" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>next</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1aedf0415838530b53c428289ffff2b4cf" prot="private" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>ordered</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1a92ce0d4e310caded265fceab3f4c266a" prot="public" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>set_source</name></member>
+      <member refid="classral_1_1batch_1_1BatchSequence_1af62f1f620ac02a018737af8a89eb4881" prot="public" virt="non-virtual"><scope>ral::batch::BatchSequence</scope><name>wait_for_next</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

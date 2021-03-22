@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1memory_1_1blazing__allocation" kind="struct" language="C++" prot="public">
+    <compoundname>ral::memory::blazing_allocation</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__allocation_1a5ba48f9dbefe7e168f957ad776ba3d6a" prot="public" static="no" mutable="no">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::memory::blazing_allocation::index</definition>
+        <argsstring></argsstring>
+        <name>index</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="31" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__allocation_1a04163d566f783651e8a093e629042cf6" prot="public" static="no" mutable="no">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::memory::blazing_allocation::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="32" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__allocation_1abacfe2133dc90c845045f64ebc3b03d4" prot="public" static="no" mutable="no">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::memory::blazing_allocation::total_number_of_chunks</definition>
+        <argsstring></argsstring>
+        <name>total_number_of_chunks</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="33" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__allocation_1a51939ae7368dcde54ee8b8626ff16713" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* ral::memory::blazing_allocation::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__allocation_1a761301a5413f8aa71c24ee194a89475b" prot="public" static="no" mutable="no">
+        <type>std::stack&lt; std::unique_ptr&lt; <ref refid="structral_1_1memory_1_1blazing__allocation__chunk" kindref="compound">blazing_allocation_chunk</ref> &gt; &gt;</type>
+        <definition>std::stack&lt; std::unique_ptr&lt;blazing_allocation_chunk&gt; &gt; ral::memory::blazing_allocation::allocation_chunks</definition>
+        <argsstring></argsstring>
+        <name>allocation_chunks</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__allocation_1add70b43fb60a63a7539134cb8cffa9bd" prot="public" static="no" mutable="no">
+        <type><ref refid="classral_1_1memory_1_1allocation__pool" kindref="compound">allocation_pool</ref> *</type>
+        <definition>allocation_pool* ral::memory::blazing_allocation::pool</definition>
+        <argsstring></argsstring>
+        <name>pool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="36" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="32">
+        <label>ral::memory::blazing_allocation</label>
+        <link refid="structral_1_1memory_1_1blazing__allocation"/>
+        <childnode refid="33" relation="usage">
+          <edgelabel>pool</edgelabel>
+        </childnode>
+      </node>
+      <node id="33">
+        <label>ral::memory::allocation_pool</label>
+        <link refid="classral_1_1memory_1_1allocation__pool"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="30" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="30" bodyend="37"/>
+    <listofallmembers>
+      <member refid="structral_1_1memory_1_1blazing__allocation_1a761301a5413f8aa71c24ee194a89475b" prot="public" virt="non-virtual"><scope>ral::memory::blazing_allocation</scope><name>allocation_chunks</name></member>
+      <member refid="structral_1_1memory_1_1blazing__allocation_1a51939ae7368dcde54ee8b8626ff16713" prot="public" virt="non-virtual"><scope>ral::memory::blazing_allocation</scope><name>data</name></member>
+      <member refid="structral_1_1memory_1_1blazing__allocation_1a5ba48f9dbefe7e168f957ad776ba3d6a" prot="public" virt="non-virtual"><scope>ral::memory::blazing_allocation</scope><name>index</name></member>
+      <member refid="structral_1_1memory_1_1blazing__allocation_1add70b43fb60a63a7539134cb8cffa9bd" prot="public" virt="non-virtual"><scope>ral::memory::blazing_allocation</scope><name>pool</name></member>
+      <member refid="structral_1_1memory_1_1blazing__allocation_1a04163d566f783651e8a093e629042cf6" prot="public" virt="non-virtual"><scope>ral::memory::blazing_allocation</scope><name>size</name></member>
+      <member refid="structral_1_1memory_1_1blazing__allocation_1abacfe2133dc90c845045f64ebc3b03d4" prot="public" virt="non-virtual"><scope>ral::memory::blazing_allocation</scope><name>total_number_of_chunks</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

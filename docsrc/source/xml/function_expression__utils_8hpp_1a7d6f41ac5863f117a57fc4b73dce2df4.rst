@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4:
+
+Function window_expression_contains_multiple_diff_over_clauses(std::string)
+===========================================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: window_expression_contains_multiple_diff_over_clauses(std::string)

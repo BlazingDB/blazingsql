@@ -1,0 +1,251 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1MetadataDictionary" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::MetadataDictionary</compoundname>
+    <includes refid="CacheData_8h" local="no">CacheData.h</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1MetadataDictionary_1a7944a4353f390cde517dfa88a80d1463" prot="private" static="no" mutable="no">
+        <type>std::map&lt; std::string, std::string &gt;</type>
+        <definition>std::map&lt;std::string,std::string&gt; ral::cache::MetadataDictionary::values</definition>
+        <argsstring></argsstring>
+        <name>values</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Stores the mapping of metdata label to metadata value </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="138" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="138" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a99828bf2a71b8e06d568420e5c2b460d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::MetadataDictionary::add_value</definition>
+        <argsstring>(std::string key, std::string value)</argsstring>
+        <name>add_value</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Gets the type of <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> that was used to construct this <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The key in the map that we will be modifying. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The value that we will set the key to. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="72" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="72" bodyend="74"/>
+        <referencedby refid="classral_1_1batch_1_1PartwiseJoin_1a280aee308eff9e14f239cdce229c4035" compoundref="BatchJoinProcessing_8cpp" startline="429" endline="553">ral::batch::PartwiseJoin::run</referencedby>
+        <referencedby refid="classral_1_1batch_1_1PartitionSingleNodeKernel_1a5af293b33505bec1e9fb66f9bb9d29af" compoundref="BatchOrderByProcessing_8cpp" startline="43" endline="93">ral::batch::PartitionSingleNodeKernel::run</referencedby>
+        <referencedby refid="classral_1_1batch_1_1LimitKernel_1a154ab2ef98ef7be11d3ba6c8dc6db06d" compoundref="BatchOrderByProcessing_8cpp" startline="613" endline="724">ral::batch::LimitKernel::run</referencedby>
+        <referencedby refid="classral_1_1cache_1_1distributing__kernel_1aa2c88f7cefd4bb5eee4058c7059c277e" compoundref="distributing__kernel_8cpp" startline="30" endline="102">ral::cache::distributing_kernel::send_message</referencedby>
+        <referencedby refid="classral_1_1cache_1_1distributing__kernel_1a532f4eb42963c4e76199f9250c483a09" compoundref="distributing__kernel_8cpp" startline="113" endline="137">ral::cache::distributing_kernel::send_total_partition_counts</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a5f2f0c2542ea15ca00d273df68041551" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::MetadataDictionary::add_value</definition>
+        <argsstring>(std::string key, int value)</argsstring>
+        <name>add_value</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Gets the type of <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> that was used to construct this <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The key in the map that we will be modifying. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The value that we will set the key to. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="81" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="81" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a03066b3e050bf5f504613aab7604d768" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int ral::cache::MetadataDictionary::get_kernel_id</definition>
+        <argsstring>()</argsstring>
+        <name>get_kernel_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Gets id of creating kernel. <simplesect kind="return"><para>Get the id of the kernel that created this message. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="89" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="89" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a762943ae80571c2f5ea6dfbcea07a3bb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::MetadataDictionary::print</definition>
+        <argsstring>()</argsstring>
+        <name>print</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Print every key =&gt; value pair in the map. Only used for debugging purposes. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="100" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="100" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1abdc2863d96dc839565f2078471f4c9f7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::map&lt; std::string, std::string &gt;</type>
+        <definition>std::map&lt;std::string,std::string&gt; ral::cache::MetadataDictionary::get_values</definition>
+        <argsstring>() const</argsstring>
+        <name>get_values</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Gets the map storing the metadata. <simplesect kind="return"><para>the map storing all of the metadata. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="111" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="111" bodyend="113"/>
+        <referencedby refid="classcomm_1_1message__receiver_1ab49d04074a12b8f9ad00dc26b84a43ca" compoundref="messageReceiver_8cpp" startline="7" endline="53">comm::message_receiver::message_receiver</referencedby>
+        <referencedby refid="classral_1_1batch_1_1PartitionSingleNodeKernel_1a5af293b33505bec1e9fb66f9bb9d29af" compoundref="BatchOrderByProcessing_8cpp" startline="43" endline="93">ral::batch::PartitionSingleNodeKernel::run</referencedby>
+        <referencedby refid="classral_1_1cache_1_1distributing__kernel_1aa2c88f7cefd4bb5eee4058c7059c277e" compoundref="distributing__kernel_8cpp" startline="30" endline="102">ral::cache::distributing_kernel::send_message</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a99d66a4b93ebb5f187da5c8968054a54" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::MetadataDictionary::set_values</definition>
+        <argsstring>(std::map&lt; std::string, std::string &gt; new_values)</argsstring>
+        <name>set_values</name>
+        <param>
+          <type>std::map&lt; std::string, std::string &gt;</type>
+          <declname>new_values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Erases all current metadata and sets new values. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>new_values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A map to copy into this-&gt;values . </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="119" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="119" bodyend="121"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a72ac4462583a2be4be3de19eb230b624" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::MetadataDictionary::has_value</definition>
+        <argsstring>(std::string key)</argsstring>
+        <name>has_value</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Checks if metadata has a specific key <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The key to check if is in the metadata </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if the key is in the metadata, otherwise return false </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="128" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="128" bodyend="131"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1a50be7e17be586f17dd10228227a51a15" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::cache::MetadataDictionary::get_value</definition>
+        <argsstring>(std::string key)</argsstring>
+        <name>get_value</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="133" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="33" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1MetadataDictionary_1afd9178b77c468cc390786830aba8b968" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::MetadataDictionary::set_value</definition>
+        <argsstring>(std::string key, std::string value)</argsstring>
+        <name>set_value</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="135" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="40" bodyend="42"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Lightweight wrapper for a map that will one day be used for compile time checks. Currently it is just a wrapper for map but in the future the intention is for us to manage the Metadata in a struct as opposed to a map of string to string. </para>    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="64" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="64" bodyend="139"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a99828bf2a71b8e06d568420e5c2b460d" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>add_value</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a5f2f0c2542ea15ca00d273df68041551" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>add_value</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a03066b3e050bf5f504613aab7604d768" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>get_kernel_id</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a50be7e17be586f17dd10228227a51a15" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>get_value</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1abdc2863d96dc839565f2078471f4c9f7" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>get_values</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a72ac4462583a2be4be3de19eb230b624" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>has_value</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a762943ae80571c2f5ea6dfbcea07a3bb" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>print</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1afd9178b77c468cc390786830aba8b968" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>set_value</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a99d66a4b93ebb5f187da5c8968054a54" prot="public" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>set_values</name></member>
+      <member refid="classral_1_1cache_1_1MetadataDictionary_1a7944a4353f390cde517dfa88a80d1463" prot="private" virt="non-virtual"><scope>ral::cache::MetadataDictionary</scope><name>values</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

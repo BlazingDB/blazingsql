@@ -1,0 +1,62 @@
+\hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine}{}\section{ral\+:\+:cache\+:\+:Concatenating\+Cache\+Machine Class Reference}
+\label{classral_1_1cache_1_1ConcatenatingCacheMachine}\index{ral\+::cache\+::\+Concatenating\+Cache\+Machine@{ral\+::cache\+::\+Concatenating\+Cache\+Machine}}
+
+
+A class that represents a Cache Machine on a multi-\/tier cache system. Moreover, it only returns a single Blazing\+Table by concatenating all batches. This Cache Machine is used in the last Kernel (Output\+Kernel) in the Execution\+Graph.  
+
+
+
+
+{\ttfamily \#include $<$Cache\+Machine.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:cache\+:\+:Concatenating\+Cache\+Machine\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=211pt]{classral_1_1cache_1_1ConcatenatingCacheMachine__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:Concatenating\+Cache\+Machine\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=211pt]{classral_1_1cache_1_1ConcatenatingCacheMachine__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine_ac63a832595832d436951d12acfb11971}\label{classral_1_1cache_1_1ConcatenatingCacheMachine_ac63a832595832d436951d12acfb11971}} 
+{\bfseries Concatenating\+Cache\+Machine} (std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ context, std\+::string cache\+\_\+machine\+\_\+name)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine_a965ed85fea8f3dfec4792fbac8001391}\label{classral_1_1cache_1_1ConcatenatingCacheMachine_a965ed85fea8f3dfec4792fbac8001391}} 
+{\bfseries Concatenating\+Cache\+Machine} (std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ context, std\+::size\+\_\+t concat\+\_\+cache\+\_\+num\+\_\+bytes, bool concat\+\_\+all, std\+::string cache\+\_\+machine\+\_\+name)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine_a0dc01ef4e13b5f832d52f2d07d1f1f69}\label{classral_1_1cache_1_1ConcatenatingCacheMachine_a0dc01ef4e13b5f832d52f2d07d1f1f69}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries pull\+From\+Cache} () override
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine_a9c8db51d9971f78ff74134db114bb69a}\label{classral_1_1cache_1_1ConcatenatingCacheMachine_a9c8db51d9971f78ff74134db114bb69a}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries pull\+Unordered\+From\+Cache} () override
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine_af02b87583c465b8d90b451288e16cdc5}\label{classral_1_1cache_1_1ConcatenatingCacheMachine_af02b87583c465b8d90b451288e16cdc5}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ {\bfseries pull\+Cache\+Data} () override
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1ConcatenatingCacheMachine_a04db0538230cd10cf7ae4ebc1cd62167}\label{classral_1_1cache_1_1ConcatenatingCacheMachine_a04db0538230cd10cf7ae4ebc1cd62167}} 
+size\+\_\+t {\bfseries downgrade\+Cache\+Data} () override
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+A class that represents a Cache Machine on a multi-\/tier cache system. Moreover, it only returns a single Blazing\+Table by concatenating all batches. This Cache Machine is used in the last Kernel (Output\+Kernel) in the Execution\+Graph. 
+
+This Concatenating\+Cache\+Machine\+::pull\+From\+Cache method does not guarantee the relative order of the messages to be preserved 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Machine.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Machine.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,250 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1CacheDataLocalFile" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::CacheDataLocalFile</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1CacheData" prot="public" virt="non-virtual">ral::cache::CacheData</basecompoundref>
+    <includes refid="CacheData_8h" local="no">CacheData.h</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1CacheDataLocalFile_1a8afee54522cbea3dec33b75572190358" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::cache::CacheDataLocalFile::col_names</definition>
+        <argsstring></argsstring>
+        <name>col_names</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The names of the columns, extracted from the ORC file. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="465" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="465" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1CacheDataLocalFile_1ae783391bad42bca52fe4fd87ca1ec5b2" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::cache::CacheDataLocalFile::filePath_</definition>
+        <argsstring></argsstring>
+        <name>filePath_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The path to the ORC file. Is usually generated randomly. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="466" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="466" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1CacheDataLocalFile_1aedcb9846372dc321be8c7bcdfb7691ae" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ral::cache::CacheDataLocalFile::size_in_bytes</definition>
+        <argsstring></argsstring>
+        <name>size_in_bytes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The size of the file being stored. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="467" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="467" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1aa8f42a81e963c076ebdf7bc6bc53a323" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::CacheDataLocalFile::CacheDataLocalFile</definition>
+        <argsstring>(std::unique_ptr&lt; ral::frame::BlazingTable &gt; table, std::string orc_files_path, std::string ctx_token)</argsstring>
+        <name>CacheDataLocalFile</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>orc_files_path</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>ctx_token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BlazingTable that is converted into an ORC file and stored on disk. @ param orc_files_path The path where the file should be stored. @ param ctx_id The context token to identify the query that generated the file. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="419" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="152" bodyend="190"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1a1d34227fbbf671e47119846ee2f2a0af" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::cache::CacheDataLocalFile::decache</definition>
+        <argsstring>() override</argsstring>
+        <name>decache</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1a2db8fdd2151babd7a07f4c6e246b710c">decache</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The BlazingTable that is converted into an ORC file and stored on disk. @ param orc_files_path The path where the file should be stored. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="427" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="205" bodyend="214"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1ab0853eca16df1149f4ac0efbf3faa556" prot="public" static="no" const="yes" explicit="no" inline="no" virt="virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::CacheDataLocalFile::sizeInBytes</definition>
+        <argsstring>() const override</argsstring>
+        <name>sizeInBytes</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1aaad8a726296574845f01f9380dcee40d">sizeInBytes</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the amount of GPU memory that the decached BlazingTable WOULD consume. Having this function allows us to have one api for seeing how much GPU memory is necessary to decache the file from disk. <simplesect kind="return"><para>The number of bytes needed for the BlazingTable decache would generate. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="436" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="201" bodyend="203"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1abc8a4d9edc7ffa21f15010c60a71189b" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::CacheDataLocalFile::fileSizeInBytes</definition>
+        <argsstring>() const</argsstring>
+        <name>fileSizeInBytes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the amount of disk space consumed by this <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> Having this function allows us to have one api for seeing the consumption of all the <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> objects that are currently in Caches. <simplesect kind="return"><para>The number of bytes the ORC file consumes. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="443" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="192" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1a49c8d137ef2d0a30ee59025f91725567" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void ral::cache::CacheDataLocalFile::set_names</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;names) override</argsstring>
+        <name>set_names</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1a3bb1623a4266ba7c961d325023ff13c6">set_names</reimplements>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the names of the columns to pass when decache if needed. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>names</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>a vector of the column names. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="449" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="449" bodyend="451"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1a47567f8650eae4b66e44df7e06f3def9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual ral::cache::CacheDataLocalFile::~CacheDataLocalFile</definition>
+        <argsstring>()</argsstring>
+        <name>~CacheDataLocalFile</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Destructor </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="456" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="456" bodyend="456"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1CacheDataLocalFile_1a21803499ee4d3ad088c2b5b81b91a042" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::cache::CacheDataLocalFile::filePath</definition>
+        <argsstring>() const</argsstring>
+        <name>filePath</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the file path of the ORC file. <simplesect kind="return"><para>The path to the ORC file. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="462" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="462" bodyend="462"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> that stores is data in an ORC file. This allows us to cache onto filesystems to allow larger queries to run on limited resources. This is the least performant cache in most instances. </para>    </detaileddescription>
+    <inheritancegraph>
+      <node id="105">
+        <label>ral::cache::CacheDataLocalFile</label>
+        <link refid="classral_1_1cache_1_1CacheDataLocalFile"/>
+        <childnode refid="106" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="106">
+        <label>ral::cache::CacheData</label>
+        <link refid="classral_1_1cache_1_1CacheData"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="107">
+        <label>ral::cache::CacheDataLocalFile</label>
+        <link refid="classral_1_1cache_1_1CacheDataLocalFile"/>
+        <childnode refid="108" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="108">
+        <label>ral::cache::CacheData</label>
+        <link refid="classral_1_1cache_1_1CacheData"/>
+        <childnode refid="109" relation="usage">
+          <edgelabel>metadata</edgelabel>
+        </childnode>
+      </node>
+      <node id="109">
+        <label>ral::cache::MetadataDictionary</label>
+        <link refid="classral_1_1cache_1_1MetadataDictionary"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="409" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="409" bodyend="468"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1CacheData_1acf9d130e22baac61d4689c52e36b9c17" prot="protected" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>cache_type</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a257a4e0a13e894093e8ae37da1612c62" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7967efd36e3cbf3b35b7010f138fcbce" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1aa8f42a81e963c076ebdf7bc6bc53a323" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>CacheDataLocalFile</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1a8afee54522cbea3dec33b75572190358" prot="private" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>col_names</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1a1d34227fbbf671e47119846ee2f2a0af" prot="public" virt="virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>decache</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1af70878c08fae1935cd0a39999cabf6fb" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>downgradeCacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1a21803499ee4d3ad088c2b5b81b91a042" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>filePath</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1ae783391bad42bca52fe4fd87ca1ec5b2" prot="private" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>filePath_</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1abc8a4d9edc7ffa21f15010c60a71189b" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>fileSizeInBytes</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a747bc7b9113756471ce8a7bce2c46689" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>get_schema</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a6669c7c34305f2099cede2be98433604" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>get_type</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7e3fea5c3558948f4c461998f7ef434b" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>getMetadata</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aaeb232ef3aa8c2a3d86e1169ed2e8152" prot="protected" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>metadata</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a4cdddfb8e552e0e3e91877ae80e5fc9e" prot="protected" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>n_rows</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aa2c8d58823d781cc1f8e6e589d897642" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>names</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1acddfe8617004fc875fff972ae5b1f616" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>num_columns</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a14a5b9fadf872c12d633e38bb6f9f07d" prot="public" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>num_rows</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aec9a1b3c0fb78cfdb3bd5494bcee2d8f" prot="protected" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>schema</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1a49c8d137ef2d0a30ee59025f91725567" prot="public" virt="virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>set_names</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1aedcb9846372dc321be8c7bcdfb7691ae" prot="private" virt="non-virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>size_in_bytes</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1ab0853eca16df1149f4ac0efbf3faa556" prot="public" virt="virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>sizeInBytes</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1ac66a4910198d677594609b455c4ecde8" prot="public" virt="virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>~CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheDataLocalFile_1a47567f8650eae4b66e44df7e06f3def9" prot="public" virt="virtual"><scope>ral::cache::CacheDataLocalFile</scope><name>~CacheDataLocalFile</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

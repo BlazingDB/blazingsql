@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class Hierarchy &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/class_view_hierarchy.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="class-hierarchy">
+<h1>Class Hierarchy<a class="headerlink" href="#class-hierarchy" title="Permalink to this headline">¶</a></h1>
+<div id="class-treeView"></div>
+<script type="text/javascript">
+  function getClassHierarchyTree() {
+     return [
+      {text:"<span class=\"text-muted\">Namespace</span> blazingdb",href:"namespace_blazingdb.html#namespace-blazingdb",selectable:false,tags:['2'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> blazingdb::manager",href:"namespace_blazingdb__manager.html#namespace-blazingdb-manager",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Class</span> Context",href:"classblazingdb_1_1manager_1_1Context.html#exhale-class-classblazingdb-1-1manager-1-1Context",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> blazingdb::transport",href:"namespace_blazingdb__transport.html#namespace-blazingdb-transport",selectable:false,tags:['3'],nodes:[{text:"<span class=\"text-muted\">Struct</span> ColumnTransport",href:"structblazingdb_1_1transport_1_1ColumnTransport.html#exhale-struct-structblazingdb-1-1transport-1-1ColumnTransport",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Struct</span> ColumnTransport::MetaData",href:"structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData.html#exhale-struct-structblazingdb-1-1transport-1-1ColumnTransport-1-1MetaData",selectable:false}]},{text:"<span class=\"text-muted\">Class</span> Node",href:"classblazingdb_1_1transport_1_1Node.html#exhale-class-classblazingdb-1-1transport-1-1Node",selectable:false},{text:"<span class=\"text-muted\">Class</span> Status",href:"classblazingdb_1_1transport_1_1Status.html#exhale-class-classblazingdb-1-1transport-1-1Status",selectable:false}]}]},{text:"<span class=\"text-muted\">Namespace</span> comm",href:"namespace_comm.html#namespace-comm",selectable:false,tags:['15'],nodes:[{text:"<span class=\"text-muted\">Struct</span> blazing_ucp_tag",href:"structcomm_1_1blazing__ucp__tag.html#exhale-struct-structcomm-1-1blazing-ucp-tag",selectable:false},{text:"<span class=\"text-muted\">Struct</span> ucx_request",href:"structcomm_1_1ucx__request.html#exhale-struct-structcomm-1-1ucx-request",selectable:false},{text:"<span class=\"text-muted\">Class</span> buffer_transport",href:"classcomm_1_1buffer__transport.html#exhale-class-classcomm-1-1buffer-transport",selectable:false},{text:"<span class=\"text-muted\">Class</span> graphs_info",href:"classcomm_1_1graphs__info.html#exhale-class-classcomm-1-1graphs-info",selectable:false},{text:"<span class=\"text-muted\">Class</span> message_listener",href:"classcomm_1_1message__listener.html#exhale-class-classcomm-1-1message-listener",selectable:false},{text:"<span class=\"text-muted\">Class</span> message_receiver",href:"classcomm_1_1message__receiver.html#exhale-class-classcomm-1-1message-receiver",selectable:false},{text:"<span class=\"text-muted\">Class</span> message_sender",href:"classcomm_1_1message__sender.html#exhale-class-classcomm-1-1message-sender",selectable:false},{text:"<span class=\"text-muted\">Class</span> node",href:"classcomm_1_1node.html#exhale-class-classcomm-1-1node",selectable:false},{text:"<span class=\"text-muted\">Class</span> tcp_buffer_transport",href:"classcomm_1_1tcp__buffer__transport.html#exhale-class-classcomm-1-1tcp-buffer-transport",selectable:false},{text:"<span class=\"text-muted\">Class</span> tcp_message_listener",href:"classcomm_1_1tcp__message__listener.html#exhale-class-classcomm-1-1tcp-message-listener",selectable:false},{text:"<span class=\"text-muted\">Class</span> ucp_progress_manager",href:"classcomm_1_1ucp__progress__manager.html#exhale-class-classcomm-1-1ucp-progress-manager",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Struct</span> ucp_progress_manager::request_struct",href:"structcomm_1_1ucp__progress__manager_1_1request__struct.html#exhale-struct-structcomm-1-1ucp-progress-manager-1-1request-struct",selectable:false}]},{text:"<span class=\"text-muted\">Class</span> ucx_buffer_transport",href:"classcomm_1_1ucx__buffer__transport.html#exhale-class-classcomm-1-1ucx-buffer-transport",selectable:false},{text:"<span class=\"text-muted\">Class</span> ucx_message_listener",href:"classcomm_1_1ucx__message__listener.html#exhale-class-classcomm-1-1ucx-message-listener",selectable:false},{text:"<span class=\"text-muted\">Enum</span> blazing_protocol",href:"enum_protocols_8hpp_1a874c084e940581650ac0852237f3c304.html#exhale-enum-protocols-8hpp-1a874c084e940581650ac0852237f3c304",selectable:false},{text:"<span class=\"text-muted\">Enum</span> status_code",href:"enum_protocols_8hpp_1a5e4fda95f678d6d0597522281c71799c.html#exhale-enum-protocols-8hpp-1a5e4fda95f678d6d0597522281c71799c",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ctpl",href:"namespace_ctpl.html#namespace-ctpl",selectable:false,tags:['2'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> ctpl::detail",href:"namespace_ctpl__detail.html#namespace-ctpl-detail",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Template Class</span> Queue",href:"classctpl_1_1detail_1_1Queue.html#exhale-class-classctpl-1-1detail-1-1Queue",selectable:false}]},{text:"<span class=\"text-muted\">Template Class</span> thread_pool",href:"classctpl_1_1thread__pool.html#exhale-class-classctpl-1-1thread-pool",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> dbg_macro",href:"namespace_dbg_macro.html#namespace-dbg-macro",selectable:false,tags:['3'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> dbg_macro::detail_detector",href:"namespace_dbg_macro__detail_detector.html#namespace-dbg-macro-detail-detector",selectable:false,tags:['3'],nodes:[{text:"<span class=\"text-muted\">Template Struct</span> detector",href:"structdbg__macro_1_1detail__detector_1_1detector.html#exhale-struct-structdbg-macro-1-1detail-detector-1-1detector",selectable:false},{text:"<span class=\"text-muted\">Template Struct</span> detector&lt; Default, void_t&lt; Op&lt; Args... &gt; &gt;, Op, Args... &gt;",href:"structdbg__macro_1_1detail__detector_1_1detector_3_01Default_00_01void__t_3_01Op_3_01Args_8_8_8_7a587da40c906bd309ce2dec06959c4d.html#exhale-struct-structdbg-macro-1-1detail-detector-1-1detector-3-01Default-00-01void-t-3-01Op-3-01Args-8-8-8-7a587da40c906bd309ce2dec06959c4d",selectable:false},{text:"<span class=\"text-muted\">Struct</span> nonesuch",href:"structdbg__macro_1_1detail__detector_1_1nonesuch.html#exhale-struct-structdbg-macro-1-1detail-detector-1-1nonesuch",selectable:false}]},{text:"<span class=\"text-muted\">Template Struct</span> has_begin_end_size",href:"structdbg__macro_1_1has__begin__end__size.html#exhale-struct-structdbg-macro-1-1has-begin-end-size",selectable:false},{text:"<span class=\"text-muted\">Class</span> DebugOutput",href:"classdbg__macro_1_1DebugOutput.html#exhale-class-classdbg-macro-1-1DebugOutput",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> interops",href:"namespace_interops.html#namespace-interops",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Enum</span> column_index",href:"enum_interpreter__cpp_8h_1acef14b90ee696e64c8b61f86df944585.html#exhale-enum-interpreter-cpp-8h-1acef14b90ee696e64c8b61f86df944585",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral",href:"namespace_ral.html#namespace-ral",selectable:false,tags:['9'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> ral::batch",href:"namespace_ral__batch.html#namespace-ral-batch",selectable:false,tags:['22'],nodes:[{text:"<span class=\"text-muted\">Struct</span> node",href:"structral_1_1batch_1_1node.html#exhale-struct-structral-1-1batch-1-1node",selectable:false},{text:"<span class=\"text-muted\">Struct</span> tree_processor",href:"structral_1_1batch_1_1tree__processor.html#exhale-struct-structral-1-1batch-1-1tree-processor",selectable:false},{text:"<span class=\"text-muted\">Class</span> BatchSequence",href:"classral_1_1batch_1_1BatchSequence.html#exhale-class-classral-1-1batch-1-1BatchSequence",selectable:false},{text:"<span class=\"text-muted\">Class</span> BatchSequenceBypass",href:"classral_1_1batch_1_1BatchSequenceBypass.html#exhale-class-classral-1-1batch-1-1BatchSequenceBypass",selectable:false},{text:"<span class=\"text-muted\">Class</span> BindableTableScan",href:"classral_1_1batch_1_1BindableTableScan.html#exhale-class-classral-1-1batch-1-1BindableTableScan",selectable:false},{text:"<span class=\"text-muted\">Class</span> ComputeAggregateKernel",href:"classral_1_1batch_1_1ComputeAggregateKernel.html#exhale-class-classral-1-1batch-1-1ComputeAggregateKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> ComputeWindowKernel",href:"classral_1_1batch_1_1ComputeWindowKernel.html#exhale-class-classral-1-1batch-1-1ComputeWindowKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> DistributeAggregateKernel",href:"classral_1_1batch_1_1DistributeAggregateKernel.html#exhale-class-classral-1-1batch-1-1DistributeAggregateKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> Filter",href:"classral_1_1batch_1_1Filter.html#exhale-class-classral-1-1batch-1-1Filter",selectable:false},{text:"<span class=\"text-muted\">Class</span> JoinPartitionKernel",href:"classral_1_1batch_1_1JoinPartitionKernel.html#exhale-class-classral-1-1batch-1-1JoinPartitionKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> LimitKernel",href:"classral_1_1batch_1_1LimitKernel.html#exhale-class-classral-1-1batch-1-1LimitKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> MergeAggregateKernel",href:"classral_1_1batch_1_1MergeAggregateKernel.html#exhale-class-classral-1-1batch-1-1MergeAggregateKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> MergeStreamKernel",href:"classral_1_1batch_1_1MergeStreamKernel.html#exhale-class-classral-1-1batch-1-1MergeStreamKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> OutputKernel",href:"classral_1_1batch_1_1OutputKernel.html#exhale-class-classral-1-1batch-1-1OutputKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> PartitionKernel",href:"classral_1_1batch_1_1PartitionKernel.html#exhale-class-classral-1-1batch-1-1PartitionKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> PartitionSingleNodeKernel",href:"classral_1_1batch_1_1PartitionSingleNodeKernel.html#exhale-class-classral-1-1batch-1-1PartitionSingleNodeKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> PartwiseJoin",href:"classral_1_1batch_1_1PartwiseJoin.html#exhale-class-classral-1-1batch-1-1PartwiseJoin",selectable:false},{text:"<span class=\"text-muted\">Class</span> Print",href:"classral_1_1batch_1_1Print.html#exhale-class-classral-1-1batch-1-1Print",selectable:false},{text:"<span class=\"text-muted\">Class</span> Projection",href:"classral_1_1batch_1_1Projection.html#exhale-class-classral-1-1batch-1-1Projection",selectable:false},{text:"<span class=\"text-muted\">Class</span> SortAndSampleKernel",href:"classral_1_1batch_1_1SortAndSampleKernel.html#exhale-class-classral-1-1batch-1-1SortAndSampleKernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> TableScan",href:"classral_1_1batch_1_1TableScan.html#exhale-class-classral-1-1batch-1-1TableScan",selectable:false},{text:"<span class=\"text-muted\">Class</span> UnionKernel",href:"classral_1_1batch_1_1UnionKernel.html#exhale-class-classral-1-1batch-1-1UnionKernel",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::cache",href:"namespace_ral__cache.html#namespace-ral-cache",selectable:false,tags:['25'],nodes:[{text:"<span class=\"text-muted\">Struct</span> cache_settings",href:"structral_1_1cache_1_1cache__settings.html#exhale-struct-structral-1-1cache-1-1cache-settings",selectable:false},{text:"<span class=\"text-muted\">Struct</span> graph_progress",href:"structral_1_1cache_1_1graph__progress.html#exhale-struct-structral-1-1cache-1-1graph-progress",selectable:false},{text:"<span class=\"text-muted\">Template Struct</span> port_helper",href:"structral_1_1cache_1_1port__helper.html#exhale-struct-structral-1-1cache-1-1port-helper",selectable:false},{text:"<span class=\"text-muted\">Template Struct</span> port_helper&lt; PORT &gt;",href:"structral_1_1cache_1_1port__helper_3_01PORT_01_4.html#exhale-struct-structral-1-1cache-1-1port-helper-3-01PORT-01-4",selectable:false},{text:"<span class=\"text-muted\">Template Struct</span> port_helper&lt; PORT, PORTNAME, PORTNAMES... &gt;",href:"structral_1_1cache_1_1port__helper_3_01PORT_00_01PORTNAME_00_01PORTNAMES_8_8_8_01_4.html#exhale-struct-structral-1-1cache-1-1port-helper-3-01PORT-00-01PORTNAME-00-01PORTNAMES-8-8-8-01-4",selectable:false},{text:"<span class=\"text-muted\">Class</span> CacheData",href:"classral_1_1cache_1_1CacheData.html#exhale-class-classral-1-1cache-1-1CacheData",selectable:false},{text:"<span class=\"text-muted\">Class</span> CacheDataIO",href:"classral_1_1cache_1_1CacheDataIO.html#exhale-class-classral-1-1cache-1-1CacheDataIO",selectable:false},{text:"<span class=\"text-muted\">Class</span> CacheDataLocalFile",href:"classral_1_1cache_1_1CacheDataLocalFile.html#exhale-class-classral-1-1cache-1-1CacheDataLocalFile",selectable:false},{text:"<span class=\"text-muted\">Class</span> CacheMachine",href:"classral_1_1cache_1_1CacheMachine.html#exhale-class-classral-1-1cache-1-1CacheMachine",selectable:false},{text:"<span class=\"text-muted\">Class</span> ConcatCacheData",href:"classral_1_1cache_1_1ConcatCacheData.html#exhale-class-classral-1-1cache-1-1ConcatCacheData",selectable:false},{text:"<span class=\"text-muted\">Class</span> ConcatenatingCacheMachine",href:"classral_1_1cache_1_1ConcatenatingCacheMachine.html#exhale-class-classral-1-1cache-1-1ConcatenatingCacheMachine",selectable:false},{text:"<span class=\"text-muted\">Class</span> CPUCacheData",href:"classral_1_1cache_1_1CPUCacheData.html#exhale-class-classral-1-1cache-1-1CPUCacheData",selectable:false},{text:"<span class=\"text-muted\">Class</span> distributing_kernel",href:"classral_1_1cache_1_1distributing__kernel.html#exhale-class-classral-1-1cache-1-1distributing-kernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> GPUCacheData",href:"classral_1_1cache_1_1GPUCacheData.html#exhale-class-classral-1-1cache-1-1GPUCacheData",selectable:false},{text:"<span class=\"text-muted\">Class</span> graph",href:"classral_1_1cache_1_1graph.html#exhale-class-classral-1-1cache-1-1graph",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Struct</span> graph::Edge",href:"structral_1_1cache_1_1graph_1_1Edge.html#exhale-struct-structral-1-1cache-1-1graph-1-1Edge",selectable:false}]},{text:"<span class=\"text-muted\">Class</span> kernel",href:"classral_1_1cache_1_1kernel.html#exhale-class-classral-1-1cache-1-1kernel",selectable:false},{text:"<span class=\"text-muted\">Class</span> kpair",href:"classral_1_1cache_1_1kpair.html#exhale-class-classral-1-1cache-1-1kpair",selectable:false},{text:"<span class=\"text-muted\">Class</span> message",href:"classral_1_1cache_1_1message.html#exhale-class-classral-1-1cache-1-1message",selectable:false},{text:"<span class=\"text-muted\">Class</span> MetadataDictionary",href:"classral_1_1cache_1_1MetadataDictionary.html#exhale-class-classral-1-1cache-1-1MetadataDictionary",selectable:false},{text:"<span class=\"text-muted\">Class</span> port",href:"classral_1_1cache_1_1port.html#exhale-class-classral-1-1cache-1-1port",selectable:false},{text:"<span class=\"text-muted\">Template Class</span> WaitingQueue",href:"classral_1_1cache_1_1WaitingQueue.html#exhale-class-classral-1-1cache-1-1WaitingQueue",selectable:false},{text:"<span class=\"text-muted\">Enum</span> CacheDataType",href:"enum_CacheData_8h_1ade29b85c2552b60c19a21969d5b9f8cb.html#exhale-enum-CacheData-8h-1ade29b85c2552b60c19a21969d5b9f8cb",selectable:false},{text:"<span class=\"text-muted\">Enum</span> CacheType",href:"enum_kpair_8h_1a51a0fc7db09186b523254abcf775e80d.html#exhale-enum-kpair-8h-1a51a0fc7db09186b523254abcf775e80d",selectable:false},{text:"<span class=\"text-muted\">Enum</span> kernel_type",href:"enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#exhale-enum-kernel-type-8h-1a65f37628a9c26ef883e2973226b23279",selectable:false},{text:"<span class=\"text-muted\">Enum</span> kstatus",href:"enum_port_8h_1a7ca88559216aa8af73fa0d60c4bb1375.html#exhale-enum-port-8h-1a7ca88559216aa8af73fa0d60c4bb1375",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::communication",href:"namespace_ral__communication.html#namespace-ral-communication",selectable:false,tags:['6'],nodes:[{text:"<span class=\"text-muted\">Class</span> AddressExchanger",href:"classral_1_1communication_1_1AddressExchanger.html#exhale-class-classral-1-1communication-1-1AddressExchanger",selectable:false},{text:"<span class=\"text-muted\">Class</span> AddressExchangerForReceiver",href:"classral_1_1communication_1_1AddressExchangerForReceiver.html#exhale-class-classral-1-1communication-1-1AddressExchangerForReceiver",selectable:false},{text:"<span class=\"text-muted\">Class</span> AddressExchangerForSender",href:"classral_1_1communication_1_1AddressExchangerForSender.html#exhale-class-classral-1-1communication-1-1AddressExchangerForSender",selectable:false},{text:"<span class=\"text-muted\">Class</span> CommunicationData",href:"classral_1_1communication_1_1CommunicationData.html#exhale-class-classral-1-1communication-1-1CommunicationData",selectable:false},{text:"<span class=\"text-muted\">Class</span> ErrorHandling",href:"classral_1_1communication_1_1ErrorHandling.html#exhale-class-classral-1-1communication-1-1ErrorHandling",selectable:false},{text:"<span class=\"text-muted\">Class</span> UcpWorkerAddress",href:"classral_1_1communication_1_1UcpWorkerAddress.html#exhale-class-classral-1-1communication-1-1UcpWorkerAddress",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::execution",href:"namespace_ral__execution.html#namespace-ral-execution",selectable:false,tags:['5'],nodes:[{text:"<span class=\"text-muted\">Struct</span> task_result",href:"structral_1_1execution_1_1task__result.html#exhale-struct-structral-1-1execution-1-1task-result",selectable:false},{text:"<span class=\"text-muted\">Class</span> executor",href:"classral_1_1execution_1_1executor.html#exhale-class-classral-1-1execution-1-1executor",selectable:false},{text:"<span class=\"text-muted\">Class</span> priority",href:"classral_1_1execution_1_1priority.html#exhale-class-classral-1-1execution-1-1priority",selectable:false},{text:"<span class=\"text-muted\">Class</span> task",href:"classral_1_1execution_1_1task.html#exhale-class-classral-1-1execution-1-1task",selectable:false},{text:"<span class=\"text-muted\">Enum</span> task_status",href:"enum_kernel_8h_1a1e7e99bcfa8ea15b795acd117776bec7.html#exhale-enum-kernel-8h-1a1e7e99bcfa8ea15b795acd117776bec7",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::frame",href:"namespace_ral__frame.html#namespace-ral-frame",selectable:false,tags:['7'],nodes:[{text:"<span class=\"text-muted\">Class</span> BlazingColumn",href:"classral_1_1frame_1_1BlazingColumn.html#exhale-class-classral-1-1frame-1-1BlazingColumn",selectable:false},{text:"<span class=\"text-muted\">Class</span> BlazingColumnOwner",href:"classral_1_1frame_1_1BlazingColumnOwner.html#exhale-class-classral-1-1frame-1-1BlazingColumnOwner",selectable:false},{text:"<span class=\"text-muted\">Class</span> BlazingColumnView",href:"classral_1_1frame_1_1BlazingColumnView.html#exhale-class-classral-1-1frame-1-1BlazingColumnView",selectable:false},{text:"<span class=\"text-muted\">Class</span> BlazingHostTable",href:"classral_1_1frame_1_1BlazingHostTable.html#exhale-class-classral-1-1frame-1-1BlazingHostTable",selectable:false},{text:"<span class=\"text-muted\">Class</span> BlazingTable",href:"classral_1_1frame_1_1BlazingTable.html#exhale-class-classral-1-1frame-1-1BlazingTable",selectable:false},{text:"<span class=\"text-muted\">Class</span> BlazingTableView",href:"classral_1_1frame_1_1BlazingTableView.html#exhale-class-classral-1-1frame-1-1BlazingTableView",selectable:false},{text:"<span class=\"text-muted\">Enum</span> blazing_column_type",href:"enum_BlazingColumn_8h_1a9fd93e5e4b5e5951debb6eed1165557a.html#exhale-enum-BlazingColumn-8h-1a9fd93e5e4b5e5951debb6eed1165557a",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::io",href:"namespace_ral__io.html#namespace-ral-io",selectable:false,tags:['15'],nodes:[{text:"<span class=\"text-muted\">Struct</span> data_handle",href:"structral_1_1io_1_1data__handle.html#exhale-struct-structral-1-1io-1-1data-handle",selectable:false},{text:"<span class=\"text-muted\">Class</span> arrow_parser",href:"classral_1_1io_1_1arrow__parser.html#exhale-class-classral-1-1io-1-1arrow-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> csv_parser",href:"classral_1_1io_1_1csv__parser.html#exhale-class-classral-1-1io-1-1csv-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> data_loader",href:"classral_1_1io_1_1data__loader.html#exhale-class-classral-1-1io-1-1data-loader",selectable:false},{text:"<span class=\"text-muted\">Class</span> data_parser",href:"classral_1_1io_1_1data__parser.html#exhale-class-classral-1-1io-1-1data-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> data_provider",href:"classral_1_1io_1_1data__provider.html#exhale-class-classral-1-1io-1-1data-provider",selectable:false},{text:"<span class=\"text-muted\">Class</span> dummy_data_provider",href:"classral_1_1io_1_1dummy__data__provider.html#exhale-class-classral-1-1io-1-1dummy-data-provider",selectable:false},{text:"<span class=\"text-muted\">Class</span> gdf_data_provider",href:"classral_1_1io_1_1gdf__data__provider.html#exhale-class-classral-1-1io-1-1gdf-data-provider",selectable:false},{text:"<span class=\"text-muted\">Class</span> gdf_parser",href:"classral_1_1io_1_1gdf__parser.html#exhale-class-classral-1-1io-1-1gdf-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> json_parser",href:"classral_1_1io_1_1json__parser.html#exhale-class-classral-1-1io-1-1json-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> orc_parser",href:"classral_1_1io_1_1orc__parser.html#exhale-class-classral-1-1io-1-1orc-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> parquet_parser",href:"classral_1_1io_1_1parquet__parser.html#exhale-class-classral-1-1io-1-1parquet-parser",selectable:false},{text:"<span class=\"text-muted\">Class</span> Schema",href:"classral_1_1io_1_1Schema.html#exhale-class-classral-1-1io-1-1Schema",selectable:false},{text:"<span class=\"text-muted\">Class</span> uri_data_provider",href:"classral_1_1io_1_1uri__data__provider.html#exhale-class-classral-1-1io-1-1uri-data-provider",selectable:false},{text:"<span class=\"text-muted\">Enum</span> DataType",href:"enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#exhale-enum-DataType-8h-1ac2f7802a3427e8ee0fff9ae6492f2c81",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::memory",href:"namespace_ral__memory.html#namespace-ral-memory",selectable:false,tags:['8'],nodes:[{text:"<span class=\"text-muted\">Struct</span> blazing_allocation",href:"structral_1_1memory_1_1blazing__allocation.html#exhale-struct-structral-1-1memory-1-1blazing-allocation",selectable:false},{text:"<span class=\"text-muted\">Struct</span> blazing_allocation_chunk",href:"structral_1_1memory_1_1blazing__allocation__chunk.html#exhale-struct-structral-1-1memory-1-1blazing-allocation-chunk",selectable:false},{text:"<span class=\"text-muted\">Struct</span> blazing_chunked_column_info",href:"structral_1_1memory_1_1blazing__chunked__column__info.html#exhale-struct-structral-1-1memory-1-1blazing-chunked-column-info",selectable:false},{text:"<span class=\"text-muted\">Class</span> allocation_pool",href:"classral_1_1memory_1_1allocation__pool.html#exhale-class-classral-1-1memory-1-1allocation-pool",selectable:false},{text:"<span class=\"text-muted\">Class</span> base_allocator",href:"classral_1_1memory_1_1base__allocator.html#exhale-class-classral-1-1memory-1-1base-allocator",selectable:false},{text:"<span class=\"text-muted\">Class</span> buffer_providers",href:"classral_1_1memory_1_1buffer__providers.html#exhale-class-classral-1-1memory-1-1buffer-providers",selectable:false},{text:"<span class=\"text-muted\">Class</span> host_allocator",href:"classral_1_1memory_1_1host__allocator.html#exhale-class-classral-1-1memory-1-1host-allocator",selectable:false},{text:"<span class=\"text-muted\">Class</span> pinned_allocator",href:"classral_1_1memory_1_1pinned__allocator.html#exhale-class-classral-1-1memory-1-1pinned-allocator",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> ral::processor",href:"namespace_ral__processor.html#namespace-ral-processor",selectable:false,tags:['3'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> ral::processor::strings",href:"namespace_ral__processor__strings.html#namespace-ral-processor-strings",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Struct</span> cast_to_str_functor",href:"structral_1_1processor_1_1strings_1_1cast__to__str__functor.html#exhale-struct-structral-1-1processor-1-1strings-1-1cast-to-str-functor",selectable:false}]},{text:"<span class=\"text-muted\">Struct</span> expr_output_type_visitor",href:"structral_1_1processor_1_1expr__output__type__visitor.html#exhale-struct-structral-1-1processor-1-1expr-output-type-visitor",selectable:false},{text:"<span class=\"text-muted\">Class</span> function_evaluator_transformer",href:"classral_1_1processor_1_1function__evaluator__transformer.html#exhale-class-classral-1-1processor-1-1function-evaluator-transformer",selectable:false}]},{text:"<span class=\"text-muted\">Class</span> MemoryMonitor",href:"classral_1_1MemoryMonitor.html#exhale-class-classral-1-1MemoryMonitor",selectable:false}]},{text:"<span class=\"text-muted\">Namespace</span> strings",href:"namespace_strings.html#namespace-strings",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> strings::detail",href:"namespace_strings__detail.html#namespace-strings-detail",selectable:false,tags:['1'],nodes:[{text:"<span class=\"text-muted\">Namespace</span> strings::detail::@143",href:"namespace_strings__detail__@143.html#namespace-strings-detail-@143",selectable:false,tags:['3'],nodes:[{text:"<span class=\"text-muted\">Enum</span> format_char_type",href:"enum_scalar__timestamp__parser_8cpp_1a361eff37b1b4a4ce6cad83eb4fc616fe.html#exhale-enum-scalar-timestamp-parser-8cpp-1a361eff37b1b4a4ce6cad83eb4fc616fe",selectable:false},{text:"<span class=\"text-muted\">Enum</span> timestamp_parse_component",href:"enum_scalar__timestamp__parser_8cpp_1ace22078cf8019b7cef59777be1ab78f0.html#exhale-enum-scalar-timestamp-parser-8cpp-1ace22078cf8019b7cef59777be1ab78f0",selectable:false},{text:"<span class=\"text-muted\">Enum</span> timestamp_units",href:"enum_scalar__timestamp__parser_8cpp_1ad8df51004d045a3a61bd68680aadaa1a.html#exhale-enum-scalar-timestamp-parser-8cpp-1ad8df51004d045a3a61bd68680aadaa1a",selectable:false}]}]}]},{text:"<span class=\"text-muted\">Struct</span> BlazingMissingMetadataException",href:"structBlazingMissingMetadataException.html#exhale-struct-structBlazingMissingMetadataException",selectable:false},{text:"<span class=\"text-muted\">Class</span> blazing_context_ref_counter",href:"classblazing__context__ref__counter.html#exhale-class-classblazing-context-ref-counter",selectable:false},{text:"<span class=\"text-muted\">Class</span> blazing_device_memory_resource",href:"classblazing__device__memory__resource.html#exhale-class-classblazing-device-memory-resource",selectable:false},{text:"<span class=\"text-muted\">Class</span> blazing_disk_memory_resource",href:"classblazing__disk__memory__resource.html#exhale-class-classblazing-disk-memory-resource",selectable:false},{text:"<span class=\"text-muted\">Class</span> blazing_host_memory_resource",href:"classblazing__host__memory__resource.html#exhale-class-classblazing-host-memory-resource",selectable:false},{text:"<span class=\"text-muted\">Class</span> BlazingMemoryResource",href:"classBlazingMemoryResource.html#exhale-class-classBlazingMemoryResource",selectable:false},{text:"<span class=\"text-muted\">Class</span> CodeTimer",href:"classCodeTimer.html#exhale-class-classCodeTimer",selectable:false},{text:"<span class=\"text-muted\">Class</span> DataParser",href:"classDataParser.html#exhale-class-classDataParser",selectable:false},{text:"<span class=\"text-muted\">Class</span> internal_blazing_device_memory_resource",href:"classinternal__blazing__device__memory__resource.html#exhale-class-classinternal-blazing-device-memory-resource",selectable:false},{text:"<span class=\"text-muted\">Class</span> internal_blazing_host_memory_resource",href:"classinternal__blazing__host__memory__resource.html#exhale-class-classinternal-blazing-host-memory-resource",selectable:false},{text:"<span class=\"text-muted\">Enum</span> _error",href:"enum_error_8hpp_1a43b1a8391d990a85e89d3ad398e7aa3a.html#exhale-enum-error-8hpp-1a43b1a8391d990a85e89d3ad398e7aa3a",selectable:false},{text:"<span class=\"text-muted\">Enum</span> AggregateKind",href:"enum_GroupBy_8h_1ac8bfc4c26d1861a70e765e84d7d3603f.html#exhale-enum-GroupBy-8h-1ac8bfc4c26d1861a70e765e84d7d3603f",selectable:false},{text:"<span class=\"text-muted\">Enum</span> operator_type",href:"enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#exhale-enum-expression-utils-8hpp-1aa4e0b391dad4cb8871271b6d6374fc3e",selectable:false},
+     ]
+  }
+</script><!-- end getClassHierarchyTree() function --></div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

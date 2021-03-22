@@ -1,0 +1,205 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classcomm_1_1message__listener" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>comm::message_listener</compoundname>
+    <derivedcompoundref refid="classcomm_1_1tcp__message__listener" prot="public" virt="non-virtual">comm::tcp_message_listener</derivedcompoundref>
+    <derivedcompoundref refid="classcomm_1_1ucx__message__listener" prot="public" virt="non-virtual">comm::ucx_message_listener</derivedcompoundref>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classcomm_1_1message__listener_1a6e8f1381cd7585997d1f1aee581fcc49" prot="protected" static="no" mutable="no">
+        <type><ref refid="classctpl_1_1thread__pool" kindref="compound">ctpl::thread_pool</ref>&lt; BlazingThread &gt;</type>
+        <definition>ctpl::thread_pool&lt;BlazingThread&gt; comm::message_listener::pool</definition>
+        <argsstring></argsstring>
+        <name>pool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="29" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__listener_1a70b3d8a4795e455e5a29c54beeca66cd" prot="protected" static="no" mutable="no">
+        <type>std::map&lt; std::string, <ref refid="classcomm_1_1node" kindref="compound">comm::node</ref> &gt;</type>
+        <definition>std::map&lt;std::string, comm::node&gt; comm::message_listener::_nodes_info_map</definition>
+        <argsstring></argsstring>
+        <name>_nodes_info_map</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="30" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__listener_1ab8b2a61fd9c0095157ab189b17c81004" prot="protected" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool comm::message_listener::polling_started</definition>
+        <argsstring></argsstring>
+        <name>polling_started</name>
+        <initializer>{false}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="31" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__listener_1a4a2db537e1dacb6d09316cc8bd275127" prot="protected" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; comm::message_listener::input_cache</definition>
+        <argsstring></argsstring>
+        <name>input_cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="32" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classcomm_1_1message__listener_1abe358e40ea447e4e136a06723292a4b4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>comm::message_listener::message_listener</definition>
+        <argsstring>(const std::map&lt; std::string, comm::node &gt; &amp;nodes, int num_threads, std::shared_ptr&lt; ral::cache::CacheMachine &gt; input_cache)</argsstring>
+        <name>message_listener</name>
+        <param>
+          <type>const std::map&lt; std::string, <ref refid="classcomm_1_1node" kindref="compound">comm::node</ref> &gt; &amp;</type>
+          <declname>nodes</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>num_threads</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>input_cache</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="17" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="17" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__listener_1a40161e8c56ca33e0d92484a4530a0aab" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual comm::message_listener::~message_listener</definition>
+        <argsstring>()</argsstring>
+        <name>~message_listener</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="18" bodyend="20"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__listener_1ae9441738eec1d127db8e431e7e3d9408" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void comm::message_listener::start_polling</definition>
+        <argsstring>()=0</argsstring>
+        <name>start_polling</name>
+        <reimplementedby refid="classcomm_1_1tcp__message__listener_1a09c9209787edf88d56958759d41bd024">start_polling</reimplementedby>
+        <reimplementedby refid="classcomm_1_1ucx__message__listener_1af1a4505bc00a67076d7376543c88ce55">start_polling</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="21" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__listener_1a8d3c1efd23d57d7aebe2afa3da5cacae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classctpl_1_1thread__pool" kindref="compound">ctpl::thread_pool</ref>&lt; BlazingThread &gt; &amp;</type>
+        <definition>ctpl::thread_pool&lt; BlazingThread &gt; &amp; comm::message_listener::get_pool</definition>
+        <argsstring>()</argsstring>
+        <name>get_pool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="22" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp" bodystart="11" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__listener_1a8ebc28c2a76f06ffca9c1ea0762a5444" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::map&lt; std::string, <ref refid="classcomm_1_1node" kindref="compound">comm::node</ref> &gt;</type>
+        <definition>std::map&lt; std::string, comm::node &gt; comm::message_listener::get_node_map</definition>
+        <argsstring>()</argsstring>
+        <name>get_node_map</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp" bodystart="15" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__listener_1ad295581719c46ec96282bfc927b492ea" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; comm::message_listener::get_input_cache</definition>
+        <argsstring>()</argsstring>
+        <name>get_input_cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="24" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="24" bodyend="26"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="307">
+        <label>comm::tcp_message_listener</label>
+        <link refid="classcomm_1_1tcp__message__listener"/>
+        <childnode refid="306" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="308">
+        <label>comm::ucx_message_listener</label>
+        <link refid="classcomm_1_1ucx__message__listener"/>
+        <childnode refid="306" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="306">
+        <label>comm::message_listener</label>
+        <link refid="classcomm_1_1message__listener"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="310">
+        <label>ctpl::thread_pool&lt; BlazingThread &gt;</label>
+        <link refid="classctpl_1_1thread__pool"/>
+      </node>
+      <node id="309">
+        <label>comm::message_listener</label>
+        <link refid="classcomm_1_1message__listener"/>
+        <childnode refid="310" relation="usage">
+          <edgelabel>pool</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" line="15" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp" bodystart="15" bodyend="33"/>
+    <listofallmembers>
+      <member refid="classcomm_1_1message__listener_1a70b3d8a4795e455e5a29c54beeca66cd" prot="protected" virt="non-virtual"><scope>comm::message_listener</scope><name>_nodes_info_map</name></member>
+      <member refid="classcomm_1_1message__listener_1ad295581719c46ec96282bfc927b492ea" prot="public" virt="non-virtual"><scope>comm::message_listener</scope><name>get_input_cache</name></member>
+      <member refid="classcomm_1_1message__listener_1a8ebc28c2a76f06ffca9c1ea0762a5444" prot="public" virt="non-virtual"><scope>comm::message_listener</scope><name>get_node_map</name></member>
+      <member refid="classcomm_1_1message__listener_1a8d3c1efd23d57d7aebe2afa3da5cacae" prot="public" virt="non-virtual"><scope>comm::message_listener</scope><name>get_pool</name></member>
+      <member refid="classcomm_1_1message__listener_1a4a2db537e1dacb6d09316cc8bd275127" prot="protected" virt="non-virtual"><scope>comm::message_listener</scope><name>input_cache</name></member>
+      <member refid="classcomm_1_1message__listener_1abe358e40ea447e4e136a06723292a4b4" prot="public" virt="non-virtual"><scope>comm::message_listener</scope><name>message_listener</name></member>
+      <member refid="classcomm_1_1message__listener_1ab8b2a61fd9c0095157ab189b17c81004" prot="protected" virt="non-virtual"><scope>comm::message_listener</scope><name>polling_started</name></member>
+      <member refid="classcomm_1_1message__listener_1a6e8f1381cd7585997d1f1aee581fcc49" prot="protected" virt="non-virtual"><scope>comm::message_listener</scope><name>pool</name></member>
+      <member refid="classcomm_1_1message__listener_1ae9441738eec1d127db8e431e7e3d9408" prot="public" virt="pure-virtual"><scope>comm::message_listener</scope><name>start_polling</name></member>
+      <member refid="classcomm_1_1message__listener_1a40161e8c56ca33e0d92484a4530a0aab" prot="public" virt="virtual"><scope>comm::message_listener</scope><name>~message_listener</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

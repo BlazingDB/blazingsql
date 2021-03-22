@@ -1,0 +1,77 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_orc_metadata.cpp:
+
+File orc_metadata.cpp
+=====================
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.cpp``)
+---------------------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_orc_metadata.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/column/column_factories.hpp``
+
+- ``cudf/detail/utilities/vector_factories.hpp``
+
+- ``numeric``
+
+- ``orc_metadata.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_orc_metadata.h`)
+
+- ``utilities/CommonOperations.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_utilities_CommonOperations.h`)
+
+
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a61842c811e058f656a82826436a9cb43`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1abf582c72cc7b89dd926de49c0e12627c`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a93bc730130f941476b42f28ff6a38477`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a92f8778c9e68688ce22df6a1e70e85d0`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a3587ab7d35c3eafab6fe361b35a54e9a`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1acf54d81974786b8070761033ef88496f`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1ab99b3c0f3df40cca8d4e6fba33611c26`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a0e1706567e9dbeb81a10f76023414fb4`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a9bd5e4ae134c7423380de638769fb69c`
+
+- :ref:`exhale_function_orc__metadata_8cpp_1a59c282fb2fa41de72c4dcb34056b7da5`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_orc__metadata_8cpp_1ac3dca623419ba8048733b879b3a64c99`
+

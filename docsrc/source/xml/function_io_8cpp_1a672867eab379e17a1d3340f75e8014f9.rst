@@ -1,0 +1,13 @@
+.. _exhale_function_io_8cpp_1a672867eab379e17a1d3340f75e8014f9:
+
+Function parseSchema
+====================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_io.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: parseSchema(std::vector<std::string>, std::string, std::vector<std::string>, std::vector<std::string>, std::vector<std::pair<std::string, cudf::type_id>>, bool)

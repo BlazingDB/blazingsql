@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_0efe17b1f30c80e67d38c23abf3a2aac" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers</compoundname>
+    <innerdir refid="dir_af0087bc630322b1f17a592eb365efb6">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow</innerdir>
+    <innerfile refid="BatchAggregationProcessing_8cpp">BatchAggregationProcessing.cpp</innerfile>
+    <innerfile refid="BatchAggregationProcessing_8h">BatchAggregationProcessing.h</innerfile>
+    <innerfile refid="BatchJoinProcessing_8cpp">BatchJoinProcessing.cpp</innerfile>
+    <innerfile refid="BatchJoinProcessing_8h">BatchJoinProcessing.h</innerfile>
+    <innerfile refid="BatchOrderByProcessing_8cpp">BatchOrderByProcessing.cpp</innerfile>
+    <innerfile refid="BatchOrderByProcessing_8h">BatchOrderByProcessing.h</innerfile>
+    <innerfile refid="BatchProcessing_8cpp">BatchProcessing.cpp</innerfile>
+    <innerfile refid="BatchProcessing_8h">BatchProcessing.h</innerfile>
+    <innerfile refid="BatchUnionProcessing_8cpp">BatchUnionProcessing.cpp</innerfile>
+    <innerfile refid="BatchUnionProcessing_8h">BatchUnionProcessing.h</innerfile>
+    <innerfile refid="BatchWindowFunctionProcessing_8cpp">BatchWindowFunctionProcessing.cpp</innerfile>
+    <innerfile refid="BatchWindowFunctionProcessing_8h">BatchWindowFunctionProcessing.h</innerfile>
+    <innerfile refid="BlazingColumn_8h">BlazingColumn.h</innerfile>
+    <innerfile refid="BlazingColumnOwner_8cpp">BlazingColumnOwner.cpp</innerfile>
+    <innerfile refid="BlazingColumnOwner_8h">BlazingColumnOwner.h</innerfile>
+    <innerfile refid="BlazingColumnView_8h">BlazingColumnView.h</innerfile>
+    <innerfile refid="BlazingHostTable_8cpp">BlazingHostTable.cpp</innerfile>
+    <innerfile refid="BlazingHostTable_8h">BlazingHostTable.h</innerfile>
+    <innerfile refid="CacheData_8cpp">CacheData.cpp</innerfile>
+    <innerfile refid="CacheData_8h">CacheData.h</innerfile>
+    <innerfile refid="CacheMachine_8cpp">CacheMachine.cpp</innerfile>
+    <innerfile refid="CacheMachine_8h">CacheMachine.h</innerfile>
+    <innerfile refid="LogicalFilter_8cpp">LogicalFilter.cpp</innerfile>
+    <innerfile refid="LogicalFilter_8h">LogicalFilter.h</innerfile>
+    <innerfile refid="LogicalProject_8cpp">LogicalProject.cpp</innerfile>
+    <innerfile refid="LogicalProject_8h">LogicalProject.h</innerfile>
+    <innerfile refid="LogicPrimitives_8cpp">LogicPrimitives.cpp</innerfile>
+    <innerfile refid="LogicPrimitives_8h">LogicPrimitives.h</innerfile>
+    <innerfile refid="PhysicalPlanGenerator_8h">PhysicalPlanGenerator.h</innerfile>
+    <innerfile refid="WaitingQueue_8h">WaitingQueue.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/"/>
+  </compounddef>
+</doxygen>

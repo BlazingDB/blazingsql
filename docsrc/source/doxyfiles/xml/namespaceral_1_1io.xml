@@ -1,0 +1,373 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceral_1_1io" kind="namespace" language="C++">
+    <compoundname>ral::io</compoundname>
+    <innerclass refid="classral_1_1io_1_1arrow__parser" prot="public">ral::io::arrow_parser</innerclass>
+    <innerclass refid="classral_1_1io_1_1csv__parser" prot="public">ral::io::csv_parser</innerclass>
+    <innerclass refid="structral_1_1io_1_1data__handle" prot="public">ral::io::data_handle</innerclass>
+    <innerclass refid="classral_1_1io_1_1data__loader" prot="public">ral::io::data_loader</innerclass>
+    <innerclass refid="classral_1_1io_1_1data__parser" prot="public">ral::io::data_parser</innerclass>
+    <innerclass refid="classral_1_1io_1_1data__provider" prot="public">ral::io::data_provider</innerclass>
+    <innerclass refid="classral_1_1io_1_1dummy__data__provider" prot="public">ral::io::dummy_data_provider</innerclass>
+    <innerclass refid="classral_1_1io_1_1gdf__data__provider" prot="public">ral::io::gdf_data_provider</innerclass>
+    <innerclass refid="classral_1_1io_1_1gdf__parser" prot="public">ral::io::gdf_parser</innerclass>
+    <innerclass refid="classral_1_1io_1_1json__parser" prot="public">ral::io::json_parser</innerclass>
+    <innerclass refid="classral_1_1io_1_1orc__parser" prot="public">ral::io::orc_parser</innerclass>
+    <innerclass refid="classral_1_1io_1_1parquet__parser" prot="public">ral::io::parquet_parser</innerclass>
+    <innerclass refid="classral_1_1io_1_1Schema" prot="public">ral::io::Schema</innerclass>
+    <innerclass refid="classral_1_1io_1_1uri__data__provider" prot="public">ral::io::uri_data_provider</innerclass>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81" prot="public" static="no">
+        <name>DataType</name>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a9cb439b9fd62f0c2adc7ccb457fd4949" prot="public">
+          <name>UNDEFINED</name>
+          <initializer>= 999</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a60d6a6154afa059636488f75a95ab78a" prot="public">
+          <name>PARQUET</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81ad89e12a09f616bd8b3e7f7c3247f04e4" prot="public">
+          <name>ORC</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a2e26a7c9913716f40eda0aa0f329102b" prot="public">
+          <name>CSV</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81aa92d922d1f5de7b747eba25ccb674fe1" prot="public">
+          <name>JSON</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81af7e8f213caf31d091972e9af52bce0ed" prot="public">
+          <name>CUDF</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81abf70176a1a5e604c743fb48c46a1e199" prot="public">
+          <name>DASK_CUDF</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a1bf2c4eb945117cdc1de5363c7b2acad" prot="public">
+          <name>ARROW</name>
+          <initializer>= 6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataType.h" line="7" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataType.h" bodystart="7" bodyend="7"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a60f8a1a41a4e1af64f8ff15e616e45b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>DataType</type>
+        <definition>DataType ral::io::inferDataType</definition>
+        <argsstring>(std::string file_format_hint)</argsstring>
+        <name>inferDataType</name>
+        <param>
+          <type>std::string</type>
+          <declname>file_format_hint</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="11" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="11" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a2de58bece361223056a85382ea05b926" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>DataType</type>
+        <definition>DataType ral::io::inferFileType</definition>
+        <argsstring>(std::vector&lt; std::string &gt; files, DataType data_type_hint, bool ignore_missing_paths)</argsstring>
+        <name>inferFileType</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>files</declname>
+        </param>
+        <param>
+          <type>DataType</type>
+          <declname>data_type_hint</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>ignore_missing_paths</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="31" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="31" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a7f1968d0bacaf231959ee970bea24e07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::map_contains</definition>
+        <argsstring>(std::string key, std::map&lt; std::string, std::string &gt; args)</argsstring>
+        <name>map_contains</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>std::map&lt; std::string, std::string &gt;</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="49" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="49" bodyend="49"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a4edc1ec9bb0bd72d5be8d7d8dc063a9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::to_bool</definition>
+        <argsstring>(std::string value)</argsstring>
+        <name>to_bool</name>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="51" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="51" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a73013ac0c543a4481db2c9c35f0ded90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>char</type>
+        <definition>char ral::io::ord</definition>
+        <argsstring>(std::string value)</argsstring>
+        <name>ord</name>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="59" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a99ef3d0f03b1b76bb6a64374519a5b65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ral::io::to_int</definition>
+        <argsstring>(std::string value)</argsstring>
+        <name>to_int</name>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="61" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="61" bodyend="61"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1aae1b17e5ca08ead191713f5d177d3629" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt; std::string &gt; ral::io::to_vector_string</definition>
+        <argsstring>(std::string value)</argsstring>
+        <name>to_vector_string</name>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="63" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="63" bodyend="70"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1aadd6d0c6c51ed55590b2665df168f74d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; ral::io::to_vector_int</definition>
+        <argsstring>(std::string value)</argsstring>
+        <name>to_vector_int</name>
+        <param>
+          <type>std::string</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="72" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="72" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a11edc1f5eed8fe67aa8f6ca4dd905d8b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::io::json_reader_options</type>
+        <definition>cudf::io::json_reader_options ral::io::getJsonReaderOptions</definition>
+        <argsstring>(const std::map&lt; std::string, std::string &gt; &amp;args, cudf::io::arrow_io_source &amp;arrow_source)</argsstring>
+        <name>getJsonReaderOptions</name>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <param>
+          <type>cudf::io::arrow_io_source &amp;</type>
+          <declname>arrow_source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="79" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="79" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1aa0296cfb7e317aab580f0a31238af33f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::io::orc_reader_options</type>
+        <definition>cudf::io::orc_reader_options ral::io::getOrcReaderOptions</definition>
+        <argsstring>(const std::map&lt; std::string, std::string &gt; &amp;args, cudf::io::arrow_io_source &amp;arrow_source)</argsstring>
+        <name>getOrcReaderOptions</name>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <param>
+          <type>cudf::io::arrow_io_source &amp;</type>
+          <declname>arrow_source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="104" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="104" bodyend="122"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1abe1a7bf84069fedb46ce55b5f4c53cec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::io::csv_reader_options</type>
+        <definition>cudf::io::csv_reader_options ral::io::getCsvReaderOptions</definition>
+        <argsstring>(const std::map&lt; std::string, std::string &gt; &amp;args, cudf::io::arrow_io_source &amp;arrow_source)</argsstring>
+        <name>getCsvReaderOptions</name>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <param>
+          <type>cudf::io::arrow_io_source &amp;</type>
+          <declname>arrow_source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="124" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="124" bodyend="227"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1a789e576acd9ab34d82126b236fdc6929" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::map&lt; std::string, std::string &gt;</type>
+        <definition>std::map&lt; std::string, std::string &gt; ral::io::to_map</definition>
+        <argsstring>(std::vector&lt; std::string &gt; arg_keys, std::vector&lt; std::string &gt; arg_values)</argsstring>
+        <name>to_map</name>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>arg_keys</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::string &gt;</type>
+          <declname>arg_values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="229" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="229" bodyend="235"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8cpp_1ab3471859a4fed557f91279ed0cc74b0b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::io::getDataTypeName</definition>
+        <argsstring>(DataType dataType)</argsstring>
+        <name>getDataTypeName</name>
+        <param>
+          <type>DataType</type>
+          <declname>dataType</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="237" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" bodystart="237" bodyend="249"/>
+      </memberdef>
+      <memberdef kind="function" id="ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::io::in</definition>
+        <argsstring>(std::string key, std::map&lt; std::string, std::string &gt; args)</argsstring>
+        <name>in</name>
+        <param>
+          <type>std::string</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>std::map&lt; std::string, std::string &gt;</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.h" line="17" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp" line="9" column="1"/>
+  </compounddef>
+</doxygen>

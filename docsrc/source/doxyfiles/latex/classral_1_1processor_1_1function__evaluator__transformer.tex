@@ -1,0 +1,53 @@
+\hypertarget{classral_1_1processor_1_1function__evaluator__transformer}{}\section{ral\+:\+:processor\+:\+:function\+\_\+evaluator\+\_\+transformer Class Reference}
+\label{classral_1_1processor_1_1function__evaluator__transformer}\index{ral\+::processor\+::function\+\_\+evaluator\+\_\+transformer@{ral\+::processor\+::function\+\_\+evaluator\+\_\+transformer}}
+
+
+A class that traverses an expression tree and prunes nodes that can\textquotesingle{}t be evaluated by the interpreter.  
+
+
+
+
+Inheritance diagram for ral\+:\+:processor\+:\+:function\+\_\+evaluator\+\_\+transformer\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{classral_1_1processor_1_1function__evaluator__transformer__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:processor\+:\+:function\+\_\+evaluator\+\_\+transformer\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{classral_1_1processor_1_1function__evaluator__transformer__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1processor_1_1function__evaluator__transformer_a3c389ffcf498cb6a76a0dcd1959c34e9}\label{classral_1_1processor_1_1function__evaluator__transformer_a3c389ffcf498cb6a76a0dcd1959c34e9}} 
+{\bfseries function\+\_\+evaluator\+\_\+transformer} (const cudf\+::table\+\_\+view \&table)
+\item 
+\mbox{\Hypertarget{classral_1_1processor_1_1function__evaluator__transformer_a7cf33e05533d71d24ccac6510d1a35b2}\label{classral_1_1processor_1_1function__evaluator__transformer_a7cf33e05533d71d24ccac6510d1a35b2}} 
+parser\+::node $\ast$ {\bfseries transform} (parser\+::operad\+\_\+node \&node) override
+\item 
+\mbox{\Hypertarget{classral_1_1processor_1_1function__evaluator__transformer_abc3cddc8139b9a7a8d48712cc092c19e}\label{classral_1_1processor_1_1function__evaluator__transformer_abc3cddc8139b9a7a8d48712cc092c19e}} 
+parser\+::node $\ast$ {\bfseries transform} (parser\+::operator\+\_\+node \&node) override
+\item 
+\mbox{\Hypertarget{classral_1_1processor_1_1function__evaluator__transformer_a8084c67c14a0da853c6134ca3089b6cb}\label{classral_1_1processor_1_1function__evaluator__transformer_a8084c67c14a0da853c6134ca3089b6cb}} 
+cudf\+::table\+\_\+view {\bfseries computed\+\_\+columns\+\_\+view} ()
+\item 
+\mbox{\Hypertarget{classral_1_1processor_1_1function__evaluator__transformer_a89644d653fd4601d224486e82589530d}\label{classral_1_1processor_1_1function__evaluator__transformer_a89644d653fd4601d224486e82589530d}} 
+std\+::vector$<$ std\+::unique\+\_\+ptr$<$ cudf\+::column $>$ $>$ {\bfseries release\+\_\+computed\+\_\+columns} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A class that traverses an expression tree and prunes nodes that can\textquotesingle{}t be evaluated by the interpreter. 
+
+Any complex operation that can\textquotesingle{}t be evaluated by the interpreter (e.\+g. string functions) is evaluated here and its corresponding node replaced by a new node containing the result of the operation 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Logical\+Project.\+cpp\end{DoxyCompactItemize}

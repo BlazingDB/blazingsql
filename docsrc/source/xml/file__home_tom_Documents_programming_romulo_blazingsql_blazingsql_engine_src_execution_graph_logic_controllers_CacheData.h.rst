@@ -1,0 +1,158 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheData.h:
+
+File CacheData.h
+================
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h``)
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheData.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``CodeTimer.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_CodeTimer.h`)
+
+- ``atomic``
+
+- ``bmr/BlazingMemoryResource.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_BlazingMemoryResource.h`)
+
+- ``communication/CommunicationData.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_CommunicationData.h`)
+
+- ``communication/messages/GPUComponentMessage.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_messages_GPUComponentMessage.h`)
+
+- ``condition_variable``
+
+- ``cudf/types.hpp``
+
+- ``deque``
+
+- ``error.hpp`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_error.hpp`)
+
+- ``exception``
+
+- ``execution_graph/Context.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_Context.h`)
+
+- ``execution_graph/logic_controllers/LogicPrimitives.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+- ``io/data_parser/DataParser.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_DataParser.h`)
+
+- ``io/data_provider/DataProvider.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_provider_DataProvider.h`)
+
+- ``map``
+
+- ``memory``
+
+- ``mutex``
+
+- ``spdlog/spdlog.h``
+
+- ``string``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__cache`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1cache_1_1CacheData`
+
+- :ref:`exhale_class_classral_1_1cache_1_1CacheDataIO`
+
+- :ref:`exhale_class_classral_1_1cache_1_1CacheDataLocalFile`
+
+- :ref:`exhale_class_classral_1_1cache_1_1ConcatCacheData`
+
+- :ref:`exhale_class_classral_1_1cache_1_1CPUCacheData`
+
+- :ref:`exhale_class_classral_1_1cache_1_1GPUCacheData`
+
+- :ref:`exhale_class_classral_1_1cache_1_1message`
+
+- :ref:`exhale_class_classral_1_1cache_1_1MetadataDictionary`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_CacheData_8h_1ade29b85c2552b60c19a21969d5b9f8cb`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_CacheData_8h_1a72d523e2fe0c552233eb3019c7937382`
+
+- :ref:`exhale_variable_CacheData_8h_1ad9c85032e02e6d40e3ed40ff67aea0b1`
+
+- :ref:`exhale_variable_CacheData_8h_1a21ed6bd6cb8c1e4101f562b966a3e3b5`
+
+- :ref:`exhale_variable_CacheData_8h_1a9ed4de4b12a7814127b8c8eec0c30e89`
+
+- :ref:`exhale_variable_CacheData_8h_1a38477827c60fbd3e882b0fea0142a6c6`
+
+- :ref:`exhale_variable_CacheData_8h_1a0618edb0637edcd74500004d90a3ef12`
+
+- :ref:`exhale_variable_CacheData_8h_1ab3dda6486c9b463f1f55ad2f00e6abbc`
+
+- :ref:`exhale_variable_CacheData_8h_1a29674a4c7028bf58df89486f31769f3c`
+
+- :ref:`exhale_variable_CacheData_8h_1a3769c671d7b9e3eda2e06cf930ea7ee1`
+
+- :ref:`exhale_variable_CacheData_8h_1ac320f524b86bf7515998ffe8a386b576`
+
+- :ref:`exhale_variable_CacheData_8h_1a68ddd087913a7ad5e3b92f8990167f02`
+
+- :ref:`exhale_variable_CacheData_8h_1ae31b4f46756fc76546c80cb97023d4a2`
+
+- :ref:`exhale_variable_CacheData_8h_1a708b744cc3f04d42ecf17754c4bb4bc9`
+
+- :ref:`exhale_variable_CacheData_8h_1a3c840e36d92f7b0361f9e365b512f07c`
+

@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Management &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Relational algebra" href="relational_algebra.html" />
+    <link rel="prev" title="Kernels" href="kernels.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../xml/library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+          
+            
+                <li class="">
+                    <a href="arch.html">Technology Stack</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="caches.html">Caches</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="communication.html">Communication</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="data_structures.html">Data Structures</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="executor.html">Task Executor</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="graph.html">Overview</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="interops.html">Interops</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="io.html">I/O</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="kernels.html">Kernels</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Memory Management</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="relational_algebra.html">Relational algebra</a>
+                </li>
+            
+          
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#blazingmemoryresource" class="nav-link">BlazingMemoryResource</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#memorymonitor" class="nav-link">MemoryMonitor</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#task-execution-resource-management" class="nav-link">Task Execution Resource Management</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/engine/memory_management.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="memory-management">
+<h1>Memory Management<a class="headerlink" href="#memory-management" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="blazingmemoryresource">
+<h2>BlazingMemoryResource<a class="headerlink" href="#blazingmemoryresource" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/BlazingDB/blazingsql/blob/branch-0.19//engine/src/bmr/BlazingMemoryResource.h">View in Github</a></p>
+<p>BlazingSQL has a <cite>BlazingMemoryResource</cite> interface that it uses for tracking memory consumption.
+There are three implementations <cite>blazing_device_memory_resource</cite>, <cite>blazing_host_memory_resource</cite> and <cite>blazing_disk_memory_resource</cite>
+to manange to keep track of GPU, HOST and DISK memory consumption.</p>
+<p>The <cite>blazing_device_memory_resource</cite> internally has a <cite>internal_blazing_device_memory_resource</cite> which implements the <cite>rmm::mr::device_memory_resource</cite> interface.
+When a BlazingContext() is first created it will create a new <cite>internal_blazing_device_memory_resource</cite> and set it as the default resource using <cite>rmm::mr::set_current_device_resource</cite>.</p>
+<p>What form the <cite>internal_blazing_device_memory_resource</cite> takes is dependent on what parameters are passed to <cite>BlazingContext()</cite> parameters <strong>allocator</strong> and <strong>pool</strong>.
+Different allocators settings can make the allocator use different underlying RMM allocator types. If the allocator is set to <strong>existing</strong>, then it will take the current
+default allocator that has been set and wrap it with <cite>internal_blazing_device_memory_resource</cite></p>
+<p>The <cite>blazing_host_memory_resource</cite> and <cite>blazing_disk_memory_resource</cite> only track allocations and deallocations when BSQL caches and decaches data in the CacheMachines. Therefore,
+they do not track host memory consumption or disk memory consumption by anything else in the system. Similarly, the blazing_device_memory_resource cannot track GPU memory consumption
+of anything that does not use an rmm memory resource. The blazing_device_memory_resource could be made to track all GPU memory consumption by asking the CUDA driver
+but such an implementation would not be very performant.</p>
+<p>Whenever data enters a CacheMachine, it will check the memory consumption of the three <cite>BlazingMemoryResource</cite> to see what type of <a class="reference internal" href="caches.html"><span class="doc">CacheData</span></a> to use. This is one mechanism
+employed by BSQL to manage memory consumption.</p>
+</div>
+<div class="section" id="memorymonitor">
+<h2>MemoryMonitor<a class="headerlink" href="#memorymonitor" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/BlazingDB/blazingsql/blob/branch-0.19//engine/src/bmr/MemoryMonitor.h">View in Github</a></p>
+<p>BlazingSQL has a <cite>MemoryMonitor</cite> class that it instantiates for every query that is run. This MemoryMonitor will wake up every 50ms (configurable by MEMORY_MONITOR_PERIOD)
+and check the GPU memory consumption as tracked by <cite>blazing_device_memory_resource</cite>. If memory consumption is too high, it will traverse the execution graph from the last node (final output)
+to the first nodes (TableScans) downgrading CacheData as it can, to bring GPU memory consumption underneath its threshold. Downgrading CacheData means, taking a GPU CacheData and moving
+the data to Host or Disk.</p>
+<p>The <cite>MemoryMonitor</cite> helps ensure that memory GPU consumption does not get too high and therefore helps prevent OOM errors.</p>
+</div>
+<div class="section" id="task-execution-resource-management">
+<h2>Task Execution Resource Management<a class="headerlink" href="#task-execution-resource-management" title="Permalink to this headline">¶</a></h2>
+<p>The task executor tries to ensure that when it schedules tasks to run, that it does not run out of resources. There are two configuration options that
+control how many concurrent tasks can be executred:
+- <em>EXECUTOR_THREADS</em>: This sets a hard maximum number of concurrent tasks that can be executed
+- <em>BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD</em>: This is a percent of the total GPU memory that the executor will try to stay under for starting new tasks.</p>
+<p>Before every task it will compare how much GPU memory the task will need, plus the memory already being used and compare that against this threshold.
+If the task will take it over the threshold, it will not start the task. The exception to that is that if there are no tasks running, then it will always try to run a task.
+The memory estimation for how much a task will need is the sum of the estimate of how much decacheing the inputs will need, plus an estimate of the size of the outputs, plut an estimate
+of the memory overhead needed for that algorithm. The kernel interface requires to implement the functions necessary for these memory consumption estimates.</p>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="kernels.html" title="previous page">Kernels</a>
+    <a class='right-next' id="next-link" href="relational_algebra.html" title="next page">Relational algebra</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

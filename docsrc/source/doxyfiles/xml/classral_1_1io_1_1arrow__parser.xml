@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1io_1_1arrow__parser" kind="class" language="C++" prot="public">
+    <compoundname>ral::io::arrow_parser</compoundname>
+    <basecompoundref refid="classral_1_1io_1_1data__parser" prot="public" virt="non-virtual">ral::io::data_parser</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1io_1_1arrow__parser_1a0e87c3caaa05a6f48b77f9bfba20e459" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; arrow::Table &gt;</type>
+        <definition>std::shared_ptr&lt; arrow::Table &gt; ral::io::arrow_parser::table</definition>
+        <argsstring></argsstring>
+        <name>table</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" line="30" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1io_1_1arrow__parser_1a6adb75628c932c35c5144323aed56204" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::arrow_parser::arrow_parser</definition>
+        <argsstring>(std::shared_ptr&lt; arrow::Table &gt; table)</argsstring>
+        <name>arrow_parser</name>
+        <param>
+          <type>std::shared_ptr&lt; arrow::Table &gt;</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" line="20" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.cpp" bodystart="15" bodyend="20"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1arrow__parser_1a8dc4fa4d091fe973fe0d54c35cca4d21" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>ral::io::arrow_parser::~arrow_parser</definition>
+        <argsstring>()</argsstring>
+        <name>~arrow_parser</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" line="22" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.cpp" bodystart="22" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1arrow__parser_1a64424836e1e59df80a393c77f31d1f2d" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void ral::io::arrow_parser::parse_schema</definition>
+        <argsstring>(std::shared_ptr&lt; arrow::io::RandomAccessFile &gt; file, ral::io::Schema &amp;schema)</argsstring>
+        <name>parse_schema</name>
+        <reimplements refid="classral_1_1io_1_1data__parser_1a00beeb22738fcb9f3027ca01480fec99">parse_schema</reimplements>
+        <param>
+          <type>std::shared_ptr&lt; arrow::io::RandomAccessFile &gt;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1io_1_1Schema" kindref="compound">ral::io::Schema</ref> &amp;</type>
+          <declname>schema</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" line="24" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.cpp" bodystart="24" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1arrow__parser_1aa01d534dac941d08da9b4b9786e75ada" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>DataType</type>
+        <definition>DataType ral::io::arrow_parser::type</definition>
+        <argsstring>() const override</argsstring>
+        <name>type</name>
+        <reimplements refid="classral_1_1io_1_1data__parser_1adb75d2db677272a1d26ab29bfd5dd954">type</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" line="27" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" bodystart="27" bodyend="27"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="14">
+        <label>ral::io::arrow_parser</label>
+        <link refid="classral_1_1io_1_1arrow__parser"/>
+        <childnode refid="15" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>ral::io::data_parser</label>
+        <link refid="classral_1_1io_1_1data__parser"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="16">
+        <label>ral::io::arrow_parser</label>
+        <link refid="classral_1_1io_1_1arrow__parser"/>
+        <childnode refid="17" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>ral::io::data_parser</label>
+        <link refid="classral_1_1io_1_1data__parser"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/ArrowParser.h" bodystart="18" bodyend="31"/>
+    <listofallmembers>
+      <member refid="classral_1_1io_1_1arrow__parser_1a6adb75628c932c35c5144323aed56204" prot="public" virt="non-virtual"><scope>ral::io::arrow_parser</scope><name>arrow_parser</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1a3baa7b548a8709c3604a4164c2a747d0" prot="public" virt="virtual"><scope>ral::io::arrow_parser</scope><name>get_metadata</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1abdb1c7acce3b3ad154252a94053921bb" prot="public" virt="virtual"><scope>ral::io::arrow_parser</scope><name>get_num_partitions</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1a0c91feb81678403e9fd44076869c8ea2" prot="public" virt="virtual"><scope>ral::io::arrow_parser</scope><name>parse_batch</name></member>
+      <member refid="classral_1_1io_1_1arrow__parser_1a64424836e1e59df80a393c77f31d1f2d" prot="public" virt="virtual"><scope>ral::io::arrow_parser</scope><name>parse_schema</name></member>
+      <member refid="classral_1_1io_1_1arrow__parser_1a0e87c3caaa05a6f48b77f9bfba20e459" prot="private" virt="non-virtual"><scope>ral::io::arrow_parser</scope><name>table</name></member>
+      <member refid="classral_1_1io_1_1arrow__parser_1aa01d534dac941d08da9b4b9786e75ada" prot="public" virt="virtual"><scope>ral::io::arrow_parser</scope><name>type</name></member>
+      <member refid="classral_1_1io_1_1arrow__parser_1a8dc4fa4d091fe973fe0d54c35cca4d21" prot="public" virt="virtual"><scope>ral::io::arrow_parser</scope><name>~arrow_parser</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

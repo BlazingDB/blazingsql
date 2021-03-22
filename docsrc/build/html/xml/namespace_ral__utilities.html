@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Namespace ral::utilities &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Namespace std::chrono_literals" href="namespace_std__chrono_literals.html" />
+    <link rel="prev" title="Namespace ral::skip_data::@128" href="namespace_ral__skip_data__%40128.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#functions" class="nav-link">Functions</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/namespace_ral__utilities.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="namespace-ral-utilities">
+<span id="id1"></span><h1>Namespace ral::utilities<a class="headerlink" href="#namespace-ral-utilities" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#functions" id="id2">Functions</a></p></li>
+</ul>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="function_DebuggingUtils_8cpp_1aae53a21cf9e4abfde92c313eba5765f4.html#exhale-function-debuggingutils-8cpp-1aae53a21cf9e4abfde92c313eba5765f4"><span class="std std-ref">Function ral::utilities::blazing_table_view_schema_to_string</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30.html#exhale-function-commonoperations-8cpp-1ab00fe34826431aae403ba8d00cf84e30"><span class="std std-ref">Function ral::utilities::checkIfConcatenatingStringsWillOverflow(const std::vector&lt;BlazingTableView&gt;&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec.html#exhale-function-commonoperations-8cpp-1a617a940d7e62ec983d9a4438fbe52dec"><span class="std std-ref">Function ral::utilities::checkIfConcatenatingStringsWillOverflow(const std::vector&lt;std::unique_ptr&lt;BlazingTable&gt;&gt;&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4.html#exhale-function-commonoperations-8cpp-1ac24210f1ed2385d943983435eae2c4d4"><span class="std std-ref">Function ral::utilities::concatTables</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1a38409d742b076f7ef66a4b7ad79e014a.html#exhale-function-commonoperations-8cpp-1a38409d742b076f7ef66a4b7ad79e014a"><span class="std std-ref">Function ral::utilities::create_empty_table(const std::vector&lt;cudf::type_id&gt;&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1a9047f7579abb1d46982975ba6d28014c.html#exhale-function-commonoperations-8cpp-1a9047f7579abb1d46982975ba6d28014c"><span class="std std-ref">Function ral::utilities::create_empty_table(const BlazingTableView&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1a66244d6370e7cf9ec7bc2a4488f95446.html#exhale-function-commonoperations-8cpp-1a66244d6370e7cf9ec7bc2a4488f95446"><span class="std std-ref">Function ral::utilities::create_empty_table(const std::vector&lt;std::string&gt;&amp;, const std::vector&lt;cudf::data_type&gt;&amp;, std::vector&lt;size_t&gt;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1a4e6f3dc33119de69fdf488a1dd3c10dc.html#exhale-function-commonoperations-8cpp-1a4e6f3dc33119de69fdf488a1dd3c10dc"><span class="std std-ref">Function ral::utilities::get_common_type</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1acce09bf9c7e7c2a7dabec6b1970b8ecd.html#exhale-function-commonoperations-8cpp-1acce09bf9c7e7c2a7dabec6b1970b8ecd"><span class="std std-ref">Function ral::utilities::get_common_types</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8cpp_1a49683cfdf8de653c9d617ec7a18cbf98.html#exhale-function-commonoperations-8cpp-1a49683cfdf8de653c9d617ec7a18cbf98"><span class="std std-ref">Function ral::utilities::normalize_types</span></a></p></li>
+<li><p><a class="reference internal" href="function_DebuggingUtils_8cpp_1a14c4a859e890df3354f896036faba9d3.html#exhale-function-debuggingutils-8cpp-1a14c4a859e890df3354f896036faba9d3"><span class="std std-ref">Function ral::utilities::print_blazing_table_view</span></a></p></li>
+<li><p><a class="reference internal" href="function_DebuggingUtils_8cpp_1ab23b9b7297171d7af6359664f7cc0a9c.html#exhale-function-debuggingutils-8cpp-1ab23b9b7297171d7af6359664f7cc0a9c"><span class="std std-ref">Function ral::utilities::print_blazing_table_view_schema</span></a></p></li>
+<li><p><a class="reference internal" href="function_transform_8hpp_1a1bb9219d5a89f946963b97a535707911.html#exhale-function-transform-8hpp-1a1bb9219d5a89f946963b97a535707911"><span class="std std-ref">Function ral::utilities::transform_length_to_end</span></a></p></li>
+<li><p><a class="reference internal" href="function_transform_8hpp_1a740e6ce94ba516eb2484020e8e973ea8.html#exhale-function-transform-8hpp-1a740e6ce94ba516eb2484020e8e973ea8"><span class="std std-ref">Function ral::utilities::transform_start_to_zero_based_indexing</span></a></p></li>
+<li><p><a class="reference internal" href="function_DebuggingUtils_8cpp_1a2eb6375199d07ce3a28a642b9dbabb1c.html#exhale-function-debuggingutils-8cpp-1a2eb6375199d07ce3a28a642b9dbabb1c"><span class="std std-ref">Function ral::utilities::type_string</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8h_1adf927d8218ad46061632d1ee6d0f00e9.html#exhale-function-commonoperations-8h-1adf927d8218ad46061632d1ee6d0f00e9"><span class="std std-ref">Template Function ral::utilities::vector_to_column(cudf::column_view)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CommonOperations_8h_1af088e3a8310407797f3d5d48d07258da.html#exhale-function-commonoperations-8h-1af088e3a8310407797f3d5d48d07258da"><span class="std std-ref">Template Function ral::utilities::vector_to_column(std::vector&lt;T&gt;, cudf::data_type)</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="namespace_ral__skip_data__%40128.html" title="previous page">Namespace ral::skip_data::&#64;128</a>
+    <a class='right-next' id="next-link" href="namespace_std__chrono_literals.html" title="next page">Namespace std::chrono_literals</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

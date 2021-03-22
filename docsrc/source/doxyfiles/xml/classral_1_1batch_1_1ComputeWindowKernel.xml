@@ -1,0 +1,335 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1batch_1_1ComputeWindowKernel" kind="class" language="C++" prot="public">
+    <compoundname>ral::batch::ComputeWindowKernel</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1kernel" prot="public" virt="non-virtual">ral::cache::kernel</basecompoundref>
+    <includes refid="BatchWindowFunctionProcessing_8h" local="no">BatchWindowFunctionProcessing.h</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1ab54da5e3b68f0becf30172478f78b690" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; ral::batch::ComputeWindowKernel::column_indices_partitioned</definition>
+        <argsstring></argsstring>
+        <name>column_indices_partitioned</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="42" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1a72bf44e760b2ae0dce250284b83920cc" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; ral::batch::ComputeWindowKernel::column_indices_to_agg</definition>
+        <argsstring></argsstring>
+        <name>column_indices_to_agg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="43" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1abf94a0bed1e7bc8ade6160eeb201ea1f" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; ral::batch::ComputeWindowKernel::agg_param_values</definition>
+        <argsstring></argsstring>
+        <name>agg_param_values</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="44" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1ab671af6b037efd14d60e6f74127155b5" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ral::batch::ComputeWindowKernel::preceding_value</definition>
+        <argsstring></argsstring>
+        <name>preceding_value</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="45" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1ab4b432dac3904c29d129cb2bab61317f" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ral::batch::ComputeWindowKernel::following_value</definition>
+        <argsstring></argsstring>
+        <name>following_value</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="46" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1a566464869cca2e712a673a6996434cb3" prot="private" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::batch::ComputeWindowKernel::frame_type</definition>
+        <argsstring></argsstring>
+        <name>frame_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="47" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1aefa42551d6225db9461a4f7174716cc3" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::batch::ComputeWindowKernel::type_aggs_as_str</definition>
+        <argsstring></argsstring>
+        <name>type_aggs_as_str</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="48" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1ComputeWindowKernel_1aec298587d1a5eaccbb466e615d947e33" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; AggregateKind &gt;</type>
+        <definition>std::vector&lt;AggregateKind&gt; ral::batch::ComputeWindowKernel::aggs_wind_func</definition>
+        <argsstring></argsstring>
+        <name>aggs_wind_func</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="49" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1batch_1_1ComputeWindowKernel_1a1feff9b400748b38a36a91d7f256cd35" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::batch::ComputeWindowKernel::ComputeWindowKernel</definition>
+        <argsstring>(std::size_t kernel_id, const std::string &amp;queryString, std::shared_ptr&lt; Context &gt; context, std::shared_ptr&lt; ral::cache::graph &gt; query_graph)</argsstring>
+        <name>ComputeWindowKernel</name>
+        <param>
+          <type>std::size_t</type>
+          <declname>kernel_id</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>queryString</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">Context</ref> &gt;</type>
+          <declname>context</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1graph" kindref="compound">ral::cache::graph</ref> &gt;</type>
+          <declname>query_graph</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp" bodystart="25" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1ComputeWindowKernel_1a045546d30ebc87491d69757f8547c672" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; CudfColumn &gt;</type>
+        <definition>std::unique_ptr&lt; CudfColumn &gt; ral::batch::ComputeWindowKernel::compute_column_from_window_function</definition>
+        <argsstring>(cudf::table_view input_cudf_view, cudf::column_view input_col_view, std::size_t pos, int &amp;agg_param_count)</argsstring>
+        <name>compute_column_from_window_function</name>
+        <param>
+          <type>cudf::table_view</type>
+          <declname>input_cudf_view</declname>
+        </param>
+        <param>
+          <type>cudf::column_view</type>
+          <declname>input_col_view</declname>
+        </param>
+        <param>
+          <type>std::size_t</type>
+          <declname>pos</declname>
+        </param>
+        <param>
+          <type>int &amp;</type>
+          <declname>agg_param_count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="27" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp" bodystart="36" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1ComputeWindowKernel_1a8caa7fbdb505758f1bcc465024a5cffa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::string</type>
+        <definition>std::string ral::batch::ComputeWindowKernel::kernel_name</definition>
+        <argsstring>()</argsstring>
+        <name>kernel_name</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1aafcb0f431c87f166a778a6cce0d36d51">kernel_name</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="32" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="32" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1ComputeWindowKernel_1a26873276168cdd25b055c313a50c0d2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structral_1_1execution_1_1task__result" kindref="compound">ral::execution::task_result</ref></type>
+        <definition>ral::execution::task_result ral::batch::ComputeWindowKernel::do_process</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; ral::frame::BlazingTable &gt; &gt; inputs, std::shared_ptr&lt; ral::cache::CacheMachine &gt; output, cudaStream_t stream, const std::map&lt; std::string, std::string &gt; &amp;args) override</argsstring>
+        <name>do_process</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt; &gt;</type>
+          <declname>inputs</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const std::map&lt; std::string, std::string &gt; &amp;</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp" bodystart="82" bodyend="153"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1ComputeWindowKernel_1a22a36fbcb21dad09bad9300e21dc4825" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>kstatus</type>
+        <definition>kstatus ral::batch::ComputeWindowKernel::run</definition>
+        <argsstring>() override</argsstring>
+        <name>run</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7">run</reimplements>
+        <briefdescription>
+<para>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. </para>        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>kstatus &apos;stop&apos; to halt processing, or &apos;proceed&apos; to continue processing. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="38" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp" bodystart="155" bodyend="187"/>
+        <references refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" compoundref="kernel_8cpp" startline="36" endline="39">ral::cache::kernel::input_cache</references>
+        <references refid="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc" compoundref="kernel_8cpp" startline="31" endline="34">ral::cache::kernel::output_cache</references>
+        <references refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" compoundref="kernel_8h" startline="254">ral::cache::kernel::context</references>
+        <references refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" compoundref="kernel_8h" startline="82" endline="82">ral::cache::kernel::get_id</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This kernel computes the main Window Function (ROW_NUMBER, LAG, LEAD, MIN, ...) to each batch already pattitioned and sorted New columns will be added to each batch. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="128">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+      </node>
+      <node id="127">
+        <label>ral::batch::ComputeWindowKernel</label>
+        <link refid="classral_1_1batch_1_1ComputeWindowKernel"/>
+        <childnode refid="128" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="131">
+        <label>ral::cache::port</label>
+        <link refid="classral_1_1cache_1_1port"/>
+        <childnode refid="130" relation="usage">
+          <edgelabel>kernel_</edgelabel>
+        </childnode>
+      </node>
+      <node id="130">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+        <childnode refid="131" relation="usage">
+          <edgelabel>input_</edgelabel>
+          <edgelabel>output_</edgelabel>
+        </childnode>
+      </node>
+      <node id="129">
+        <label>ral::batch::ComputeWindowKernel</label>
+        <link refid="classral_1_1batch_1_1ComputeWindowKernel"/>
+        <childnode refid="130" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" line="21" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h" bodystart="21" bodyend="50"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1kernel_1a9b0a80f937f10357ae62638b6f0461d4" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>add_task</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af6b7b538f6a692393f314a4f1037d4a6" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad8cd102392bbece14178c0ebf9f0c6bc" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94e93c7bb81d9a3a7729fa84a7cf07c1" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1abf94a0bed1e7bc8ade6160eeb201ea1f" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>agg_param_values</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1aec298587d1a5eaccbb466e615d947e33" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>aggs_wind_func</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1ab54da5e3b68f0becf30172478f78b690" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>column_indices_partitioned</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a72bf44e760b2ae0dce250284b83920cc" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>column_indices_to_agg</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a045546d30ebc87491d69757f8547c672" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>compute_column_from_window_function</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a1feff9b400748b38a36a91d7f256cd35" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>ComputeWindowKernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>context</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a26873276168cdd25b055c313a50c0d2f" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625" prot="public" virt="virtual" ambiguityscope="ral::cache::kernel::"><scope>ral::batch::ComputeWindowKernel</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33a881d5e40d033e53a73f3c7ede5d03" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>estimate_operating_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a37da9a64d455f2b833e1e7576c9a17d2" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>estimate_output_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8ac24c565e0d29b390d40e7ef3366486" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>execution_done</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0619a9c1e4952dc353dcfa079910a84a" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>expression</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a3c5beb224576167cd7f9488e68d8ff62" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>finished_tasks</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1ab4b432dac3904c29d129cb2bab61317f" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>following_value</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a566464869cca2e712a673a6996434cb3" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>frame_type</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6d078d50dd69a9444fcd5d73f378e2d1" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>get_context</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abf40aaa022e3bf38c261977d0c2170cb" prot="public" virt="virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>get_estimated_output_num_rows</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>get_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa9e353759b65c2c53571cf80b0213d31" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>get_message_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a146246668880ca685f22d208e638578b" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>get_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a913add84b5ad4c0bb09f7a609fe8e311" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>has_limit_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a21dc72f0714ddc2b4b2187592d05ba77" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>has_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a014bae9051f8ae95341be2f967b135c5" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>input_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8af91bb80e9153e307e07c3010c217a" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>input_all_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>input_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a75d3db3d361445cd14da3186b8b15036" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>input_cache_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a25cd1d59552733027ba6396cd9e41004" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>input_cache_num_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a533e4ae37fc18a6c8638f30ee8459d8f" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>kernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af711082b1f602bacc21d679d318648f7" prot="protected" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>kernel_cv</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a2fd708656cb056a41ec635b8bdc4acfe" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>kernel_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8e336a4bc07932d5fc243409324cdcc1" prot="protected" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>kernel_mutex</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a8caa7fbdb505758f1bcc465024a5cffa" prot="public" virt="virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>kernel_name</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a923841bcb8d995048c58d51a6c39caf7" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>kernel_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a415a4613c3eac81c1f65340e0866d26e" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>limit_rows_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae891570bebe342865bc0f30ac369efe8" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>logger</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0d4a11f11203e46edff09aafc3935688" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>notify_complete</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aacb25cb9e49377bca219769f0eb82aef" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>notify_fail</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abb0b2c6bdc9e3379cc675e57270b207b" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>operator[]</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6eac1b9f1e6efb3bb9942ba7bbf66a94" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>output_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad1b8b87c5008b3bce16fe45da84eccdd" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>parent_id_</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1ab671af6b037efd14d60e6f74127155b5" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>preceding_value</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a45abece009eed9fc7555f55ecc55f5dd" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>query_graph</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1a22a36fbcb21dad09bad9300e21dc4825" prot="public" virt="virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>run</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a150ae499b8aef4669714e791f2bea9e9" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>set_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae4a8519fe026454fe5385122c1e02615" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>set_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a24ef14f94bf23f483736043ca6f95b7e" prot="protected" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a57a0078f5ab3991b32e9ea92989eab42" prot="protected" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>total_input_bytes_processed</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a87d2048b2c50e1124eaaed09b3c18758" prot="public" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>total_input_rows_added</name></member>
+      <member refid="classral_1_1batch_1_1ComputeWindowKernel_1aefa42551d6225db9461a4f7174716cc3" prot="private" virt="non-virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>type_aggs_as_str</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a08658078acd31ec27af290f6712fa017" prot="public" virt="virtual"><scope>ral::batch::ComputeWindowKernel</scope><name>~kernel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caches &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Communication" href="communication.html" />
+    <link rel="prev" title="Technology Stack" href="arch.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../xml/library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+          
+            
+                <li class="">
+                    <a href="arch.html">Technology Stack</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Caches</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="communication.html">Communication</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="data_structures.html">Data Structures</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="executor.html">Task Executor</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="graph.html">Overview</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="interops.html">Interops</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="io.html">I/O</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="kernels.html">Kernels</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="memory_management.html">Memory Management</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="relational_algebra.html">Relational algebra</a>
+                </li>
+            
+          
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#cachedata" class="nav-link">CacheData</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#gpucachedata" class="nav-link">GPUCacheData</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#cpucachedata" class="nav-link">CPUCacheData</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#cachedatalocalfile" class="nav-link">CacheDataLocalFile</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#cachedataio" class="nav-link">CacheDataIO</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#concatcachedata" class="nav-link">ConcatCacheData</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#waitingqueue" class="nav-link">WaitingQueue</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#cachemachine" class="nav-link">CacheMachine</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/engine/caches.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="caches">
+<h1>Caches<a class="headerlink" href="#caches" title="Permalink to this headline">¶</a></h1>
+<p>Caches in general refer to the CacheMachines that connect kernels and the CacheData inside them.</p>
+<div class="section" id="cachedata">
+<h2>CacheData<a class="headerlink" href="#cachedata" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/BlazingDB/blazingsql/blob/branch-0.19//engine/src/execution_graph/logic_controllers/CacheMachine.h#L43">View in Github</a></p>
+<p>CacheData objects hold data and/or metadata. Most of the time a CacheData only holds data, and is used for the purpose of moving data through
+the execution graph. Sometimes that data needs to have some associated metadata that is used by the business logic of the algorithms. And finally,
+there are cases where metadata needs to be passed from one node to another or one kernel to another and in those cases you can have a CacheData object
+that has metadata but no actual data. The purpose of this is to only have one kind of message for sending both data and metadata.</p>
+<p>The data held by a CacheData can be in one of several different states
+depending on the underlying CacheData type it is. The different kinds of CacheData at the moment are:
+- GPUCacheData
+- CPUCacheData
+- CacheDataLocalFile
+- CacheDataIO
+- ConcatCacheData</p>
+<p>The purpose of the CacheData object is to hold data that is not necessarily materialized and can be passed around
+without necessarily materializing it until it has to be. Most kernels will obtain data in the form of a CacheData from a CacheMachine
+and use it to create a task to be executed by the task executor. That data in the CacheData will only then be materialized when the
+<code class="docutils literal notranslate"><span class="pre">decache()</span></code> method is called, right before the data is processed by the executor, using the <code class="docutils literal notranslate"><span class="pre">do_process()</span></code> function of the kernel.
+The materialization process performed by the <code class="docutils literal notranslate"><span class="pre">decache()</span></code> method will depend on the type of CacheData it is.</p>
+</div>
+<div class="section" id="gpucachedata">
+<h2>GPUCacheData<a class="headerlink" href="#gpucachedata" title="Permalink to this headline">¶</a></h2>
+<p><em>Data Representation</em>: A GPUCacheData holds data that is already effectively materialized, because data representation in a GPUCacheData is already a BlazingTable.</p>
+<p><em>Typical Usage</em>: A GPUCacheData is typically used when there is space in the GPU to hold it. Its the most optimal data representation since its the closest to being materialized.</p>
+<p><em>Decache process</em>: The <code class="docutils literal notranslate"><span class="pre">decache()</span></code> function call of GPUCacheData simply moves the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr&lt;BlazingTable&gt;</span></code> holding the data out. See BlazingTable in the <a class="reference internal" href="data_structures.html"><span class="doc">Data Structures Page</span></a></p>
+</div>
+<div class="section" id="cpucachedata">
+<h2>CPUCacheData<a class="headerlink" href="#cpucachedata" title="Permalink to this headline">¶</a></h2>
+<p><em>Data Representation</em>: A CPUCacheData holds data in system memory. The data representation in a CPUCacheData is a BlazingHostTable, which is effectively the exact same memory layout.
+of a GPUCacheData but in system memory. Note that a BlazingHostTable can use pinned memory from a memory pool, or regular host memory from a memory pool. See BlazingHostTable in the <a class="reference internal" href="data_structures.html"><span class="doc">Data Structures Page</span></a></p>
+<p><em>Typical Usage</em>: A CPUCacheData is typically used when there is not enough space in the GPU but there is enough space in the CPU. Its the second most optimal data representation.
+It is also used for holding data that has just been received from another node.</p>
+<p><em>Decache process</em>: The <code class="docutils literal notranslate"><span class="pre">decache()</span></code> function call of CPUCacheData will materialize the data by copying it to GPU making a BlazingTable.</p>
+</div>
+<div class="section" id="cachedatalocalfile">
+<h2>CacheDataLocalFile<a class="headerlink" href="#cachedatalocalfile" title="Permalink to this headline">¶</a></h2>
+<p><em>Data Representation</em>: A CacheDataLocalFile holds data in the local filesystem. The data representation in a CacheDataLocalFile is an orc file.
+The location where CacheDataLocalFile orc files are stored is defined by the path set in the BLAZING_CACHE_DIRECTORY config option.</p>
+<p><em>Typical Usage</em>: A CacheDataLocalFile is typically used when there is not enough space in the GPU nor in system memory.</p>
+<p><em>Decache process</em>: The <code class="docutils literal notranslate"><span class="pre">decache()</span></code> function call of CacheDataLocalFile will materialize the data by reading the orc file into a BlazingTable.
+NOTE: In the future a CacheDataLocalFile could be implemented by a CacheDataIO so that its not limited to being a local orc file, but instead
+the file format and filesystem is more generic.</p>
+</div>
+<div class="section" id="cachedataio">
+<h2>CacheDataIO<a class="headerlink" href="#cachedataio" title="Permalink to this headline">¶</a></h2>
+<p><em>Data Representation</em>: A CacheDataIO holds data that is going to be obtained from a data source. Its representation is in the form of a combination of
+a data_handle, a data_parser and a Schema which can be found in <a class="reference internal" href="io.html"><span class="doc">IO Page</span></a>.</p>
+<p><em>Typical Usage</em>: A CacheDataIO is what is generated by a table scan. It represents data that will be generated by reading a file or dataframe that comes from a table.</p>
+<p><em>Decache process</em>: The <code class="docutils literal notranslate"><span class="pre">decache()</span></code> function call of CacheDataIO will read and parse a file in the case of file based data sources, or create a BlazingTable from a
+DataFrame provided by the user when creating a table.</p>
+</div>
+<div class="section" id="concatcachedata">
+<h2>ConcatCacheData<a class="headerlink" href="#concatcachedata" title="Permalink to this headline">¶</a></h2>
+<p><em>Data Representation</em>: A ConcatCacheData holds a vector of CacheData that will be concatenated togather. The different CacheData can be of any type.</p>
+<p><em>Typical Usage</em>: A ConcatCacheData is sometimes used for concatenating several CacheData for data coming from several nodes,
+or in some algorithms several CacheData can be combined without materializing them, producing a ConcatCacheData.</p>
+<p><em>Decache process</em>: The <code class="docutils literal notranslate"><span class="pre">decache()</span></code> function call of ConcatCacheData will call <code class="docutils literal notranslate"><span class="pre">decache()</span></code> for all the individual CacheData and then concatenate them, before returning a BlazingTable.</p>
+<div class="section" id="waitingqueue">
+<h3>WaitingQueue<a class="headerlink" href="#waitingqueue" title="Permalink to this headline">¶</a></h3>
+<p>The WaitingQueue is a structure used by the CacheMachine that serves as a FIFO queue that is threadsafe and
+has waiting mechanisms so that you try to retireve an item from the queue, it will wait until there is an item available.
+Additionally it can have a state where it can be “finished”, in which case, any function calls waiting for
+an item to be returned, just return a <em>nullptr</em>.</p>
+<p>The WaitingQueue class is templated, but when used in the CacheMachine, the template object is a <code class="docutils literal notranslate"><span class="pre">message</span></code> which is simply a <code class="docutils literal notranslate"><span class="pre">unique_ptr&lt;CacheData&gt;</span></code> and a string which served as a <code class="docutils literal notranslate"><span class="pre">message_id</span></code>.
+The <em>message_id</em> is used in several places in the code to identify or label a CacheData.</p>
+<p>Additionally, the WaitingQueue has facilities for knowing how many CacheData objects have been added or how many bytes have been added.</p>
+</div>
+<div class="section" id="cachemachine">
+<h3>CacheMachine<a class="headerlink" href="#cachemachine" title="Permalink to this headline">¶</a></h3>
+<p>CacheMachines are an abstraction built on top of WaitingQueues that provide facilities to add or remove <a class="reference internal" href="data_structures.html"><span class="doc">BlazingTables</span></a> or
+other <a class="reference internal" href="data_structures.html"><span class="doc">data structures</span></a>  from a CacheMachine.
+The CacheMachine will convert it to and from a CacheData before adding it or after removing it from a WaitingQueue.</p>
+<p>A CacheMachine has an understanding of different
+<a class="reference internal" href="memory_management.html"><span class="doc">memory resources</span></a> and therefore can automatically decide if a BlazingTable should be converted to a GPUCacheData, CPUCacheData or CacheDataLocalFile before added into
+the WaitingQueue that will hold the CacheData. When you add data into a CacheMachine, it checks the memory consumption
+of the node by asking the <a class="reference internal" href="memory_management.html"><span class="doc">memory resources</span></a>. If the consumption is below a certain
+threshold, then the data is maintained in GPU memory. It is converted into a
+GPUCacheData and added to the CacheMachine. If consumption is above the device
+memory threshold, then it checks the next tier in the CacheMachine, the CPU
+cache. It checks the memory consumption of the CPU memory resource. If it is
+below that threshold, it converts the BlazingTable into a CPUCacheData, where it
+copied all the data to host. If the CPU memory consumption is above a certain
+threshold, then it goes into the next tier, the Disk Cache. For the disk cache,
+the data is placed in an ORC file and a CacheDataLocalFile is created to keep track of it.</p>
+<p>Aside from the standard CacheMachine, another specialty type: ConcatenatingCacheMachine.
+The ConcatenatingCacheMachine will concatenate batches so that the resulting batch is not too small. It is used in several places and for some places, it is configurable.
+It is useful to concatenate batches to increase performance, since operating on really small batches can be detrimental to performance.</p>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="arch.html" title="previous page">Technology Stack</a>
+    <a class='right-next' id="next-link" href="communication.html" title="next page">Communication</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

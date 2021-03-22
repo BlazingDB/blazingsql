@@ -1,0 +1,24 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_utilities_scalar_timestamp_parser.hpp:
+
+Program Listing for File scalar_timestamp_parser.hpp
+====================================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_utilities_scalar_timestamp_parser.hpp>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/scalar_timestamp_parser.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #pragma once
+   
+   #include <cudf/types.hpp>
+   #include <cudf/scalar/scalar.hpp>
+   
+   namespace strings {
+   
+   std::unique_ptr<cudf::scalar> str_to_timestamp_scalar( std::string const& str,
+                                                         cudf::data_type timestamp_type,
+                                                         std::string const& format );
+   
+   } // namespace strings

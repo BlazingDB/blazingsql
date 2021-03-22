@@ -1,0 +1,363 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1frame_1_1BlazingTable" kind="class" language="C++" prot="public">
+    <compoundname>ral::frame::BlazingTable</compoundname>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingTable_1a2aa059ff32dbcb73fd813259110878ef" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt;std::string&gt; ral::frame::BlazingTable::columnNames</definition>
+        <argsstring></argsstring>
+        <name>columnNames</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="53" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingTable_1ac03b5b99513fe0db793a65fd318a00a2" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">BlazingColumn</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;BlazingColumn&gt; &gt; ral::frame::BlazingTable::columns</definition>
+        <argsstring></argsstring>
+        <name>columns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="54" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1frame_1_1BlazingTable_1a739898b75c9f48edb4dfc05f18c02315" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::frame::BlazingTable::valid</definition>
+        <argsstring></argsstring>
+        <name>valid</name>
+        <initializer>=true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="55" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a7dbf7616b0bf068688b59031e6704408" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingTable::BlazingTable</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; BlazingColumn &gt;&gt; columns, const std::vector&lt; std::string &gt; &amp;columnNames)</argsstring>
+        <name>BlazingTable</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">BlazingColumn</ref> &gt;&gt;</type>
+          <declname>columns</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>columnNames</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="12" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a77d0dda2ad02f3c2a6aacfb84e06a4a6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingTable::BlazingTable</definition>
+        <argsstring>(std::unique_ptr&lt; CudfTable &gt; table, const std::vector&lt; std::string &gt; &amp;columnNames)</argsstring>
+        <name>BlazingTable</name>
+        <param>
+          <type>std::unique_ptr&lt; CudfTable &gt;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>columnNames</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="16" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1ac6af86b8968e2f56a7bcb39c35fcd589" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingTable::BlazingTable</definition>
+        <argsstring>(const CudfTableView &amp;table, const std::vector&lt; std::string &gt; &amp;columnNames)</argsstring>
+        <name>BlazingTable</name>
+        <param>
+          <type>const CudfTableView &amp;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>columnNames</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="27" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="25" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a1fe4f1d3a9d95e8eba30dd723d318eb3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingTable::BlazingTable</definition>
+        <argsstring>(BlazingTable &amp;&amp;)=default</argsstring>
+        <name>BlazingTable</name>
+        <param>
+          <type><ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="28" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a4dc7d75cc8598f067267a9ab9bfdccb9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &amp;</type>
+        <definition>BlazingTable&amp; ral::frame::BlazingTable::operator=</definition>
+        <argsstring>(BlazingTable const &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type><ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> const &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="29" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1af103b98ebd31e68f7b68e39c3a7e9dd2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &amp;</type>
+        <definition>BlazingTable&amp; ral::frame::BlazingTable::operator=</definition>
+        <argsstring>(BlazingTable &amp;&amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type><ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="30" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1abc7e37ec7cb9e41e59c82cf39aa78c90" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>CudfTableView</type>
+        <definition>CudfTableView ral::frame::BlazingTable::view</definition>
+        <argsstring>() const</argsstring>
+        <name>view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="32" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="38" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a71e54c253edfbc147685b444011cb3e9" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>cudf::size_type</type>
+        <definition>cudf::size_type ral::frame::BlazingTable::num_columns</definition>
+        <argsstring>() const</argsstring>
+        <name>num_columns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="33" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a4a294d20b7502f18c224213b93c0667c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>cudf::size_type</type>
+        <definition>cudf::size_type ral::frame::BlazingTable::num_rows</definition>
+        <argsstring>() const</argsstring>
+        <name>num_rows</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="34" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1acd43177a0839463a582a8aeab59a860a" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::string &gt;</type>
+        <definition>std::vector&lt; std::string &gt; ral::frame::BlazingTable::names</definition>
+        <argsstring>() const</argsstring>
+        <name>names</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="46" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1afc57e3dea4ebf9167ec7900c44a14c27" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; cudf::data_type &gt;</type>
+        <definition>std::vector&lt; cudf::data_type &gt; ral::frame::BlazingTable::get_schema</definition>
+        <argsstring>() const</argsstring>
+        <name>get_schema</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="36" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="50" bodyend="55"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a9272855bd4e0c0253e0389a0d108d947" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::frame::BlazingTable::setNames</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;names)</argsstring>
+        <name>setNames</name>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="38" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="38" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1adee9be4f7f57023e69c069b9c1564a88" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">BlazingTableView</ref></type>
+        <definition>BlazingTableView ral::frame::BlazingTable::toBlazingTableView</definition>
+        <argsstring>() const</argsstring>
+        <name>toBlazingTableView</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="40" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="57" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a1385de902ecdddf68622215cd72bb22b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingTable::operator bool</definition>
+        <argsstring>() const</argsstring>
+        <name>operator bool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="42" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="42" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1ac0c7e71526645b690d49d24d563358ef" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::frame::BlazingTable::is_valid</definition>
+        <argsstring>() const</argsstring>
+        <name>is_valid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="44" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="44" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a45851d20f39300385437d51c22e413ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; CudfTable &gt;</type>
+        <definition>std::unique_ptr&lt; CudfTable &gt; ral::frame::BlazingTable::releaseCudfTable</definition>
+        <argsstring>()</argsstring>
+        <name>releaseCudfTable</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="46" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="61" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a9e98b23e48ed6ce63a7b059dbc4de296" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">BlazingColumn</ref> &gt; &gt;</type>
+        <definition>std::vector&lt; std::unique_ptr&lt; BlazingColumn &gt; &gt; ral::frame::BlazingTable::releaseBlazingColumns</definition>
+        <argsstring>()</argsstring>
+        <name>releaseBlazingColumns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="47" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="70" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a990ef8ca85622d9a8fade035159c77b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>unsigned long long</type>
+        <definition>unsigned long long ral::frame::BlazingTable::sizeInBytes</definition>
+        <argsstring>()</argsstring>
+        <name>sizeInBytes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="49" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="75" bodyend="103"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingTable_1a2a1a2e6cd939fe3ead68b2c913647087" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::frame::BlazingTable::ensureOwnership</definition>
+        <argsstring>()</argsstring>
+        <name>ensureOwnership</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp" bodystart="32" bodyend="36"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h" bodystart="23" bodyend="56"/>
+    <listofallmembers>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a7dbf7616b0bf068688b59031e6704408" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>BlazingTable</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a77d0dda2ad02f3c2a6aacfb84e06a4a6" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>BlazingTable</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1ac6af86b8968e2f56a7bcb39c35fcd589" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>BlazingTable</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a1fe4f1d3a9d95e8eba30dd723d318eb3" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>BlazingTable</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a2aa059ff32dbcb73fd813259110878ef" prot="private" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>columnNames</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1ac03b5b99513fe0db793a65fd318a00a2" prot="private" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>columns</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a2a1a2e6cd939fe3ead68b2c913647087" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>ensureOwnership</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1afc57e3dea4ebf9167ec7900c44a14c27" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>get_schema</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1ac0c7e71526645b690d49d24d563358ef" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>is_valid</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1acd43177a0839463a582a8aeab59a860a" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>names</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a71e54c253edfbc147685b444011cb3e9" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>num_columns</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a4a294d20b7502f18c224213b93c0667c" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>num_rows</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a1385de902ecdddf68622215cd72bb22b" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>operator bool</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a4dc7d75cc8598f067267a9ab9bfdccb9" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>operator=</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1af103b98ebd31e68f7b68e39c3a7e9dd2" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>operator=</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a9e98b23e48ed6ce63a7b059dbc4de296" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>releaseBlazingColumns</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a45851d20f39300385437d51c22e413ec" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>releaseCudfTable</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a9272855bd4e0c0253e0389a0d108d947" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>setNames</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a990ef8ca85622d9a8fade035159c77b4" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>sizeInBytes</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1adee9be4f7f57023e69c069b9c1564a88" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>toBlazingTableView</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1a739898b75c9f48edb4dfc05f18c02315" prot="private" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>valid</name></member>
+      <member refid="classral_1_1frame_1_1BlazingTable_1abc7e37ec7cb9e41e59c82cf39aa78c90" prot="public" virt="non-virtual"><scope>ral::frame::BlazingTable</scope><name>view</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

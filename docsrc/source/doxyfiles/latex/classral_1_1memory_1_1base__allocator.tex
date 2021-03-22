@@ -1,0 +1,38 @@
+\hypertarget{classral_1_1memory_1_1base__allocator}{}\section{ral\+:\+:memory\+:\+:base\+\_\+allocator Class Reference}
+\label{classral_1_1memory_1_1base__allocator}\index{ral\+::memory\+::base\+\_\+allocator@{ral\+::memory\+::base\+\_\+allocator}}
+
+
+Inheritance diagram for ral\+:\+:memory\+:\+:base\+\_\+allocator\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=336pt]{classral_1_1memory_1_1base__allocator__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1base__allocator_af9f28272471b5c21700ec726703091db}\label{classral_1_1memory_1_1base__allocator_af9f28272471b5c21700ec726703091db}} 
+void {\bfseries allocate} (void $\ast$$\ast$ptr, std\+::size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1base__allocator_a5e5f35c397e7c906ca9e9c7b3aaaa473}\label{classral_1_1memory_1_1base__allocator_a5e5f35c397e7c906ca9e9c7b3aaaa473}} 
+void {\bfseries deallocate} (void $\ast$ptr)
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1base__allocator_a9be5143f73c55fc9b30b270ada544b01}\label{classral_1_1memory_1_1base__allocator_a9be5143f73c55fc9b30b270ada544b01}} 
+virtual ucp\+\_\+mem\+\_\+h {\bfseries get\+Ucp\+Memory\+Handle} () const
+\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1base__allocator_ad6b8fa2aae326028c98fc36342b06ddc}\label{classral_1_1memory_1_1base__allocator_ad6b8fa2aae326028c98fc36342b06ddc}} 
+virtual void {\bfseries do\+\_\+allocate} (void $\ast$$\ast$ptr, std\+::size\+\_\+t size)=0
+\item 
+\mbox{\Hypertarget{classral_1_1memory_1_1base__allocator_a934af0fdfb53ac5912e29e355580c703}\label{classral_1_1memory_1_1base__allocator_a934af0fdfb53ac5912e29e355580c703}} 
+virtual void {\bfseries do\+\_\+deallocate} (void $\ast$ptr)=0
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Buffer\+Provider.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Buffer\+Provider.\+cpp\end{DoxyCompactItemize}

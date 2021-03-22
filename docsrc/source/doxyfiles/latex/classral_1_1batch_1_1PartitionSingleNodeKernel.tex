@@ -1,0 +1,68 @@
+\hypertarget{classral_1_1batch_1_1PartitionSingleNodeKernel}{}\section{ral\+:\+:batch\+:\+:Partition\+Single\+Node\+Kernel Class Reference}
+\label{classral_1_1batch_1_1PartitionSingleNodeKernel}\index{ral\+::batch\+::\+Partition\+Single\+Node\+Kernel@{ral\+::batch\+::\+Partition\+Single\+Node\+Kernel}}
+
+
+Inheritance diagram for ral\+:\+:batch\+:\+:Partition\+Single\+Node\+Kernel\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=206pt]{classral_1_1batch_1_1PartitionSingleNodeKernel__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:batch\+:\+:Partition\+Single\+Node\+Kernel\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=306pt]{classral_1_1batch_1_1PartitionSingleNodeKernel__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1PartitionSingleNodeKernel_ad0e6afd26027121b3e2659c9603b954e}\label{classral_1_1batch_1_1PartitionSingleNodeKernel_ad0e6afd26027121b3e2659c9603b954e}} 
+{\bfseries Partition\+Single\+Node\+Kernel} (std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}{kernel\+\_\+id}, const std\+::string \&query\+String, std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ \hyperlink{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}{context}, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1graph}{ral\+::cache\+::graph} $>$ \hyperlink{classral_1_1cache_1_1kernel_a5fbb02292aff165a28ef25e75f0d89bd}{query\+\_\+graph})
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1PartitionSingleNodeKernel_a35cd076439096c61775993ca63e8e266}\label{classral_1_1batch_1_1PartitionSingleNodeKernel_a35cd076439096c61775993ca63e8e266}} 
+std\+::string {\bfseries kernel\+\_\+name} ()
+\item 
+\mbox{\Hypertarget{classral_1_1batch_1_1PartitionSingleNodeKernel_af42971c7b8836935ff44cda59b71be7d}\label{classral_1_1batch_1_1PartitionSingleNodeKernel_af42971c7b8836935ff44cda59b71be7d}} 
+\hyperlink{structral_1_1execution_1_1task__result}{ral\+::execution\+::task\+\_\+result} {\bfseries do\+\_\+process} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ $>$ inputs, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output, cuda\+Stream\+\_\+t stream, const std\+::map$<$ std\+::string, std\+::string $>$ \&args) override
+\item 
+kstatus \hyperlink{classral_1_1batch_1_1PartitionSingleNodeKernel_a5af293b33505bec1e9fb66f9bb9d29af}{run} () override
+\begin{DoxyCompactList}\small\item\em Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1batch_1_1PartitionSingleNodeKernel_a5af293b33505bec1e9fb66f9bb9d29af}\label{classral_1_1batch_1_1PartitionSingleNodeKernel_a5af293b33505bec1e9fb66f9bb9d29af}} 
+\index{ral\+::batch\+::\+Partition\+Single\+Node\+Kernel@{ral\+::batch\+::\+Partition\+Single\+Node\+Kernel}!run@{run}}
+\index{run@{run}!ral\+::batch\+::\+Partition\+Single\+Node\+Kernel@{ral\+::batch\+::\+Partition\+Single\+Node\+Kernel}}
+\subsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily kstatus ral\+::batch\+::\+Partition\+Single\+Node\+Kernel\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. 
+
+\begin{DoxyReturn}{Returns}
+kstatus \textquotesingle{}stop\textquotesingle{} to halt processing, or \textquotesingle{}proceed\textquotesingle{} to continue processing. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classral_1_1cache_1_1kernel_a735b081cccae9574924e74ea6d293ef7}{ral\+::cache\+::kernel}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1batch_1_1PartitionSingleNodeKernel_a5af293b33505bec1e9fb66f9bb9d29af_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Order\+By\+Processing.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Batch\+Order\+By\+Processing.\+cpp\end{DoxyCompactItemize}

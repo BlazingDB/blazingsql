@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_6c0c50646ee4b50dec840af0096f1fab" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata</compoundname>
+    <innerfile refid="common__metadata_8cpp">common_metadata.cpp</innerfile>
+    <innerfile refid="common__metadata_8h">common_metadata.h</innerfile>
+    <innerfile refid="orc__metadata_8cpp">orc_metadata.cpp</innerfile>
+    <innerfile refid="orc__metadata_8h">orc_metadata.h</innerfile>
+    <innerfile refid="parquet__metadata_8cpp">parquet_metadata.cpp</innerfile>
+    <innerfile refid="parquet__metadata_8h">parquet_metadata.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/"/>
+  </compounddef>
+</doxygen>

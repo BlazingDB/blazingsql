@@ -1,0 +1,13 @@
+.. _exhale_function_bufferTransport_8hpp_1ab26ede7aa2c808e59a4011644fa8df23:
+
+Template Function comm::detail::vector_to_byte_vector
+=====================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_CommunicationInterface_bufferTransport.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: comm::detail::vector_to_byte_vector(std::vector<T>)

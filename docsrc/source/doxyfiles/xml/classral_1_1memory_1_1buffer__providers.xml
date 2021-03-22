@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1memory_1_1buffer__providers" kind="class" language="C++" prot="public">
+    <compoundname>ral::memory::buffer_providers</compoundname>
+    <includes refid="BufferProvider_8h" local="no">BufferProvider.h</includes>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classral_1_1memory_1_1buffer__providers_1af3457404f12257d5063ad7bc435a465b" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1memory_1_1allocation__pool" kindref="compound">allocation_pool</ref> &gt; &amp;</type>
+        <definition>static std::shared_ptr&lt;allocation_pool &gt;&amp; ral::memory::buffer_providers::get_host_buffer_provider</definition>
+        <argsstring>()</argsstring>
+        <name>get_host_buffer_provider</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="150" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="150" bodyend="153"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1memory_1_1buffer__providers_1a2dd6153c40c21af29056fa00883bde21" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1memory_1_1allocation__pool" kindref="compound">allocation_pool</ref> &gt; &amp;</type>
+        <definition>static std::shared_ptr&lt;allocation_pool &gt;&amp; ral::memory::buffer_providers::get_pinned_buffer_provider</definition>
+        <argsstring>()</argsstring>
+        <name>get_pinned_buffer_provider</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="155" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="155" bodyend="158"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This class represents the buffer providers used by the engine. </para>    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="note"><para>Myers&apos; singleton. Thread safe and unique. Note: C++11 required. </para></simplesect>
+</para>    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="148" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="148" bodyend="159"/>
+    <listofallmembers>
+      <member refid="classral_1_1memory_1_1buffer__providers_1af3457404f12257d5063ad7bc435a465b" prot="public" virt="non-virtual"><scope>ral::memory::buffer_providers</scope><name>get_host_buffer_provider</name></member>
+      <member refid="classral_1_1memory_1_1buffer__providers_1a2dd6153c40c21af29056fa00883bde21" prot="public" virt="non-virtual"><scope>ral::memory::buffer_providers</scope><name>get_pinned_buffer_provider</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

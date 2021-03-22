@@ -1,0 +1,813 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="executor_8h" kind="file" language="C++">
+    <compoundname>executor.h</compoundname>
+    <includes refid="kernel_8h" local="yes">kernel.h</includes>
+    <includes refid="CacheMachine_8h" local="yes">execution_graph/logic_controllers/CacheMachine.h</includes>
+    <includes local="yes">ExceptionHandling/BlazingThread.h</includes>
+    <includes refid="ctpl__stl_8h" local="yes">utilities/ctpl_stl.h</includes>
+    <includedby refid="MemoryMonitor_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/MemoryMonitor.cpp</includedby>
+    <includedby refid="initialize_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/cython/initialize.cpp</includedby>
+    <includedby refid="BatchAggregationProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp</includedby>
+    <includedby refid="BatchJoinProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp</includedby>
+    <includedby refid="BatchOrderByProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp</includedby>
+    <includedby refid="BatchProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp</includedby>
+    <includedby refid="BatchUnionProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp</includedby>
+    <includedby refid="BatchWindowFunctionProcessing_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp</includedby>
+    <includedby refid="executor_8cpp" local="yes">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp</includedby>
+    <incdepgraph>
+      <node id="4541">
+        <label>atomic</label>
+      </node>
+      <node id="4580">
+        <label>config/GPUManager.cuh</label>
+      </node>
+      <node id="4575">
+        <label>rmm/mr/device/managed_memory_resource.hpp</label>
+      </node>
+      <node id="4613">
+        <label>functional</label>
+      </node>
+      <node id="4616">
+        <label>queue</label>
+      </node>
+      <node id="4540">
+        <label>execution_graph/logic_controllers/CacheMachine.h</label>
+        <link refid="CacheMachine_8h_source"/>
+        <childnode refid="4541" relation="include">
+        </childnode>
+        <childnode refid="4542" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4543" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+        <childnode refid="4546" relation="include">
+        </childnode>
+        <childnode refid="4547" relation="include">
+        </childnode>
+        <childnode refid="4548" relation="include">
+        </childnode>
+        <childnode refid="4552" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+        <childnode refid="4565" relation="include">
+        </childnode>
+        <childnode refid="4567" relation="include">
+        </childnode>
+        <childnode refid="4583" relation="include">
+        </childnode>
+        <childnode refid="4551" relation="include">
+        </childnode>
+        <childnode refid="4584" relation="include">
+        </childnode>
+        <childnode refid="4594" relation="include">
+        </childnode>
+        <childnode refid="4597" relation="include">
+        </childnode>
+        <childnode refid="4606" relation="include">
+        </childnode>
+        <childnode refid="4607" relation="include">
+        </childnode>
+      </node>
+      <node id="4554">
+        <label>execution_graph/logic_controllers/LogicPrimitives.h</label>
+        <link refid="LogicPrimitives_8h_source"/>
+        <childnode refid="4555" relation="include">
+        </childnode>
+        <childnode refid="4556" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4557" relation="include">
+        </childnode>
+        <childnode refid="4559" relation="include">
+        </childnode>
+      </node>
+      <node id="4592">
+        <label>cudf/scalar/scalar_device_view.cuh</label>
+      </node>
+      <node id="4597">
+        <label>communication/messages/GPUComponentMessage.h</label>
+        <link refid="GPUComponentMessage_8h_source"/>
+        <childnode refid="4546" relation="include">
+        </childnode>
+        <childnode refid="4585" relation="include">
+        </childnode>
+        <childnode refid="4586" relation="include">
+        </childnode>
+        <childnode refid="4587" relation="include">
+        </childnode>
+        <childnode refid="4560" relation="include">
+        </childnode>
+        <childnode refid="4566" relation="include">
+        </childnode>
+        <childnode refid="4598" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4599" relation="include">
+        </childnode>
+        <childnode refid="4600" relation="include">
+        </childnode>
+        <childnode refid="4601" relation="include">
+        </childnode>
+        <childnode refid="4602" relation="include">
+        </childnode>
+        <childnode refid="4558" relation="include">
+        </childnode>
+        <childnode refid="4603" relation="include">
+        </childnode>
+        <childnode refid="4604" relation="include">
+        </childnode>
+        <childnode refid="4547" relation="include">
+        </childnode>
+        <childnode refid="4605" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+        <childnode refid="4559" relation="include">
+        </childnode>
+      </node>
+      <node id="4581">
+        <label>sys/sysinfo.h</label>
+      </node>
+      <node id="4590">
+        <label>cudf/scalar/scalar_factories.hpp</label>
+      </node>
+      <node id="4535">
+        <label>kernel_type.h</label>
+        <link refid="kernel__type_8h_source"/>
+        <childnode refid="4536" relation="include">
+        </childnode>
+      </node>
+      <node id="4561">
+        <label>cstdint</label>
+      </node>
+      <node id="4573">
+        <label>rmm/mr/device/owning_wrapper.hpp</label>
+      </node>
+      <node id="4578">
+        <label>rmm/mr/device/logging_resource_adaptor.hpp</label>
+      </node>
+      <node id="4557">
+        <label>execution_graph/logic_controllers/BlazingColumn.h</label>
+        <link refid="BlazingColumn_8h_source"/>
+        <childnode refid="4558" relation="include">
+        </childnode>
+        <childnode refid="4555" relation="include">
+        </childnode>
+        <childnode refid="4556" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+      </node>
+      <node id="4566">
+        <label>transport/Node.h</label>
+        <link refid="Node_8h_source"/>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+      </node>
+      <node id="4601">
+        <label>cudf/copying.hpp</label>
+      </node>
+      <node id="4548">
+        <label>error.hpp</label>
+        <link refid="error_8hpp_source"/>
+        <childnode refid="4549" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4550" relation="include">
+        </childnode>
+        <childnode refid="4551" relation="include">
+        </childnode>
+      </node>
+      <node id="4568">
+        <label>cassert</label>
+      </node>
+      <node id="4574">
+        <label>rmm/mr/device/cuda_memory_resource.hpp</label>
+      </node>
+      <node id="4577">
+        <label>rmm/mr/device/arena_memory_resource.hpp</label>
+      </node>
+      <node id="4599">
+        <label>numeric</label>
+      </node>
+      <node id="4571">
+        <label>rmm/cuda_stream_view.hpp</label>
+      </node>
+      <node id="4536">
+        <label>string</label>
+      </node>
+      <node id="4545">
+        <label>map</label>
+      </node>
+      <node id="4603">
+        <label>cudf/null_mask.hpp</label>
+      </node>
+      <node id="4609">
+        <label>kpair.h</label>
+        <link refid="kpair_8h_source"/>
+        <childnode refid="4537" relation="include">
+        </childnode>
+        <childnode refid="4534" relation="include">
+        </childnode>
+      </node>
+      <node id="4586">
+        <label>spdlog/sinks/basic_file_sink.h</label>
+      </node>
+      <node id="4559">
+        <label>BlazingHostTable.h</label>
+        <link refid="BlazingHostTable_8h_source"/>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4547" relation="include">
+        </childnode>
+        <childnode refid="4560" relation="include">
+        </childnode>
+        <childnode refid="4562" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+      </node>
+      <node id="4551">
+        <label>exception</label>
+      </node>
+      <node id="4607">
+        <label>WaitingQueue.h</label>
+        <link refid="WaitingQueue_8h_source"/>
+        <childnode refid="4541" relation="include">
+        </childnode>
+        <childnode refid="4542" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4543" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+        <childnode refid="4546" relation="include">
+        </childnode>
+        <childnode refid="4551" relation="include">
+        </childnode>
+      </node>
+      <node id="4565">
+        <label>execution_graph/Context.h</label>
+        <link refid="Context_8h_source"/>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4566" relation="include">
+        </childnode>
+      </node>
+      <node id="4606">
+        <label>CacheData.h</label>
+        <link refid="CacheData_8h_source"/>
+        <childnode refid="4541" relation="include">
+        </childnode>
+        <childnode refid="4542" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4543" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+        <childnode refid="4546" relation="include">
+        </childnode>
+        <childnode refid="4547" relation="include">
+        </childnode>
+        <childnode refid="4548" relation="include">
+        </childnode>
+        <childnode refid="4552" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+        <childnode refid="4565" relation="include">
+        </childnode>
+        <childnode refid="4567" relation="include">
+        </childnode>
+        <childnode refid="4583" relation="include">
+        </childnode>
+        <childnode refid="4551" relation="include">
+        </childnode>
+        <childnode refid="4584" relation="include">
+        </childnode>
+        <childnode refid="4594" relation="include">
+        </childnode>
+        <childnode refid="4597" relation="include">
+        </childnode>
+      </node>
+      <node id="4584">
+        <label>io/data_provider/DataProvider.h</label>
+        <link refid="DataProvider_8h_source"/>
+        <childnode refid="4546" relation="include">
+        </childnode>
+        <childnode refid="4585" relation="include">
+        </childnode>
+        <childnode refid="4586" relation="include">
+        </childnode>
+        <childnode refid="4587" relation="include">
+        </childnode>
+        <childnode refid="4588" relation="include">
+        </childnode>
+        <childnode refid="4589" relation="include">
+        </childnode>
+        <childnode refid="4590" relation="include">
+        </childnode>
+        <childnode refid="4547" relation="include">
+        </childnode>
+        <childnode refid="4591" relation="include">
+        </childnode>
+        <childnode refid="4592" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4593" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+      </node>
+      <node id="4605">
+        <label>cudf/strings/strings_column_view.hpp</label>
+      </node>
+      <node id="4546">
+        <label>spdlog/spdlog.h</label>
+      </node>
+      <node id="4556">
+        <label>cudf/table/table_view.hpp</label>
+      </node>
+      <node id="4612">
+        <label>utilities/ctpl_stl.h</label>
+        <link refid="ctpl__stl_8h_source"/>
+        <childnode refid="4613" relation="include">
+        </childnode>
+        <childnode refid="4614" relation="include">
+        </childnode>
+        <childnode refid="4541" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4551" relation="include">
+        </childnode>
+        <childnode refid="4615" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4616" relation="include">
+        </childnode>
+      </node>
+      <node id="4595">
+        <label>../Schema.h</label>
+        <link refid="Schema_8h_source"/>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4547" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+      </node>
+      <node id="4588">
+        <label>arrow/io/interfaces.h</label>
+      </node>
+      <node id="4543">
+        <label>condition_variable</label>
+      </node>
+      <node id="4611">
+        <label>ExceptionHandling/BlazingThread.h</label>
+      </node>
+      <node id="4598">
+        <label>communication/messages/MessageUtil.cuh</label>
+      </node>
+      <node id="4582">
+        <label>sys/statvfs.h</label>
+      </node>
+      <node id="4591">
+        <label>cudf/utilities/type_dispatcher.hpp</label>
+      </node>
+      <node id="4600">
+        <label>tuple</label>
+      </node>
+      <node id="4615">
+        <label>future</label>
+      </node>
+      <node id="4585">
+        <label>spdlog/async.h</label>
+      </node>
+      <node id="4534">
+        <label>kernel.h</label>
+        <link refid="kernel_8h_source"/>
+        <childnode refid="4535" relation="include">
+        </childnode>
+        <childnode refid="4537" relation="include">
+        </childnode>
+        <childnode refid="4608" relation="include">
+        </childnode>
+      </node>
+      <node id="4563">
+        <label>stack</label>
+      </node>
+      <node id="4538">
+        <label>vector</label>
+      </node>
+      <node id="4560">
+        <label>transport/ColumnTransport.h</label>
+        <link refid="ColumnTransport_8h_source"/>
+        <childnode refid="4561" relation="include">
+        </childnode>
+      </node>
+      <node id="4604">
+        <label>cudf/column/column_factories.hpp</label>
+      </node>
+      <node id="4602">
+        <label>cudf/column/column.hpp</label>
+      </node>
+      <node id="4564">
+        <label>ucp/api/ucp.h</label>
+      </node>
+      <node id="4587">
+        <label>spdlog/sinks/stdout_color_sinks.h</label>
+      </node>
+      <node id="4562">
+        <label>bmr/BufferProvider.h</label>
+        <link refid="BufferProvider_8h_source"/>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4563" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4564" relation="include">
+        </childnode>
+      </node>
+      <node id="4594">
+        <label>io/data_parser/DataParser.h</label>
+        <link refid="DataParser_8h_source"/>
+        <childnode refid="4595" relation="include">
+        </childnode>
+        <childnode refid="4596" relation="include">
+        </childnode>
+        <childnode refid="4584" relation="include">
+        </childnode>
+        <childnode refid="4554" relation="include">
+        </childnode>
+        <childnode refid="4588" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4538" relation="include">
+        </childnode>
+      </node>
+      <node id="4547">
+        <label>cudf/types.hpp</label>
+      </node>
+      <node id="4610">
+        <label>bmr/MemoryMonitor.h</label>
+        <link refid="MemoryMonitor_8h_source"/>
+        <childnode refid="4543" relation="include">
+        </childnode>
+        <childnode refid="4544" relation="include">
+        </childnode>
+        <childnode refid="4553" relation="include">
+        </childnode>
+        <childnode refid="4611" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+      </node>
+      <node id="4579">
+        <label>rmm/mr/device/per_device_resource.hpp</label>
+      </node>
+      <node id="4596">
+        <label>../DataType.h</label>
+        <link refid="DataType_8h_source"/>
+      </node>
+      <node id="4583">
+        <label>communication/CommunicationData.h</label>
+        <link refid="CommunicationData_8h_source"/>
+        <childnode refid="4564" relation="include">
+        </childnode>
+        <childnode refid="4566" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4545" relation="include">
+        </childnode>
+      </node>
+      <node id="4608">
+        <label>graph.h</label>
+        <link refid="graph_8h_source"/>
+        <childnode refid="4534" relation="include">
+        </childnode>
+        <childnode refid="4609" relation="include">
+        </childnode>
+        <childnode refid="4540" relation="include">
+        </childnode>
+        <childnode refid="4610" relation="include">
+        </childnode>
+        <childnode refid="4612" relation="include">
+        </childnode>
+      </node>
+      <node id="4537">
+        <label>port.h</label>
+        <link refid="port_8h_source"/>
+        <childnode refid="4538" relation="include">
+        </childnode>
+        <childnode refid="4539" relation="include">
+        </childnode>
+        <childnode refid="4536" relation="include">
+        </childnode>
+        <childnode refid="4540" relation="include">
+        </childnode>
+      </node>
+      <node id="4549">
+        <label>iostream</label>
+      </node>
+      <node id="4558">
+        <label>cudf/column/column_view.hpp</label>
+      </node>
+      <node id="4542">
+        <label>deque</label>
+      </node>
+      <node id="4544">
+        <label>mutex</label>
+      </node>
+      <node id="4570">
+        <label>cuda_runtime_api.h</label>
+      </node>
+      <node id="4553">
+        <label>chrono</label>
+      </node>
+      <node id="4593">
+        <label>blazingdb/io/FileSystem/Uri.h</label>
+      </node>
+      <node id="4552">
+        <label>CodeTimer.h</label>
+        <link refid="CodeTimer_8h_source"/>
+        <childnode refid="4553" relation="include">
+        </childnode>
+      </node>
+      <node id="4572">
+        <label>rmm/mr/device/device_memory_resource.hpp</label>
+      </node>
+      <node id="4533">
+        <label>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h</label>
+        <link refid="executor_8h"/>
+        <childnode refid="4534" relation="include">
+        </childnode>
+        <childnode refid="4540" relation="include">
+        </childnode>
+        <childnode refid="4611" relation="include">
+        </childnode>
+        <childnode refid="4612" relation="include">
+        </childnode>
+      </node>
+      <node id="4614">
+        <label>thread</label>
+      </node>
+      <node id="4567">
+        <label>bmr/BlazingMemoryResource.h</label>
+        <link refid="BlazingMemoryResource_8h_source"/>
+        <childnode refid="4568" relation="include">
+        </childnode>
+        <childnode refid="4541" relation="include">
+        </childnode>
+        <childnode refid="4569" relation="include">
+        </childnode>
+        <childnode refid="4570" relation="include">
+        </childnode>
+        <childnode refid="4571" relation="include">
+        </childnode>
+        <childnode refid="4572" relation="include">
+        </childnode>
+        <childnode refid="4573" relation="include">
+        </childnode>
+        <childnode refid="4574" relation="include">
+        </childnode>
+        <childnode refid="4575" relation="include">
+        </childnode>
+        <childnode refid="4576" relation="include">
+        </childnode>
+        <childnode refid="4577" relation="include">
+        </childnode>
+        <childnode refid="4578" relation="include">
+        </childnode>
+        <childnode refid="4579" relation="include">
+        </childnode>
+        <childnode refid="4580" relation="include">
+        </childnode>
+        <childnode refid="4581" relation="include">
+        </childnode>
+        <childnode refid="4582" relation="include">
+        </childnode>
+      </node>
+      <node id="4576">
+        <label>rmm/mr/device/pool_memory_resource.hpp</label>
+      </node>
+      <node id="4569">
+        <label>set</label>
+      </node>
+      <node id="4555">
+        <label>cudf/table/table.hpp</label>
+      </node>
+      <node id="4550">
+        <label>cudf/utilities/error.hpp</label>
+      </node>
+      <node id="4589">
+        <label>cudf/scalar/scalar.hpp</label>
+      </node>
+      <node id="4539">
+        <label>memory</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="classral_1_1execution_1_1priority" prot="public">ral::execution::priority</innerclass>
+    <innerclass refid="classral_1_1execution_1_1task" prot="public">ral::execution::task</innerclass>
+    <innerclass refid="classral_1_1execution_1_1executor" prot="public">ral::execution::executor</innerclass>
+    <innernamespace refid="namespaceral">ral</innernamespace>
+    <innernamespace refid="namespaceral_1_1execution">ral::execution</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;kernel.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;execution_graph/logic_controllers/CacheMachine.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;ExceptionHandling/BlazingThread.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;utilities/ctpl_stl.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceral" kindref="compound">ral</ref><sp/>{</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">execution{</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12" refid="classral_1_1execution_1_1priority" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1execution_1_1priority" kindref="compound">priority</ref><sp/>{</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>priority_num_query;<sp/></highlight><highlight class="comment">//can<sp/>be<sp/>used<sp/>to<sp/>prioritize<sp/>one<sp/>query<sp/>over<sp/>another</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>priority_num_kernel;<sp/></highlight><highlight class="comment">//can<sp/>be</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref>;</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22" refid="classral_1_1execution_1_1task" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1execution_1_1task" kindref="compound">task</ref><sp/>{</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1execution_1_1task" kindref="compound">task</ref>(</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData<sp/>&gt;<sp/>&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>task_id,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref><sp/>*<sp/>kernel,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>attempts_limit,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>attempts<sp/>=<sp/>0);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>run(cudaStream_t<sp/>stream,<sp/><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref><sp/>*<sp/><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref>);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>complete();</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>fail();</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>task_memory_needed();</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData<sp/>&gt;<sp/>&gt;<sp/>release_inputs();</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>set_inputs(std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData<sp/>&gt;<sp/>&gt;<sp/>inputs);</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword">protected</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData<sp/>&gt;<sp/>&gt;<sp/>inputs;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>task_id;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref><sp/>*<sp/>kernel;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>attempts<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>attempts_limit;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>std::map&lt;std::string,<sp/>std::string&gt;<sp/>args;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;spdlog::logger&gt;<sp/>task_logger;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66" refid="classral_1_1execution_1_1executor" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref>{</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref><sp/>*<sp/>get_instance(){</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(_instance<sp/>==<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">){</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/>std::runtime_error(</highlight><highlight class="stringliteral">&quot;Executor<sp/>not<sp/>initialized.&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>_instance;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>init_executor(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>num_threads,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>processing_memory_limit_threshold){</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(!_instance){</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_instance<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref>(num_threads,<sp/>processing_memory_limit_threshold);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_instance-&gt;task_id_counter<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_instance-&gt;active_tasks_counter<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>thread<sp/>=<sp/>std::thread([</highlight><highlight class="comment">/*_instance*/</highlight><highlight class="normal">]{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_instance-&gt;execute();</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>});</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>thread.detach();</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>execute();</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/>std::exception_ptr<sp/>last_exception();</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>has_exception();</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>add_task(std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData<sp/>&gt;<sp/>&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref><sp/>*<sp/>kernel,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args<sp/>=<sp/>{});</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>add_task(std::vector&lt;std::unique_ptr&lt;ral::cache::CacheData<sp/>&gt;<sp/>&gt;<sp/>inputs,</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::shared_ptr&lt;ral::cache::CacheMachine&gt;<sp/>output,</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1kernel" kindref="compound">ral::cache::kernel</ref><sp/>*<sp/>kernel,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>attempts,</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>task_id,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;std::string,<sp/>std::string&gt;&amp;<sp/>args<sp/>=<sp/>{});</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>add_task(std::unique_ptr&lt;task&gt;<sp/><ref refid="classral_1_1execution_1_1task" kindref="compound">task</ref>);</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>std::unique_ptr&lt;task&gt;<sp/>remove_task_from_back();</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>notify_memory_safety_cv(){</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>memory_safety_cv.notify_all();</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>num_threads,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>processing_memory_limit_threshold);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classctpl_1_1thread__pool" kindref="compound">ctpl::thread_pool&lt;BlazingThread&gt;</ref><sp/>pool;</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;cudaStream_t&gt;<sp/>streams;<sp/></highlight><highlight class="comment">//one<sp/>stream<sp/>per<sp/>thread</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classral_1_1cache_1_1WaitingQueue" kindref="compound">ral::cache::WaitingQueue&lt; std::unique_ptr&lt;task&gt;</ref><sp/>&gt;<sp/>task_queue;</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>shutdown<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="classral_1_1execution_1_1executor" kindref="compound">executor</ref><sp/>*<sp/>_instance;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;int&gt;<sp/>task_id_counter;</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>attempts_limit<sp/>=<sp/>10;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>std::mutex<sp/>exception_holder_mutex;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/>std::queue&lt;std::exception_ptr&gt;<sp/>exception_holder;<sp/></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classBlazingMemoryResource" kindref="compound">BlazingMemoryResource</ref>*<sp/>resource;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>std::size_t<sp/>processing_memory_limit;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;int&gt;<sp/>active_tasks_counter;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/>std::mutex<sp/>memory_safety_mutex;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/>std::condition_variable<sp/>memory_safety_cv;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>execution</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>ral</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h"/>
+  </compounddef>
+</doxygen>

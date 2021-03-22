@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1processor_1_1function__evaluator__transformer" kind="class" language="C++" prot="public">
+    <compoundname>ral::processor::function_evaluator_transformer</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">node_transformer</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1processor_1_1function__evaluator__transformer_1a37a7e1952fa321acf70cd324fa7c9358" prot="private" static="no" mutable="no">
+        <type>cudf::table_view</type>
+        <definition>cudf::table_view ral::processor::function_evaluator_transformer::table</definition>
+        <argsstring></argsstring>
+        <name>table</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="717" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="717" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1processor_1_1function__evaluator__transformer_1a9b9f2fe864b466e68118ce54d31499ad" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; cudf::column &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;cudf::column&gt; &gt; ral::processor::function_evaluator_transformer::computed_columns</definition>
+        <argsstring></argsstring>
+        <name>computed_columns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="718" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="718" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1processor_1_1function__evaluator__transformer_1a3c389ffcf498cb6a76a0dcd1959c34e9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::processor::function_evaluator_transformer::function_evaluator_transformer</definition>
+        <argsstring>(const cudf::table_view &amp;table)</argsstring>
+        <name>function_evaluator_transformer</name>
+        <param>
+          <type>const cudf::table_view &amp;</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="650" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="650" bodyend="650"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1processor_1_1function__evaluator__transformer_1a7cf33e05533d71d24ccac6510d1a35b2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>parser::node *</type>
+        <definition>parser::node* ral::processor::function_evaluator_transformer::transform</definition>
+        <argsstring>(parser::operad_node &amp;node) override</argsstring>
+        <name>transform</name>
+        <param>
+          <type>parser::operad_node &amp;</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="652" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="652" bodyend="652"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1processor_1_1function__evaluator__transformer_1abc3cddc8139b9a7a8d48712cc092c19e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>parser::node *</type>
+        <definition>parser::node* ral::processor::function_evaluator_transformer::transform</definition>
+        <argsstring>(parser::operator_node &amp;node) override</argsstring>
+        <name>transform</name>
+        <param>
+          <type>parser::operator_node &amp;</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="654" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="654" bodyend="704"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1processor_1_1function__evaluator__transformer_1a8084c67c14a0da853c6134ca3089b6cb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>cudf::table_view</type>
+        <definition>cudf::table_view ral::processor::function_evaluator_transformer::computed_columns_view</definition>
+        <argsstring>()</argsstring>
+        <name>computed_columns_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="706" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="706" bodyend="712"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1processor_1_1function__evaluator__transformer_1a89644d653fd4601d224486e82589530d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; std::unique_ptr&lt; cudf::column &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;cudf::column&gt; &gt; ral::processor::function_evaluator_transformer::release_computed_columns</definition>
+        <argsstring>()</argsstring>
+        <name>release_computed_columns</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="714" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="714" bodyend="714"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A class that traverses an expression tree and prunes nodes that can&apos;t be evaluated by the interpreter. </para>    </briefdescription>
+    <detaileddescription>
+<para>Any complex operation that can&apos;t be evaluated by the interpreter (e.g. string functions) is evaluated here and its corresponding node replaced by a new node containing the result of the operation </para>    </detaileddescription>
+    <inheritancegraph>
+      <node id="215">
+        <label>parser::node_transformer</label>
+      </node>
+      <node id="214">
+        <label>ral::processor::function_evaluator_transformer</label>
+        <link refid="classral_1_1processor_1_1function__evaluator__transformer"/>
+        <childnode refid="215" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="217">
+        <label>parser::node_transformer</label>
+      </node>
+      <node id="216">
+        <label>ral::processor::function_evaluator_transformer</label>
+        <link refid="classral_1_1processor_1_1function__evaluator__transformer"/>
+        <childnode refid="217" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" line="648" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp" bodystart="648" bodyend="719"/>
+    <listofallmembers>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1a9b9f2fe864b466e68118ce54d31499ad" prot="private" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>computed_columns</name></member>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1a8084c67c14a0da853c6134ca3089b6cb" prot="public" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>computed_columns_view</name></member>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1a3c389ffcf498cb6a76a0dcd1959c34e9" prot="public" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>function_evaluator_transformer</name></member>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1a89644d653fd4601d224486e82589530d" prot="public" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>release_computed_columns</name></member>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1a37a7e1952fa321acf70cd324fa7c9358" prot="private" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>table</name></member>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1a7cf33e05533d71d24ccac6510d1a35b2" prot="public" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>transform</name></member>
+      <member refid="classral_1_1processor_1_1function__evaluator__transformer_1abc3cddc8139b9a7a8d48712cc092c19e" prot="public" virt="non-virtual"><scope>ral::processor::function_evaluator_transformer</scope><name>transform</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

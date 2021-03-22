@@ -1,0 +1,191 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchProcessing.h:
+
+Program Listing for File BatchProcessing.h
+==========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchProcessing.h>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #pragma once
+   
+   #include <mutex>
+   #include "CacheMachine.h"
+   #include "taskflow/graph.h"
+   #include "io/Schema.h"
+   #include "io/DataLoader.h"
+   #include "execution_graph/logic_controllers/taskflow/kernel.h"
+   #include <execution_graph/logic_controllers/LogicPrimitives.h>
+   
+   namespace ral {
+   namespace batch {
+   
+   using ral::cache::kstatus;
+   using ral::cache::kernel;
+   using ral::cache::kernel_type;
+   using namespace fmt::literals;
+   
+   using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
+   using Context = blazingdb::manager::Context;
+   
+   class BatchSequence {
+   public:
+       BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr, bool ordered = true);
+   
+       void set_source(std::shared_ptr<ral::cache::CacheMachine> cache);
+   
+       std::unique_ptr<ral::frame::BlazingTable> next();
+   
+       bool wait_for_next();
+   
+       bool has_next_now();
+   
+   private:
+       std::shared_ptr<ral::cache::CacheMachine> cache; 
+       const ral::cache::kernel * kernel; 
+       bool ordered; 
+   };
+   
+   class BatchSequenceBypass {
+   public:
+       BatchSequenceBypass(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr);
+   
+       void set_source(std::shared_ptr<ral::cache::CacheMachine> cache);
+   
+       std::unique_ptr<ral::cache::CacheData> next();
+   
+       bool wait_for_next();
+   
+       bool has_next_now();
+   
+   private:
+       std::shared_ptr<ral::cache::CacheMachine> cache; 
+       const ral::cache::kernel * kernel; 
+   };
+   
+   
+   class TableScan : public kernel {
+   public:
+       TableScan(std::size_t kernel_id, const std::string & queryString,
+           std::shared_ptr<ral::io::data_provider> provider,
+           std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema,
+           std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+   
+       std::string kernel_name() { return "TableScan";}
+   
+       ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+           std::shared_ptr<ral::cache::CacheMachine> output,
+           cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+   
+       kstatus run() override;
+   
+       std::pair<bool, uint64_t> get_estimated_output_num_rows() override;
+   
+   private:
+       std::shared_ptr<ral::io::data_provider> provider;
+       std::shared_ptr<ral::io::data_parser> parser;
+       ral::io::Schema  schema; 
+       size_t file_index = 0;
+       size_t num_batches;
+   };
+   
+   class BindableTableScan : public kernel {
+   public:
+       BindableTableScan(std::size_t kernel_id, const std::string & queryString,
+           std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser,
+           ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+   
+       std::string kernel_name() { return "BindableTableScan";}
+       
+       ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+           std::shared_ptr<ral::cache::CacheMachine> output,
+           cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+   
+       kstatus run() override;
+   
+       std::pair<bool, uint64_t> get_estimated_output_num_rows() override;
+   
+   private:
+       std::shared_ptr<ral::io::data_provider> provider;
+       std::shared_ptr<ral::io::data_parser> parser;
+       ral::io::Schema  schema; 
+       size_t file_index = 0;
+       double num_batches;
+       bool filtered;
+   };
+   
+   class Projection : public kernel {
+   public:
+       Projection(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+   
+       std::string kernel_name() { return "Projection";}
+   
+       ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+           std::shared_ptr<ral::cache::CacheMachine> output,
+           cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+   
+       kstatus run() override;
+   };
+   
+   class Filter : public kernel {
+   public:
+       Filter(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+   
+       std::string kernel_name() { return "Filter";}
+   
+       ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+           std::shared_ptr<ral::cache::CacheMachine> output,
+           cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+   
+       kstatus run() override;
+   
+       std::pair<bool, uint64_t> get_estimated_output_num_rows() override;
+   };
+   
+   class Print : public kernel {
+   public:
+       Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
+       Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
+   
+       std::string kernel_name() { return "Print";}
+   
+       virtual kstatus run();
+   
+   protected:
+       std::ostream * ofs = nullptr; 
+       std::mutex print_lock; 
+   };
+   
+   
+   class OutputKernel : public kernel {
+   public:
+       OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel), done(false) { }
+   
+       std::string kernel_name() { return "Output";}
+   
+       ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
+           std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+           cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) override {
+               //for now the output kernel is not using do_process
+               //i believe the output should be a cachemachine itself
+               //obviating this concern
+               ral::execution::task_result temp = {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> >()};
+               return std::move(temp);
+           }
+       kstatus run() override;
+   
+       frame_type release();
+   
+   
+       bool is_done();
+   
+   protected:
+       frame_type output; 
+       std::atomic<bool> done;
+   };
+   
+   } // namespace batch
+   } // namespace ral

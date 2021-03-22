@@ -1,0 +1,130 @@
+\hypertarget{classral_1_1cache_1_1MetadataDictionary}{}\section{ral\+:\+:cache\+:\+:Metadata\+Dictionary Class Reference}
+\label{classral_1_1cache_1_1MetadataDictionary}\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+
+
+{\ttfamily \#include $<$Cache\+Data.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classral_1_1cache_1_1MetadataDictionary_a99828bf2a71b8e06d568420e5c2b460d}{add\+\_\+value} (std\+::string key, std\+::string value)
+\item 
+void \hyperlink{classral_1_1cache_1_1MetadataDictionary_a5f2f0c2542ea15ca00d273df68041551}{add\+\_\+value} (std\+::string key, int value)
+\item 
+int \hyperlink{classral_1_1cache_1_1MetadataDictionary_a03066b3e050bf5f504613aab7604d768}{get\+\_\+kernel\+\_\+id} ()
+\item 
+void \hyperlink{classral_1_1cache_1_1MetadataDictionary_a762943ae80571c2f5ea6dfbcea07a3bb}{print} ()
+\item 
+std\+::map$<$ std\+::string, std\+::string $>$ \hyperlink{classral_1_1cache_1_1MetadataDictionary_abdc2863d96dc839565f2078471f4c9f7}{get\+\_\+values} () const
+\item 
+void \hyperlink{classral_1_1cache_1_1MetadataDictionary_a99d66a4b93ebb5f187da5c8968054a54}{set\+\_\+values} (std\+::map$<$ std\+::string, std\+::string $>$ new\+\_\+values)
+\item 
+bool \hyperlink{classral_1_1cache_1_1MetadataDictionary_a72ac4462583a2be4be3de19eb230b624}{has\+\_\+value} (std\+::string key)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a50be7e17be586f17dd10228227a51a15}\label{classral_1_1cache_1_1MetadataDictionary_a50be7e17be586f17dd10228227a51a15}} 
+std\+::string {\bfseries get\+\_\+value} (std\+::string key)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_afd9178b77c468cc390786830aba8b968}\label{classral_1_1cache_1_1MetadataDictionary_afd9178b77c468cc390786830aba8b968}} 
+void {\bfseries set\+\_\+value} (std\+::string key, std\+::string value)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Lightweight wrapper for a map that will one day be used for compile time checks. Currently it is just a wrapper for map but in the future the intention is for us to manage the Metadata in a struct as opposed to a map of string to string. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a99828bf2a71b8e06d568420e5c2b460d}\label{classral_1_1cache_1_1MetadataDictionary_a99828bf2a71b8e06d568420e5c2b460d}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!add\+\_\+value@{add\+\_\+value}}
+\index{add\+\_\+value@{add\+\_\+value}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{add\+\_\+value()}{add\_value()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void ral\+::cache\+::\+Metadata\+Dictionary\+::add\+\_\+value (\begin{DoxyParamCaption}\item[{std\+::string}]{key,  }\item[{std\+::string}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Gets the type of \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} that was used to construct this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} 
+\begin{DoxyParams}{Parameters}
+{\em key} & The key in the map that we will be modifying. \\
+\hline
+{\em value} & The value that we will set the key to. \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1MetadataDictionary_a99828bf2a71b8e06d568420e5c2b460d_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a5f2f0c2542ea15ca00d273df68041551}\label{classral_1_1cache_1_1MetadataDictionary_a5f2f0c2542ea15ca00d273df68041551}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!add\+\_\+value@{add\+\_\+value}}
+\index{add\+\_\+value@{add\+\_\+value}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{add\+\_\+value()}{add\_value()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void ral\+::cache\+::\+Metadata\+Dictionary\+::add\+\_\+value (\begin{DoxyParamCaption}\item[{std\+::string}]{key,  }\item[{int}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Gets the type of \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} that was used to construct this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} 
+\begin{DoxyParams}{Parameters}
+{\em key} & The key in the map that we will be modifying. \\
+\hline
+{\em value} & The value that we will set the key to. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a03066b3e050bf5f504613aab7604d768}\label{classral_1_1cache_1_1MetadataDictionary_a03066b3e050bf5f504613aab7604d768}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!get\+\_\+kernel\+\_\+id@{get\+\_\+kernel\+\_\+id}}
+\index{get\+\_\+kernel\+\_\+id@{get\+\_\+kernel\+\_\+id}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{get\+\_\+kernel\+\_\+id()}{get\_kernel\_id()}}
+{\footnotesize\ttfamily int ral\+::cache\+::\+Metadata\+Dictionary\+::get\+\_\+kernel\+\_\+id (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Gets id of creating kernel. \begin{DoxyReturn}{Returns}
+Get the id of the kernel that created this message. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_abdc2863d96dc839565f2078471f4c9f7}\label{classral_1_1cache_1_1MetadataDictionary_abdc2863d96dc839565f2078471f4c9f7}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!get\+\_\+values@{get\+\_\+values}}
+\index{get\+\_\+values@{get\+\_\+values}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{get\+\_\+values()}{get\_values()}}
+{\footnotesize\ttfamily std\+::map$<$std\+::string,std\+::string$>$ ral\+::cache\+::\+Metadata\+Dictionary\+::get\+\_\+values (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Gets the map storing the metadata. \begin{DoxyReturn}{Returns}
+the map storing all of the metadata. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1MetadataDictionary_abdc2863d96dc839565f2078471f4c9f7_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a72ac4462583a2be4be3de19eb230b624}\label{classral_1_1cache_1_1MetadataDictionary_a72ac4462583a2be4be3de19eb230b624}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!has\+\_\+value@{has\+\_\+value}}
+\index{has\+\_\+value@{has\+\_\+value}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{has\+\_\+value()}{has\_value()}}
+{\footnotesize\ttfamily bool ral\+::cache\+::\+Metadata\+Dictionary\+::has\+\_\+value (\begin{DoxyParamCaption}\item[{std\+::string}]{key }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Checks if metadata has a specific key 
+\begin{DoxyParams}{Parameters}
+{\em key} & The key to check if is in the metadata \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the key is in the metadata, otherwise return false 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a762943ae80571c2f5ea6dfbcea07a3bb}\label{classral_1_1cache_1_1MetadataDictionary_a762943ae80571c2f5ea6dfbcea07a3bb}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!print@{print}}
+\index{print@{print}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily void ral\+::cache\+::\+Metadata\+Dictionary\+::print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Print every key =$>$ value pair in the map. Only used for debugging purposes. \mbox{\Hypertarget{classral_1_1cache_1_1MetadataDictionary_a99d66a4b93ebb5f187da5c8968054a54}\label{classral_1_1cache_1_1MetadataDictionary_a99d66a4b93ebb5f187da5c8968054a54}} 
+\index{ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}!set\+\_\+values@{set\+\_\+values}}
+\index{set\+\_\+values@{set\+\_\+values}!ral\+::cache\+::\+Metadata\+Dictionary@{ral\+::cache\+::\+Metadata\+Dictionary}}
+\subsubsection{\texorpdfstring{set\+\_\+values()}{set\_values()}}
+{\footnotesize\ttfamily void ral\+::cache\+::\+Metadata\+Dictionary\+::set\+\_\+values (\begin{DoxyParamCaption}\item[{std\+::map$<$ std\+::string, std\+::string $>$}]{new\+\_\+values }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Erases all current metadata and sets new values. 
+\begin{DoxyParams}{Parameters}
+{\em new\+\_\+values} & A map to copy into this-\/$>$values . \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+cpp\end{DoxyCompactItemize}

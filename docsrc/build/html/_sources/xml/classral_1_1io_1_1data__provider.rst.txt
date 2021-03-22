@@ -1,0 +1,27 @@
+.. _exhale_class_classral_1_1io_1_1data__provider:
+
+Class data_provider
+===================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_provider_DataProvider.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Types
+*************
+
+- ``public ral::io::dummy_data_provider`` (:ref:`exhale_class_classral_1_1io_1_1dummy__data__provider`)
+- ``public ral::io::gdf_data_provider`` (:ref:`exhale_class_classral_1_1io_1_1gdf__data__provider`)
+- ``public ral::io::uri_data_provider`` (:ref:`exhale_class_classral_1_1io_1_1uri__data__provider`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: ral::io::data_provider
+   :members:
+   :protected-members:
+   :undoc-members:

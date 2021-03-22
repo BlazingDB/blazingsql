@@ -1,0 +1,26 @@
+.. _exhale_class_classral_1_1memory_1_1base__allocator:
+
+Class base_allocator
+====================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_bmr_BufferProvider.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Types
+*************
+
+- ``public ral::memory::host_allocator`` (:ref:`exhale_class_classral_1_1memory_1_1host__allocator`)
+- ``public ral::memory::pinned_allocator`` (:ref:`exhale_class_classral_1_1memory_1_1pinned__allocator`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: ral::memory::base_allocator
+   :members:
+   :protected-members:
+   :undoc-members:

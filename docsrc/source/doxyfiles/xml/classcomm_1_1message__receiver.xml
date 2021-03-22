@@ -1,0 +1,386 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classcomm_1_1message__receiver" kind="class" language="C++" prot="public">
+    <compoundname>comm::message_receiver</compoundname>
+    <includes refid="messageReceiver_8hpp" local="no">messageReceiver.hpp</includes>
+      <sectiondef kind="private-type">
+      <memberdef kind="typedef" id="classcomm_1_1message__receiver_1aec757a9b8578cc8ed2d0116de348ecfd" prot="private" static="no">
+        <type><ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">blazingdb::transport::ColumnTransport</ref></type>
+        <definition>using comm::message_receiver::ColumnTransport =  blazingdb::transport::ColumnTransport</definition>
+        <argsstring></argsstring>
+        <name>ColumnTransport</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="45" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1af0f5c11910fc84478e3733e7ef08e68c" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">ColumnTransport</ref> &gt;</type>
+        <definition>std::vector&lt;ColumnTransport&gt; comm::message_receiver::_column_transports</definition>
+        <argsstring></argsstring>
+        <name>_column_transports</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="75" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1af98a437e9a3ebeab39e9b7a264ceaf7f" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__chunked__column__info" kindref="compound">ral::memory::blazing_chunked_column_info</ref> &gt;</type>
+        <definition>std::vector&lt;ral::memory::blazing_chunked_column_info&gt; comm::message_receiver::_chunked_column_infos</definition>
+        <argsstring></argsstring>
+        <name>_chunked_column_infos</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="76" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1a54579883117e55d3457a8a0c4f3adac3" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; comm::message_receiver::_output_cache</definition>
+        <argsstring></argsstring>
+        <name>_output_cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="77" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1ac98a61f60f8e57e93e8ef1caf0508b97" prot="private" static="no" mutable="no">
+        <type><ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">ral::cache::MetadataDictionary</ref></type>
+        <definition>ral::cache::MetadataDictionary comm::message_receiver::_metadata</definition>
+        <argsstring></argsstring>
+        <name>_metadata</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="78" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="78" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1ae12bca46dcb4781e2a3f744aff9b0685" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; size_t &gt;</type>
+        <definition>std::vector&lt;size_t&gt; comm::message_receiver::_buffer_sizes</definition>
+        <argsstring></argsstring>
+        <name>_buffer_sizes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="79" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1afda49ac82a5a24bca616234866235f7e" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="structral_1_1memory_1_1blazing__allocation__chunk" kindref="compound">ral::memory::blazing_allocation_chunk</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;ral::memory::blazing_allocation_chunk&gt; &gt; comm::message_receiver::_raw_buffers</definition>
+        <argsstring></argsstring>
+        <name>_raw_buffers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="80" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1ad157152eee58c08abfc95b94a6ffb440" prot="private" static="no" mutable="no">
+        <type>std::map&lt; std::string, <ref refid="classcomm_1_1node" kindref="compound">comm::node</ref> &gt;</type>
+        <definition>std::map&lt;std::string, comm::node&gt; comm::message_receiver::_nodes_info_map</definition>
+        <argsstring></argsstring>
+        <name>_nodes_info_map</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="81" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1a1680917c956d700f9803496b9cbccca5" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; comm::message_receiver::_buffer_counter</definition>
+        <argsstring></argsstring>
+        <name>_buffer_counter</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="82" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1acdcbfffcc444a12a862195aa69d42b6e" prot="private" static="no" mutable="no">
+        <type>std::mutex</type>
+        <definition>std::mutex comm::message_receiver::_finish_mutex</definition>
+        <argsstring></argsstring>
+        <name>_finish_mutex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="83" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1aac9e196bec11182fd72e6986ab24a637" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool comm::message_receiver::_finished_called</definition>
+        <argsstring></argsstring>
+        <name>_finished_called</name>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1message__receiver_1a0d0a11d0cc1f974b10c03c1a43e09994" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; comm::message_receiver::input_cache</definition>
+        <argsstring></argsstring>
+        <name>input_cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="85" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1ab49d04074a12b8f9ad00dc26b84a43ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::message_receiver::message_receiver</definition>
+        <argsstring>(const std::map&lt; std::string, comm::node &gt; &amp;nodes, const std::vector&lt; char &gt; &amp;buffer, std::shared_ptr&lt; ral::cache::CacheMachine &gt; input_cache)</argsstring>
+        <name>message_receiver</name>
+        <param>
+          <type>const std::map&lt; std::string, <ref refid="classcomm_1_1node" kindref="compound">comm::node</ref> &gt; &amp;</type>
+          <declname>nodes</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; char &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>input_cache</declname>
+        </param>
+        <briefdescription>
+<para>Constructs a <ref refid="classcomm_1_1message__receiver" kindref="compound">message_receiver</ref>. </para>        </briefdescription>
+        <detaileddescription>
+<para>This is a place for a message to receive chunks. It calls the deserializer after the complete message has been assembled</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>column_transports</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This is metadata about how a column will be reconstructed used by the deserialzer </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>metadata</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>This is information about how the message was routed and payloads that are used in execution, planning, or physical optimizations. E.G. num rows in table, num partitions to be processed </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>output_cache</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination for the message being received. It is either a specific cache inbetween two kernels or it is intended for the general input cache using a mesage_id </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="61" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="7" bodyend="53"/>
+        <references refid="classral_1_1cache_1_1MetadataDictionary_1abdc2863d96dc839565f2078471f4c9f7" compoundref="CacheData_8h" startline="111" endline="113">ral::cache::MetadataDictionary::get_values</references>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1a95eed3d851450d759b086c756a4e060c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual comm::message_receiver::~message_receiver</definition>
+        <argsstring>()</argsstring>
+        <name>~message_receiver</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="62" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="62" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1a33eff32bfde13d8f0579089f297559f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t comm::message_receiver::buffer_size</definition>
+        <argsstring>(u_int16_t index)</argsstring>
+        <name>buffer_size</name>
+        <param>
+          <type>u_int16_t</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="64" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="55" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1ab45c4394a35fb0ca81f091606c0c6f9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::message_receiver::allocate_buffer</definition>
+        <argsstring>(uint16_t index, cudaStream_t stream=0)</argsstring>
+        <name>allocate_buffer</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="65" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="59" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1a4527d37c56a04d2b6e82a469cbd14683" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classcomm_1_1node" kindref="compound">node</ref></type>
+        <definition>node comm::message_receiver::get_sender_node</definition>
+        <argsstring>()</argsstring>
+        <name>get_sender_node</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="66" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="66" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1a4423b1caa4472204e5491f84f1addc65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t comm::message_receiver::num_buffers</definition>
+        <argsstring>()</argsstring>
+        <name>num_buffers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="67" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="71" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1ab9c3bb7eb1f6b8123bbc8b2b4ef47b77" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::message_receiver::confirm_transmission</definition>
+        <argsstring>()</argsstring>
+        <name>confirm_transmission</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="68" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="75" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1aac2ed6c851ace8d403721b31a99f8845" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * comm::message_receiver::get_buffer</definition>
+        <argsstring>(uint16_t index)</argsstring>
+        <name>get_buffer</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="69" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="81" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1a6940eb5eae53218e3c07cb1b22fb4ae5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool comm::message_receiver::is_finished</definition>
+        <argsstring>()</argsstring>
+        <name>is_finished</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="70" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="85" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1message__receiver_1a593257af754fdef710dac5e2b408fe40" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void comm::message_receiver::finish</definition>
+        <argsstring>(cudaStream_t stream=0)</argsstring>
+        <name>finish</name>
+        <param>
+          <type>cudaStream_t</type>
+          <declname>stream</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="71" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp" bodystart="90" bodyend="122"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A Class used for the reconstruction of a BlazingTable from metadata and column data. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" line="44" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp" bodystart="44" bodyend="86"/>
+    <listofallmembers>
+      <member refid="classcomm_1_1message__receiver_1a1680917c956d700f9803496b9cbccca5" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_buffer_counter</name></member>
+      <member refid="classcomm_1_1message__receiver_1ae12bca46dcb4781e2a3f744aff9b0685" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_buffer_sizes</name></member>
+      <member refid="classcomm_1_1message__receiver_1af98a437e9a3ebeab39e9b7a264ceaf7f" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_chunked_column_infos</name></member>
+      <member refid="classcomm_1_1message__receiver_1af0f5c11910fc84478e3733e7ef08e68c" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_column_transports</name></member>
+      <member refid="classcomm_1_1message__receiver_1acdcbfffcc444a12a862195aa69d42b6e" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_finish_mutex</name></member>
+      <member refid="classcomm_1_1message__receiver_1aac9e196bec11182fd72e6986ab24a637" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_finished_called</name></member>
+      <member refid="classcomm_1_1message__receiver_1ac98a61f60f8e57e93e8ef1caf0508b97" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_metadata</name></member>
+      <member refid="classcomm_1_1message__receiver_1ad157152eee58c08abfc95b94a6ffb440" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_nodes_info_map</name></member>
+      <member refid="classcomm_1_1message__receiver_1a54579883117e55d3457a8a0c4f3adac3" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_output_cache</name></member>
+      <member refid="classcomm_1_1message__receiver_1afda49ac82a5a24bca616234866235f7e" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>_raw_buffers</name></member>
+      <member refid="classcomm_1_1message__receiver_1ab45c4394a35fb0ca81f091606c0c6f9b" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>allocate_buffer</name></member>
+      <member refid="classcomm_1_1message__receiver_1a33eff32bfde13d8f0579089f297559f7" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>buffer_size</name></member>
+      <member refid="classcomm_1_1message__receiver_1aec757a9b8578cc8ed2d0116de348ecfd" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>ColumnTransport</name></member>
+      <member refid="classcomm_1_1message__receiver_1ab9c3bb7eb1f6b8123bbc8b2b4ef47b77" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>confirm_transmission</name></member>
+      <member refid="classcomm_1_1message__receiver_1a593257af754fdef710dac5e2b408fe40" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>finish</name></member>
+      <member refid="classcomm_1_1message__receiver_1aac2ed6c851ace8d403721b31a99f8845" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>get_buffer</name></member>
+      <member refid="classcomm_1_1message__receiver_1a4527d37c56a04d2b6e82a469cbd14683" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>get_sender_node</name></member>
+      <member refid="classcomm_1_1message__receiver_1a0d0a11d0cc1f974b10c03c1a43e09994" prot="private" virt="non-virtual"><scope>comm::message_receiver</scope><name>input_cache</name></member>
+      <member refid="classcomm_1_1message__receiver_1a6940eb5eae53218e3c07cb1b22fb4ae5" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>is_finished</name></member>
+      <member refid="classcomm_1_1message__receiver_1ab49d04074a12b8f9ad00dc26b84a43ca" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>message_receiver</name></member>
+      <member refid="classcomm_1_1message__receiver_1a4423b1caa4472204e5491f84f1addc65" prot="public" virt="non-virtual"><scope>comm::message_receiver</scope><name>num_buffers</name></member>
+      <member refid="classcomm_1_1message__receiver_1a95eed3d851450d759b086c756a4e060c" prot="public" virt="virtual"><scope>comm::message_receiver</scope><name>~message_receiver</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

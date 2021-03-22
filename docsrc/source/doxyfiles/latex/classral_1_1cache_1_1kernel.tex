@@ -1,0 +1,562 @@
+\hypertarget{classral_1_1cache_1_1kernel}{}\section{ral\+:\+:cache\+:\+:kernel Class Reference}
+\label{classral_1_1cache_1_1kernel}\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+
+
+This interface represents a computation unit in the execution graph. Each kernel has basically and input and output ports and the expression asocciated to the computation unit. Each class that implements this interface should define how the computation is executed. See {\ttfamily \hyperlink{classral_1_1cache_1_1kernel_aa8d19c5f112f8965ea2f9999fb5fd625}{do\+\_\+process()}} method.  
+
+
+
+
+{\ttfamily \#include $<$kernel.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:cache\+:\+:kernel\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1kernel__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:kernel\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=172pt]{classral_1_1cache_1_1kernel__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1cache_1_1kernel_a533e4ae37fc18a6c8638f30ee8459d8f}{kernel} (std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}{kernel\+\_\+id}, std\+::string expr, std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ \hyperlink{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}{context}, kernel\+\_\+type \hyperlink{classral_1_1cache_1_1kernel_a923841bcb8d995048c58d51a6c39caf7}{kernel\+\_\+type\+\_\+id})
+\item 
+void \hyperlink{classral_1_1cache_1_1kernel_a150ae499b8aef4669714e791f2bea9e9}{set\+\_\+parent} (size\+\_\+t id)
+\begin{DoxyCompactList}\small\item\em Sets its parent kernel. \end{DoxyCompactList}\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_a21dc72f0714ddc2b4b2187592d05ba77}{has\+\_\+parent} () const
+\begin{DoxyCompactList}\small\item\em Indicates if the kernel has a parent. \end{DoxyCompactList}\item 
+virtual \hyperlink{classral_1_1cache_1_1kernel_a08658078acd31ec27af290f6712fa017}{$\sim$kernel} ()
+\item 
+virtual kstatus \hyperlink{classral_1_1cache_1_1kernel_a735b081cccae9574924e74ea6d293ef7}{run} ()=0
+\begin{DoxyCompactList}\small\item\em Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_abb0b2c6bdc9e3379cc675e57270b207b}\label{classral_1_1cache_1_1kernel_abb0b2c6bdc9e3379cc675e57270b207b}} 
+kernel\+\_\+pair {\bfseries operator\mbox{[}$\,$\mbox{]}} (const std\+::string \&portname)
+\item 
+std\+::int32\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a33ce6e9907abce1acedb01e236c6812e}{get\+\_\+id} () const
+\begin{DoxyCompactList}\small\item\em Returns the kernel identifier. \end{DoxyCompactList}\item 
+kernel\+\_\+type \hyperlink{classral_1_1cache_1_1kernel_a146246668880ca685f22d208e638578b}{get\+\_\+type\+\_\+id} () const
+\begin{DoxyCompactList}\small\item\em Returns the kernel type identifier. \end{DoxyCompactList}\item 
+void \hyperlink{classral_1_1cache_1_1kernel_ae4a8519fe026454fe5385122c1e02615}{set\+\_\+type\+\_\+id} (kernel\+\_\+type kernel\+\_\+type\+\_\+id\+\_\+)
+\begin{DoxyCompactList}\small\item\em Sets the kernel type identifier. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_aac90d80ed296715da2a7736691847270}\label{classral_1_1cache_1_1kernel_aac90d80ed296715da2a7736691847270}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ \hyperlink{classral_1_1cache_1_1kernel_aac90d80ed296715da2a7736691847270}{input\+\_\+cache} ()
+\begin{DoxyCompactList}\small\item\em Returns the input cache. \end{DoxyCompactList}\item 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ \hyperlink{classral_1_1cache_1_1kernel_a94c3bd66b93a0e67165d0a54741c19dc}{output\+\_\+cache} (std\+::string cache\+\_\+id=\char`\"{}\char`\"{})
+\begin{DoxyCompactList}\small\item\em Returns the output cache associated to an identifier. \end{DoxyCompactList}\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_af6b7b538f6a692393f314a4f1037d4a6}{add\+\_\+to\+\_\+output\+\_\+cache} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table, std\+::string cache\+\_\+id=\char`\"{}\char`\"{}, bool always\+\_\+add=false)
+\begin{DoxyCompactList}\small\item\em Adds a Blazing\+Table into the output cache. \end{DoxyCompactList}\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_ad8cd102392bbece14178c0ebf9f0c6bc}{add\+\_\+to\+\_\+output\+\_\+cache} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ cache\+\_\+data, std\+::string cache\+\_\+id=\char`\"{}\char`\"{}, bool always\+\_\+add=false)
+\begin{DoxyCompactList}\small\item\em Adds a \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} into the output cache. \end{DoxyCompactList}\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_a94e93c7bb81d9a3a7729fa84a7cf07c1}{add\+\_\+to\+\_\+output\+\_\+cache} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingHostTable}{ral\+::frame\+::\+Blazing\+Host\+Table} $>$ host\+\_\+table, std\+::string cache\+\_\+id=\char`\"{}\char`\"{})
+\begin{DoxyCompactList}\small\item\em Adds a Blazing\+Host\+Table into the output cache. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a6d078d50dd69a9444fcd5d73f378e2d1}\label{classral_1_1cache_1_1kernel_a6d078d50dd69a9444fcd5d73f378e2d1}} 
+\hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $\ast$ \hyperlink{classral_1_1cache_1_1kernel_a6d078d50dd69a9444fcd5d73f378e2d1}{get\+\_\+context} () const
+\begin{DoxyCompactList}\small\item\em Returns the current context. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_aa9e353759b65c2c53571cf80b0213d31}\label{classral_1_1cache_1_1kernel_aa9e353759b65c2c53571cf80b0213d31}} 
+std\+::string \hyperlink{classral_1_1cache_1_1kernel_aa9e353759b65c2c53571cf80b0213d31}{get\+\_\+message\+\_\+id} ()
+\begin{DoxyCompactList}\small\item\em Returns the id message as a string. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_aa8af91bb80e9153e307e07c3010c217a}\label{classral_1_1cache_1_1kernel_aa8af91bb80e9153e307e07c3010c217a}} 
+bool \hyperlink{classral_1_1cache_1_1kernel_aa8af91bb80e9153e307e07c3010c217a}{input\+\_\+all\+\_\+finished} ()
+\begin{DoxyCompactList}\small\item\em Returns true if all the caches of an input are finished. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a87d2048b2c50e1124eaaed09b3c18758}\label{classral_1_1cache_1_1kernel_a87d2048b2c50e1124eaaed09b3c18758}} 
+uint64\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a87d2048b2c50e1124eaaed09b3c18758}{total\+\_\+input\+\_\+rows\+\_\+added} ()
+\begin{DoxyCompactList}\small\item\em Returns sum of all the rows added to all caches of the input port. \end{DoxyCompactList}\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_a75d3db3d361445cd14da3186b8b15036}{input\+\_\+cache\+\_\+finished} (const std\+::string \&port\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Returns true if a specific input cache is finished. \end{DoxyCompactList}\item 
+uint64\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a25cd1d59552733027ba6396cd9e41004}{input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added} (const std\+::string \&port\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Returns the number of rows added to a specific input cache. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_abf40aaa022e3bf38c261977d0c2170cb}\label{classral_1_1cache_1_1kernel_abf40aaa022e3bf38c261977d0c2170cb}} 
+virtual std\+::pair$<$ bool, uint64\+\_\+t $>$ \hyperlink{classral_1_1cache_1_1kernel_abf40aaa022e3bf38c261977d0c2170cb}{get\+\_\+estimated\+\_\+output\+\_\+num\+\_\+rows} ()
+\begin{DoxyCompactList}\small\item\em Returns the estimated num\+\_\+rows for the output, the default is that its the same as the input (i.\+e. project, sort, ...). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a45abece009eed9fc7555f55ecc55f5dd}\label{classral_1_1cache_1_1kernel_a45abece009eed9fc7555f55ecc55f5dd}} 
+\hyperlink{structral_1_1execution_1_1task__result}{ral\+::execution\+::task\+\_\+result} \hyperlink{classral_1_1cache_1_1kernel_a45abece009eed9fc7555f55ecc55f5dd}{process} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ $>$ inputs, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output, cuda\+Stream\+\_\+t stream, const std\+::map$<$ std\+::string, std\+::string $>$ \&args)
+\begin{DoxyCompactList}\small\item\em Invokes the do\+\_\+process function. \end{DoxyCompactList}\item 
+virtual \hyperlink{structral_1_1execution_1_1task__result}{ral\+::execution\+::task\+\_\+result} \hyperlink{classral_1_1cache_1_1kernel_aa8d19c5f112f8965ea2f9999fb5fd625}{do\+\_\+process} (std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ $>$, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$, cuda\+Stream\+\_\+t, const std\+::map$<$ std\+::string, std\+::string $>$ \&)
+\begin{DoxyCompactList}\small\item\em Implemented by all derived classes and is the function which actually performs transformations on dataframes. \end{DoxyCompactList}\item 
+std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a37da9a64d455f2b833e1e7576c9a17d2}{estimate\+\_\+output\+\_\+bytes} (const std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ \&inputs)
+\begin{DoxyCompactList}\small\item\em given the inputs, estimates the number of bytes that will be necessary for holding the output after performing a transformation. For many kernels this is not an estimate but rather a certainty. For operations whose outputs are of indeterminate size it provides an estimate. \end{DoxyCompactList}\item 
+std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a33a881d5e40d033e53a73f3c7ede5d03}{estimate\+\_\+operating\+\_\+bytes} (const std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ \&inputs)
+\begin{DoxyCompactList}\small\item\em given the inputs, estimates the number of bytes that will be necessary for performing the transformation. This can be thought of as the memory overhead of the actual transformations being performed. For many kernels this is not an estimate but rather a certainty. For operations that perform indeterminately sized allocations based on the contents of inputs it provides an estimate. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_aafcb0f431c87f166a778a6cce0d36d51}\label{classral_1_1cache_1_1kernel_aafcb0f431c87f166a778a6cce0d36d51}} 
+virtual std\+::string {\bfseries kernel\+\_\+name} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a0d4a11f11203e46edff09aafc3935688}\label{classral_1_1cache_1_1kernel_a0d4a11f11203e46edff09aafc3935688}} 
+void \hyperlink{classral_1_1cache_1_1kernel_a0d4a11f11203e46edff09aafc3935688}{notify\+\_\+complete} (size\+\_\+t task\+\_\+id)
+\begin{DoxyCompactList}\small\item\em notify the kernel that a task it dispatched was completed successfully. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_aacb25cb9e49377bca219769f0eb82aef}\label{classral_1_1cache_1_1kernel_aacb25cb9e49377bca219769f0eb82aef}} 
+void \hyperlink{classral_1_1cache_1_1kernel_aacb25cb9e49377bca219769f0eb82aef}{notify\+\_\+fail} (size\+\_\+t task\+\_\+id)
+\begin{DoxyCompactList}\small\item\em notify the kernel that a task it dispatched failed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a9b0a80f937f10357ae62638b6f0461d4}\label{classral_1_1cache_1_1kernel_a9b0a80f937f10357ae62638b6f0461d4}} 
+void \hyperlink{classral_1_1cache_1_1kernel_a9b0a80f937f10357ae62638b6f0461d4}{add\+\_\+task} (size\+\_\+t task\+\_\+id)
+\begin{DoxyCompactList}\small\item\em add a task to the list of tasks the kernel is waiting to complete. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a3c5beb224576167cd7f9488e68d8ff62}\label{classral_1_1cache_1_1kernel_a3c5beb224576167cd7f9488e68d8ff62}} 
+bool \hyperlink{classral_1_1cache_1_1kernel_a3c5beb224576167cd7f9488e68d8ff62}{finished\+\_\+tasks} ()
+\begin{DoxyCompactList}\small\item\em check and see if all the tasks were completed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \hyperlink{classral_1_1cache_1_1kernel_a0619a9c1e4952dc353dcfa079910a84a}{expression}
+\item 
+\hyperlink{classral_1_1cache_1_1port}{port} \hyperlink{classral_1_1cache_1_1kernel_a014bae9051f8ae95341be2f967b135c5}{input\+\_\+} \{this\}
+\item 
+\hyperlink{classral_1_1cache_1_1port}{port} \hyperlink{classral_1_1cache_1_1kernel_a6eac1b9f1e6efb3bb9942ba7bbf66a94}{output\+\_\+} \{this\}
+\item 
+const std\+::size\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}{kernel\+\_\+id}
+\item 
+std\+::int32\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_ad1b8b87c5008b3bce16fe45da84eccdd}{parent\+\_\+id\+\_\+}
+\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_a8ac24c565e0d29b390d40e7ef3366486}{execution\+\_\+done} = false
+\item 
+kernel\+\_\+type \hyperlink{classral_1_1cache_1_1kernel_a923841bcb8d995048c58d51a6c39caf7}{kernel\+\_\+type\+\_\+id}
+\item 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1graph}{graph} $>$ \hyperlink{classral_1_1cache_1_1kernel_a5fbb02292aff165a28ef25e75f0d89bd}{query\+\_\+graph}
+\item 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ \hyperlink{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}{context}
+\item 
+bool \hyperlink{classral_1_1cache_1_1kernel_a913add84b5ad4c0bb09f7a609fe8e311}{has\+\_\+limit\+\_\+}
+\item 
+int64\+\_\+t \hyperlink{classral_1_1cache_1_1kernel_a415a4613c3eac81c1f65340e0866d26e}{limit\+\_\+rows\+\_\+}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_ae891570bebe342865bc0f30ac369efe8}\label{classral_1_1cache_1_1kernel_ae891570bebe342865bc0f30ac369efe8}} 
+std\+::shared\+\_\+ptr$<$ spdlog\+::logger $>$ {\bfseries logger}
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a24ef14f94bf23f483736043ca6f95b7e}\label{classral_1_1cache_1_1kernel_a24ef14f94bf23f483736043ca6f95b7e}} 
+std\+::set$<$ size\+\_\+t $>$ {\bfseries tasks}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a8e336a4bc07932d5fc243409324cdcc1}\label{classral_1_1cache_1_1kernel_a8e336a4bc07932d5fc243409324cdcc1}} 
+std\+::mutex {\bfseries kernel\+\_\+mutex}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_af711082b1f602bacc21d679d318648f7}\label{classral_1_1cache_1_1kernel_af711082b1f602bacc21d679d318648f7}} 
+std\+::condition\+\_\+variable {\bfseries kernel\+\_\+cv}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a57a0078f5ab3991b32e9ea92989eab42}\label{classral_1_1cache_1_1kernel_a57a0078f5ab3991b32e9ea92989eab42}} 
+std\+::atomic$<$ std\+::size\+\_\+t $>$ {\bfseries total\+\_\+input\+\_\+bytes\+\_\+processed}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This interface represents a computation unit in the execution graph. Each kernel has basically and input and output ports and the expression asocciated to the computation unit. Each class that implements this interface should define how the computation is executed. See {\ttfamily \hyperlink{classral_1_1cache_1_1kernel_aa8d19c5f112f8965ea2f9999fb5fd625}{do\+\_\+process()}} method. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a533e4ae37fc18a6c8638f30ee8459d8f}\label{classral_1_1cache_1_1kernel_a533e4ae37fc18a6c8638f30ee8459d8f}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!kernel@{kernel}}
+\index{kernel@{kernel}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{kernel()}{kernel()}}
+{\footnotesize\ttfamily ral\+::cache\+::kernel\+::kernel (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{kernel\+\_\+id,  }\item[{std\+::string}]{expr,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$}]{context,  }\item[{kernel\+\_\+type}]{kernel\+\_\+type\+\_\+id }\end{DoxyParamCaption})}
+
+Constructor for the kernel 
+\begin{DoxyParams}{Parameters}
+{\em kernel\+\_\+id} & Current kernel identifier. \\
+\hline
+{\em expr} & Original logical expression that the kernel will execute. \\
+\hline
+{\em context} & Shared context associated to the running query. \\
+\hline
+{\em kernel\+\_\+type\+\_\+id} & Identifier representing the kernel type. \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=300pt]{classral_1_1cache_1_1kernel_a533e4ae37fc18a6c8638f30ee8459d8f_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a08658078acd31ec27af290f6712fa017}\label{classral_1_1cache_1_1kernel_a08658078acd31ec27af290f6712fa017}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!````~kernel@{$\sim$kernel}}
+\index{````~kernel@{$\sim$kernel}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{$\sim$kernel()}{~kernel()}}
+{\footnotesize\ttfamily virtual ral\+::cache\+::kernel\+::$\sim$kernel (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+Destructor 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_af6b7b538f6a692393f314a4f1037d4a6}\label{classral_1_1cache_1_1kernel_af6b7b538f6a692393f314a4f1037d4a6}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!add\+\_\+to\+\_\+output\+\_\+cache@{add\+\_\+to\+\_\+output\+\_\+cache}}
+\index{add\+\_\+to\+\_\+output\+\_\+cache@{add\+\_\+to\+\_\+output\+\_\+cache}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{add\+\_\+to\+\_\+output\+\_\+cache()}{add\_to\_output\_cache()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::add\+\_\+to\+\_\+output\+\_\+cache (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$}]{table,  }\item[{std\+::string}]{cache\+\_\+id = {\ttfamily \char`\"{}\char`\"{}},  }\item[{bool}]{always\+\_\+add = {\ttfamily false} }\end{DoxyParamCaption})}
+
+
+
+Adds a Blazing\+Table into the output cache. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em table} & The table that will be added to the output cache. \\
+\hline
+{\em cache\+\_\+id} & The cache identifier. \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=326pt]{classral_1_1cache_1_1kernel_af6b7b538f6a692393f314a4f1037d4a6_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1kernel_af6b7b538f6a692393f314a4f1037d4a6_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_ad8cd102392bbece14178c0ebf9f0c6bc}\label{classral_1_1cache_1_1kernel_ad8cd102392bbece14178c0ebf9f0c6bc}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!add\+\_\+to\+\_\+output\+\_\+cache@{add\+\_\+to\+\_\+output\+\_\+cache}}
+\index{add\+\_\+to\+\_\+output\+\_\+cache@{add\+\_\+to\+\_\+output\+\_\+cache}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{add\+\_\+to\+\_\+output\+\_\+cache()}{add\_to\_output\_cache()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::add\+\_\+to\+\_\+output\+\_\+cache (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$}]{cache\+\_\+data,  }\item[{std\+::string}]{cache\+\_\+id = {\ttfamily \char`\"{}\char`\"{}},  }\item[{bool}]{always\+\_\+add = {\ttfamily false} }\end{DoxyParamCaption})}
+
+
+
+Adds a \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} into the output cache. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cache\+\_\+data} & The cache\+\_\+data that will be added to the output cache. \\
+\hline
+{\em cache\+\_\+id} & The cache identifier. \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=326pt]{classral_1_1cache_1_1kernel_ad8cd102392bbece14178c0ebf9f0c6bc_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a94e93c7bb81d9a3a7729fa84a7cf07c1}\label{classral_1_1cache_1_1kernel_a94e93c7bb81d9a3a7729fa84a7cf07c1}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!add\+\_\+to\+\_\+output\+\_\+cache@{add\+\_\+to\+\_\+output\+\_\+cache}}
+\index{add\+\_\+to\+\_\+output\+\_\+cache@{add\+\_\+to\+\_\+output\+\_\+cache}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{add\+\_\+to\+\_\+output\+\_\+cache()}{add\_to\_output\_cache()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::add\+\_\+to\+\_\+output\+\_\+cache (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingHostTable}{ral\+::frame\+::\+Blazing\+Host\+Table} $>$}]{host\+\_\+table,  }\item[{std\+::string}]{cache\+\_\+id = {\ttfamily \char`\"{}\char`\"{}} }\end{DoxyParamCaption})}
+
+
+
+Adds a Blazing\+Host\+Table into the output cache. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em host\+\_\+table} & The host table that will be added to the output cache. \\
+\hline
+{\em cache\+\_\+id} & The cache identifier. \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=326pt]{classral_1_1cache_1_1kernel_a94e93c7bb81d9a3a7729fa84a7cf07c1_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_aa8d19c5f112f8965ea2f9999fb5fd625}\label{classral_1_1cache_1_1kernel_aa8d19c5f112f8965ea2f9999fb5fd625}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!do\+\_\+process@{do\+\_\+process}}
+\index{do\+\_\+process@{do\+\_\+process}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{do\+\_\+process()}{do\_process()}}
+{\footnotesize\ttfamily virtual \hyperlink{structral_1_1execution_1_1task__result}{ral\+::execution\+::task\+\_\+result} ral\+::cache\+::kernel\+::do\+\_\+process (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ $>$}]{,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$}]{,  }\item[{cuda\+Stream\+\_\+t}]{,  }\item[{const std\+::map$<$ std\+::string, std\+::string $>$ \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+
+
+Implemented by all derived classes and is the function which actually performs transformations on dataframes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em inputs} & The data being operated on \\
+\hline
+{\em output} & the output cache to write the output to \\
+\hline
+{\em stream} & the cudastream to to use \\
+\hline
+{\em args} & any additional arguments the kernel may need to perform its execution that may not be available to the kernel at instantiation. \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=300pt]{classral_1_1cache_1_1kernel_aa8d19c5f112f8965ea2f9999fb5fd625_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a33a881d5e40d033e53a73f3c7ede5d03}\label{classral_1_1cache_1_1kernel_a33a881d5e40d033e53a73f3c7ede5d03}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!estimate\+\_\+operating\+\_\+bytes@{estimate\+\_\+operating\+\_\+bytes}}
+\index{estimate\+\_\+operating\+\_\+bytes@{estimate\+\_\+operating\+\_\+bytes}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{estimate\+\_\+operating\+\_\+bytes()}{estimate\_operating\_bytes()}}
+{\footnotesize\ttfamily std\+::size\+\_\+t ral\+::cache\+::kernel\+::estimate\+\_\+operating\+\_\+bytes (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ \&}]{inputs }\end{DoxyParamCaption})}
+
+
+
+given the inputs, estimates the number of bytes that will be necessary for performing the transformation. This can be thought of as the memory overhead of the actual transformations being performed. For many kernels this is not an estimate but rather a certainty. For operations that perform indeterminately sized allocations based on the contents of inputs it provides an estimate. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em inputs} & the data that would be transformed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the number of bytes that we expect to be needed to hold the output after performing this kernels transformations on the given inputs. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a37da9a64d455f2b833e1e7576c9a17d2}\label{classral_1_1cache_1_1kernel_a37da9a64d455f2b833e1e7576c9a17d2}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!estimate\+\_\+output\+\_\+bytes@{estimate\+\_\+output\+\_\+bytes}}
+\index{estimate\+\_\+output\+\_\+bytes@{estimate\+\_\+output\+\_\+bytes}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{estimate\+\_\+output\+\_\+bytes()}{estimate\_output\_bytes()}}
+{\footnotesize\ttfamily std\+::size\+\_\+t ral\+::cache\+::kernel\+::estimate\+\_\+output\+\_\+bytes (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ \&}]{inputs }\end{DoxyParamCaption})}
+
+
+
+given the inputs, estimates the number of bytes that will be necessary for holding the output after performing a transformation. For many kernels this is not an estimate but rather a certainty. For operations whose outputs are of indeterminate size it provides an estimate. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em inputs} & the data that would be transformed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the number of bytes that we expect to be needed to hold the output after performing this kernels transformations on the given inputs. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a33ce6e9907abce1acedb01e236c6812e}\label{classral_1_1cache_1_1kernel_a33ce6e9907abce1acedb01e236c6812e}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!get\+\_\+id@{get\+\_\+id}}
+\index{get\+\_\+id@{get\+\_\+id}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{get\+\_\+id()}{get\_id()}}
+{\footnotesize\ttfamily std\+::int32\+\_\+t ral\+::cache\+::kernel\+::get\+\_\+id (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Returns the kernel identifier. 
+
+\begin{DoxyReturn}{Returns}
+int32\+\_\+t The kernel identifier. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1kernel_a33ce6e9907abce1acedb01e236c6812e_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a146246668880ca685f22d208e638578b}\label{classral_1_1cache_1_1kernel_a146246668880ca685f22d208e638578b}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!get\+\_\+type\+\_\+id@{get\+\_\+type\+\_\+id}}
+\index{get\+\_\+type\+\_\+id@{get\+\_\+type\+\_\+id}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{get\+\_\+type\+\_\+id()}{get\_type\_id()}}
+{\footnotesize\ttfamily kernel\+\_\+type ral\+::cache\+::kernel\+::get\+\_\+type\+\_\+id (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Returns the kernel type identifier. 
+
+\begin{DoxyReturn}{Returns}
+kernel\+\_\+type The kernel type identifier. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1kernel_a146246668880ca685f22d208e638578b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a21dc72f0714ddc2b4b2187592d05ba77}\label{classral_1_1cache_1_1kernel_a21dc72f0714ddc2b4b2187592d05ba77}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!has\+\_\+parent@{has\+\_\+parent}}
+\index{has\+\_\+parent@{has\+\_\+parent}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{has\+\_\+parent()}{has\_parent()}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::has\+\_\+parent (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Indicates if the kernel has a parent. 
+
+\begin{DoxyReturn}{Returns}
+true If the kernel has a parent, false otherwise. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a75d3db3d361445cd14da3186b8b15036}\label{classral_1_1cache_1_1kernel_a75d3db3d361445cd14da3186b8b15036}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!input\+\_\+cache\+\_\+finished@{input\+\_\+cache\+\_\+finished}}
+\index{input\+\_\+cache\+\_\+finished@{input\+\_\+cache\+\_\+finished}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{input\+\_\+cache\+\_\+finished()}{input\_cache\_finished()}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::input\+\_\+cache\+\_\+finished (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{port\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Returns true if a specific input cache is finished. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em port\+\_\+name} & Name of the port. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a25cd1d59552733027ba6396cd9e41004}\label{classral_1_1cache_1_1kernel_a25cd1d59552733027ba6396cd9e41004}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added@{input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added}}
+\index{input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added@{input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added()}{input\_cache\_num\_rows\_added()}}
+{\footnotesize\ttfamily uint64\+\_\+t ral\+::cache\+::kernel\+::input\+\_\+cache\+\_\+num\+\_\+rows\+\_\+added (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{port\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Returns the number of rows added to a specific input cache. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em port\+\_\+name} & Name of the port. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a94c3bd66b93a0e67165d0a54741c19dc}\label{classral_1_1cache_1_1kernel_a94c3bd66b93a0e67165d0a54741c19dc}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!output\+\_\+cache@{output\+\_\+cache}}
+\index{output\+\_\+cache@{output\+\_\+cache}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{output\+\_\+cache()}{output\_cache()}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ ral\+::cache\+::kernel\+::output\+\_\+cache (\begin{DoxyParamCaption}\item[{std\+::string}]{cache\+\_\+id = {\ttfamily \char`\"{}\char`\"{}} }\end{DoxyParamCaption})}
+
+
+
+Returns the output cache associated to an identifier. 
+
+\begin{DoxyReturn}{Returns}
+cache\+\_\+id The identifier of the output cache. 
+\end{DoxyReturn}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=300pt]{classral_1_1cache_1_1kernel_a94c3bd66b93a0e67165d0a54741c19dc_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1kernel_a94c3bd66b93a0e67165d0a54741c19dc_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a735b081cccae9574924e74ea6d293ef7}\label{classral_1_1cache_1_1kernel_a735b081cccae9574924e74ea6d293ef7}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!run@{run}}
+\index{run@{run}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily virtual kstatus ral\+::cache\+::kernel\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. 
+
+\begin{DoxyReturn}{Returns}
+kstatus \textquotesingle{}stop\textquotesingle{} to halt processing, or \textquotesingle{}proceed\textquotesingle{} to continue processing. 
+\end{DoxyReturn}
+
+
+Implemented in \hyperlink{classral_1_1batch_1_1OutputKernel_a53519f315635c5e83e958fda42300f9a}{ral\+::batch\+::\+Output\+Kernel}, \hyperlink{classral_1_1batch_1_1Print_aaa9c9b3999fa088344f8505fcf201721}{ral\+::batch\+::\+Print}, \hyperlink{classral_1_1batch_1_1Filter_acae535218dc139f0db24b80cb39353c2}{ral\+::batch\+::\+Filter}, \hyperlink{classral_1_1batch_1_1Projection_a14bafcd753d4bd86160bec679ac19058}{ral\+::batch\+::\+Projection}, \hyperlink{classral_1_1batch_1_1BindableTableScan_a3215b390c1b588e165724b108038cbf9}{ral\+::batch\+::\+Bindable\+Table\+Scan}, \hyperlink{classral_1_1batch_1_1TableScan_a0dd1b7ffeaec582922ee586b452245c0}{ral\+::batch\+::\+Table\+Scan}, \hyperlink{classral_1_1batch_1_1LimitKernel_a154ab2ef98ef7be11d3ba6c8dc6db06d}{ral\+::batch\+::\+Limit\+Kernel}, \hyperlink{classral_1_1batch_1_1MergeStreamKernel_a7d89339b2f4f3adecda2fe64b47948cd}{ral\+::batch\+::\+Merge\+Stream\+Kernel}, \hyperlink{classral_1_1batch_1_1JoinPartitionKernel_a7c96cd734ef57582b2bd8c2a7a86329e}{ral\+::batch\+::\+Join\+Partition\+Kernel}, \hyperlink{classral_1_1batch_1_1PartitionKernel_a5313617a63ab0fb23a0e4211399f439f}{ral\+::batch\+::\+Partition\+Kernel}, \hyperlink{classral_1_1batch_1_1MergeAggregateKernel_aaab8112819acc0c2f17fc0e518cfe266}{ral\+::batch\+::\+Merge\+Aggregate\+Kernel}, \hyperlink{classral_1_1batch_1_1SortAndSampleKernel_a6e97bc1286a0e8d8273556d56372fa56}{ral\+::batch\+::\+Sort\+And\+Sample\+Kernel}, \hyperlink{classral_1_1batch_1_1PartwiseJoin_a280aee308eff9e14f239cdce229c4035}{ral\+::batch\+::\+Partwise\+Join}, \hyperlink{classral_1_1batch_1_1DistributeAggregateKernel_a9508b135d44027058ce72ace2ffba98f}{ral\+::batch\+::\+Distribute\+Aggregate\+Kernel}, \hyperlink{classral_1_1batch_1_1ComputeWindowKernel_a22a36fbcb21dad09bad9300e21dc4825}{ral\+::batch\+::\+Compute\+Window\+Kernel}, \hyperlink{classral_1_1batch_1_1PartitionSingleNodeKernel_a5af293b33505bec1e9fb66f9bb9d29af}{ral\+::batch\+::\+Partition\+Single\+Node\+Kernel}, \hyperlink{classral_1_1batch_1_1ComputeAggregateKernel_ad3f8e41cf0adf95dbe0249a6dd9c1240}{ral\+::batch\+::\+Compute\+Aggregate\+Kernel}, and \hyperlink{classral_1_1batch_1_1UnionKernel_a30f9875564a6057113b2fd7debfdf7a9}{ral\+::batch\+::\+Union\+Kernel}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_a150ae499b8aef4669714e791f2bea9e9}\label{classral_1_1cache_1_1kernel_a150ae499b8aef4669714e791f2bea9e9}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!set\+\_\+parent@{set\+\_\+parent}}
+\index{set\+\_\+parent@{set\+\_\+parent}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{set\+\_\+parent()}{set\_parent()}}
+{\footnotesize\ttfamily void ral\+::cache\+::kernel\+::set\+\_\+parent (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{id }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Sets its parent kernel. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em id} & The identifier of its parent. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_ae4a8519fe026454fe5385122c1e02615}\label{classral_1_1cache_1_1kernel_ae4a8519fe026454fe5385122c1e02615}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!set\+\_\+type\+\_\+id@{set\+\_\+type\+\_\+id}}
+\index{set\+\_\+type\+\_\+id@{set\+\_\+type\+\_\+id}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{set\+\_\+type\+\_\+id()}{set\_type\_id()}}
+{\footnotesize\ttfamily void ral\+::cache\+::kernel\+::set\+\_\+type\+\_\+id (\begin{DoxyParamCaption}\item[{kernel\+\_\+type}]{kernel\+\_\+type\+\_\+id\+\_\+ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Sets the kernel type identifier. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em kernel\+\_\+type} & The new kernel type identifier. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}\label{classral_1_1cache_1_1kernel_af0347d14d678cfa7205c1387746a2e1b}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!context@{context}}
+\index{context@{context}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{context}{context}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$\hyperlink{classblazingdb_1_1manager_1_1Context}{Context}$>$ ral\+::cache\+::kernel\+::context}
+
+Shared context of the running query. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a8ac24c565e0d29b390d40e7ef3366486}\label{classral_1_1cache_1_1kernel_a8ac24c565e0d29b390d40e7ef3366486}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!execution\+\_\+done@{execution\+\_\+done}}
+\index{execution\+\_\+done@{execution\+\_\+done}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{execution\+\_\+done}{execution\_done}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::execution\+\_\+done = false}
+
+Indicates whether the execution is complete. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a0619a9c1e4952dc353dcfa079910a84a}\label{classral_1_1cache_1_1kernel_a0619a9c1e4952dc353dcfa079910a84a}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!expression@{expression}}
+\index{expression@{expression}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{expression}{expression}}
+{\footnotesize\ttfamily std\+::string ral\+::cache\+::kernel\+::expression}
+
+Stores the logical expression being processed. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a913add84b5ad4c0bb09f7a609fe8e311}\label{classral_1_1cache_1_1kernel_a913add84b5ad4c0bb09f7a609fe8e311}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!has\+\_\+limit\+\_\+@{has\+\_\+limit\+\_\+}}
+\index{has\+\_\+limit\+\_\+@{has\+\_\+limit\+\_\+}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{has\+\_\+limit\+\_\+}{has\_limit\_}}
+{\footnotesize\ttfamily bool ral\+::cache\+::kernel\+::has\+\_\+limit\+\_\+}
+
+Indicates if the Logical plan only contains a Logical\+Table\+Scan (or Bindable\+Table\+Scan) and Logical\+Limit. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a014bae9051f8ae95341be2f967b135c5}\label{classral_1_1cache_1_1kernel_a014bae9051f8ae95341be2f967b135c5}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!input\+\_\+@{input\+\_\+}}
+\index{input\+\_\+@{input\+\_\+}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{input\+\_\+}{input\_}}
+{\footnotesize\ttfamily \hyperlink{classral_1_1cache_1_1port}{port} ral\+::cache\+::kernel\+::input\+\_\+ \{this\}}
+
+Represents the input cache machines and their names. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}\label{classral_1_1cache_1_1kernel_a2fd708656cb056a41ec635b8bdc4acfe}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!kernel\+\_\+id@{kernel\+\_\+id}}
+\index{kernel\+\_\+id@{kernel\+\_\+id}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{kernel\+\_\+id}{kernel\_id}}
+{\footnotesize\ttfamily const std\+::size\+\_\+t ral\+::cache\+::kernel\+::kernel\+\_\+id}
+
+Stores the current kernel identifier. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a923841bcb8d995048c58d51a6c39caf7}\label{classral_1_1cache_1_1kernel_a923841bcb8d995048c58d51a6c39caf7}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!kernel\+\_\+type\+\_\+id@{kernel\+\_\+type\+\_\+id}}
+\index{kernel\+\_\+type\+\_\+id@{kernel\+\_\+type\+\_\+id}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{kernel\+\_\+type\+\_\+id}{kernel\_type\_id}}
+{\footnotesize\ttfamily kernel\+\_\+type ral\+::cache\+::kernel\+::kernel\+\_\+type\+\_\+id}
+
+Stores the id of the kernel type. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a415a4613c3eac81c1f65340e0866d26e}\label{classral_1_1cache_1_1kernel_a415a4613c3eac81c1f65340e0866d26e}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!limit\+\_\+rows\+\_\+@{limit\+\_\+rows\+\_\+}}
+\index{limit\+\_\+rows\+\_\+@{limit\+\_\+rows\+\_\+}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{limit\+\_\+rows\+\_\+}{limit\_rows\_}}
+{\footnotesize\ttfamily int64\+\_\+t ral\+::cache\+::kernel\+::limit\+\_\+rows\+\_\+}
+
+Specifies the maximum number of rows to return. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a6eac1b9f1e6efb3bb9942ba7bbf66a94}\label{classral_1_1cache_1_1kernel_a6eac1b9f1e6efb3bb9942ba7bbf66a94}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!output\+\_\+@{output\+\_\+}}
+\index{output\+\_\+@{output\+\_\+}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{output\+\_\+}{output\_}}
+{\footnotesize\ttfamily \hyperlink{classral_1_1cache_1_1port}{port} ral\+::cache\+::kernel\+::output\+\_\+ \{this\}}
+
+Represents the output cache machine and their name. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_ad1b8b87c5008b3bce16fe45da84eccdd}\label{classral_1_1cache_1_1kernel_ad1b8b87c5008b3bce16fe45da84eccdd}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!parent\+\_\+id\+\_\+@{parent\+\_\+id\+\_\+}}
+\index{parent\+\_\+id\+\_\+@{parent\+\_\+id\+\_\+}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{parent\+\_\+id\+\_\+}{parent\_id\_}}
+{\footnotesize\ttfamily std\+::int32\+\_\+t ral\+::cache\+::kernel\+::parent\+\_\+id\+\_\+}
+
+Stores the parent kernel identifier if any. \mbox{\Hypertarget{classral_1_1cache_1_1kernel_a5fbb02292aff165a28ef25e75f0d89bd}\label{classral_1_1cache_1_1kernel_a5fbb02292aff165a28ef25e75f0d89bd}} 
+\index{ral\+::cache\+::kernel@{ral\+::cache\+::kernel}!query\+\_\+graph@{query\+\_\+graph}}
+\index{query\+\_\+graph@{query\+\_\+graph}!ral\+::cache\+::kernel@{ral\+::cache\+::kernel}}
+\subsubsection{\texorpdfstring{query\+\_\+graph}{query\_graph}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$\hyperlink{classral_1_1cache_1_1graph}{graph}$>$ ral\+::cache\+::kernel\+::query\+\_\+graph}
+
+Stores a pointer to the current execution graph. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/kernel.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/kernel.\+cpp\end{DoxyCompactItemize}

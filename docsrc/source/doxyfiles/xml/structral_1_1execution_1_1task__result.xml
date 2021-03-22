@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1execution_1_1task__result" kind="struct" language="C++" prot="public">
+    <compoundname>ral::execution::task_result</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structral_1_1execution_1_1task__result_1af949df26e33aedf59f08b57a2512de30" prot="public" static="no" mutable="no">
+        <type>task_status</type>
+        <definition>task_status ral::execution::task_result::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" line="17" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1execution_1_1task__result_1a493f6289feaf1d2667f83c3023213bf1" prot="public" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string ral::execution::task_result::what</definition>
+        <argsstring></argsstring>
+        <name>what</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1execution_1_1task__result_1a32ed4bbfc318f1242f896959cdaf993b" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;ral::frame::BlazingTable&gt; &gt; ral::execution::task_result::inputs</definition>
+        <argsstring></argsstring>
+        <name>inputs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" line="19" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" line="16" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h" bodystart="16" bodyend="20"/>
+    <listofallmembers>
+      <member refid="structral_1_1execution_1_1task__result_1a32ed4bbfc318f1242f896959cdaf993b" prot="public" virt="non-virtual"><scope>ral::execution::task_result</scope><name>inputs</name></member>
+      <member refid="structral_1_1execution_1_1task__result_1af949df26e33aedf59f08b57a2512de30" prot="public" virt="non-virtual"><scope>ral::execution::task_result</scope><name>status</name></member>
+      <member refid="structral_1_1execution_1_1task__result_1a493f6289feaf1d2667f83c3023213bf1" prot="public" virt="non-virtual"><scope>ral::execution::task_result</scope><name>what</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

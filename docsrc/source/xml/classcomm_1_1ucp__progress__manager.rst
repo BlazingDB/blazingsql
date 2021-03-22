@@ -1,0 +1,26 @@
+.. _exhale_class_classcomm_1_1ucp__progress__manager:
+
+Class ucp_progress_manager
+==========================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_communication_CommunicationInterface_protocols.hpp`
+
+
+Nested Relationships
+--------------------
+
+
+Nested Types
+************
+
+- :ref:`exhale_struct_structcomm_1_1ucp__progress__manager_1_1request__struct`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: comm::ucp_progress_manager
+   :members:
+   :protected-members:
+   :undoc-members:

@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_d722d97ad1b93c206f2110f32287420d" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/cython</compoundname>
+    <innerfile refid="engine_8cpp">engine.cpp</innerfile>
+    <innerfile refid="errors_8cpp">errors.cpp</innerfile>
+    <innerfile refid="initialize_8cpp">initialize.cpp</innerfile>
+    <innerfile refid="io_8cpp">io.cpp</innerfile>
+    <innerfile refid="static_8cpp">static.cpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/cython/"/>
+  </compounddef>
+</doxygen>

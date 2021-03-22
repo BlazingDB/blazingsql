@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceblazingdb" kind="namespace" language="C++">
+    <compoundname>blazingdb</compoundname>
+    <innernamespace refid="namespaceblazingdb_1_1manager">blazingdb::manager</innernamespace>
+    <innernamespace refid="namespaceblazingdb_1_1transport">blazingdb::transport</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/Context.cpp" line="4" column="1"/>
+  </compounddef>
+</doxygen>

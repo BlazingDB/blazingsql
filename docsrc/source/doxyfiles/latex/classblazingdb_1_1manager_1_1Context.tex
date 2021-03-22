@@ -1,0 +1,103 @@
+\hypertarget{classblazingdb_1_1manager_1_1Context}{}\section{blazingdb\+:\+:manager\+:\+:Context Class Reference}
+\label{classblazingdb_1_1manager_1_1Context}\index{blazingdb\+::manager\+::\+Context@{blazingdb\+::manager\+::\+Context}}
+
+
+This is the main component of the transport library.  
+
+
+
+
+{\ttfamily \#include $<$Context.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a06497a0c2a975edaefeb70077bed281c}\label{classblazingdb_1_1manager_1_1Context_a06497a0c2a975edaefeb70077bed281c}} 
+{\bfseries Context} (const uint32\+\_\+t token, const std\+::vector$<$ \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} $>$ \&task\+Nodes, const \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} \&master\+Node, const std\+::string \&logical\+Plan, const std\+::map$<$ std\+::string, std\+::string $>$ \&config\+\_\+options)
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a2e7dc296d717126eb032ab3f55742531}\label{classblazingdb_1_1manager_1_1Context_a2e7dc296d717126eb032ab3f55742531}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ {\bfseries clone} ()
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a19e76e2eec88f05dbbb4dc54600c2ea4}\label{classblazingdb_1_1manager_1_1Context_a19e76e2eec88f05dbbb4dc54600c2ea4}} 
+int {\bfseries get\+Total\+Nodes} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a1107a1de655b5904b4bff8f4db648fa6}\label{classblazingdb_1_1manager_1_1Context_a1107a1de655b5904b4bff8f4db648fa6}} 
+std\+::vector$<$ \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} $>$ {\bfseries get\+All\+Nodes} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a8145e32076548759fa9163dd1fe13ccf}\label{classblazingdb_1_1manager_1_1Context_a8145e32076548759fa9163dd1fe13ccf}} 
+std\+::vector$<$ \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} $>$ {\bfseries get\+All\+Other\+Nodes} (int self\+Node\+Index) const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a4aa25b97a3c3e96e10947f519d171b35}\label{classblazingdb_1_1manager_1_1Context_a4aa25b97a3c3e96e10947f519d171b35}} 
+std\+::vector$<$ \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} $>$ \hyperlink{classblazingdb_1_1manager_1_1Context_a4aa25b97a3c3e96e10947f519d171b35}{get\+Worker\+Nodes} () const
+\begin{DoxyCompactList}\small\item\em R\+AL instances that will run the query. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_af31d1d36d220e0d84f30280f18c0dab1}\label{classblazingdb_1_1manager_1_1Context_af31d1d36d220e0d84f30280f18c0dab1}} 
+\hyperlink{classblazingdb_1_1transport_1_1Node}{Node} {\bfseries get\+Node} (int node\+\_\+index) const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a825bc87492256cd9c0edad4ee8b1928a}\label{classblazingdb_1_1manager_1_1Context_a825bc87492256cd9c0edad4ee8b1928a}} 
+\hyperlink{classblazingdb_1_1transport_1_1Node}{Node} {\bfseries get\+Node} (const std\+::string \&id) const
+\item 
+const \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} \& \hyperlink{classblazingdb_1_1manager_1_1Context_ad1faee75fb1b10af373d6481ae621dfd}{get\+Master\+Node} () const
+\item 
+std\+::string \hyperlink{classblazingdb_1_1manager_1_1Context_ae0093ffa619c372c6130af7e3c77c372}{get\+Logical\+Plan} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a8e4398b9941b94007cae1b5c53a35008}\label{classblazingdb_1_1manager_1_1Context_a8e4398b9941b94007cae1b5c53a35008}} 
+uint32\+\_\+t {\bfseries get\+Context\+Token} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_aea67cc180a62a0ae6772ecdbe67e941a}\label{classblazingdb_1_1manager_1_1Context_aea67cc180a62a0ae6772ecdbe67e941a}} 
+std\+::string {\bfseries get\+Context\+Communication\+Token} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a96fe3bf29e74bb9ed00f0062eda99676}\label{classblazingdb_1_1manager_1_1Context_a96fe3bf29e74bb9ed00f0062eda99676}} 
+void {\bfseries increment\+Query\+Step} ()
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_aad6b4624ca3925ed5395159b330f4f9f}\label{classblazingdb_1_1manager_1_1Context_aad6b4624ca3925ed5395159b330f4f9f}} 
+void {\bfseries increment\+Query\+Substep} ()
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a99a062320c7d2d3acdaa876635a96f1b}\label{classblazingdb_1_1manager_1_1Context_a99a062320c7d2d3acdaa876635a96f1b}} 
+uint32\+\_\+t {\bfseries get\+Query\+Step} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_ab8982de5aaebf8f29c0f1d86cf4c84d6}\label{classblazingdb_1_1manager_1_1Context_ab8982de5aaebf8f29c0f1d86cf4c84d6}} 
+uint32\+\_\+t {\bfseries get\+Query\+Substep} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a087b4b0ced49313fbc9c3b3994aa870e}\label{classblazingdb_1_1manager_1_1Context_a087b4b0ced49313fbc9c3b3994aa870e}} 
+int {\bfseries get\+Node\+Index} (const \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} \&node) const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_ae7a8106947af5b4500760fb761a86788}\label{classblazingdb_1_1manager_1_1Context_ae7a8106947af5b4500760fb761a86788}} 
+bool {\bfseries is\+Master\+Node} (const \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} \&node) const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a428622bfe697d0d6f4ace3c0c6cef9fd}\label{classblazingdb_1_1manager_1_1Context_a428622bfe697d0d6f4ace3c0c6cef9fd}} 
+void {\bfseries set\+Kernel\+Id} (uint32\+\_\+t kernel\+\_\+id)
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a7fa93aeb80ef105da3c812b9da732e5d}\label{classblazingdb_1_1manager_1_1Context_a7fa93aeb80ef105da3c812b9da732e5d}} 
+uint32\+\_\+t {\bfseries get\+Kernel\+Id} () const
+\item 
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_a7ea6b41e017024e6ab010998ccc40b06}\label{classblazingdb_1_1manager_1_1Context_a7ea6b41e017024e6ab010998ccc40b06}} 
+std\+::map$<$ std\+::string, std\+::string $>$ {\bfseries get\+Config\+Options} () const
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This is the main component of the transport library. 
+
+Manage and group the Node \textquotesingle{}s (task nodes) to be used by an specific query. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_ae0093ffa619c372c6130af7e3c77c372}\label{classblazingdb_1_1manager_1_1Context_ae0093ffa619c372c6130af7e3c77c372}} 
+\index{blazingdb\+::manager\+::\+Context@{blazingdb\+::manager\+::\+Context}!get\+Logical\+Plan@{get\+Logical\+Plan}}
+\index{get\+Logical\+Plan@{get\+Logical\+Plan}!blazingdb\+::manager\+::\+Context@{blazingdb\+::manager\+::\+Context}}
+\subsubsection{\texorpdfstring{get\+Logical\+Plan()}{getLogicalPlan()}}
+{\footnotesize\ttfamily std\+::string blazingdb\+::manager\+::\+Context\+::get\+Logical\+Plan (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\hyperlink{deprecated__deprecated000001}{Deprecated}]\+: not used anymore \end{DoxyRefDesc}
+\mbox{\Hypertarget{classblazingdb_1_1manager_1_1Context_ad1faee75fb1b10af373d6481ae621dfd}\label{classblazingdb_1_1manager_1_1Context_ad1faee75fb1b10af373d6481ae621dfd}} 
+\index{blazingdb\+::manager\+::\+Context@{blazingdb\+::manager\+::\+Context}!get\+Master\+Node@{get\+Master\+Node}}
+\index{get\+Master\+Node@{get\+Master\+Node}!blazingdb\+::manager\+::\+Context@{blazingdb\+::manager\+::\+Context}}
+\subsubsection{\texorpdfstring{get\+Master\+Node()}{getMasterNode()}}
+{\footnotesize\ttfamily const \hyperlink{classblazingdb_1_1transport_1_1Node}{Node} \& blazingdb\+::manager\+::\+Context\+::get\+Master\+Node (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+A single unique R\+AL instance that helps to the messages transmition and processesing between worker R\+AL\textquotesingle{}s e.\+g.\+: see Sample\+To\+Node\+Master\+Message 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/Context.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/Context.\+cpp\end{DoxyCompactItemize}

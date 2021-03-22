@@ -1,0 +1,13 @@
+.. _exhale_function_engine_8cpp_1a21265e777955ba2a24cca78d43b41ce5:
+
+Function runSkipData
+====================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_cython_engine.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: runSkipData(ral::frame::BlazingTableView, std::vector<std::string>, std::string)

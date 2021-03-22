@@ -1,0 +1,72 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_GDFParser.cpp:
+
+Program Listing for File GDFParser.cpp
+======================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_GDFParser.cpp>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/GDFParser.cpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   /*
+    * GDFParser.cpp
+    *
+    *  Created on: Apr 30, 2019
+    *      Author: felipe
+    */
+   
+   #include <numeric>
+   
+   #include "GDFParser.h"
+   #include <blazingdb/io/Library/Logging/Logger.h>
+   #include <cudf/concatenate.hpp>
+   
+   namespace ral {
+   namespace io {
+   
+   gdf_parser::gdf_parser() {}
+   
+   gdf_parser::~gdf_parser() {}
+   
+   std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
+           ral::io::data_handle data_handle,
+           const Schema & schema,
+           std::vector<int> column_indices,
+           std::vector<cudf::size_type> /*row_groups*/){
+   
+       if(schema.get_num_columns() == 0) {
+           return nullptr;
+       }
+   
+       std::vector<cudf::size_type> indices;
+       indices.reserve(column_indices.size());
+       std::transform(
+           column_indices.cbegin(), column_indices.cend(), std::back_inserter(indices), [](std::size_t x) { return x; });
+       CudfTableView tableView = data_handle.table_view.view().select(indices);
+   
+       if(tableView.num_columns() <= 0) {
+           Library::Logging::Logger().logWarn("gdf_parser::parse_batch no columns were read");
+       }
+   
+       std::vector<std::string> column_names_out;
+       column_names_out.resize(column_indices.size());
+   
+       // we need to output the same column names of tableView
+       for (size_t i = 0; i < column_indices.size(); ++i) {
+           size_t idx = column_indices[i];
+           column_names_out[i] = data_handle.table_view.names()[idx];
+       }
+   
+       return std::make_unique<ral::frame::BlazingTable>(tableView, column_names_out);
+   }
+   
+   size_t gdf_parser::get_num_partitions() {return 0;}
+   
+   void gdf_parser::parse_schema(
+       std::shared_ptr<arrow::io::RandomAccessFile> /*file*/, ral::io::Schema & /*schema*/) {}
+   
+   
+   }  // namespace io
+   }  // namespace ral

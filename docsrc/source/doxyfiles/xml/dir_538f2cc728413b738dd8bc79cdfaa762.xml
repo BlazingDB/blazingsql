@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_538f2cc728413b738dd8bc79cdfaa762" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities</compoundname>
+    <innerfile refid="CommonOperations_8cpp">CommonOperations.cpp</innerfile>
+    <innerfile refid="CommonOperations_8h">CommonOperations.h</innerfile>
+    <innerfile refid="ctpl__stl_8h">ctpl_stl.h</innerfile>
+    <innerfile refid="DebuggingUtils_8cpp">DebuggingUtils.cpp</innerfile>
+    <innerfile refid="DebuggingUtils_8h">DebuggingUtils.h</innerfile>
+    <innerfile refid="scalar__timestamp__parser_8cpp">scalar_timestamp_parser.cpp</innerfile>
+    <innerfile refid="scalar__timestamp__parser_8hpp">scalar_timestamp_parser.hpp</innerfile>
+    <innerfile refid="transform_8hpp">transform.hpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/"/>
+  </compounddef>
+</doxygen>

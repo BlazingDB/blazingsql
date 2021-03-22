@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1io_1_1csv__parser" kind="class" language="C++" prot="public">
+    <compoundname>ral::io::csv_parser</compoundname>
+    <basecompoundref refid="classral_1_1io_1_1data__parser" prot="public" virt="non-virtual">ral::io::data_parser</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1io_1_1csv__parser_1a3812fee14e83cb5a0dd8a14323c101fc" prot="private" static="no" mutable="no">
+        <type>std::map&lt; std::string, std::string &gt;</type>
+        <definition>std::map&lt;std::string, std::string&gt; ral::io::csv_parser::args_map</definition>
+        <argsstring></argsstring>
+        <name>args_map</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="42" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1io_1_1csv__parser_1a968d6e3184638dfb497d4ac8a3080d1f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::csv_parser::csv_parser</definition>
+        <argsstring>(std::map&lt; std::string, std::string &gt; args_map)</argsstring>
+        <name>csv_parser</name>
+        <param>
+          <type>std::map&lt; std::string, std::string &gt;</type>
+          <declname>args_map</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.cpp" bodystart="25" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1csv__parser_1ac29fcf8f2f1fcdebb2ef303a5d5bf4d1" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>ral::io::csv_parser::~csv_parser</definition>
+        <argsstring>()</argsstring>
+        <name>~csv_parser</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="27" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.cpp" bodystart="27" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1csv__parser_1aa5f2a8243cc1897ec38162f5955e1265" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::io::csv_parser::parse_batch</definition>
+        <argsstring>(ral::io::data_handle handle, const Schema &amp;schema, std::vector&lt; int &gt; column_indices, std::vector&lt; cudf::size_type &gt; row_groups)</argsstring>
+        <name>parse_batch</name>
+        <reimplements refid="classral_1_1io_1_1data__parser_1a0c91feb81678403e9fd44076869c8ea2">parse_batch</reimplements>
+        <param>
+          <type><ref refid="structral_1_1io_1_1data__handle" kindref="compound">ral::io::data_handle</ref></type>
+          <declname>handle</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+          <declname>schema</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; int &gt;</type>
+          <declname>column_indices</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::size_type &gt;</type>
+          <declname>row_groups</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="29" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.cpp" bodystart="29" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1csv__parser_1ae9d6249732a74e43c231257b7a84334b" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void ral::io::csv_parser::parse_schema</definition>
+        <argsstring>(std::shared_ptr&lt; arrow::io::RandomAccessFile &gt; file, ral::io::Schema &amp;schema)</argsstring>
+        <name>parse_schema</name>
+        <reimplements refid="classral_1_1io_1_1data__parser_1a00beeb22738fcb9f3027ca01480fec99">parse_schema</reimplements>
+        <param>
+          <type>std::shared_ptr&lt; arrow::io::RandomAccessFile &gt;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1io_1_1Schema" kindref="compound">ral::io::Schema</ref> &amp;</type>
+          <declname>schema</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.cpp" bodystart="98" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1csv__parser_1af4f12c1bd8eada1c5ac6bfbc99ea0f6d" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::io::csv_parser::max_bytes_chunk_size</definition>
+        <argsstring>() const</argsstring>
+        <name>max_bytes_chunk_size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="37" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.cpp" bodystart="128" bodyend="135"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1csv__parser_1a037073b233a35609fb13a00e295c959c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>DataType</type>
+        <definition>DataType ral::io::csv_parser::type</definition>
+        <argsstring>() const override</argsstring>
+        <name>type</name>
+        <reimplements refid="classral_1_1io_1_1data__parser_1adb75d2db677272a1d26ab29bfd5dd954">type</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="39" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" bodystart="39" bodyend="39"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="148">
+        <label>ral::io::csv_parser</label>
+        <link refid="classral_1_1io_1_1csv__parser"/>
+        <childnode refid="149" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="149">
+        <label>ral::io::data_parser</label>
+        <link refid="classral_1_1io_1_1data__parser"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="150">
+        <label>ral::io::csv_parser</label>
+        <link refid="classral_1_1io_1_1csv__parser"/>
+        <childnode refid="151" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="151">
+        <label>ral::io::data_parser</label>
+        <link refid="classral_1_1io_1_1data__parser"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/CSVParser.h" bodystart="23" bodyend="43"/>
+    <listofallmembers>
+      <member refid="classral_1_1io_1_1csv__parser_1a3812fee14e83cb5a0dd8a14323c101fc" prot="private" virt="non-virtual"><scope>ral::io::csv_parser</scope><name>args_map</name></member>
+      <member refid="classral_1_1io_1_1csv__parser_1a968d6e3184638dfb497d4ac8a3080d1f" prot="public" virt="non-virtual"><scope>ral::io::csv_parser</scope><name>csv_parser</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1a3baa7b548a8709c3604a4164c2a747d0" prot="public" virt="virtual"><scope>ral::io::csv_parser</scope><name>get_metadata</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1abdb1c7acce3b3ad154252a94053921bb" prot="public" virt="virtual"><scope>ral::io::csv_parser</scope><name>get_num_partitions</name></member>
+      <member refid="classral_1_1io_1_1csv__parser_1af4f12c1bd8eada1c5ac6bfbc99ea0f6d" prot="public" virt="non-virtual"><scope>ral::io::csv_parser</scope><name>max_bytes_chunk_size</name></member>
+      <member refid="classral_1_1io_1_1csv__parser_1aa5f2a8243cc1897ec38162f5955e1265" prot="public" virt="virtual"><scope>ral::io::csv_parser</scope><name>parse_batch</name></member>
+      <member refid="classral_1_1io_1_1csv__parser_1ae9d6249732a74e43c231257b7a84334b" prot="public" virt="virtual"><scope>ral::io::csv_parser</scope><name>parse_schema</name></member>
+      <member refid="classral_1_1io_1_1csv__parser_1a037073b233a35609fb13a00e295c959c" prot="public" virt="virtual"><scope>ral::io::csv_parser</scope><name>type</name></member>
+      <member refid="classral_1_1io_1_1csv__parser_1ac29fcf8f2f1fcdebb2ef303a5d5bf4d1" prot="public" virt="virtual"><scope>ral::io::csv_parser</scope><name>~csv_parser</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

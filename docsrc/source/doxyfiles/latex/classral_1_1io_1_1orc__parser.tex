@@ -1,0 +1,44 @@
+\hypertarget{classral_1_1io_1_1orc__parser}{}\section{ral\+:\+:io\+:\+:orc\+\_\+parser Class Reference}
+\label{classral_1_1io_1_1orc__parser}\index{ral\+::io\+::orc\+\_\+parser@{ral\+::io\+::orc\+\_\+parser}}
+
+
+Inheritance diagram for ral\+:\+:io\+:\+:orc\+\_\+parser\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=178pt]{classral_1_1io_1_1orc__parser__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:io\+:\+:orc\+\_\+parser\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=178pt]{classral_1_1io_1_1orc__parser__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1orc__parser_af352d5ef0c56ae3cf70afc26cdf0ba78}\label{classral_1_1io_1_1orc__parser_af352d5ef0c56ae3cf70afc26cdf0ba78}} 
+{\bfseries orc\+\_\+parser} (std\+::map$<$ std\+::string, std\+::string $>$ args\+\_\+map)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1orc__parser_a67cf475095de14b92c1c61a8f784230d}\label{classral_1_1io_1_1orc__parser_a67cf475095de14b92c1c61a8f784230d}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries parse\+\_\+batch} (\hyperlink{structral_1_1io_1_1data__handle}{ral\+::io\+::data\+\_\+handle} handle, const \hyperlink{classral_1_1io_1_1Schema}{Schema} \&schema, std\+::vector$<$ int $>$ column\+\_\+indices, std\+::vector$<$ cudf\+::size\+\_\+type $>$ row\+\_\+groups)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1orc__parser_ad3ac521b63ec30e23d2759b6c37c8ece}\label{classral_1_1io_1_1orc__parser_ad3ac521b63ec30e23d2759b6c37c8ece}} 
+void {\bfseries parse\+\_\+schema} (std\+::shared\+\_\+ptr$<$ arrow\+::io\+::\+Random\+Access\+File $>$ file, \hyperlink{classral_1_1io_1_1Schema}{Schema} \&schema)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1orc__parser_aa25ff68d31995b000b7805f0f313e46b}\label{classral_1_1io_1_1orc__parser_aa25ff68d31995b000b7805f0f313e46b}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries get\+\_\+metadata} (std\+::vector$<$ std\+::shared\+\_\+ptr$<$ arrow\+::io\+::\+Random\+Access\+File $>$$>$ files, int offset)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1orc__parser_a91a7ef5f1263d5ce111b691250176e6b}\label{classral_1_1io_1_1orc__parser_a91a7ef5f1263d5ce111b691250176e6b}} 
+Data\+Type {\bfseries type} () const override
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/io/data\+\_\+parser/Orc\+Parser.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/io/data\+\_\+parser/Orc\+Parser.\+cpp\end{DoxyCompactItemize}

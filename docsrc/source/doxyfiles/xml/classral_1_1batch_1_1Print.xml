@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1batch_1_1Print" kind="class" language="C++" prot="public">
+    <compoundname>ral::batch::Print</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1kernel" prot="public" virt="non-virtual">ral::cache::kernel</basecompoundref>
+    <includes refid="BatchProcessing_8h" local="no">BatchProcessing.h</includes>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classral_1_1batch_1_1Print_1ac8e0a4119f3eff330f4b69bdafeb97d4" prot="protected" static="no" mutable="no">
+        <type>std::ostream *</type>
+        <definition>std::ostream* ral::batch::Print::ofs</definition>
+        <argsstring></argsstring>
+        <name>ofs</name>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Target output stream object. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="294" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="294" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1batch_1_1Print_1a655fa9f15b425b603f69476e8fd0059d" prot="protected" static="no" mutable="no">
+        <type>std::mutex</type>
+        <definition>std::mutex ral::batch::Print::print_lock</definition>
+        <argsstring></argsstring>
+        <name>print_lock</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Mutex for making the printing thread-safe. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="295" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="295" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1batch_1_1Print_1aaed27582de95fe7378e54b038ea969c4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::batch::Print::Print</definition>
+        <argsstring>()</argsstring>
+        <name>Print</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="280" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="280" bodyend="280"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Print_1adb248e266c2d6c7fe879a32bd452aaaa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::batch::Print::Print</definition>
+        <argsstring>(std::ostream &amp;stream)</argsstring>
+        <name>Print</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="281" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="281" bodyend="281"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Print_1a62ad2aa4fa2ed1ce619ca17e0978d560" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::string</type>
+        <definition>std::string ral::batch::Print::kernel_name</definition>
+        <argsstring>()</argsstring>
+        <name>kernel_name</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1aafcb0f431c87f166a778a6cce0d36d51">kernel_name</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="283" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="283" bodyend="283"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1batch_1_1Print_1aaa9c9b3999fa088344f8505fcf201721" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>kstatus</type>
+        <definition>kstatus ral::batch::Print::run</definition>
+        <argsstring>()</argsstring>
+        <name>run</name>
+        <reimplements refid="classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7">run</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. <simplesect kind="return"><para>kstatus &apos;stop&apos; to halt processing, or &apos;proceed&apos; to continue processing. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="291" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp" bodystart="502" bodyend="510"/>
+        <references refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" compoundref="kernel_8cpp" startline="36" endline="39">ral::cache::kernel::input_cache</references>
+        <references refid="classral_1_1batch_1_1BatchSequence_1af62f1f620ac02a018737af8a89eb4881" compoundref="BatchProcessing_8cpp" startline="34" endline="40">ral::batch::BatchSequence::wait_for_next</references>
+        <references refid="classral_1_1batch_1_1BatchSequence_1a5fe181e6183df338739e61eb512c23a4" compoundref="BatchProcessing_8cpp" startline="26" endline="32">ral::batch::BatchSequence::next</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This kernel allows printing the preceding input caches to the standard output. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="371">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+      </node>
+      <node id="370">
+        <label>ral::batch::Print</label>
+        <link refid="classral_1_1batch_1_1Print"/>
+        <childnode refid="371" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="374">
+        <label>ral::cache::port</label>
+        <link refid="classral_1_1cache_1_1port"/>
+        <childnode refid="373" relation="usage">
+          <edgelabel>kernel_</edgelabel>
+        </childnode>
+      </node>
+      <node id="373">
+        <label>ral::cache::kernel</label>
+        <link refid="classral_1_1cache_1_1kernel"/>
+        <childnode refid="374" relation="usage">
+          <edgelabel>input_</edgelabel>
+          <edgelabel>output_</edgelabel>
+        </childnode>
+      </node>
+      <node id="372">
+        <label>ral::batch::Print</label>
+        <link refid="classral_1_1batch_1_1Print"/>
+        <childnode refid="373" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" line="275" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h" bodystart="275" bodyend="296"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1kernel_1a9b0a80f937f10357ae62638b6f0461d4" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>add_task</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af6b7b538f6a692393f314a4f1037d4a6" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad8cd102392bbece14178c0ebf9f0c6bc" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94e93c7bb81d9a3a7729fa84a7cf07c1" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>add_to_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>context</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625" prot="public" virt="virtual"><scope>ral::batch::Print</scope><name>do_process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33a881d5e40d033e53a73f3c7ede5d03" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>estimate_operating_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a37da9a64d455f2b833e1e7576c9a17d2" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>estimate_output_bytes</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8ac24c565e0d29b390d40e7ef3366486" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>execution_done</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0619a9c1e4952dc353dcfa079910a84a" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>expression</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a3c5beb224576167cd7f9488e68d8ff62" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>finished_tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6d078d50dd69a9444fcd5d73f378e2d1" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>get_context</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abf40aaa022e3bf38c261977d0c2170cb" prot="public" virt="virtual"><scope>ral::batch::Print</scope><name>get_estimated_output_num_rows</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>get_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa9e353759b65c2c53571cf80b0213d31" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>get_message_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a146246668880ca685f22d208e638578b" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>get_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a913add84b5ad4c0bb09f7a609fe8e311" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>has_limit_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a21dc72f0714ddc2b4b2187592d05ba77" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>has_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a014bae9051f8ae95341be2f967b135c5" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>input_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aa8af91bb80e9153e307e07c3010c217a" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>input_all_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>input_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a75d3db3d361445cd14da3186b8b15036" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>input_cache_finished</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a25cd1d59552733027ba6396cd9e41004" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>input_cache_num_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a533e4ae37fc18a6c8638f30ee8459d8f" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>kernel</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1af711082b1f602bacc21d679d318648f7" prot="protected" virt="non-virtual"><scope>ral::batch::Print</scope><name>kernel_cv</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a2fd708656cb056a41ec635b8bdc4acfe" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>kernel_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a8e336a4bc07932d5fc243409324cdcc1" prot="protected" virt="non-virtual"><scope>ral::batch::Print</scope><name>kernel_mutex</name></member>
+      <member refid="classral_1_1batch_1_1Print_1a62ad2aa4fa2ed1ce619ca17e0978d560" prot="public" virt="virtual"><scope>ral::batch::Print</scope><name>kernel_name</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a923841bcb8d995048c58d51a6c39caf7" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>kernel_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a415a4613c3eac81c1f65340e0866d26e" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>limit_rows_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae891570bebe342865bc0f30ac369efe8" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>logger</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a0d4a11f11203e46edff09aafc3935688" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>notify_complete</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1aacb25cb9e49377bca219769f0eb82aef" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>notify_fail</name></member>
+      <member refid="classral_1_1batch_1_1Print_1ac8e0a4119f3eff330f4b69bdafeb97d4" prot="protected" virt="non-virtual"><scope>ral::batch::Print</scope><name>ofs</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1abb0b2c6bdc9e3379cc675e57270b207b" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>operator[]</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a6eac1b9f1e6efb3bb9942ba7bbf66a94" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>output_</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>output_cache</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ad1b8b87c5008b3bce16fe45da84eccdd" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>parent_id_</name></member>
+      <member refid="classral_1_1batch_1_1Print_1aaed27582de95fe7378e54b038ea969c4" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>Print</name></member>
+      <member refid="classral_1_1batch_1_1Print_1adb248e266c2d6c7fe879a32bd452aaaa" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>Print</name></member>
+      <member refid="classral_1_1batch_1_1Print_1a655fa9f15b425b603f69476e8fd0059d" prot="protected" virt="non-virtual"><scope>ral::batch::Print</scope><name>print_lock</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a45abece009eed9fc7555f55ecc55f5dd" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>process</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>query_graph</name></member>
+      <member refid="classral_1_1batch_1_1Print_1aaa9c9b3999fa088344f8505fcf201721" prot="public" virt="virtual"><scope>ral::batch::Print</scope><name>run</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a150ae499b8aef4669714e791f2bea9e9" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>set_parent</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1ae4a8519fe026454fe5385122c1e02615" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>set_type_id</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a24ef14f94bf23f483736043ca6f95b7e" prot="protected" virt="non-virtual"><scope>ral::batch::Print</scope><name>tasks</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a57a0078f5ab3991b32e9ea92989eab42" prot="protected" virt="non-virtual"><scope>ral::batch::Print</scope><name>total_input_bytes_processed</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a87d2048b2c50e1124eaaed09b3c18758" prot="public" virt="non-virtual"><scope>ral::batch::Print</scope><name>total_input_rows_added</name></member>
+      <member refid="classral_1_1cache_1_1kernel_1a08658078acd31ec27af290f6712fa017" prot="public" virt="virtual"><scope>ral::batch::Print</scope><name>~kernel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

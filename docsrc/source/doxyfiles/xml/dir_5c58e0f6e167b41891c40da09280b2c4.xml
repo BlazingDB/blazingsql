@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_5c58e0f6e167b41891c40da09280b2c4" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport</compoundname>
+    <innerdir refid="dir_e947aa47e49bfa904af29917ba732641">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common</innerdir>
+    <innerfile refid="ColumnTransport_8h">ColumnTransport.h</innerfile>
+    <innerfile refid="Node_8cpp">Node.cpp</innerfile>
+    <innerfile refid="Node_8h">Node.h</innerfile>
+    <innerfile refid="Status_8h">Status.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/"/>
+  </compounddef>
+</doxygen>

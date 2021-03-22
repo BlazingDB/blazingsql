@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1cache_1_1cache__settings" kind="struct" language="C++" prot="public">
+    <compoundname>ral::cache::cache_settings</compoundname>
+    <includes refid="kpair_8h" local="no">kpair.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structral_1_1cache_1_1cache__settings_1a9b3e3c655751cd121cd5a6ed169c0be0" prot="public" static="no" mutable="no">
+        <type>CacheType</type>
+        <definition>CacheType ral::cache::cache_settings::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <initializer>= CacheType::SIMPLE</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" line="19" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1cache_1_1cache__settings_1a20bbad604695b4a4e97f0e53c4c99178" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ral::cache::cache_settings::num_partitions</definition>
+        <argsstring></argsstring>
+        <name>num_partitions</name>
+        <initializer>= 1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" line="20" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1cache_1_1cache__settings_1aa9cc6ee9667f1aaf89e03952f8a2a822" prot="public" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classblazingdb_1_1manager_1_1Context" kindref="compound">Context</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;Context&gt; ral::cache::cache_settings::context</definition>
+        <argsstring></argsstring>
+        <name>context</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" line="21" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1cache_1_1cache__settings_1a6d157349c6a1c19fe1c4d0368814fb70" prot="public" static="no" mutable="no">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::cache::cache_settings::concat_cache_num_bytes</definition>
+        <argsstring></argsstring>
+        <name>concat_cache_num_bytes</name>
+        <initializer>= 400000000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" line="22" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1cache_1_1cache__settings_1acac908087611fef1560d36be68f1e418" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ral::cache::cache_settings::concat_all</definition>
+        <argsstring></argsstring>
+        <name>concat_all</name>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>Applicable only for concatenating caches. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>An object that represent a cache machine configuration (type and num_partitions) used in create_cache_machine and create_cache_machine functions. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kpair.h" bodystart="18" bodyend="24"/>
+    <listofallmembers>
+      <member refid="structral_1_1cache_1_1cache__settings_1acac908087611fef1560d36be68f1e418" prot="public" virt="non-virtual"><scope>ral::cache::cache_settings</scope><name>concat_all</name></member>
+      <member refid="structral_1_1cache_1_1cache__settings_1a6d157349c6a1c19fe1c4d0368814fb70" prot="public" virt="non-virtual"><scope>ral::cache::cache_settings</scope><name>concat_cache_num_bytes</name></member>
+      <member refid="structral_1_1cache_1_1cache__settings_1aa9cc6ee9667f1aaf89e03952f8a2a822" prot="public" virt="non-virtual"><scope>ral::cache::cache_settings</scope><name>context</name></member>
+      <member refid="structral_1_1cache_1_1cache__settings_1a20bbad604695b4a4e97f0e53c4c99178" prot="public" virt="non-virtual"><scope>ral::cache::cache_settings</scope><name>num_partitions</name></member>
+      <member refid="structral_1_1cache_1_1cache__settings_1a9b3e3c655751cd121cd5a6ed169c0be0" prot="public" virt="non-virtual"><scope>ral::cache::cache_settings</scope><name>type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

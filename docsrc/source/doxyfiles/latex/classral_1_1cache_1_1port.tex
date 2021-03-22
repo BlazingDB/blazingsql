@@ -1,0 +1,83 @@
+\hypertarget{classral_1_1cache_1_1port}{}\section{ral\+:\+:cache\+:\+:port Class Reference}
+\label{classral_1_1cache_1_1port}\index{ral\+::cache\+::port@{ral\+::cache\+::port}}
+
+
+This class represent a diccionary of tuples $<$port\+\_\+name, cache\+\_\+machine$>$ used by each kernel (input and outputs) into the execution graph.  
+
+
+
+
+{\ttfamily \#include $<$port.\+h$>$}
+
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:port\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=172pt]{classral_1_1cache_1_1port__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a4991d849a145eeabf7d8fa2ebfaf01e3}\label{classral_1_1cache_1_1port_a4991d849a145eeabf7d8fa2ebfaf01e3}} 
+{\bfseries port} (\hyperlink{classral_1_1cache_1_1kernel}{kernel} $\ast$const k)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_ac188682dc9f01caa7754404261ef39fb}\label{classral_1_1cache_1_1port_ac188682dc9f01caa7754404261ef39fb}} 
+{\footnotesize template$<$class... P\+O\+R\+T\+N\+A\+M\+ES$>$ }\\void {\bfseries add\+\_\+port} (P\+O\+R\+T\+N\+A\+M\+ES \&\&... ports)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a0dc8040e17784860b766451848171bdf}\label{classral_1_1cache_1_1port_a0dc8040e17784860b766451848171bdf}} 
+size\+\_\+t {\bfseries count} () const
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a809c9029738a25c5c4c2d03d06763433}\label{classral_1_1cache_1_1port_a809c9029738a25c5c4c2d03d06763433}} 
+void {\bfseries register\+\_\+port} (std\+::string port\+\_\+name)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a8638993db9a78603732e99d14a7f9bfb}\label{classral_1_1cache_1_1port_a8638993db9a78603732e99d14a7f9bfb}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{Cache\+Machine} $>$ \& {\bfseries get\+\_\+cache} (const std\+::string \&port\+\_\+name=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_ad953c937a1aa16e3e7dce3ccb3e457cc}\label{classral_1_1cache_1_1port_ad953c937a1aa16e3e7dce3ccb3e457cc}} 
+void {\bfseries register\+\_\+cache} (const std\+::string \&port\+\_\+name, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{Cache\+Machine} $>$ cache\+\_\+machine)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_af593d246e90b414eedfe0ae6b062099a}\label{classral_1_1cache_1_1port_af593d246e90b414eedfe0ae6b062099a}} 
+void {\bfseries finish} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a1b2a397860df89e9403ce73e99c7f4fc}\label{classral_1_1cache_1_1port_a1b2a397860df89e9403ce73e99c7f4fc}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{Cache\+Machine} $>$ \& {\bfseries operator\mbox{[}$\,$\mbox{]}} (const std\+::string \&port\+\_\+name)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a682aff9077c4da30de69e9449feb89ec}\label{classral_1_1cache_1_1port_a682aff9077c4da30de69e9449feb89ec}} 
+bool {\bfseries all\+\_\+finished} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_afebcebbb24ccd91b52275dd442cb2bd2}\label{classral_1_1cache_1_1port_afebcebbb24ccd91b52275dd442cb2bd2}} 
+bool {\bfseries is\+\_\+finished} (const std\+::string \&port\+\_\+name)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a5a76f7c5a0a22ba25000eb86b66c7676}\label{classral_1_1cache_1_1port_a5a76f7c5a0a22ba25000eb86b66c7676}} 
+uint64\+\_\+t {\bfseries total\+\_\+bytes\+\_\+added} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a50ec17f630388609cd1d307a5adf3c5c}\label{classral_1_1cache_1_1port_a50ec17f630388609cd1d307a5adf3c5c}} 
+uint64\+\_\+t {\bfseries total\+\_\+rows\+\_\+added} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a412d716db14f528c7a3e655c61b2da6a}\label{classral_1_1cache_1_1port_a412d716db14f528c7a3e655c61b2da6a}} 
+uint64\+\_\+t {\bfseries total\+\_\+batches\+\_\+added} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_ac03157848a06e12eb28ad8f815d821c8}\label{classral_1_1cache_1_1port_ac03157848a06e12eb28ad8f815d821c8}} 
+uint64\+\_\+t {\bfseries get\+\_\+num\+\_\+rows\+\_\+added} (const std\+::string \&port\+\_\+name)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_ac8e579e7b4a5e0e9ee1051694b732708}\label{classral_1_1cache_1_1port_ac8e579e7b4a5e0e9ee1051694b732708}} 
+\hyperlink{classral_1_1cache_1_1kernel}{kernel} $\ast$ {\bfseries kernel\+\_\+}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1port_a8e70bbfe6180959f21a56bd76a6b743b}\label{classral_1_1cache_1_1port_a8e70bbfe6180959f21a56bd76a6b743b}} 
+std\+::map$<$ std\+::string, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{Cache\+Machine} $>$ $>$ {\bfseries cache\+\_\+machines\+\_\+}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This class represent a diccionary of tuples $<$port\+\_\+name, cache\+\_\+machine$>$ used by each kernel (input and outputs) into the execution graph. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/port.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/port.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,13 @@
+.. _exhale_function_LogicalFilter_8cpp_1ac80076659007bb28071b9158e87eb2cf:
+
+Function ral::processor::applyBooleanFilter
+===========================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalFilter.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::processor::applyBooleanFilter(const ral::frame::BlazingTableView&, const CudfColumnView&)

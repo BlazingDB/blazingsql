@@ -1,0 +1,57 @@
+\hypertarget{classcomm_1_1ucx__message__listener}{}\section{comm\+:\+:ucx\+\_\+message\+\_\+listener Class Reference}
+\label{classcomm_1_1ucx__message__listener}\index{comm\+::ucx\+\_\+message\+\_\+listener@{comm\+::ucx\+\_\+message\+\_\+listener}}
+
+
+Inheritance diagram for comm\+:\+:ucx\+\_\+message\+\_\+listener\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=227pt]{classcomm_1_1ucx__message__listener__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for comm\+:\+:ucx\+\_\+message\+\_\+listener\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=227pt]{classcomm_1_1ucx__message__listener__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_a09fcfb37e82ed351d3f164084b715593}\label{classcomm_1_1ucx__message__listener_a09fcfb37e82ed351d3f164084b715593}} 
+void {\bfseries poll\+\_\+begin\+\_\+message\+\_\+tag} (bool running\+\_\+from\+\_\+unit\+\_\+test)
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_a315a3053a11bb7415f5f300c5608a658}\label{classcomm_1_1ucx__message__listener_a315a3053a11bb7415f5f300c5608a658}} 
+void {\bfseries add\+\_\+receiver} (ucp\+\_\+tag\+\_\+t tag, std\+::shared\+\_\+ptr$<$ \hyperlink{classcomm_1_1message__receiver}{message\+\_\+receiver} $>$ receiver)
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_a07a5f65b3759daa8b4d4dc14fad160ce}\label{classcomm_1_1ucx__message__listener_a07a5f65b3759daa8b4d4dc14fad160ce}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classcomm_1_1message__receiver}{message\+\_\+receiver} $>$ {\bfseries get\+\_\+receiver} (ucp\+\_\+tag\+\_\+t tag)
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_a7b3206c978454f72e298cd0d1551adad}\label{classcomm_1_1ucx__message__listener_a7b3206c978454f72e298cd0d1551adad}} 
+void {\bfseries remove\+\_\+receiver} (ucp\+\_\+tag\+\_\+t tag)
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_a110d2273e5204f635d0ea4dd741ea9d5}\label{classcomm_1_1ucx__message__listener_a110d2273e5204f635d0ea4dd741ea9d5}} 
+ucp\+\_\+worker\+\_\+h {\bfseries get\+\_\+worker} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_af1a4505bc00a67076d7376543c88ce55}\label{classcomm_1_1ucx__message__listener_af1a4505bc00a67076d7376543c88ce55}} 
+void {\bfseries start\+\_\+polling} () override
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_a4e3a3be029f7adec46687eb7e21960d8}\label{classcomm_1_1ucx__message__listener_a4e3a3be029f7adec46687eb7e21960d8}} 
+static void {\bfseries initialize\+\_\+message\+\_\+listener} (ucp\+\_\+context\+\_\+h context, ucp\+\_\+worker\+\_\+h worker, const std\+::map$<$ std\+::string, \hyperlink{classcomm_1_1node}{comm\+::node} $>$ \&nodes, int num\+\_\+threads, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ input\+\_\+cache)
+\item 
+\mbox{\Hypertarget{classcomm_1_1ucx__message__listener_acac26d88ea164d0836c3fa494842ed1b}\label{classcomm_1_1ucx__message__listener_acac26d88ea164d0836c3fa494842ed1b}} 
+static \hyperlink{classcomm_1_1ucx__message__listener}{ucx\+\_\+message\+\_\+listener} $\ast$ {\bfseries get\+\_\+instance} ()
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/communication/\+Communication\+Interface/message\+Listener.\+hpp\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/communication/\+Communication\+Interface/message\+Listener.\+cpp\end{DoxyCompactItemize}

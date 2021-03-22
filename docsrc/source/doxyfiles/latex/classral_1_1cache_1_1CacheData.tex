@@ -1,0 +1,264 @@
+\hypertarget{classral_1_1cache_1_1CacheData}{}\section{ral\+:\+:cache\+:\+:Cache\+Data Class Reference}
+\label{classral_1_1cache_1_1CacheData}\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+
+
+{\ttfamily \#include $<$Cache\+Data.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:cache\+:\+:Cache\+Data\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1CacheData__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:Cache\+Data\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=230pt]{classral_1_1cache_1_1CacheData__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1cache_1_1CacheData_a257a4e0a13e894093e8ae37da1612c62}{Cache\+Data} (Cache\+Data\+Type \hyperlink{classral_1_1cache_1_1CacheData_acf9d130e22baac61d4689c52e36b9c17}{cache\+\_\+type}, std\+::vector$<$ std\+::string $>$ \hyperlink{classral_1_1cache_1_1CacheData_a7a43a46a362c8fe93a7af81debbeca1b}{col\+\_\+names}, std\+::vector$<$ cudf\+::data\+\_\+type $>$ \hyperlink{classral_1_1cache_1_1CacheData_aec9a1b3c0fb78cfdb3bd5494bcee2d8f}{schema}, size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheData_a4cdddfb8e552e0e3e91877ae80e5fc9e}{n\+\_\+rows})
+\item 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ \hyperlink{classral_1_1cache_1_1CacheData_a2db8fdd2151babd7a07f4c6e246b710c}{decache} ()=0
+\item 
+virtual size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheData_aaad8a726296574845f01f9380dcee40d}{size\+In\+Bytes} () const =0
+\item 
+virtual void \hyperlink{classral_1_1cache_1_1CacheData_a3bb1623a4266ba7c961d325023ff13c6}{set\+\_\+names} (const std\+::vector$<$ std\+::string $>$ \&\hyperlink{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642}{names})=0
+\item 
+virtual \hyperlink{classral_1_1cache_1_1CacheData_ac66a4910198d677594609b455c4ecde8}{$\sim$\+Cache\+Data} ()
+\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642}{names} () const
+\item 
+std\+::vector$<$ cudf\+::data\+\_\+type $>$ \hyperlink{classral_1_1cache_1_1CacheData_a747bc7b9113756471ce8a7bce2c46689}{get\+\_\+schema} () const
+\item 
+size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheData_acddfe8617004fc875fff972ae5b1f616}{num\+\_\+columns} () const
+\item 
+size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheData_a14a5b9fadf872c12d633e38bb6f9f07d}{num\+\_\+rows} () const
+\item 
+Cache\+Data\+Type \hyperlink{classral_1_1cache_1_1CacheData_a6669c7c34305f2099cede2be98433604}{get\+\_\+type} () const
+\item 
+\hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} \hyperlink{classral_1_1cache_1_1CacheData_a7e3fea5c3558948f4c461998f7ef434b}{get\+Metadata} ()
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} $>$ \hyperlink{classral_1_1cache_1_1CacheData_af70878c08fae1935cd0a39999cabf6fb}{downgrade\+Cache\+Data} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} $>$ cache\+Data, std\+::string id, std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ ctx)
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Cache\+Data\+Type \hyperlink{classral_1_1cache_1_1CacheData_acf9d130e22baac61d4689c52e36b9c17}{cache\+\_\+type}
+\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{classral_1_1cache_1_1CacheData_a7a43a46a362c8fe93a7af81debbeca1b}{col\+\_\+names}
+\item 
+std\+::vector$<$ cudf\+::data\+\_\+type $>$ \hyperlink{classral_1_1cache_1_1CacheData_aec9a1b3c0fb78cfdb3bd5494bcee2d8f}{schema}
+\item 
+size\+\_\+t \hyperlink{classral_1_1cache_1_1CacheData_a4cdddfb8e552e0e3e91877ae80e5fc9e}{n\+\_\+rows}
+\item 
+\hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} \hyperlink{classral_1_1cache_1_1CacheData_aaeb232ef3aa8c2a3d86e1169ed2e8152}{metadata}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Base Class for all \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} A \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} represents a combination of a schema along with a container for a dataframe. This gives us one type that can be sent around and whose only purpose is to hold data until it is ready to be operated on by calling the decache method. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a257a4e0a13e894093e8ae37da1612c62}\label{classral_1_1cache_1_1CacheData_a257a4e0a13e894093e8ae37da1612c62}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!Cache\+Data@{Cache\+Data}}
+\index{Cache\+Data@{Cache\+Data}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{Cache\+Data()}{CacheData()}}
+{\footnotesize\ttfamily ral\+::cache\+::\+Cache\+Data\+::\+Cache\+Data (\begin{DoxyParamCaption}\item[{Cache\+Data\+Type}]{cache\+\_\+type,  }\item[{std\+::vector$<$ std\+::string $>$}]{col\+\_\+names,  }\item[{std\+::vector$<$ cudf\+::data\+\_\+type $>$}]{schema,  }\item[{size\+\_\+t}]{n\+\_\+rows }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Constructor for \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} This is only invoked by the derived classes when constructing. 
+\begin{DoxyParams}{Parameters}
+{\em cache\+\_\+type} & The Cache\+Data\+Type of this cache letting us know where the data is stored. \\
+\hline
+{\em col\+\_\+names} & The names of the columns in the dataframe. \\
+\hline
+{\em schema} & The types of the columns in the dataframe. \\
+\hline
+{\em n\+\_\+rows} & The number of rows in the dataframe. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_ac66a4910198d677594609b455c4ecde8}\label{classral_1_1cache_1_1CacheData_ac66a4910198d677594609b455c4ecde8}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!````~Cache\+Data@{$\sim$\+Cache\+Data}}
+\index{````~Cache\+Data@{$\sim$\+Cache\+Data}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{$\sim$\+Cache\+Data()}{~CacheData()}}
+{\footnotesize\ttfamily virtual ral\+::cache\+::\+Cache\+Data\+::$\sim$\+Cache\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+Destructor 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a2db8fdd2151babd7a07f4c6e246b710c}\label{classral_1_1cache_1_1CacheData_a2db8fdd2151babd7a07f4c6e246b710c}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!decache@{decache}}
+\index{decache@{decache}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{decache()}{decache()}}
+{\footnotesize\ttfamily virtual std\+::unique\+\_\+ptr$<$\hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table}$>$ ral\+::cache\+::\+Cache\+Data\+::decache (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+Remove the payload from this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. A pure virtual function. This removes the payload for the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. After this the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} will almost always go out of scope and be destroyed. \begin{DoxyReturn}{Returns}
+a Blazing\+Table generated from the source of data for this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} 
+\end{DoxyReturn}
+
+
+Implemented in \hyperlink{classral_1_1cache_1_1ConcatCacheData_af726fc27fcf1621fff1f399f8b2d3cec}{ral\+::cache\+::\+Concat\+Cache\+Data}, \hyperlink{classral_1_1cache_1_1CacheDataIO_a7fb2dceef20a385e31508ac70edfbf58}{ral\+::cache\+::\+Cache\+Data\+IO}, \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_a1d34227fbbf671e47119846ee2f2a0af}{ral\+::cache\+::\+Cache\+Data\+Local\+File}, \hyperlink{classral_1_1cache_1_1CPUCacheData_a03a18d3dfd4fe60dffdd0a9daabfbde2}{ral\+::cache\+::\+C\+P\+U\+Cache\+Data}, and \hyperlink{classral_1_1cache_1_1GPUCacheData_a7efe1d821067ba5266df18adb701bf5f}{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_af70878c08fae1935cd0a39999cabf6fb}\label{classral_1_1cache_1_1CacheData_af70878c08fae1935cd0a39999cabf6fb}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!downgrade\+Cache\+Data@{downgrade\+Cache\+Data}}
+\index{downgrade\+Cache\+Data@{downgrade\+Cache\+Data}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{downgrade\+Cache\+Data()}{downgradeCacheData()}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} $>$ ral\+::cache\+::\+Cache\+Data\+::downgrade\+Cache\+Data (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} $>$}]{cache\+Data,  }\item[{std\+::string}]{id,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$}]{ctx }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+Utility function which can take a \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} and if its a standard G\+PU cache data, it will downgrade it to C\+PU or Disk \begin{DoxyReturn}{Returns}
+If the input \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} is not of a type that can be downgraded, it will just return the original input, otherwise it will return the downgraded \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a747bc7b9113756471ce8a7bce2c46689}\label{classral_1_1cache_1_1CacheData_a747bc7b9113756471ce8a7bce2c46689}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!get\+\_\+schema@{get\+\_\+schema}}
+\index{get\+\_\+schema@{get\+\_\+schema}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{get\+\_\+schema()}{get\_schema()}}
+{\footnotesize\ttfamily std\+::vector$<$cudf\+::data\+\_\+type$>$ ral\+::cache\+::\+Cache\+Data\+::get\+\_\+schema (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the cudf\+::data\+\_\+type of each column. \begin{DoxyReturn}{Returns}
+a vector of the cudf\+::data\+\_\+type of each column. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a6669c7c34305f2099cede2be98433604}\label{classral_1_1cache_1_1CacheData_a6669c7c34305f2099cede2be98433604}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!get\+\_\+type@{get\+\_\+type}}
+\index{get\+\_\+type@{get\+\_\+type}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{get\+\_\+type()}{get\_type()}}
+{\footnotesize\ttfamily Cache\+Data\+Type ral\+::cache\+::\+Cache\+Data\+::get\+\_\+type (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Gets the type of \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} that was used to construct this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} \begin{DoxyReturn}{Returns}
+The Cache\+Data\+Type that is used to store the dataframe representation. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a7e3fea5c3558948f4c461998f7ef434b}\label{classral_1_1cache_1_1CacheData_a7e3fea5c3558948f4c461998f7ef434b}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!get\+Metadata@{get\+Metadata}}
+\index{get\+Metadata@{get\+Metadata}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{get\+Metadata()}{getMetadata()}}
+{\footnotesize\ttfamily \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} ral\+::cache\+::\+Cache\+Data\+::get\+Metadata (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} \begin{DoxyReturn}{Returns}
+The \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} which is used in routing and planning. 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1CacheData_a7e3fea5c3558948f4c461998f7ef434b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642}\label{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!names@{names}}
+\index{names@{names}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{names()}{names()}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::string$>$ ral\+::cache\+::\+Cache\+Data\+::names (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the names of the columns. \begin{DoxyReturn}{Returns}
+a vector of the column names 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_acddfe8617004fc875fff972ae5b1f616}\label{classral_1_1cache_1_1CacheData_acddfe8617004fc875fff972ae5b1f616}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!num\+\_\+columns@{num\+\_\+columns}}
+\index{num\+\_\+columns@{num\+\_\+columns}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{num\+\_\+columns()}{num\_columns()}}
+{\footnotesize\ttfamily size\+\_\+t ral\+::cache\+::\+Cache\+Data\+::num\+\_\+columns (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the number of columns this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} will generate with decache. \mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a14a5b9fadf872c12d633e38bb6f9f07d}\label{classral_1_1cache_1_1CacheData_a14a5b9fadf872c12d633e38bb6f9f07d}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!num\+\_\+rows@{num\+\_\+rows}}
+\index{num\+\_\+rows@{num\+\_\+rows}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{num\+\_\+rows()}{num\_rows()}}
+{\footnotesize\ttfamily size\+\_\+t ral\+::cache\+::\+Cache\+Data\+::num\+\_\+rows (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the number of rows this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} will generate with decache. Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1CacheData_a14a5b9fadf872c12d633e38bb6f9f07d_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a3bb1623a4266ba7c961d325023ff13c6}\label{classral_1_1cache_1_1CacheData_a3bb1623a4266ba7c961d325023ff13c6}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!set\+\_\+names@{set\+\_\+names}}
+\index{set\+\_\+names@{set\+\_\+names}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{set\+\_\+names()}{set\_names()}}
+{\footnotesize\ttfamily virtual void ral\+::cache\+::\+Cache\+Data\+::set\+\_\+names (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+Set the names of the columns. 
+\begin{DoxyParams}{Parameters}
+{\em names} & a vector of the column names. \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \hyperlink{classral_1_1cache_1_1ConcatCacheData_a02f400f33f88ba3e216f5899fa4f12b8}{ral\+::cache\+::\+Concat\+Cache\+Data}, \hyperlink{classral_1_1cache_1_1CacheDataIO_a9f5ae6134a546813c74a2924f7567080}{ral\+::cache\+::\+Cache\+Data\+IO}, \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_a49c8d137ef2d0a30ee59025f91725567}{ral\+::cache\+::\+Cache\+Data\+Local\+File}, \hyperlink{classral_1_1cache_1_1CPUCacheData_a3d0444ff9ba0814775499060071a2d1a}{ral\+::cache\+::\+C\+P\+U\+Cache\+Data}, and \hyperlink{classral_1_1cache_1_1GPUCacheData_a35d56396384cd4380141d47291d3e55f}{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_aaad8a726296574845f01f9380dcee40d}\label{classral_1_1cache_1_1CacheData_aaad8a726296574845f01f9380dcee40d}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!size\+In\+Bytes@{size\+In\+Bytes}}
+\index{size\+In\+Bytes@{size\+In\+Bytes}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{size\+In\+Bytes()}{sizeInBytes()}}
+{\footnotesize\ttfamily virtual size\+\_\+t ral\+::cache\+::\+Cache\+Data\+::size\+In\+Bytes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+. A pure virtual function. This removes the payload for the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. After this the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} will almost always go out of scope and be destroyed. \begin{DoxyReturn}{Returns}
+the number of bytes our dataframe occupies in whatever format it is being stored 
+\end{DoxyReturn}
+
+
+Implemented in \hyperlink{classral_1_1cache_1_1ConcatCacheData_a25914d06c36e4a1748dc9479adc5ccd8}{ral\+::cache\+::\+Concat\+Cache\+Data}, \hyperlink{classral_1_1cache_1_1CacheDataIO_a3364dc1069ceba37e2ffc97e5a4508aa}{ral\+::cache\+::\+Cache\+Data\+IO}, \hyperlink{classral_1_1cache_1_1CacheDataLocalFile_ab0853eca16df1149f4ac0efbf3faa556}{ral\+::cache\+::\+Cache\+Data\+Local\+File}, \hyperlink{classral_1_1cache_1_1CPUCacheData_a83236d09b1d2341059d1a6738839d35c}{ral\+::cache\+::\+C\+P\+U\+Cache\+Data}, and \hyperlink{classral_1_1cache_1_1GPUCacheData_a4fc8aecb334114f0ef07ce37be0e8900}{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classral_1_1cache_1_1CacheData_aaad8a726296574845f01f9380dcee40d_icgraph}
+\end{center}
+\end{figure}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheData_acf9d130e22baac61d4689c52e36b9c17}\label{classral_1_1cache_1_1CacheData_acf9d130e22baac61d4689c52e36b9c17}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!cache\+\_\+type@{cache\+\_\+type}}
+\index{cache\+\_\+type@{cache\+\_\+type}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{cache\+\_\+type}{cache\_type}}
+{\footnotesize\ttfamily Cache\+Data\+Type ral\+::cache\+::\+Cache\+Data\+::cache\+\_\+type\hspace{0.3cm}{\ttfamily [protected]}}
+
+The Cache\+Data\+Type that is used to store the dataframe representation. \mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a7a43a46a362c8fe93a7af81debbeca1b}\label{classral_1_1cache_1_1CacheData_a7a43a46a362c8fe93a7af81debbeca1b}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!col\+\_\+names@{col\+\_\+names}}
+\index{col\+\_\+names@{col\+\_\+names}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{col\+\_\+names}{col\_names}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::string$>$ ral\+::cache\+::\+Cache\+Data\+::col\+\_\+names\hspace{0.3cm}{\ttfamily [protected]}}
+
+A vector storing the names of the columns in the dataframe representation. \mbox{\Hypertarget{classral_1_1cache_1_1CacheData_aaeb232ef3aa8c2a3d86e1169ed2e8152}\label{classral_1_1cache_1_1CacheData_aaeb232ef3aa8c2a3d86e1169ed2e8152}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!metadata@{metadata}}
+\index{metadata@{metadata}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{metadata}{metadata}}
+{\footnotesize\ttfamily \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} ral\+::cache\+::\+Cache\+Data\+::metadata\hspace{0.3cm}{\ttfamily [protected]}}
+
+The metadata used for routing and planning. \mbox{\Hypertarget{classral_1_1cache_1_1CacheData_a4cdddfb8e552e0e3e91877ae80e5fc9e}\label{classral_1_1cache_1_1CacheData_a4cdddfb8e552e0e3e91877ae80e5fc9e}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!n\+\_\+rows@{n\+\_\+rows}}
+\index{n\+\_\+rows@{n\+\_\+rows}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{n\+\_\+rows}{n\_rows}}
+{\footnotesize\ttfamily size\+\_\+t ral\+::cache\+::\+Cache\+Data\+::n\+\_\+rows\hspace{0.3cm}{\ttfamily [protected]}}
+
+Stores the number of rows in the dataframe representation. \mbox{\Hypertarget{classral_1_1cache_1_1CacheData_aec9a1b3c0fb78cfdb3bd5494bcee2d8f}\label{classral_1_1cache_1_1CacheData_aec9a1b3c0fb78cfdb3bd5494bcee2d8f}} 
+\index{ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}!schema@{schema}}
+\index{schema@{schema}!ral\+::cache\+::\+Cache\+Data@{ral\+::cache\+::\+Cache\+Data}}
+\subsubsection{\texorpdfstring{schema}{schema}}
+{\footnotesize\ttfamily std\+::vector$<$cudf\+::data\+\_\+type$>$ ral\+::cache\+::\+Cache\+Data\+::schema\hspace{0.3cm}{\ttfamily [protected]}}
+
+A vector storing the cudf\+::data\+\_\+type of the columns in the dataframe representation. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+cpp\end{DoxyCompactItemize}

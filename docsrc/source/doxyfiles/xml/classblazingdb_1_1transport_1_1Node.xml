@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classblazingdb_1_1transport_1_1Node" kind="class" language="C++" prot="public">
+    <compoundname>blazingdb::transport::Node</compoundname>
+    <includes refid="Node_8h" local="no">Node.h</includes>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classblazingdb_1_1transport_1_1Node_1a51b72b84fde931b439be0d8dba42c0be" prot="protected" static="no" mutable="no">
+        <type>std::string</type>
+        <definition>std::string blazingdb::transport::Node::id_</definition>
+        <argsstring></argsstring>
+        <name>id_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classblazingdb_1_1transport_1_1Node_1a7db6157f236fac7b33b46b707ead427a" prot="protected" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool blazingdb::transport::Node::isAvailable_</definition>
+        <argsstring></argsstring>
+        <name>isAvailable_</name>
+        <initializer>{false}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1a4489375b3c35858893037d4f407109bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>blazingdb::transport::Node::Node</definition>
+        <argsstring>()</argsstring>
+        <name>Node</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="14" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="8" bodyend="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1a9031261dcdaabbd36bb4b6d879844ba0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>blazingdb::transport::Node::Node</definition>
+        <argsstring>(const std::string &amp;id, bool isAvailable=true)</argsstring>
+        <name>Node</name>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isAvailable</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="15" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="10" bodyend="11"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1a84b3ad8cef90f48c2243042f1f5782a0" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool blazingdb::transport::Node::operator==</definition>
+        <argsstring>(const Node &amp;rhs) const</argsstring>
+        <name>operator==</name>
+        <param>
+          <type>const <ref refid="classblazingdb_1_1transport_1_1Node" kindref="compound">Node</ref> &amp;</type>
+          <declname>rhs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="17" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="13" bodyend="15"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1ae731c7257766fe0e18404dbac40b0ad2" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool blazingdb::transport::Node::operator!=</definition>
+        <argsstring>(const Node &amp;rhs) const</argsstring>
+        <name>operator!=</name>
+        <param>
+          <type>const <ref refid="classblazingdb_1_1transport_1_1Node" kindref="compound">Node</ref> &amp;</type>
+          <declname>rhs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="17" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1a63a6ed9312ac6791174500920dcd7353" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string blazingdb::transport::Node::id</definition>
+        <argsstring>() const</argsstring>
+        <name>id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="21" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="21" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1ae79c5cf0ab678f0ee30d56fce23def88" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool blazingdb::transport::Node::isAvailable</definition>
+        <argsstring>() const</argsstring>
+        <name>isAvailable</name>
+        <briefdescription>
+<para>Note: Not implemented yet. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="24" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="23" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1abce18fdec1e622c893a33db63455bd50" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void blazingdb::transport::Node::setAvailable</definition>
+        <argsstring>(bool available)</argsstring>
+        <name>setAvailable</name>
+        <param>
+          <type>bool</type>
+          <declname>available</declname>
+        </param>
+        <briefdescription>
+<para>Note: Not implemented yet. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="27" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="25" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classblazingdb_1_1transport_1_1Node_1ab032db4d837cb39faac99494423c902e" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void blazingdb::transport::Node::print</definition>
+        <argsstring>() const</argsstring>
+        <name>print</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="29" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.cpp" bodystart="27" bodyend="31"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A <ref refid="classblazingdb_1_1transport_1_1Node" kindref="compound">Node</ref> is the representation of a RAL component used in the transport process. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" line="11" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/Node.h" bodystart="11" bodyend="36"/>
+    <listofallmembers>
+      <member refid="classblazingdb_1_1transport_1_1Node_1a63a6ed9312ac6791174500920dcd7353" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>id</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1a51b72b84fde931b439be0d8dba42c0be" prot="protected" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>id_</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1ae79c5cf0ab678f0ee30d56fce23def88" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>isAvailable</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1a7db6157f236fac7b33b46b707ead427a" prot="protected" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>isAvailable_</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1a4489375b3c35858893037d4f407109bc" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>Node</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1a9031261dcdaabbd36bb4b6d879844ba0" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>Node</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1ae731c7257766fe0e18404dbac40b0ad2" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>operator!=</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1a84b3ad8cef90f48c2243042f1f5782a0" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>operator==</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1ab032db4d837cb39faac99494423c902e" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>print</name></member>
+      <member refid="classblazingdb_1_1transport_1_1Node_1abce18fdec1e622c893a33db63455bd50" prot="public" virt="non-virtual"><scope>blazingdb::transport::Node</scope><name>setAvailable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

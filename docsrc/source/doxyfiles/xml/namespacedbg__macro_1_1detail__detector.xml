@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespacedbg__macro_1_1detail__detector" kind="namespace" language="C++">
+    <compoundname>dbg_macro::detail_detector</compoundname>
+    <innerclass refid="structdbg__macro_1_1detail__detector_1_1detector" prot="public">dbg_macro::detail_detector::detector</innerclass>
+    <innerclass refid="structdbg__macro_1_1detail__detector_1_1detector_3_01Default_00_01void__t_3_01Op_3_01Args_8_8_8_7a587da40c906bd309ce2dec06959c4d" prot="public">dbg_macro::detail_detector::detector&lt; Default, void_t&lt; Op&lt; Args... &gt; &gt;, Op, Args... &gt;</innerclass>
+    <innerclass refid="structdbg__macro_1_1detail__detector_1_1nonesuch" prot="public">dbg_macro::detail_detector::nonesuch</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="dbg_8hpp_1a6f99664732957cf3ac632ddd28ee9752" prot="public" static="no">
+        <type>void</type>
+        <definition>using dbg_macro::detail_detector::void_t = typedef void</definition>
+        <argsstring></argsstring>
+        <name>void_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="100" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="90" column="1"/>
+  </compounddef>
+</doxygen>

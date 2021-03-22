@@ -1,0 +1,13 @@
+.. _exhale_enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279:
+
+Enum kernel_type
+================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_kernel_type.h`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: ral::cache::kernel_type

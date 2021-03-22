@@ -1,0 +1,364 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceral_1_1utilities" kind="namespace" language="C++">
+    <compoundname>ral::utilities</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::utilities::checkIfConcatenatingStringsWillOverflow</definition>
+        <argsstring>(const std::vector&lt; std::unique_ptr&lt; BlazingTable &gt;&gt; &amp;tables)</argsstring>
+        <name>checkIfConcatenatingStringsWillOverflow</name>
+        <param>
+          <type>const std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &gt;&gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="20" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="20" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::utilities::checkIfConcatenatingStringsWillOverflow</definition>
+        <argsstring>(const std::vector&lt; BlazingTableView &gt; &amp;tables)</argsstring>
+        <name>checkIfConcatenatingStringsWillOverflow</name>
+        <param>
+          <type>const std::vector&lt; <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">BlazingTableView</ref> &gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="29" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="29" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; BlazingTable &gt; ral::utilities::concatTables</definition>
+        <argsstring>(const std::vector&lt; BlazingTableView &gt; &amp;tables)</argsstring>
+        <name>concatTables</name>
+        <param>
+          <type>const std::vector&lt; <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">BlazingTableView</ref> &gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="80" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="80" bodyend="111"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1a66244d6370e7cf9ec7bc2a4488f95446" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::utilities::create_empty_table</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;column_names, const std::vector&lt; cudf::data_type &gt; &amp;dtypes, std::vector&lt; size_t &gt; column_indices)</argsstring>
+        <name>create_empty_table</name>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>column_names</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>dtypes</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; size_t &gt;</type>
+          <declname>column_indices</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="113" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="113" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1a38409d742b076f7ef66a4b7ad79e014a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; cudf::table &gt;</type>
+        <definition>std::unique_ptr&lt; cudf::table &gt; ral::utilities::create_empty_table</definition>
+        <argsstring>(const std::vector&lt; cudf::type_id &gt; &amp;dtypes)</argsstring>
+        <name>create_empty_table</name>
+        <param>
+          <type>const std::vector&lt; cudf::type_id &gt; &amp;</type>
+          <declname>dtypes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="130" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="130" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1a9047f7579abb1d46982975ba6d28014c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::utilities::create_empty_table</definition>
+        <argsstring>(const BlazingTableView &amp;table)</argsstring>
+        <name>create_empty_table</name>
+        <param>
+          <type>const <ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">BlazingTableView</ref> &amp;</type>
+          <declname>table</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="138" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="138" bodyend="142"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1acce09bf9c7e7c2a7dabec6b1970b8ecd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; cudf::data_type &gt;</type>
+        <definition>std::vector&lt; cudf::data_type &gt; ral::utilities::get_common_types</definition>
+        <argsstring>(const std::vector&lt; cudf::data_type &gt; &amp;types1, const std::vector&lt; cudf::data_type &gt; &amp;types2, bool strict)</argsstring>
+        <name>get_common_types</name>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>types1</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>types2</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>strict</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="145" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="145" bodyend="152"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1a4e6f3dc33119de69fdf488a1dd3c10dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>cudf::data_type</type>
+        <definition>cudf::data_type ral::utilities::get_common_type</definition>
+        <argsstring>(cudf::data_type type1, cudf::data_type type2, bool strict)</argsstring>
+        <name>get_common_type</name>
+        <param>
+          <type>cudf::data_type</type>
+          <declname>type1</declname>
+        </param>
+        <param>
+          <type>cudf::data_type</type>
+          <declname>type2</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>strict</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="155" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="155" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8cpp_1a49683cfdf8de653c9d617ec7a18cbf98" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::utilities::normalize_types</definition>
+        <argsstring>(std::unique_ptr&lt; ral::frame::BlazingTable &gt; &amp;table, const std::vector&lt; cudf::data_type &gt; &amp;types, std::vector&lt; cudf::size_type &gt; column_indices)</argsstring>
+        <name>normalize_types</name>
+        <param>
+          <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt; &amp;</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>types</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::size_type &gt;</type>
+          <declname>column_indices</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="190" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" bodystart="190" bodyend="208"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8h_1af088e3a8310407797f3d5d48d07258da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>std::unique_ptr&lt; cudf::column &gt;</type>
+        <definition>std::unique_ptr&lt;cudf::column&gt; ral::utilities::vector_to_column</definition>
+        <argsstring>(std::vector&lt; T &gt; vect, cudf::data_type type)</argsstring>
+        <name>vector_to_column</name>
+        <param>
+          <type>std::vector&lt; T &gt;</type>
+          <declname>vect</declname>
+        </param>
+        <param>
+          <type>cudf::data_type</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.h" bodystart="34" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="CommonOperations_8h_1adf927d8218ad46061632d1ee6d0f00e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>std::vector&lt; T &gt;</type>
+        <definition>std::vector&lt;T&gt; ral::utilities::vector_to_column</definition>
+        <argsstring>(cudf::column_view column)</argsstring>
+        <name>vector_to_column</name>
+        <param>
+          <type>cudf::column_view</type>
+          <declname>column</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.h" line="40" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.h" bodystart="40" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="function" id="DebuggingUtils_8cpp_1a2eb6375199d07ce3a28a642b9dbabb1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::utilities::type_string</definition>
+        <argsstring>(cudf::data_type dtype)</argsstring>
+        <name>type_string</name>
+        <param>
+          <type>cudf::data_type</type>
+          <declname>dtype</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" line="18" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" bodystart="18" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="function" id="DebuggingUtils_8cpp_1a14c4a859e890df3354f896036faba9d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::utilities::print_blazing_table_view</definition>
+        <argsstring>(ral::frame::BlazingTableView table_view, const std::string table_name)</argsstring>
+        <name>print_blazing_table_view</name>
+        <param>
+          <type><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref></type>
+          <declname>table_view</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>table_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" bodystart="50" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="function" id="DebuggingUtils_8cpp_1ab23b9b7297171d7af6359664f7cc0a9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::utilities::print_blazing_table_view_schema</definition>
+        <argsstring>(ral::frame::BlazingTableView table_view, const std::string table_name)</argsstring>
+        <name>print_blazing_table_view_schema</name>
+        <param>
+          <type><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref></type>
+          <declname>table_view</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>table_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" line="65" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" bodystart="65" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="DebuggingUtils_8cpp_1aae53a21cf9e4abfde92c313eba5765f4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::string</type>
+        <definition>std::string ral::utilities::blazing_table_view_schema_to_string</definition>
+        <argsstring>(ral::frame::BlazingTableView table_view, const std::string table_name)</argsstring>
+        <name>blazing_table_view_schema_to_string</name>
+        <param>
+          <type><ref refid="classral_1_1frame_1_1BlazingTableView" kindref="compound">ral::frame::BlazingTableView</ref></type>
+          <declname>table_view</declname>
+        </param>
+        <param>
+          <type>const std::string</type>
+          <declname>table_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" line="69" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/DebuggingUtils.cpp" bodystart="69" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="transform_8hpp_1a1bb9219d5a89f946963b97a535707911" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::utilities::transform_length_to_end</definition>
+        <argsstring>(cudf::mutable_column_view &amp;length, const cudf::column_view &amp;start)</argsstring>
+        <name>transform_length_to_end</name>
+        <param>
+          <type>cudf::mutable_column_view &amp;</type>
+          <declname>length</declname>
+        </param>
+        <param>
+          <type>const cudf::column_view &amp;</type>
+          <declname>start</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Used for the substring function in LogicalProject </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/transform.hpp" line="11" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="transform_8hpp_1a740e6ce94ba516eb2484020e8e973ea8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::utilities::transform_start_to_zero_based_indexing</definition>
+        <argsstring>(cudf::mutable_column_view &amp;start)</argsstring>
+        <name>transform_start_to_zero_based_indexing</name>
+        <param>
+          <type>cudf::mutable_column_view &amp;</type>
+          <declname>start</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Used for the substring function in LogicalProject </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/transform.hpp" line="16" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/utilities/CommonOperations.cpp" line="18" column="1"/>
+  </compounddef>
+</doxygen>

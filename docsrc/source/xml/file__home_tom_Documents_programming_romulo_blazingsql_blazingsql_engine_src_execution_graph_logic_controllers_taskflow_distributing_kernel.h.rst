@@ -1,0 +1,77 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h:
+
+File distributing_kernel.h
+==========================
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/distributing_kernel.h``)
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``atomic``
+
+- ``distribution/primitives.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_distribution_primitives.h`)
+
+- ``execution_graph/Context.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_Context.h`)
+
+- ``execution_graph/logic_controllers/CacheMachine.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheMachine.h`)
+
+- ``kernel.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h`)
+
+- ``map``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__cache`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1cache_1_1distributing__kernel`
+

@@ -1,0 +1,50 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BlazingColumn.h:
+
+Program Listing for File BlazingColumn.h
+========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BlazingColumn.h>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #pragma once
+   
+   #include "cudf/column/column_view.hpp"
+   #include "cudf/table/table.hpp"
+   #include "cudf/table/table_view.hpp"
+   #include <memory>
+   #include <string>
+   #include <vector>
+   
+   typedef cudf::table CudfTable;
+   typedef cudf::table_view CudfTableView;
+   typedef cudf::column CudfColumn;
+   typedef cudf::column_view CudfColumnView;
+   
+   namespace ral {
+   
+   namespace frame {
+   
+   enum class blazing_column_type {
+       OWNER,
+       VIEW
+   };
+   
+   
+   class BlazingColumn {
+       public:
+           BlazingColumn() =default;
+           BlazingColumn(const BlazingColumn&) =delete;
+           BlazingColumn& operator=(const BlazingColumn&) =delete;
+           virtual CudfColumnView view() const = 0;
+           virtual std::unique_ptr<CudfColumn> release() = 0;
+           virtual blazing_column_type type() = 0;
+           virtual ~BlazingColumn() = default;
+   };
+   
+   }  // namespace frame
+   
+   }  // namespace ral

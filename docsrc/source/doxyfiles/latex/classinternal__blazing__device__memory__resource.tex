@@ -1,0 +1,74 @@
+\hypertarget{classinternal__blazing__device__memory__resource}{}\section{internal\+\_\+blazing\+\_\+device\+\_\+memory\+\_\+resource Class Reference}
+\label{classinternal__blazing__device__memory__resource}\index{internal\+\_\+blazing\+\_\+device\+\_\+memory\+\_\+resource@{internal\+\_\+blazing\+\_\+device\+\_\+memory\+\_\+resource}}
+
+
+This class represents the internal implementation of a custom device memory resource.  
+
+
+
+
+{\ttfamily \#include $<$Blazing\+Memory\+Resource.\+h$>$}
+
+
+
+Inheritance diagram for internal\+\_\+blazing\+\_\+device\+\_\+memory\+\_\+resource\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=208pt]{classinternal__blazing__device__memory__resource__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for internal\+\_\+blazing\+\_\+device\+\_\+memory\+\_\+resource\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=208pt]{classinternal__blazing__device__memory__resource__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a41f3d42bb79b7a075ee7be756359ec5c}\label{classinternal__blazing__device__memory__resource_a41f3d42bb79b7a075ee7be756359ec5c}} 
+{\bfseries internal\+\_\+blazing\+\_\+device\+\_\+memory\+\_\+resource} (std\+::string allocation\+\_\+mode, std\+::size\+\_\+t initial\+\_\+pool\+\_\+size, std\+::size\+\_\+t maximum\+\_\+pool\+\_\+size, std\+::string allocator\+\_\+logging\+\_\+file=\char`\"{}\char`\"{}, float custom\+\_\+threshold=0.\+95)
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a9d3379a56c89d6271be271af0fa7bda0}\label{classinternal__blazing__device__memory__resource_a9d3379a56c89d6271be271af0fa7bda0}} 
+size\+\_\+t {\bfseries get\+\_\+memory\+\_\+used} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a163f71b617454209096445a43b16eea9}\label{classinternal__blazing__device__memory__resource_a163f71b617454209096445a43b16eea9}} 
+size\+\_\+t {\bfseries get\+\_\+max\+\_\+memory\+\_\+used} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_ab67544007992f36353b0c027020b0a37}\label{classinternal__blazing__device__memory__resource_ab67544007992f36353b0c027020b0a37}} 
+size\+\_\+t {\bfseries get\+\_\+from\+\_\+driver\+\_\+used\+\_\+memory} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_abf3760173cfd908e860455e1ae0da94d}\label{classinternal__blazing__device__memory__resource_abf3760173cfd908e860455e1ae0da94d}} 
+size\+\_\+t {\bfseries get\+\_\+total\+\_\+memory} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a7243f3badefc2860852aed9ed0ec98f3}\label{classinternal__blazing__device__memory__resource_a7243f3badefc2860852aed9ed0ec98f3}} 
+size\+\_\+t {\bfseries get\+\_\+memory\+\_\+limit} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a256501b6943a5d3da6041559fc375d30}\label{classinternal__blazing__device__memory__resource_a256501b6943a5d3da6041559fc375d30}} 
+std\+::string {\bfseries get\+\_\+type} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_af992eee2059135f18930835c13946c66}\label{classinternal__blazing__device__memory__resource_af992eee2059135f18930835c13946c66}} 
+bool {\bfseries supports\+\_\+streams} () const noexcept override
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a94d5971e169b59fe3a057ab7463c8142}\label{classinternal__blazing__device__memory__resource_a94d5971e169b59fe3a057ab7463c8142}} 
+bool {\bfseries supports\+\_\+get\+\_\+mem\+\_\+info} () const noexcept override
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_aede7986d37a0b514edd25138cbfcf6a6}\label{classinternal__blazing__device__memory__resource_aede7986d37a0b514edd25138cbfcf6a6}} 
+std\+::string {\bfseries get\+\_\+full\+\_\+memory\+\_\+summary} ()
+\item 
+\mbox{\Hypertarget{classinternal__blazing__device__memory__resource_a4ac32c22c419c2eaddc954c8b56413b7}\label{classinternal__blazing__device__memory__resource_a4ac32c22c419c2eaddc954c8b56413b7}} 
+void {\bfseries reset\+\_\+max\+\_\+memory\+\_\+used} (size\+\_\+t to=0) noexcept
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This class represents the internal implementation of a custom device memory resource. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Blazing\+Memory\+Resource.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/bmr/Blazing\+Memory\+Resource.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class BlazingHostTable &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class BlazingTable" href="classral_1_1frame_1_1BlazingTable.html" />
+    <link rel="prev" title="Class BlazingColumnView" href="classral_1_1frame_1_1BlazingColumnView.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/classral_1_1frame_1_1BlazingHostTable.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="class-blazinghosttable">
+<span id="exhale-class-classral-1-1frame-1-1blazinghosttable"></span><h1>Class BlazingHostTable<a class="headerlink" href="#class-blazinghosttable" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BlazingHostTable.h.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-blazinghosttable-h"><span class="std std-ref">File BlazingHostTable.h</span></a></p></li>
+</ul>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5frame16BlazingHostTableE">
+<span id="_CPPv3N3ral5frame16BlazingHostTableE"></span><span id="_CPPv2N3ral5frame16BlazingHostTableE"></span><span id="ral::frame::BlazingHostTable"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable"></span><em class="property">class </em><code class="sig-prename descclassname">ral::frame<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">BlazingHostTable</code><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTableE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A class that represents the <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#classral_1_1frame_1_1BlazingTable"><span class="std std-ref">BlazingTable</span></a> store in host memory. This implementation uses only raw allocations, ColumnTransports and chunked_column_infos that represent a <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#classral_1_1frame_1_1BlazingTable"><span class="std std-ref">BlazingTable</span></a>. The reference to implement this class was based on the way how <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#classral_1_1frame_1_1BlazingTable"><span class="std std-ref">BlazingTable</span></a> objects are send/received by the communication library. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE">
+<span id="_CPPv3N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE"></span><span id="_CPPv2N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE"></span><span id="ral::frame::BlazingHostTable::BlazingHostTable__std::vector:ColumnTransport:CR.std::vector:ral::memory::blazing_chunked_column_info:RR.std::vector:std::unique_ptr:ral::memory::blazing_allocation_chunk::RR"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1ad61570c773d3d83c788d1a66ef657b1f"></span><code class="sig-name descname">BlazingHostTable</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_BlazingHostTable_8h_1aa6d4bd70661380463cfd498e215223ce.html#_CPPv4N3ral5frame15ColumnTransportE" title="ral::frame::ColumnTransport">ColumnTransport</a>&gt; &amp;<em>columns_offsets</em>, std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; &amp;&amp;<em>chunked_column_infos</em>, std::vector&lt;std::unique_ptr&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt;&gt; &amp;&amp;<em>allocations</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame16BlazingHostTableD0Ev">
+<span id="_CPPv3N3ral5frame16BlazingHostTableD0Ev"></span><span id="_CPPv2N3ral5frame16BlazingHostTableD0Ev"></span><span id="ral::frame::BlazingHostTable::~BlazingHostTable"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a12b8967bbc21dc6c3b9c660af6b9f42f"></span><code class="sig-name descname">~BlazingHostTable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTableD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable10get_schemaEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable10get_schemaEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable10get_schemaEv"></span><span id="ral::frame::BlazingHostTable::get_schemaC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a81bf7375e4c76c00615a141243edd891"></span>std::vector&lt;cudf::data_type&gt; <code class="sig-name descname">get_schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable10get_schemaEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable5namesEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable5namesEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable5namesEv"></span><span id="ral::frame::BlazingHostTable::namesC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1afc36b1cebafd2be252e1fe86f358c047"></span>std::vector&lt;std::string&gt; <code class="sig-name descname">names</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable5namesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE">
+<span id="_CPPv3N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE"></span><span id="ral::frame::BlazingHostTable::set_names__std::vector:ss:"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1ad48051c54ff7a7bce9261fcd58f1815c"></span>void <code class="sig-name descname">set_names</code><span class="sig-paren">(</span>std::vector&lt;std::string&gt; <em>names</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable8num_rowsEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable8num_rowsEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable8num_rowsEv"></span><span id="ral::frame::BlazingHostTable::num_rowsC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a8c79df309ba2224a497e3ff26d22c399"></span>cudf::size_type <code class="sig-name descname">num_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable8num_rowsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable11num_columnsEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable11num_columnsEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable11num_columnsEv"></span><span id="ral::frame::BlazingHostTable::num_columnsC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a7d1f2bc7f684b2494f54af56fac94555"></span>cudf::size_type <code class="sig-name descname">num_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable11num_columnsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame16BlazingHostTable11sizeInBytesEv">
+<span id="_CPPv3N3ral5frame16BlazingHostTable11sizeInBytesEv"></span><span id="_CPPv2N3ral5frame16BlazingHostTable11sizeInBytesEv"></span><span id="ral::frame::BlazingHostTable::sizeInBytes"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a55117c800b864710d6ebcc72cfec23fc"></span>std::size_t <code class="sig-name descname">sizeInBytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t">
+<span id="_CPPv3N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t"></span><span id="_CPPv2N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t"></span><span id="ral::frame::BlazingHostTable::setPartitionId__sCR"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1ad919bd6ff9ebd4601fe0171d9b1c4ca1"></span>void <code class="sig-name descname">setPartitionId</code><span class="sig-paren">(</span><em class="property">const</em> size_t &amp;<em>part_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame16BlazingHostTable11get_part_idEv">
+<span id="_CPPv3N3ral5frame16BlazingHostTable11get_part_idEv"></span><span id="_CPPv2N3ral5frame16BlazingHostTable11get_part_idEv"></span><span id="ral::frame::BlazingHostTable::get_part_id"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a5d5a24d3d43fc074264a88e66d544ffa"></span>size_t <code class="sig-name descname">get_part_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable11get_part_idEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable19get_columns_offsetsEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable19get_columns_offsetsEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable19get_columns_offsetsEv"></span><span id="ral::frame::BlazingHostTable::get_columns_offsetsC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a3e510befe328cce2016555fe4f6c32bc"></span><em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_BlazingHostTable_8h_1aa6d4bd70661380463cfd498e215223ce.html#_CPPv4N3ral5frame15ColumnTransportE" title="ral::frame::ColumnTransport">ColumnTransport</a>&gt; &amp;<code class="sig-name descname">get_columns_offsets</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable19get_columns_offsetsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable13get_gpu_tableEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable13get_gpu_tableEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable13get_gpu_tableEv"></span><span id="ral::frame::BlazingHostTable::get_gpu_tableC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1afc324a9367a9bd0bea7a171c782e91d2"></span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">get_gpu_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable13get_gpu_tableEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable15get_raw_buffersEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable15get_raw_buffersEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable15get_raw_buffersEv"></span><span id="ral::frame::BlazingHostTable::get_raw_buffersC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a916b3247a17306ad2a53ea032f03407a"></span>std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt; <code class="sig-name descname">get_raw_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable15get_raw_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv">
+<span id="_CPPv3NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv"></span><span id="ral::frame::BlazingHostTable::get_blazing_chunked_column_infosC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a6c8bd9f79e0f7eb27ae007a4acf8a9b4"></span><em class="property">const</em> std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; &amp;<code class="sig-name descname">get_blazing_chunked_column_infos</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="classral_1_1frame_1_1BlazingColumnView.html" title="previous page">Class BlazingColumnView</a>
+    <a class='right-next' id="next-link" href="classral_1_1frame_1_1BlazingTable.html" title="next page">Class BlazingTable</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

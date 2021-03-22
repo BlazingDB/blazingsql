@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1communication_1_1UcpWorkerAddress" kind="class" language="C++" prot="public">
+    <compoundname>ral::communication::UcpWorkerAddress</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classral_1_1communication_1_1UcpWorkerAddress_1a862fcab34b3769624aeeea9585e18e41" prot="public" static="no" mutable="no">
+        <type>ucp_address_t *</type>
+        <definition>ucp_address_t* ral::communication::UcpWorkerAddress::address</definition>
+        <argsstring></argsstring>
+        <name>address</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="37" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1communication_1_1UcpWorkerAddress_1ae87d67a5a08eebef5c1e8aa13ee0ab94" prot="public" static="no" mutable="no">
+        <type>std::size_t</type>
+        <definition>std::size_t ral::communication::UcpWorkerAddress::length</definition>
+        <argsstring></argsstring>
+        <name>length</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="38" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/ucx_init.h" bodystart="35" bodyend="39"/>
+    <listofallmembers>
+      <member refid="classral_1_1communication_1_1UcpWorkerAddress_1a862fcab34b3769624aeeea9585e18e41" prot="public" virt="non-virtual"><scope>ral::communication::UcpWorkerAddress</scope><name>address</name></member>
+      <member refid="classral_1_1communication_1_1UcpWorkerAddress_1ae87d67a5a08eebef5c1e8aa13ee0ab94" prot="public" virt="non-virtual"><scope>ral::communication::UcpWorkerAddress</scope><name>length</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,763 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1graph" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::graph</compoundname>
+    <includes refid="graph_8h" local="no">graph.h</includes>
+    <innerclass refid="structral_1_1cache_1_1graph_1_1Edge" prot="protected">ral::cache::graph::Edge</innerclass>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1af003710948c644dc32e7de5344c34279" prot="private" static="no" mutable="no">
+        <type>const std::int32_t</type>
+        <definition>const std::int32_t ral::cache::graph::head_id_</definition>
+        <argsstring></argsstring>
+        <name>head_id_</name>
+        <initializer>{-1}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="129" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="129" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1ab155d472d3f2386a1fc837fd3b7e02e7" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> * &gt;</type>
+        <definition>std::vector&lt;kernel *&gt; ral::cache::graph::kernels_</definition>
+        <argsstring></argsstring>
+        <name>kernels_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="130" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1a8888b4023f96eaddaef6c54b54be73a6" prot="private" static="no" mutable="no">
+        <type>std::map&lt; std::int32_t, std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> &gt; &gt;</type>
+        <definition>std::map&lt;std::int32_t, std::shared_ptr&lt;kernel&gt; &gt; ral::cache::graph::container_</definition>
+        <argsstring></argsstring>
+        <name>container_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="131" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1a9d33acfd8b7f8539736c548d00d14a78" prot="private" static="no" mutable="no">
+        <type>std::map&lt; std::int32_t, std::set&lt; <ref refid="structral_1_1cache_1_1graph_1_1Edge" kindref="compound">Edge</ref> &gt; &gt;</type>
+        <definition>std::map&lt;std::int32_t, std::set&lt;Edge&gt; &gt; ral::cache::graph::edges_</definition>
+        <argsstring></argsstring>
+        <name>edges_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="132" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1af2b7bbf0d6bda6752102f775fc8bc10d" prot="private" static="no" mutable="no">
+        <type>std::map&lt; std::int32_t, std::set&lt; <ref refid="structral_1_1cache_1_1graph_1_1Edge" kindref="compound">Edge</ref> &gt; &gt;</type>
+        <definition>std::map&lt;std::int32_t, std::set&lt;Edge&gt; &gt; ral::cache::graph::reverse_edges_</definition>
+        <argsstring></argsstring>
+        <name>reverse_edges_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="133" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="133" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1aae90070b5180f37b77ae675d64ab158a" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; ral::cache::graph::input_cache_</definition>
+        <argsstring></argsstring>
+        <name>input_cache_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="135" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="135" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1a10f185163bd2bb65c6d43d44bb0164fc" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::cache::CacheMachine&gt; ral::cache::graph::output_cache_</definition>
+        <argsstring></argsstring>
+        <name>output_cache_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="136" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1a68691a1c8e9e69d49dd891294761ef46" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; spdlog::logger &gt;</type>
+        <definition>std::shared_ptr&lt;spdlog::logger&gt; ral::cache::graph::kernels_edges_logger</definition>
+        <argsstring></argsstring>
+        <name>kernels_edges_logger</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="138" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="138" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1aec9b22ea71cb54ae2e88a389d65e8ccc" prot="private" static="no" mutable="no">
+        <type>int32_t</type>
+        <definition>int32_t ral::cache::graph::context_token</definition>
+        <argsstring></argsstring>
+        <name>context_token</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="139" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1a0b38a7627b20c2723833992175bde462" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1MemoryMonitor" kindref="compound">ral::MemoryMonitor</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;ral::MemoryMonitor&gt; ral::cache::graph::mem_monitor</definition>
+        <argsstring></argsstring>
+        <name>mem_monitor</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="140" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1a317a7bb502ceb54606cb0a6e28e590f4" prot="private" static="no" mutable="no">
+        <type><ref refid="classctpl_1_1thread__pool" kindref="compound">ctpl::thread_pool</ref>&lt; BlazingThread &gt;</type>
+        <definition>ctpl::thread_pool&lt;BlazingThread&gt; ral::cache::graph::pool</definition>
+        <argsstring></argsstring>
+        <name>pool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="141" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1aebd978d0d58f419907f3e2ee330b6ce2" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::future&lt; void &gt; &gt;</type>
+        <definition>std::vector&lt;std::future&lt;void&gt; &gt; ral::cache::graph::futures</definition>
+        <argsstring></argsstring>
+        <name>futures</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="142" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1cache_1_1graph_1ac7098f7d05cdd629ea10301c231622fc" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; int32_t &gt;</type>
+        <definition>std::vector&lt;int32_t&gt; ral::cache::graph::ordered_kernel_ids</definition>
+        <argsstring></argsstring>
+        <name>ordered_kernel_ids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="143" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="143" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a6f90fd77289051197065edfab09d7802" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::graph::graph</definition>
+        <argsstring>()</argsstring>
+        <name>graph</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="65" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="65" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1aa0dcc14e71cccbfdaede4f74bbdfaf0e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::graph::~graph</definition>
+        <argsstring>()</argsstring>
+        <name>~graph</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="69" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="69" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1ab6be70320b76d41744d939d4fc955b70" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::graph::graph</definition>
+        <argsstring>(const graph &amp;)=default</argsstring>
+        <name>graph</name>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1graph" kindref="compound">graph</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="70" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a1f124c827cc8c5d50b24c40dfd3e3611" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1cache_1_1graph" kindref="compound">graph</ref> &amp;</type>
+        <definition>graph&amp; ral::cache::graph::operator=</definition>
+        <argsstring>(const graph &amp;)=default</argsstring>
+        <name>operator=</name>
+        <param>
+          <type>const <ref refid="classral_1_1cache_1_1graph" kindref="compound">graph</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="71" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1af5a8fe84e3617de4122139f222488260" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int32_t</type>
+        <definition>int32_t ral::cache::graph::get_context_token</definition>
+        <argsstring>()</argsstring>
+        <name>get_context_token</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="73" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="8" bodyend="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a3554e9923c246c8a0330fdfe10ef0ceb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::set_context_token</definition>
+        <argsstring>(int32_t token)</argsstring>
+        <name>set_context_token</name>
+        <param>
+          <type>int32_t</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="77" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="9" bodyend="9"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a74f4846af102d834d07c960c3891f7be" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::addPair</definition>
+        <argsstring>(kpair p)</argsstring>
+        <name>addPair</name>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1kpair" kindref="compound">kpair</ref></type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="79" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="11" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a6b91e950dd1762ea10b7a5d5721a70b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::check_and_complete_work_flow</definition>
+        <argsstring>()</argsstring>
+        <name>check_and_complete_work_flow</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="81" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="34" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a53b2231d465b80e88e02195d6ce0d020" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::start_execute</definition>
+        <argsstring>(const std::size_t max_kernel_run_threads)</argsstring>
+        <name>start_execute</name>
+        <param>
+          <type>const std::size_t</type>
+          <declname>max_kernel_run_threads</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="83" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="49" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1aba33a58227389f24dc8f68b961c63a90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::finish_execute</definition>
+        <argsstring>()</argsstring>
+        <name>finish_execute</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="80" bodyend="87"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a8e4d145cfcdc3a467214362c94cd90e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::show</definition>
+        <argsstring>()</argsstring>
+        <name>show</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="86" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="89" bodyend="117"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a8230c4d53a48789b0fb345c4728ee382" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::show_from_kernel</definition>
+        <argsstring>(int32_t id)</argsstring>
+        <name>show_from_kernel</name>
+        <param>
+          <type>int32_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="88" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="119" bodyend="146"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a450979fa83451a685cd01a3ff1d84fd3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::pair&lt; bool, uint64_t &gt;</type>
+        <definition>std::pair&lt; bool, uint64_t &gt; ral::cache::graph::get_estimated_input_rows_to_kernel</definition>
+        <argsstring>(int32_t id)</argsstring>
+        <name>get_estimated_input_rows_to_kernel</name>
+        <param>
+          <type>int32_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="90" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="148" bodyend="164"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a0a37303c30fe7e1cff0d503c64b5b9ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::pair&lt; bool, uint64_t &gt;</type>
+        <definition>std::pair&lt; bool, uint64_t &gt; ral::cache::graph::get_estimated_input_rows_to_cache</definition>
+        <argsstring>(int32_t id, const std::string &amp;port_name)</argsstring>
+        <name>get_estimated_input_rows_to_cache</name>
+        <param>
+          <type>int32_t</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>port_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="92" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="166" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1ad932b42a4b61f60a01f203e06d6a4db6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> &gt;</type>
+        <definition>std::shared_ptr&lt; kernel &gt; ral::cache::graph::get_last_kernel</definition>
+        <argsstring>()</argsstring>
+        <name>get_last_kernel</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="94" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="190" bodyend="193"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a1b34d12b497e9b5a13ee5803cbac2b9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ral::cache::graph::query_is_complete</definition>
+        <argsstring>()</argsstring>
+        <name>query_is_complete</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="96" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="362" bodyend="364"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1ae6203c9457f340bb57ef88fdde3919df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structral_1_1cache_1_1graph__progress" kindref="compound">graph_progress</ref></type>
+        <definition>graph_progress ral::cache::graph::get_progress</definition>
+        <argsstring>()</argsstring>
+        <name>get_progress</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="98" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="366" bodyend="376"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a86b47f4e66c2933ec68808cedf1a7384" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::graph::num_nodes</definition>
+        <argsstring>() const</argsstring>
+        <name>num_nodes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="100" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="195" bodyend="195"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1af295e159e82d778e8326303b9144c047" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::graph::add_node</definition>
+        <argsstring>(std::shared_ptr&lt; kernel &gt; k)</argsstring>
+        <name>add_node</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> &gt;</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="102" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="197" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a28ebb545621a519d7deda12f6d1fb4d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::add_edge</definition>
+        <argsstring>(std::shared_ptr&lt; kernel &gt; source, std::shared_ptr&lt; kernel &gt; target, std::string source_port, std::string target_port, const cache_settings &amp;config)</argsstring>
+        <name>add_edge</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> &gt;</type>
+          <declname>source</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> &gt;</type>
+          <declname>target</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>source_port</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>target_port</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structral_1_1cache_1_1cache__settings" kindref="compound">cache_settings</ref> &amp;</type>
+          <declname>config</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="104" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="206" bodyend="269"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1aa8e30e721fd0bda87b95303ad4ee4f47" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> *</type>
+        <definition>kernel * ral::cache::graph::get_node</definition>
+        <argsstring>(size_t id)</argsstring>
+        <name>get_node</name>
+        <param>
+          <type>size_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="110" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="271" bodyend="271"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a2526f97e8c3eb0e0d58e98c47490dd92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt; ral::cache::CacheMachine &gt; ral::cache::graph::get_kernel_output_cache</definition>
+        <argsstring>(size_t kernel_id, std::string cache_id=&quot;&quot;)</argsstring>
+        <name>get_kernel_output_cache</name>
+        <param>
+          <type>size_t</type>
+          <declname>kernel_id</declname>
+        </param>
+        <param>
+          <type>std::string</type>
+          <declname>cache_id</declname>
+          <defval>&quot;&quot;</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="111" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="273" bodyend="275"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a6f9aa9b9a091151f76f22f55765e4615" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::set_input_and_output_caches</definition>
+        <argsstring>(std::shared_ptr&lt; ral::cache::CacheMachine &gt; input_cache, std::shared_ptr&lt; ral::cache::CacheMachine &gt; output_cache)</argsstring>
+        <name>set_input_and_output_caches</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>input_cache</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+          <declname>output_cache</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="113" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="277" bodyend="280"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1afb9d57ee7844be046911f265337ad974" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt; ral::cache::CacheMachine &gt; ral::cache::graph::get_input_message_cache</definition>
+        <argsstring>()</argsstring>
+        <name>get_input_message_cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="114" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="282" bodyend="282"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1ad694f6bf51aad0b9d8fae90a80dbaf06" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1cache_1_1CacheMachine" kindref="compound">ral::cache::CacheMachine</ref> &gt;</type>
+        <definition>std::shared_ptr&lt; ral::cache::CacheMachine &gt; ral::cache::graph::get_output_message_cache</definition>
+        <argsstring>()</argsstring>
+        <name>get_output_message_cache</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="115" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="284" bodyend="284"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a94c6704384bfadf33a0585de2615b843" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::set&lt; <ref refid="structral_1_1cache_1_1graph_1_1Edge" kindref="compound">Edge</ref> &gt;</type>
+        <definition>std::set&lt; graph::Edge &gt; ral::cache::graph::get_neighbours</definition>
+        <argsstring>(kernel *from)</argsstring>
+        <name>get_neighbours</name>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> *</type>
+          <declname>from</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="117" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="286" bodyend="286"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a1033a6785724eece7f7d9f6db1cec377" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::set&lt; <ref refid="structral_1_1cache_1_1graph_1_1Edge" kindref="compound">Edge</ref> &gt;</type>
+        <definition>std::set&lt; graph::Edge &gt; ral::cache::graph::get_neighbours</definition>
+        <argsstring>(int32_t id)</argsstring>
+        <name>get_neighbours</name>
+        <param>
+          <type>int32_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="118" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="287" bodyend="287"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a2b51ef8a39906835c618f9fe2e886aac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::set&lt; <ref refid="structral_1_1cache_1_1graph_1_1Edge" kindref="compound">Edge</ref> &gt;</type>
+        <definition>std::set&lt; graph::Edge &gt; ral::cache::graph::get_reverse_neighbours</definition>
+        <argsstring>(kernel *from)</argsstring>
+        <name>get_reverse_neighbours</name>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1kernel" kindref="compound">kernel</ref> *</type>
+          <declname>from</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="119" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="288" bodyend="294"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a891d2dbc52adb2f357de241b813458b9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::set&lt; <ref refid="structral_1_1cache_1_1graph_1_1Edge" kindref="compound">Edge</ref> &gt;</type>
+        <definition>std::set&lt; graph::Edge &gt; ral::cache::graph::get_reverse_neighbours</definition>
+        <argsstring>(int32_t id)</argsstring>
+        <name>get_reverse_neighbours</name>
+        <param>
+          <type>int32_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="120" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="295" bodyend="301"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1ad798a6ffb25cf4be31d95ce853e19756" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::set_kernels_order</definition>
+        <argsstring>()</argsstring>
+        <name>set_kernels_order</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="122" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="326" bodyend="360"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1aea83249dae61539588a5bd280d8ee505" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::check_for_simple_scan_with_limit_query</definition>
+        <argsstring>()</argsstring>
+        <name>check_for_simple_scan_with_limit_query</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="124" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="304" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1aed7ab03ff8896d49b235a7a781e3a9aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::set_memory_monitor</definition>
+        <argsstring>(std::shared_ptr&lt; ral::MemoryMonitor &gt; mem_monitor)</argsstring>
+        <name>set_memory_monitor</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1MemoryMonitor" kindref="compound">ral::MemoryMonitor</ref> &gt;</type>
+          <declname>mem_monitor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="125" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="30" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1graph_1a3920eaeea5e5f47cd3991cd5b23ad520" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::cache::graph::clear_kernels</definition>
+        <argsstring>()</argsstring>
+        <name>clear_kernels</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="126" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp" bodystart="23" bodyend="28"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A class that represents the execution graph in a taskflow scheme. The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph. </para>    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" line="48" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h" bodystart="48" bodyend="144"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1graph_1a28ebb545621a519d7deda12f6d1fb4d8" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>add_edge</name></member>
+      <member refid="classral_1_1cache_1_1graph_1af295e159e82d778e8326303b9144c047" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>add_node</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a74f4846af102d834d07c960c3891f7be" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>addPair</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a6b91e950dd1762ea10b7a5d5721a70b3" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>check_and_complete_work_flow</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aea83249dae61539588a5bd280d8ee505" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>check_for_simple_scan_with_limit_query</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a3920eaeea5e5f47cd3991cd5b23ad520" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>clear_kernels</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a8888b4023f96eaddaef6c54b54be73a6" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>container_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aec9b22ea71cb54ae2e88a389d65e8ccc" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>context_token</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a9d33acfd8b7f8539736c548d00d14a78" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>edges_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aba33a58227389f24dc8f68b961c63a90" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>finish_execute</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aebd978d0d58f419907f3e2ee330b6ce2" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>futures</name></member>
+      <member refid="classral_1_1cache_1_1graph_1af5a8fe84e3617de4122139f222488260" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_context_token</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a0a37303c30fe7e1cff0d503c64b5b9ea" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_estimated_input_rows_to_cache</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a450979fa83451a685cd01a3ff1d84fd3" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_estimated_input_rows_to_kernel</name></member>
+      <member refid="classral_1_1cache_1_1graph_1afb9d57ee7844be046911f265337ad974" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_input_message_cache</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a2526f97e8c3eb0e0d58e98c47490dd92" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_kernel_output_cache</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ad932b42a4b61f60a01f203e06d6a4db6" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_last_kernel</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a94c6704384bfadf33a0585de2615b843" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_neighbours</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a1033a6785724eece7f7d9f6db1cec377" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_neighbours</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aa8e30e721fd0bda87b95303ad4ee4f47" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_node</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ad694f6bf51aad0b9d8fae90a80dbaf06" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_output_message_cache</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ae6203c9457f340bb57ef88fdde3919df" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_progress</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a2b51ef8a39906835c618f9fe2e886aac" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_reverse_neighbours</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a891d2dbc52adb2f357de241b813458b9" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>get_reverse_neighbours</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a6f90fd77289051197065edfab09d7802" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>graph</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ab6be70320b76d41744d939d4fc955b70" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>graph</name></member>
+      <member refid="classral_1_1cache_1_1graph_1af003710948c644dc32e7de5344c34279" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>head_id_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aae90070b5180f37b77ae675d64ab158a" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>input_cache_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ab155d472d3f2386a1fc837fd3b7e02e7" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>kernels_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a68691a1c8e9e69d49dd891294761ef46" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>kernels_edges_logger</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a0b38a7627b20c2723833992175bde462" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>mem_monitor</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a86b47f4e66c2933ec68808cedf1a7384" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>num_nodes</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a1f124c827cc8c5d50b24c40dfd3e3611" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>operator=</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ac7098f7d05cdd629ea10301c231622fc" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>ordered_kernel_ids</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a10f185163bd2bb65c6d43d44bb0164fc" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>output_cache_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a317a7bb502ceb54606cb0a6e28e590f4" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>pool</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a1b34d12b497e9b5a13ee5803cbac2b9c" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>query_is_complete</name></member>
+      <member refid="classral_1_1cache_1_1graph_1af2b7bbf0d6bda6752102f775fc8bc10d" prot="private" virt="non-virtual"><scope>ral::cache::graph</scope><name>reverse_edges_</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a3554e9923c246c8a0330fdfe10ef0ceb" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>set_context_token</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a6f9aa9b9a091151f76f22f55765e4615" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>set_input_and_output_caches</name></member>
+      <member refid="classral_1_1cache_1_1graph_1ad798a6ffb25cf4be31d95ce853e19756" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>set_kernels_order</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aed7ab03ff8896d49b235a7a781e3a9aa" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>set_memory_monitor</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a8e4d145cfcdc3a467214362c94cd90e5" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>show</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a8230c4d53a48789b0fb345c4728ee382" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>show_from_kernel</name></member>
+      <member refid="classral_1_1cache_1_1graph_1a53b2231d465b80e88e02195d6ce0d020" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>start_execute</name></member>
+      <member refid="classral_1_1cache_1_1graph_1aa0dcc14e71cccbfdaede4f74bbdfaf0e" prot="public" virt="non-virtual"><scope>ral::cache::graph</scope><name>~graph</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

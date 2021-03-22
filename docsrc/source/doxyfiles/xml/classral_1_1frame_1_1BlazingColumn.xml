@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1frame_1_1BlazingColumn" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>ral::frame::BlazingColumn</compoundname>
+    <derivedcompoundref refid="classral_1_1frame_1_1BlazingColumnOwner" prot="public" virt="non-virtual">ral::frame::BlazingColumnOwner</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1frame_1_1BlazingColumnView" prot="public" virt="non-virtual">ral::frame::BlazingColumnView</derivedcompoundref>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1ab3580fdaf3db6ec88e98601e690f1ecf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingColumn::BlazingColumn</definition>
+        <argsstring>()=default</argsstring>
+        <name>BlazingColumn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="27" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1aa925ea5a4e2c3577b938cfbe840abd62" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::frame::BlazingColumn::BlazingColumn</definition>
+        <argsstring>(const BlazingColumn &amp;)=delete</argsstring>
+        <name>BlazingColumn</name>
+        <param>
+          <type>const <ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">BlazingColumn</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="28" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1aec09cbf7352b0a51ef81bdcd34fd409a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">BlazingColumn</ref> &amp;</type>
+        <definition>BlazingColumn&amp; ral::frame::BlazingColumn::operator=</definition>
+        <argsstring>(const BlazingColumn &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <param>
+          <type>const <ref refid="classral_1_1frame_1_1BlazingColumn" kindref="compound">BlazingColumn</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="29" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1ad2552e447b9761a982a6bd11a3882243" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>CudfColumnView</type>
+        <definition>virtual CudfColumnView ral::frame::BlazingColumn::view</definition>
+        <argsstring>() const =0</argsstring>
+        <name>view</name>
+        <reimplementedby refid="classral_1_1frame_1_1BlazingColumnOwner_1ae9fc48497fb4ef45777d66c6888311f6">view</reimplementedby>
+        <reimplementedby refid="classral_1_1frame_1_1BlazingColumnView_1ae4efd39e2da5a7b12ddc757e75612f57">view</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="30" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1a479d643c8e684bcb5583d289b38f8e8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>std::unique_ptr&lt; CudfColumn &gt;</type>
+        <definition>virtual std::unique_ptr&lt;CudfColumn&gt; ral::frame::BlazingColumn::release</definition>
+        <argsstring>()=0</argsstring>
+        <name>release</name>
+        <reimplementedby refid="classral_1_1frame_1_1BlazingColumnOwner_1aa103e63483906f95a701d83bbb94fd82">release</reimplementedby>
+        <reimplementedby refid="classral_1_1frame_1_1BlazingColumnView_1ae6777c3e3e891ba83211a3313da79564">release</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="31" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1ad75eccd073f4af1bf312b9f667b252d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>blazing_column_type</type>
+        <definition>virtual blazing_column_type ral::frame::BlazingColumn::type</definition>
+        <argsstring>()=0</argsstring>
+        <name>type</name>
+        <reimplementedby refid="classral_1_1frame_1_1BlazingColumnOwner_1a9fa77ce1e4bff77a021b623e5f891833">type</reimplementedby>
+        <reimplementedby refid="classral_1_1frame_1_1BlazingColumnView_1a15b97df0965af74f65b4f896b97ae980">type</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="32" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1frame_1_1BlazingColumn_1a0c1c0329dc616cfd4244e348e7c093e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>virtual ral::frame::BlazingColumn::~BlazingColumn</definition>
+        <argsstring>()=default</argsstring>
+        <name>~BlazingColumn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="33" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="58">
+        <label>ral::frame::BlazingColumnView</label>
+        <link refid="classral_1_1frame_1_1BlazingColumnView"/>
+        <childnode refid="56" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="56">
+        <label>ral::frame::BlazingColumn</label>
+        <link refid="classral_1_1frame_1_1BlazingColumn"/>
+      </node>
+      <node id="57">
+        <label>ral::frame::BlazingColumnOwner</label>
+        <link refid="classral_1_1frame_1_1BlazingColumnOwner"/>
+        <childnode refid="56" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" line="25" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumn.h" bodystart="25" bodyend="34"/>
+    <listofallmembers>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1ab3580fdaf3db6ec88e98601e690f1ecf" prot="public" virt="non-virtual"><scope>ral::frame::BlazingColumn</scope><name>BlazingColumn</name></member>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1aa925ea5a4e2c3577b938cfbe840abd62" prot="public" virt="non-virtual"><scope>ral::frame::BlazingColumn</scope><name>BlazingColumn</name></member>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1aec09cbf7352b0a51ef81bdcd34fd409a" prot="public" virt="non-virtual"><scope>ral::frame::BlazingColumn</scope><name>operator=</name></member>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1a479d643c8e684bcb5583d289b38f8e8c" prot="public" virt="pure-virtual"><scope>ral::frame::BlazingColumn</scope><name>release</name></member>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1ad75eccd073f4af1bf312b9f667b252d8" prot="public" virt="pure-virtual"><scope>ral::frame::BlazingColumn</scope><name>type</name></member>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1ad2552e447b9761a982a6bd11a3882243" prot="public" virt="pure-virtual"><scope>ral::frame::BlazingColumn</scope><name>view</name></member>
+      <member refid="classral_1_1frame_1_1BlazingColumn_1a0c1c0329dc616cfd4244e348e7c093e6" prot="public" virt="virtual"><scope>ral::frame::BlazingColumn</scope><name>~BlazingColumn</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

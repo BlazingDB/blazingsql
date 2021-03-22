@@ -1,0 +1,13 @@
+.. _exhale_define_common__metadata_8cpp_1af8e5f5d7e46eb45a3ae1c37822d2afdb:
+
+Define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_COMMON_METADATA_CPP_H_
+=======================================================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_common_metadata.cpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_COMMON_METADATA_CPP_H_

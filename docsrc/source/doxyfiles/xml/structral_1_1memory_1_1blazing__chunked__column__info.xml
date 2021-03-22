@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="structral_1_1memory_1_1blazing__chunked__column__info" kind="struct" language="C++" prot="public">
+    <compoundname>ral::memory::blazing_chunked_column_info</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__chunked__column__info_1ade2e424a1a7c456e8603d28b3354cab0" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; size_t &gt;</type>
+        <definition>std::vector&lt;size_t&gt; ral::memory::blazing_chunked_column_info::chunk_index</definition>
+        <argsstring></argsstring>
+        <name>chunk_index</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="48" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__chunked__column__info_1a1899b994a49489806365c8bb1c3bd701" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; size_t &gt;</type>
+        <definition>std::vector&lt;size_t&gt; ral::memory::blazing_chunked_column_info::offset</definition>
+        <argsstring></argsstring>
+        <name>offset</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="49" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__chunked__column__info_1a42595677fc4a89a91b5035d6a8a33d42" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; size_t &gt;</type>
+        <definition>std::vector&lt;size_t&gt; ral::memory::blazing_chunked_column_info::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structral_1_1memory_1_1blazing__chunked__column__info_1ab8efe7deb95e366b9343799ea26bd8c2" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ral::memory::blazing_chunked_column_info::use_size</definition>
+        <argsstring></argsstring>
+        <name>use_size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="51" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" line="47" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.h" bodystart="47" bodyend="52"/>
+    <listofallmembers>
+      <member refid="structral_1_1memory_1_1blazing__chunked__column__info_1ade2e424a1a7c456e8603d28b3354cab0" prot="public" virt="non-virtual"><scope>ral::memory::blazing_chunked_column_info</scope><name>chunk_index</name></member>
+      <member refid="structral_1_1memory_1_1blazing__chunked__column__info_1a1899b994a49489806365c8bb1c3bd701" prot="public" virt="non-virtual"><scope>ral::memory::blazing_chunked_column_info</scope><name>offset</name></member>
+      <member refid="structral_1_1memory_1_1blazing__chunked__column__info_1a42595677fc4a89a91b5035d6a8a33d42" prot="public" virt="non-virtual"><scope>ral::memory::blazing_chunked_column_info</scope><name>size</name></member>
+      <member refid="structral_1_1memory_1_1blazing__chunked__column__info_1ab8efe7deb95e366b9343799ea26bd8c2" prot="public" virt="non-virtual"><scope>ral::memory::blazing_chunked_column_info</scope><name>use_size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

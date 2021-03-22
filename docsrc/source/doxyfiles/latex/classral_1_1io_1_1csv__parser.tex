@@ -1,0 +1,44 @@
+\hypertarget{classral_1_1io_1_1csv__parser}{}\section{ral\+:\+:io\+:\+:csv\+\_\+parser Class Reference}
+\label{classral_1_1io_1_1csv__parser}\index{ral\+::io\+::csv\+\_\+parser@{ral\+::io\+::csv\+\_\+parser}}
+
+
+Inheritance diagram for ral\+:\+:io\+:\+:csv\+\_\+parser\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=178pt]{classral_1_1io_1_1csv__parser__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:io\+:\+:csv\+\_\+parser\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=178pt]{classral_1_1io_1_1csv__parser__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1csv__parser_a968d6e3184638dfb497d4ac8a3080d1f}\label{classral_1_1io_1_1csv__parser_a968d6e3184638dfb497d4ac8a3080d1f}} 
+{\bfseries csv\+\_\+parser} (std\+::map$<$ std\+::string, std\+::string $>$ args\+\_\+map)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1csv__parser_aa5f2a8243cc1897ec38162f5955e1265}\label{classral_1_1io_1_1csv__parser_aa5f2a8243cc1897ec38162f5955e1265}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries parse\+\_\+batch} (\hyperlink{structral_1_1io_1_1data__handle}{ral\+::io\+::data\+\_\+handle} handle, const \hyperlink{classral_1_1io_1_1Schema}{Schema} \&schema, std\+::vector$<$ int $>$ column\+\_\+indices, std\+::vector$<$ cudf\+::size\+\_\+type $>$ row\+\_\+groups)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1csv__parser_ae9d6249732a74e43c231257b7a84334b}\label{classral_1_1io_1_1csv__parser_ae9d6249732a74e43c231257b7a84334b}} 
+void {\bfseries parse\+\_\+schema} (std\+::shared\+\_\+ptr$<$ arrow\+::io\+::\+Random\+Access\+File $>$ file, \hyperlink{classral_1_1io_1_1Schema}{ral\+::io\+::\+Schema} \&schema)
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1csv__parser_af4f12c1bd8eada1c5ac6bfbc99ea0f6d}\label{classral_1_1io_1_1csv__parser_af4f12c1bd8eada1c5ac6bfbc99ea0f6d}} 
+size\+\_\+t {\bfseries max\+\_\+bytes\+\_\+chunk\+\_\+size} () const
+\item 
+\mbox{\Hypertarget{classral_1_1io_1_1csv__parser_a037073b233a35609fb13a00e295c959c}\label{classral_1_1io_1_1csv__parser_a037073b233a35609fb13a00e295c959c}} 
+Data\+Type {\bfseries type} () const override
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/io/data\+\_\+parser/C\+S\+V\+Parser.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/io/data\+\_\+parser/C\+S\+V\+Parser.\+cpp\end{DoxyCompactItemize}

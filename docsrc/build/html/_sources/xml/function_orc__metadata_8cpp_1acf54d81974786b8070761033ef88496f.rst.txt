@@ -1,0 +1,13 @@
+.. _exhale_function_orc__metadata_8cpp_1acf54d81974786b8070761033ef88496f:
+
+Function is_decimal_or_empty_dtype
+==================================
+
+- Defined in :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_orc_metadata.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_decimal_or_empty_dtype(cudf::type_id)

@@ -1,0 +1,121 @@
+\hypertarget{classral_1_1cache_1_1graph}{}\section{ral\+:\+:cache\+:\+:graph Class Reference}
+\label{classral_1_1cache_1_1graph}\index{ral\+::cache\+::graph@{ral\+::cache\+::graph}}
+
+
+A class that represents the execution graph in a taskflow scheme. The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph.  
+
+
+
+
+{\ttfamily \#include $<$graph.\+h$>$}
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structral_1_1cache_1_1graph_1_1Edge}{Edge}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_ab6be70320b76d41744d939d4fc955b70}\label{classral_1_1cache_1_1graph_ab6be70320b76d41744d939d4fc955b70}} 
+{\bfseries graph} (const \hyperlink{classral_1_1cache_1_1graph}{graph} \&)=default
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a1f124c827cc8c5d50b24c40dfd3e3611}\label{classral_1_1cache_1_1graph_a1f124c827cc8c5d50b24c40dfd3e3611}} 
+\hyperlink{classral_1_1cache_1_1graph}{graph} \& {\bfseries operator=} (const \hyperlink{classral_1_1cache_1_1graph}{graph} \&)=default
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_af5a8fe84e3617de4122139f222488260}\label{classral_1_1cache_1_1graph_af5a8fe84e3617de4122139f222488260}} 
+int32\+\_\+t {\bfseries get\+\_\+context\+\_\+token} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a3554e9923c246c8a0330fdfe10ef0ceb}\label{classral_1_1cache_1_1graph_a3554e9923c246c8a0330fdfe10ef0ceb}} 
+void {\bfseries set\+\_\+context\+\_\+token} (int32\+\_\+t token)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a74f4846af102d834d07c960c3891f7be}\label{classral_1_1cache_1_1graph_a74f4846af102d834d07c960c3891f7be}} 
+void {\bfseries add\+Pair} (\hyperlink{classral_1_1cache_1_1kpair}{kpair} p)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a6b91e950dd1762ea10b7a5d5721a70b3}\label{classral_1_1cache_1_1graph_a6b91e950dd1762ea10b7a5d5721a70b3}} 
+void {\bfseries check\+\_\+and\+\_\+complete\+\_\+work\+\_\+flow} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a53b2231d465b80e88e02195d6ce0d020}\label{classral_1_1cache_1_1graph_a53b2231d465b80e88e02195d6ce0d020}} 
+void {\bfseries start\+\_\+execute} (const std\+::size\+\_\+t max\+\_\+kernel\+\_\+run\+\_\+threads)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_aba33a58227389f24dc8f68b961c63a90}\label{classral_1_1cache_1_1graph_aba33a58227389f24dc8f68b961c63a90}} 
+void {\bfseries finish\+\_\+execute} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a8e4d145cfcdc3a467214362c94cd90e5}\label{classral_1_1cache_1_1graph_a8e4d145cfcdc3a467214362c94cd90e5}} 
+void {\bfseries show} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a8230c4d53a48789b0fb345c4728ee382}\label{classral_1_1cache_1_1graph_a8230c4d53a48789b0fb345c4728ee382}} 
+void {\bfseries show\+\_\+from\+\_\+kernel} (int32\+\_\+t id)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a450979fa83451a685cd01a3ff1d84fd3}\label{classral_1_1cache_1_1graph_a450979fa83451a685cd01a3ff1d84fd3}} 
+std\+::pair$<$ bool, uint64\+\_\+t $>$ {\bfseries get\+\_\+estimated\+\_\+input\+\_\+rows\+\_\+to\+\_\+kernel} (int32\+\_\+t id)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a0a37303c30fe7e1cff0d503c64b5b9ea}\label{classral_1_1cache_1_1graph_a0a37303c30fe7e1cff0d503c64b5b9ea}} 
+std\+::pair$<$ bool, uint64\+\_\+t $>$ {\bfseries get\+\_\+estimated\+\_\+input\+\_\+rows\+\_\+to\+\_\+cache} (int32\+\_\+t id, const std\+::string \&port\+\_\+name)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_ad932b42a4b61f60a01f203e06d6a4db6}\label{classral_1_1cache_1_1graph_ad932b42a4b61f60a01f203e06d6a4db6}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ {\bfseries get\+\_\+last\+\_\+kernel} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a1b34d12b497e9b5a13ee5803cbac2b9c}\label{classral_1_1cache_1_1graph_a1b34d12b497e9b5a13ee5803cbac2b9c}} 
+bool {\bfseries query\+\_\+is\+\_\+complete} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_ae6203c9457f340bb57ef88fdde3919df}\label{classral_1_1cache_1_1graph_ae6203c9457f340bb57ef88fdde3919df}} 
+\hyperlink{structral_1_1cache_1_1graph__progress}{graph\+\_\+progress} {\bfseries get\+\_\+progress} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a86b47f4e66c2933ec68808cedf1a7384}\label{classral_1_1cache_1_1graph_a86b47f4e66c2933ec68808cedf1a7384}} 
+size\+\_\+t {\bfseries num\+\_\+nodes} () const
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_af295e159e82d778e8326303b9144c047}\label{classral_1_1cache_1_1graph_af295e159e82d778e8326303b9144c047}} 
+size\+\_\+t {\bfseries add\+\_\+node} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ k)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a28ebb545621a519d7deda12f6d1fb4d8}\label{classral_1_1cache_1_1graph_a28ebb545621a519d7deda12f6d1fb4d8}} 
+void {\bfseries add\+\_\+edge} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ source, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1kernel}{kernel} $>$ target, std\+::string source\+\_\+port, std\+::string target\+\_\+port, const \hyperlink{structral_1_1cache_1_1cache__settings}{cache\+\_\+settings} \&config)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_aa8e30e721fd0bda87b95303ad4ee4f47}\label{classral_1_1cache_1_1graph_aa8e30e721fd0bda87b95303ad4ee4f47}} 
+\hyperlink{classral_1_1cache_1_1kernel}{kernel} $\ast$ {\bfseries get\+\_\+node} (size\+\_\+t id)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a2526f97e8c3eb0e0d58e98c47490dd92}\label{classral_1_1cache_1_1graph_a2526f97e8c3eb0e0d58e98c47490dd92}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ {\bfseries get\+\_\+kernel\+\_\+output\+\_\+cache} (size\+\_\+t kernel\+\_\+id, std\+::string cache\+\_\+id=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a6f9aa9b9a091151f76f22f55765e4615}\label{classral_1_1cache_1_1graph_a6f9aa9b9a091151f76f22f55765e4615}} 
+void {\bfseries set\+\_\+input\+\_\+and\+\_\+output\+\_\+caches} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ input\+\_\+cache, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ output\+\_\+cache)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_afb9d57ee7844be046911f265337ad974}\label{classral_1_1cache_1_1graph_afb9d57ee7844be046911f265337ad974}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ {\bfseries get\+\_\+input\+\_\+message\+\_\+cache} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_ad694f6bf51aad0b9d8fae90a80dbaf06}\label{classral_1_1cache_1_1graph_ad694f6bf51aad0b9d8fae90a80dbaf06}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ {\bfseries get\+\_\+output\+\_\+message\+\_\+cache} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a94c6704384bfadf33a0585de2615b843}\label{classral_1_1cache_1_1graph_a94c6704384bfadf33a0585de2615b843}} 
+std\+::set$<$ \hyperlink{structral_1_1cache_1_1graph_1_1Edge}{Edge} $>$ {\bfseries get\+\_\+neighbours} (\hyperlink{classral_1_1cache_1_1kernel}{kernel} $\ast$from)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a1033a6785724eece7f7d9f6db1cec377}\label{classral_1_1cache_1_1graph_a1033a6785724eece7f7d9f6db1cec377}} 
+std\+::set$<$ \hyperlink{structral_1_1cache_1_1graph_1_1Edge}{Edge} $>$ {\bfseries get\+\_\+neighbours} (int32\+\_\+t id)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a2b51ef8a39906835c618f9fe2e886aac}\label{classral_1_1cache_1_1graph_a2b51ef8a39906835c618f9fe2e886aac}} 
+std\+::set$<$ \hyperlink{structral_1_1cache_1_1graph_1_1Edge}{Edge} $>$ {\bfseries get\+\_\+reverse\+\_\+neighbours} (\hyperlink{classral_1_1cache_1_1kernel}{kernel} $\ast$from)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a891d2dbc52adb2f357de241b813458b9}\label{classral_1_1cache_1_1graph_a891d2dbc52adb2f357de241b813458b9}} 
+std\+::set$<$ \hyperlink{structral_1_1cache_1_1graph_1_1Edge}{Edge} $>$ {\bfseries get\+\_\+reverse\+\_\+neighbours} (int32\+\_\+t id)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_ad798a6ffb25cf4be31d95ce853e19756}\label{classral_1_1cache_1_1graph_ad798a6ffb25cf4be31d95ce853e19756}} 
+void {\bfseries set\+\_\+kernels\+\_\+order} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_aea83249dae61539588a5bd280d8ee505}\label{classral_1_1cache_1_1graph_aea83249dae61539588a5bd280d8ee505}} 
+void {\bfseries check\+\_\+for\+\_\+simple\+\_\+scan\+\_\+with\+\_\+limit\+\_\+query} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_aed7ab03ff8896d49b235a7a781e3a9aa}\label{classral_1_1cache_1_1graph_aed7ab03ff8896d49b235a7a781e3a9aa}} 
+void {\bfseries set\+\_\+memory\+\_\+monitor} (std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1MemoryMonitor}{ral\+::\+Memory\+Monitor} $>$ mem\+\_\+monitor)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1graph_a3920eaeea5e5f47cd3991cd5b23ad520}\label{classral_1_1cache_1_1graph_a3920eaeea5e5f47cd3991cd5b23ad520}} 
+void {\bfseries clear\+\_\+kernels} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A class that represents the execution graph in a taskflow scheme. The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/graph.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/taskflow/graph.\+cpp\end{DoxyCompactItemize}

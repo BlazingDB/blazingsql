@@ -1,0 +1,366 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File expression_utils.hpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#definition-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-utils-hpp" class="nav-link">Definition (/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp)</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#includes" class="nav-link">Includes</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#included-by" class="nav-link">Included By</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#enums" class="nav-link">Enums</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#functions" class="nav-link">Functions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#variables" class="nav-link">Variables</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="file-expression-utils-hpp">
+<span id="file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-utils-hpp"></span><h1>File expression_utils.hpp<a class="headerlink" href="#file-expression-utils-hpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser.html#dir-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser"><span class="std std-ref">Parent directory</span></a> (<code class="docutils literal notranslate"><span class="pre">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser</span></code>)</p>
+<div class="contents local topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#definition-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-utils-hpp" id="id1">Definition (<code class="docutils literal notranslate"><span class="pre">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#includes" id="id2">Includes</a></p></li>
+<li><p><a class="reference internal" href="#included-by" id="id3">Included By</a></p></li>
+<li><p><a class="reference internal" href="#enums" id="id4">Enums</a></p></li>
+<li><p><a class="reference internal" href="#functions" id="id5">Functions</a></p></li>
+<li><p><a class="reference internal" href="#variables" id="id6">Variables</a></p></li>
+</ul>
+</div>
+<div class="section" id="definition-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-utils-hpp">
+<h2>Definition (<code class="docutils literal notranslate"><span class="pre">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/parser/expression_utils.hpp</span></code>)<a class="headerlink" href="#definition-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-utils-hpp" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.hpp.html">Program Listing for File expression_utils.hpp</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="includes">
+<h2>Includes<a class="headerlink" href="#includes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cudf/aggregation.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cudf/types.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">map</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vector</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="included-by">
+<h2>Included By<a class="headerlink" href="#included-by" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_tree.hpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-tree-hpp"><span class="std std-ref">File expression_tree.hpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-physicalplangenerator-h"><span class="std std-ref">File PhysicalPlanGenerator.h</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-batchorderbyprocessing-cpp"><span class="std std-ref">File BatchOrderByProcessing.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-batchprocessing-cpp"><span class="std std-ref">File BatchProcessing.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-batchunionprocessing-cpp"><span class="std std-ref">File BatchUnionProcessing.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-batchwindowfunctionprocessing-cpp"><span class="std std-ref">File BatchWindowFunctionProcessing.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalFilter.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-logicalfilter-cpp"><span class="std std-ref">File LogicalFilter.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-logicalproject-cpp"><span class="std std-ref">File LogicalProject.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-operators-groupby-cpp"><span class="std std-ref">File GroupBy.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_OrderBy.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-operators-orderby-cpp"><span class="std std-ref">File OrderBy.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_parser_expression_utils.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-parser-expression-utils-cpp"><span class="std std-ref">File expression_utils.cpp</span></a></p></li>
+<li><p><a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_skip_data_utils.cpp.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-skip-data-utils-cpp"><span class="std std-ref">File utils.cpp</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="enums">
+<h2>Enums<a class="headerlink" href="#enums" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#exhale-enum-expression-utils-8hpp-1aa4e0b391dad4cb8871271b6d6374fc3e"><span class="std std-ref">Enum operator_type</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef.html#exhale-function-expression-utils-8hpp-1aeb1417d8928ac4574cd35044c8f384ef"><span class="std std-ref">Function bypassingProject(std::string, std::vector&lt;std::string&gt;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html#exhale-function-expression-utils-8hpp-1a095fe3fa4fce4c95ba8732d5b6c03512"><span class="std std-ref">Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html#exhale-function-expression-utils-8hpp-1aed91b8cdf4752cfa1ee1e198324d0f1d"><span class="std std-ref">Function extract_table_name(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a597392d04d4268baed76d008022c5df1.html#exhale-function-expression-utils-8hpp-1a597392d04d4268baed76d008022c5df1"><span class="std std-ref">Function fix_column_aliases(const std::vector&lt;std::string&gt;&amp;, std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf.html#exhale-function-expression-utils-8hpp-1a62bf30cccd461f0bac29cc88754776cf"><span class="std std-ref">Function get_bounds_from_window_expression(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c.html#exhale-function-expression-utils-8hpp-1aefc329cc8388433f71eae7c2c27cc91c"><span class="std std-ref">Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657.html#exhale-function-expression-utils-8hpp-1a037e087cf09c08d4f13f4649830f6657"><span class="std std-ref">Function get_expressions_from_expression_list(std::string&amp;, bool)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478.html#exhale-function-expression-utils-8hpp-1a37f2c7a268cd308b36040855417b5478"><span class="std std-ref">Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html#exhale-function-expression-utils-8hpp-1a1ef7228ac2a25aa1f4192e6a448c065c"><span class="std std-ref">Function get_frame_type_from_over_clause(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aa60fd2cf4a5990f75376962058107160.html#exhale-function-expression-utils-8hpp-1aa60fd2cf4a5990f75376962058107160"><span class="std std-ref">Function get_named_expression(const std::string&amp;, const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ab852f06a7c2678e10788ef5dc79d2ab4.html#exhale-function-expression-utils-8hpp-1ab852f06a7c2678e10788ef5dc79d2ab4"><span class="std std-ref">Function get_output_type(operator_type, cudf::type_id)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a6fce7f7944d7704c2e129080f0789150.html#exhale-function-expression-utils-8hpp-1a6fce7f7944d7704c2e129080f0789150"><span class="std std-ref">Function get_output_type(operator_type, cudf::type_id, cudf::type_id)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a4996fc412c775b98b4b6c010259a66b0.html#exhale-function-expression-utils-8hpp-1a4996fc412c775b98b4b6c010259a66b0"><span class="std std-ref">Function get_output_type(operator_type)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2.html#exhale-function-expression-utils-8hpp-1ae67a78cff7624957f904219c398e23f2"><span class="std std-ref">Function get_over_expression(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea.html#exhale-function-expression-utils-8hpp-1acc0723ef2e4e69f89a2981faf824a1ea"><span class="std std-ref">Function get_projections(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2.html#exhale-function-expression-utils-8hpp-1a49e1001e3fadb90c5544936a91034cd2"><span class="std std-ref">Function get_query_part(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046.html#exhale-function-expression-utils-8hpp-1affb6494edf6b343f4923af9f32568046"><span class="std std-ref">Function get_table_index(std::vector&lt;std::string&gt;, std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html#exhale-function-expression-utils-8hpp-1ada3cee4b992cd5c8cf84c41d15db16ba"><span class="std std-ref">Function is_aggregate(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a140d8c66182d9c7237728543252c9e56.html#exhale-function-expression-utils-8hpp-1a140d8c66182d9c7237728543252c9e56"><span class="std std-ref">Function is_aggregate_and_sample</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a6b47196f0fdc0710189a2a1c7d760c9e.html#exhale-function-expression-utils-8hpp-1a6b47196f0fdc0710189a2a1c7d760c9e"><span class="std std-ref">Function is_aggregate_merge</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a8075c3f3dc0522f9ac4421eaa89348df.html#exhale-function-expression-utils-8hpp-1a8075c3f3dc0522f9ac4421eaa89348df"><span class="std std-ref">Function is_aggregate_partition</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43.html#exhale-function-expression-utils-8hpp-1a905843d5854f28d64d11d068c560eb43"><span class="std std-ref">Function is_avg_window_function(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ab28c6a42ddbd289232f39a5111f6ff95.html#exhale-function-expression-utils-8hpp-1ab28c6a42ddbd289232f39a5111f6ff95"><span class="std std-ref">Function is_binary_operator(operator_type)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad.html#exhale-function-expression-utils-8hpp-1aebb79ccbb09d16dd354a47758d73d3ad"><span class="std std-ref">Function is_bindable_scan(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a2f4aefc724c60dbbbd81620efca2181f.html#exhale-function-expression-utils-8hpp-1a2f4aefc724c60dbbbd81620efca2181f"><span class="std std-ref">Function is_bool(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html#exhale-function-expression-utils-8hpp-1aa2a2d9fa19f2f92ab2d2cc65ef34aa07"><span class="std std-ref">Function is_compute_aggregate(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1accf3f8108d4e72e94f48954c22212329.html#exhale-function-expression-utils-8hpp-1accf3f8108d4e72e94f48954c22212329"><span class="std std-ref">Function is_date(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07.html#exhale-function-expression-utils-8hpp-1add695985ea62e084e6adea25ab83be07"><span class="std std-ref">Function is_distribute_aggregate(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b.html#exhale-function-expression-utils-8hpp-1add5b2070f13ed2236f41b253e48dec8b"><span class="std std-ref">Function is_filter(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html#exhale-function-expression-utils-8hpp-1a0e1e8b58cea5520264bcc9d1df6bcf8c"><span class="std std-ref">Function is_filtered_bindable_scan(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a6566d1fe108173708939994b4003c605.html#exhale-function-expression-utils-8hpp-1a6566d1fe108173708939994b4003c605"><span class="std std-ref">Function is_hour(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a8405138c765230f540e9b7f028148260.html#exhale-function-expression-utils-8hpp-1a8405138c765230f540e9b7f028148260"><span class="std std-ref">Function is_inequality(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f.html#exhale-function-expression-utils-8hpp-1a76bda2ebba29bae334d70942fdec351f"><span class="std std-ref">Function is_join(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b.html#exhale-function-expression-utils-8hpp-1af38bfef0c126d5c26423f15024e67c3b"><span class="std std-ref">Function is_join_partition(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01.html#exhale-function-expression-utils-8hpp-1a16cf2520ed490282e4fb912c2edbbf01"><span class="std std-ref">Function is_limit(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a788be39db69af819766caf71baa763ce.html#exhale-function-expression-utils-8hpp-1a788be39db69af819766caf71baa763ce"><span class="std std-ref">Function is_literal(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html#exhale-function-expression-utils-8hpp-1a87381db3c9b956e9a3542bb55b3e2ce1"><span class="std std-ref">Function is_logical_scan(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af.html#exhale-function-expression-utils-8hpp-1af05d71851eaa16ae1d4058b7d89fd0af"><span class="std std-ref">Function is_merge(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef.html#exhale-function-expression-utils-8hpp-1ac788da52f08887a8fcc4b1591a4385ef"><span class="std std-ref">Function is_merge_aggregate(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ab7a098e35e96a261178c98144d8a5bde.html#exhale-function-expression-utils-8hpp-1ab7a098e35e96a261178c98144d8a5bde"><span class="std std-ref">Function is_null(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a5124a6fe9cb0860668bf06e913100847.html#exhale-function-expression-utils-8hpp-1a5124a6fe9cb0860668bf06e913100847"><span class="std std-ref">Function is_nullary_operator(operator_type)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ae308fa3babdc71d17da0e808476b2076.html#exhale-function-expression-utils-8hpp-1ae308fa3babdc71d17da0e808476b2076"><span class="std std-ref">Function is_number(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a381839be51cf5f83ae60fb8bcb64cf64.html#exhale-function-expression-utils-8hpp-1a381839be51cf5f83ae60fb8bcb64cf64"><span class="std std-ref">Function is_operator_token(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578.html#exhale-function-expression-utils-8hpp-1a5f3e50a94e10e3a584ae2b653246f578"><span class="std std-ref">Function is_pairwise_join(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458.html#exhale-function-expression-utils-8hpp-1af61507198dee2ef50fcc681bd0bf8458"><span class="std std-ref">Function is_partition(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745.html#exhale-function-expression-utils-8hpp-1ae02fa9a1efd1b6d55d185996d6f43745"><span class="std std-ref">Function is_project(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html#exhale-function-expression-utils-8hpp-1a3dd66eb27dcba968c62e8bb23ccf6c48"><span class="std std-ref">Function is_scan(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5.html#exhale-function-expression-utils-8hpp-1affc551196389065e03323e6b78f0fab5"><span class="std std-ref">Function is_single_node_partition(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318.html#exhale-function-expression-utils-8hpp-1ae9006e3701a532dd3129a89830a0e318"><span class="std std-ref">Function is_sort(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df.html#exhale-function-expression-utils-8hpp-1a8b285991517b5466f58f9eb8311791df"><span class="std std-ref">Function is_sort_and_sample(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a52ff43ed65bc65da4ae09e202c025be1.html#exhale-function-expression-utils-8hpp-1a52ff43ed65bc65da4ae09e202c025be1"><span class="std std-ref">Function is_SQL_data_type(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a3831f2bc7b7731472c597369f15fb065.html#exhale-function-expression-utils-8hpp-1a3831f2bc7b7731472c597369f15fb065"><span class="std std-ref">Function is_string(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html#exhale-function-expression-utils-8hpp-1a9a2e99998e24152f2ed4ce94eb5c19e6"><span class="std std-ref">Function is_sum_window_function(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a311f3203dd6a06578df17bae7acb6d2f.html#exhale-function-expression-utils-8hpp-1a311f3203dd6a06578df17bae7acb6d2f"><span class="std std-ref">Function is_timestamp(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de.html#exhale-function-expression-utils-8hpp-1a8c7e8efcb51f02eb7009c17064ce96de"><span class="std std-ref">Function is_unary_operator(operator_type)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html#exhale-function-expression-utils-8hpp-1a376ff51e92d4b5122403877ee04296ee"><span class="std std-ref">Function is_union(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ae7bfd7ed71a93147fb1241dc88568ed8.html#exhale-function-expression-utils-8hpp-1ae7bfd7ed71a93147fb1241dc88568ed8"><span class="std std-ref">Function is_var_column(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414.html#exhale-function-expression-utils-8hpp-1a1cef7edbacff6b28adcf455e7872a414"><span class="std std-ref">Function is_window_compute(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f.html#exhale-function-expression-utils-8hpp-1aded092ec0380f864d0f987ad0234417f"><span class="std std-ref">Function is_window_function(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a292a2199e8b6ae46c498ae9e9d9a9f7a.html#exhale-function-expression-utils-8hpp-1a292a2199e8b6ae46c498ae9e9d9a9f7a"><span class="std std-ref">Function map_to_operator_type(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64.html#exhale-function-expression-utils-8hpp-1ad4e6c023e485a8cc458d95c6c94eae64"><span class="std std-ref">Function remove_over_expr(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f.html#exhale-function-expression-utils-8hpp-1a110a8755e64db53f18657e989dd0809f"><span class="std std-ref">Function replace_calcite_regex(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html#exhale-function-expression-utils-8hpp-1a4ad5912cf476d1707e48fb2f8dbb3b60"><span class="std std-ref">Function replace_count_expr_with_right_index(std::string, size_t)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7.html#exhale-function-expression-utils-8hpp-1a64f3303a4196a53aa669481b15ede1c7"><span class="std std-ref">Function replace_sum0_expr_with_right_index(std::string, size_t)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4.html#exhale-function-expression-utils-8hpp-1a7d6f41ac5863f117a57fc4b73dce2df4"><span class="std std-ref">Function window_expression_contains_multiple_diff_over_clauses(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a35b2fcb233e5c7aead48cfb58a82f911.html#exhale-function-expression-utils-8hpp-1a35b2fcb233e5c7aead48cfb58a82f911"><span class="std std-ref">Function window_expression_contains_order(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_expression__utils_8hpp_1a78c873a5466379ee80ae109acc7ff2e3.html#exhale-function-expression-utils-8hpp-1a78c873a5466379ee80ae109acc7ff2e3"><span class="std std-ref">Function window_expression_contains_partition(std::string)</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="variables">
+<h2>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a8f36c4b7a7f335b82f6826098a914a7f.html#exhale-variable-expression-utils-8hpp-1a8f36c4b7a7f335b82f6826098a914a7f"><span class="std std-ref">Variable ASCENDING_ORDER_SORT_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a33d38bd6d82887e47cd9bca39d749485.html#exhale-variable-expression-utils-8hpp-1a33d38bd6d82887e47cd9bca39d749485"><span class="std std-ref">Variable BINDABLE_SCAN_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1ab3738f218484b788d1acf4b23636ce5a.html#exhale-variable-expression-utils-8hpp-1ab3738f218484b788d1acf4b23636ce5a"><span class="std std-ref">Variable DESCENDING_ORDER_SORT_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973.html#exhale-variable-expression-utils-8hpp-1a8703c67a8c057d48a22f946e95ecd973"><span class="std std-ref">Variable LOGICAL_AGGREGATE_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1ab860f78b701c5fd157599694b6530543.html#exhale-variable-expression-utils-8hpp-1ab860f78b701c5fd157599694b6530543"><span class="std std-ref">Variable LOGICAL_COMPUTE_AGGREGATE_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a7aef636f64fa52a0386fc0bd1b27e6ee.html#exhale-variable-expression-utils-8hpp-1a7aef636f64fa52a0386fc0bd1b27e6ee"><span class="std std-ref">Variable LOGICAL_COMPUTE_WINDOW_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a200aa6a816aaffa227fd7b9b9fa84641.html#exhale-variable-expression-utils-8hpp-1a200aa6a816aaffa227fd7b9b9fa84641"><span class="std std-ref">Variable LOGICAL_DISTRIBUTE_AGGREGATE_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c.html#exhale-variable-expression-utils-8hpp-1ac0e0d121196bdb6add4389d7f4bea22c"><span class="std std-ref">Variable LOGICAL_FILTER_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7.html#exhale-variable-expression-utils-8hpp-1a276e90635205c7bd5078fe7faa69c3f7"><span class="std std-ref">Variable LOGICAL_JOIN_PARTITION_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a73532bf8a9c0c1969173fca143353a56.html#exhale-variable-expression-utils-8hpp-1a73532bf8a9c0c1969173fca143353a56"><span class="std std-ref">Variable LOGICAL_JOIN_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a996924dbb99f41abd3d3f895ac7f811e.html#exhale-variable-expression-utils-8hpp-1a996924dbb99f41abd3d3f895ac7f811e"><span class="std std-ref">Variable LOGICAL_LIMIT_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a197d68efd6c32085fc069db873fabc3e.html#exhale-variable-expression-utils-8hpp-1a197d68efd6c32085fc069db873fabc3e"><span class="std std-ref">Variable LOGICAL_MERGE_AGGREGATE_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a6076e775b97aabc5008e1fc3da0f8f41.html#exhale-variable-expression-utils-8hpp-1a6076e775b97aabc5008e1fc3da0f8f41"><span class="std std-ref">Variable LOGICAL_MERGE_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a9fa8f215453ed9721d4e1d3c4c75b11e.html#exhale-variable-expression-utils-8hpp-1a9fa8f215453ed9721d4e1d3c4c75b11e"><span class="std std-ref">Variable LOGICAL_PARTITION_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1ab296b774677acda07f10a46f4918262b.html#exhale-variable-expression-utils-8hpp-1ab296b774677acda07f10a46f4918262b"><span class="std std-ref">Variable LOGICAL_PARTWISE_JOIN_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1ae6cd56316e0a5b2405740f8faf99b9d3.html#exhale-variable-expression-utils-8hpp-1ae6cd56316e0a5b2405740f8faf99b9d3"><span class="std std-ref">Variable LOGICAL_PROJECT_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a50855d80ec0e094aba9fe7d27626c12a.html#exhale-variable-expression-utils-8hpp-1a50855d80ec0e094aba9fe7d27626c12a"><span class="std std-ref">Variable LOGICAL_SCAN_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a824bc6a22aa374c7765be01c7b0149d8.html#exhale-variable-expression-utils-8hpp-1a824bc6a22aa374c7765be01c7b0149d8"><span class="std std-ref">Variable LOGICAL_SINGLE_NODE_PARTITION_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1a5aa2cb434408e9a4d81bb3551cb93f12.html#exhale-variable-expression-utils-8hpp-1a5aa2cb434408e9a4d81bb3551cb93f12"><span class="std std-ref">Variable LOGICAL_SORT_AND_SAMPLE_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1af7d67af38b74cf135a507bd12eea9f8c.html#exhale-variable-expression-utils-8hpp-1af7d67af38b74cf135a507bd12eea9f8c"><span class="std std-ref">Variable LOGICAL_SORT_TEXT</span></a></p></li>
+<li><p><a class="reference internal" href="variable_expression__utils_8hpp_1ad5610f36330da537b25e65b9f97ea112.html#exhale-variable-expression-utils-8hpp-1ad5610f36330da537b25e65b9f97ea112"><span class="std std-ref">Variable LOGICAL_UNION_TEXT</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

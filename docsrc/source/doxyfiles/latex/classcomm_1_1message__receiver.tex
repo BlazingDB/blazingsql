@@ -1,0 +1,80 @@
+\hypertarget{classcomm_1_1message__receiver}{}\section{comm\+:\+:message\+\_\+receiver Class Reference}
+\label{classcomm_1_1message__receiver}\index{comm\+::message\+\_\+receiver@{comm\+::message\+\_\+receiver}}
+
+
+A Class used for the reconstruction of a Blazing\+Table from metadata and column data.  
+
+
+
+
+{\ttfamily \#include $<$message\+Receiver.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classcomm_1_1message__receiver_ab49d04074a12b8f9ad00dc26b84a43ca}{message\+\_\+receiver} (const std\+::map$<$ std\+::string, \hyperlink{classcomm_1_1node}{comm\+::node} $>$ \&nodes, const std\+::vector$<$ char $>$ \&buffer, std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$ input\+\_\+cache)
+\begin{DoxyCompactList}\small\item\em Constructs a \hyperlink{classcomm_1_1message__receiver}{message\+\_\+receiver}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_a33eff32bfde13d8f0579089f297559f7}\label{classcomm_1_1message__receiver_a33eff32bfde13d8f0579089f297559f7}} 
+size\+\_\+t {\bfseries buffer\+\_\+size} (u\+\_\+int16\+\_\+t index)
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_ab45c4394a35fb0ca81f091606c0c6f9b}\label{classcomm_1_1message__receiver_ab45c4394a35fb0ca81f091606c0c6f9b}} 
+void {\bfseries allocate\+\_\+buffer} (uint16\+\_\+t index, cuda\+Stream\+\_\+t stream=0)
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_a4527d37c56a04d2b6e82a469cbd14683}\label{classcomm_1_1message__receiver_a4527d37c56a04d2b6e82a469cbd14683}} 
+\hyperlink{classcomm_1_1node}{node} {\bfseries get\+\_\+sender\+\_\+node} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_a4423b1caa4472204e5491f84f1addc65}\label{classcomm_1_1message__receiver_a4423b1caa4472204e5491f84f1addc65}} 
+size\+\_\+t {\bfseries num\+\_\+buffers} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_ab9c3bb7eb1f6b8123bbc8b2b4ef47b77}\label{classcomm_1_1message__receiver_ab9c3bb7eb1f6b8123bbc8b2b4ef47b77}} 
+void {\bfseries confirm\+\_\+transmission} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_aac2ed6c851ace8d403721b31a99f8845}\label{classcomm_1_1message__receiver_aac2ed6c851ace8d403721b31a99f8845}} 
+void $\ast$ {\bfseries get\+\_\+buffer} (uint16\+\_\+t index)
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_a6940eb5eae53218e3c07cb1b22fb4ae5}\label{classcomm_1_1message__receiver_a6940eb5eae53218e3c07cb1b22fb4ae5}} 
+bool {\bfseries is\+\_\+finished} ()
+\item 
+\mbox{\Hypertarget{classcomm_1_1message__receiver_a593257af754fdef710dac5e2b408fe40}\label{classcomm_1_1message__receiver_a593257af754fdef710dac5e2b408fe40}} 
+void {\bfseries finish} (cuda\+Stream\+\_\+t stream=0)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A Class used for the reconstruction of a Blazing\+Table from metadata and column data. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classcomm_1_1message__receiver_ab49d04074a12b8f9ad00dc26b84a43ca}\label{classcomm_1_1message__receiver_ab49d04074a12b8f9ad00dc26b84a43ca}} 
+\index{comm\+::message\+\_\+receiver@{comm\+::message\+\_\+receiver}!message\+\_\+receiver@{message\+\_\+receiver}}
+\index{message\+\_\+receiver@{message\+\_\+receiver}!comm\+::message\+\_\+receiver@{comm\+::message\+\_\+receiver}}
+\subsubsection{\texorpdfstring{message\+\_\+receiver()}{message\_receiver()}}
+{\footnotesize\ttfamily comm\+::message\+\_\+receiver\+::message\+\_\+receiver (\begin{DoxyParamCaption}\item[{const std\+::map$<$ std\+::string, \hyperlink{classcomm_1_1node}{comm\+::node} $>$ \&}]{nodes,  }\item[{const std\+::vector$<$ char $>$ \&}]{buffer,  }\item[{std\+::shared\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheMachine}{ral\+::cache\+::\+Cache\+Machine} $>$}]{input\+\_\+cache }\end{DoxyParamCaption})}
+
+
+
+Constructs a \hyperlink{classcomm_1_1message__receiver}{message\+\_\+receiver}. 
+
+This is a place for a message to receive chunks. It calls the deserializer after the complete message has been assembled
+
+
+\begin{DoxyParams}{Parameters}
+{\em column\+\_\+transports} & This is metadata about how a column will be reconstructed used by the deserialzer \\
+\hline
+{\em metadata} & This is information about how the message was routed and payloads that are used in execution, planning, or physical optimizations. E.\+G. num rows in table, num partitions to be processed \\
+\hline
+{\em output\+\_\+cache} & The destination for the message being received. It is either a specific cache inbetween two kernels or it is intended for the general input cache using a mesage\+\_\+id \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classcomm_1_1message__receiver_ab49d04074a12b8f9ad00dc26b84a43ca_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/communication/\+Communication\+Interface/message\+Receiver.\+hpp\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/communication/\+Communication\+Interface/message\+Receiver.\+cpp\end{DoxyCompactItemize}

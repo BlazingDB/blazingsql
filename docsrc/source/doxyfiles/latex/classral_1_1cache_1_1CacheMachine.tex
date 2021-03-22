@@ -1,0 +1,164 @@
+\hypertarget{classral_1_1cache_1_1CacheMachine}{}\section{ral\+:\+:cache\+:\+:Cache\+Machine Class Reference}
+\label{classral_1_1cache_1_1CacheMachine}\index{ral\+::cache\+::\+Cache\+Machine@{ral\+::cache\+::\+Cache\+Machine}}
+
+
+A class that represents a Cache Machine on a multi-\/tier (G\+PU memory, C\+PU memory, Disk memory) cache system.  
+
+
+
+
+{\ttfamily \#include $<$Cache\+Machine.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:cache\+:\+:Cache\+Machine\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=211pt]{classral_1_1cache_1_1CacheMachine__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a56079d9ace98b5755643a9f9d6f05e88}\label{classral_1_1cache_1_1CacheMachine_a56079d9ace98b5755643a9f9d6f05e88}} 
+{\bfseries Cache\+Machine} (std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ context, std\+::string cache\+\_\+machine\+\_\+name, bool log\+\_\+timeout=true, int cache\+\_\+level\+\_\+override=-\/1, bool is\+\_\+array\+\_\+access=false)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a27088fefa2a1edcf5729e2df01043d49}\label{classral_1_1cache_1_1CacheMachine_a27088fefa2a1edcf5729e2df01043d49}} 
+virtual void {\bfseries put} (size\+\_\+t index, std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_aaaef8954262a3745d30087550120fe6f}\label{classral_1_1cache_1_1CacheMachine_aaaef8954262a3745d30087550120fe6f}} 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries get\+\_\+or\+\_\+wait} (size\+\_\+t index)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ab6b8f6d16284a9fe0ced6fe8c22be4f0}\label{classral_1_1cache_1_1CacheMachine_ab6b8f6d16284a9fe0ced6fe8c22be4f0}} 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ {\bfseries get\+\_\+or\+\_\+wait\+\_\+\+Cache\+Data} (size\+\_\+t index)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ac8279867d62662b93eb1649257e943a4}\label{classral_1_1cache_1_1CacheMachine_ac8279867d62662b93eb1649257e943a4}} 
+virtual void {\bfseries clear} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a85a26fe9c3ea4139fce1f6cd0fc6513c}\label{classral_1_1cache_1_1CacheMachine_a85a26fe9c3ea4139fce1f6cd0fc6513c}} 
+virtual bool {\bfseries add\+To\+Cache} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table, std\+::string message\+\_\+id=\char`\"{}\char`\"{}, bool always\+\_\+add=false, const \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} \&metadata=\{\}, bool include\+\_\+meta=false, bool use\+\_\+pinned=false)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_abfda7b34f09919f0d6e787f7e60c6f5f}\label{classral_1_1cache_1_1CacheMachine_abfda7b34f09919f0d6e787f7e60c6f5f}} 
+virtual bool {\bfseries add\+Cache\+Data} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ cache\+\_\+data, std\+::string message\+\_\+id=\char`\"{}\char`\"{}, bool always\+\_\+add=false)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a3e8733825ff2953c131b7fd3abd07e3f}\label{classral_1_1cache_1_1CacheMachine_a3e8733825ff2953c131b7fd3abd07e3f}} 
+virtual bool {\bfseries add\+Host\+Frame\+To\+Cache} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingHostTable}{ral\+::frame\+::\+Blazing\+Host\+Table} $>$ table, std\+::string message\+\_\+id=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_aab478de640f49d2fa11ba204f102153a}\label{classral_1_1cache_1_1CacheMachine_aab478de640f49d2fa11ba204f102153a}} 
+virtual void {\bfseries finish} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a4d319a36a1b4144b6325d3d82786b7ef}\label{classral_1_1cache_1_1CacheMachine_a4d319a36a1b4144b6325d3d82786b7ef}} 
+virtual bool {\bfseries is\+\_\+finished} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ab0f88af62cb603f08cda0586bdab5103}\label{classral_1_1cache_1_1CacheMachine_ab0f88af62cb603f08cda0586bdab5103}} 
+uint64\+\_\+t {\bfseries get\+\_\+num\+\_\+bytes\+\_\+added} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_aa6615e5845b771141193fac07dfa995d}\label{classral_1_1cache_1_1CacheMachine_aa6615e5845b771141193fac07dfa995d}} 
+uint64\+\_\+t {\bfseries get\+\_\+num\+\_\+rows\+\_\+added} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_aabae7b958940395ee04d563f33a58dcf}\label{classral_1_1cache_1_1CacheMachine_aabae7b958940395ee04d563f33a58dcf}} 
+uint64\+\_\+t {\bfseries get\+\_\+num\+\_\+batches\+\_\+added} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a6d6fc8c2a2ae96c3d22b2a78baf8baf8}\label{classral_1_1cache_1_1CacheMachine_a6d6fc8c2a2ae96c3d22b2a78baf8baf8}} 
+void {\bfseries wait\+\_\+until\+\_\+finished} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a212df32ccc0efca1acec0b2030ee195e}\label{classral_1_1cache_1_1CacheMachine_a212df32ccc0efca1acec0b2030ee195e}} 
+std\+::int32\+\_\+t {\bfseries get\+\_\+id} () const
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a015581f7d6250f93a467f0c31f3cff78}\label{classral_1_1cache_1_1CacheMachine_a015581f7d6250f93a467f0c31f3cff78}} 
+\hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $\ast$ {\bfseries get\+\_\+context} () const
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a0f2849bf7c9d8b32f66a811cae4e78b3}\label{classral_1_1cache_1_1CacheMachine_a0f2849bf7c9d8b32f66a811cae4e78b3}} 
+bool {\bfseries wait\+\_\+for\+\_\+next} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ac1b8751e117b03c5f139f84958047a70}\label{classral_1_1cache_1_1CacheMachine_ac1b8751e117b03c5f139f84958047a70}} 
+bool {\bfseries has\+\_\+next\+\_\+now} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a0a1c9eec7f235b501fa7c89724c17bc3}\label{classral_1_1cache_1_1CacheMachine_a0a1c9eec7f235b501fa7c89724c17bc3}} 
+bool {\bfseries has\+\_\+messages\+\_\+now} (std\+::vector$<$ std\+::string $>$ messages)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_abc6a926c6a31b4733c0c6c0f47e4683d}\label{classral_1_1cache_1_1CacheMachine_abc6a926c6a31b4733c0c6c0f47e4683d}} 
+std\+::size\+\_\+t {\bfseries get\+\_\+num\+\_\+batches} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ab3e6a40003af362a3f35b07ac7621659}\label{classral_1_1cache_1_1CacheMachine_ab3e6a40003af362a3f35b07ac7621659}} 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries pull\+From\+Cache} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a6231339e90316bef6e87a0956276da90}\label{classral_1_1cache_1_1CacheMachine_a6231339e90316bef6e87a0956276da90}} 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ {\bfseries pull\+Unordered\+From\+Cache} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a0f021fd997c60f3c25bf865e3e4b21e6}\label{classral_1_1cache_1_1CacheMachine_a0f021fd997c60f3c25bf865e3e4b21e6}} 
+std\+::vector$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ $>$ {\bfseries pull\+\_\+all\+\_\+cache\+\_\+data} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a6acb39f2e7d87ea70e6bd1f51fc48bfe}\label{classral_1_1cache_1_1CacheMachine_a6acb39f2e7d87ea70e6bd1f51fc48bfe}} 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ {\bfseries pull\+Cache\+Data} (std\+::string message\+\_\+id)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a64c08602e07aa3643c38b43672df1907}\label{classral_1_1cache_1_1CacheMachine_a64c08602e07aa3643c38b43672df1907}} 
+virtual std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1CacheData}{ral\+::cache\+::\+Cache\+Data} $>$ {\bfseries pull\+Cache\+Data} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a0f16ba71e498e556dd34d48f21228298}\label{classral_1_1cache_1_1CacheMachine_a0f16ba71e498e556dd34d48f21228298}} 
+std\+::vector$<$ size\+\_\+t $>$ {\bfseries get\+\_\+all\+\_\+indexes} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a5270712b7c7e754e596c52d1271d65fd}\label{classral_1_1cache_1_1CacheMachine_a5270712b7c7e754e596c52d1271d65fd}} 
+void {\bfseries wait\+\_\+for\+\_\+count} (int count)
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a640d1b67c3810e5cf6d339c52975a3d5}\label{classral_1_1cache_1_1CacheMachine_a640d1b67c3810e5cf6d339c52975a3d5}} 
+virtual size\+\_\+t {\bfseries downgrade\+Cache\+Data} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ac78e7ee5b553c1ed405b26a221d3d5b5}\label{classral_1_1cache_1_1CacheMachine_ac78e7ee5b553c1ed405b26a221d3d5b5}} 
+bool {\bfseries has\+\_\+data\+\_\+in\+\_\+index\+\_\+now} (size\+\_\+t index)
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a8398587447e7f6c2d7b44c326f6db510}\label{classral_1_1cache_1_1CacheMachine_a8398587447e7f6c2d7b44c326f6db510}} 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1WaitingQueue}{Waiting\+Queue}$<$ std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1cache_1_1message}{message} $>$ $>$ $>$ \hyperlink{classral_1_1cache_1_1CacheMachine_a8398587447e7f6c2d7b44c326f6db510}{waiting\+Cache}
+\begin{DoxyCompactList}\small\item\em This property represents a waiting queue object which stores all \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} Objects. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_adbc5d071b12e736d653d09ea91bfa418}\label{classral_1_1cache_1_1CacheMachine_adbc5d071b12e736d653d09ea91bfa418}} 
+std\+::vector$<$ \hyperlink{classBlazingMemoryResource}{Blazing\+Memory\+Resource} $\ast$ $>$ \hyperlink{classral_1_1cache_1_1CacheMachine_adbc5d071b12e736d653d09ea91bfa418}{memory\+\_\+resources}
+\begin{DoxyCompactList}\small\item\em References to the properties of the multi-\/tier cache system. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_af4310e1a7fef8cce3300c5c092fcb4b4}\label{classral_1_1cache_1_1CacheMachine_af4310e1a7fef8cce3300c5c092fcb4b4}} 
+std\+::atomic$<$ std\+::size\+\_\+t $>$ {\bfseries num\+\_\+bytes\+\_\+added}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_aa051863db9e236e635602323453f4be8}\label{classral_1_1cache_1_1CacheMachine_aa051863db9e236e635602323453f4be8}} 
+std\+::atomic$<$ uint64\+\_\+t $>$ {\bfseries num\+\_\+rows\+\_\+added}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a9c85a6cd94a0f5a5f27a3e4d4fb9f7de}\label{classral_1_1cache_1_1CacheMachine_a9c85a6cd94a0f5a5f27a3e4d4fb9f7de}} 
+bool \hyperlink{classral_1_1cache_1_1CacheMachine_a9c85a6cd94a0f5a5f27a3e4d4fb9f7de}{something\+\_\+added}
+\begin{DoxyCompactList}\small\item\em This variable is to keep track of if anything has been added to the cache. Its useful to keep from adding empty tables to the cache, where we might want an empty table at least to know the schema. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a884aaed8d12b70a622b5364874e4e717}\label{classral_1_1cache_1_1CacheMachine_a884aaed8d12b70a622b5364874e4e717}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classblazingdb_1_1manager_1_1Context}{Context} $>$ {\bfseries ctx}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a0104264db65ee96007b0d5ff140d1289}\label{classral_1_1cache_1_1CacheMachine_a0104264db65ee96007b0d5ff140d1289}} 
+const std\+::size\+\_\+t {\bfseries cache\+\_\+id}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a5c1b32734a27db228124277e5424881d}\label{classral_1_1cache_1_1CacheMachine_a5c1b32734a27db228124277e5424881d}} 
+int {\bfseries cache\+\_\+level\+\_\+override}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a1cffc314fb1231b57b0b023ea63bb6ac}\label{classral_1_1cache_1_1CacheMachine_a1cffc314fb1231b57b0b023ea63bb6ac}} 
+std\+::string {\bfseries cache\+\_\+machine\+\_\+name}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a73aa8703216e8cfef44223771303699c}\label{classral_1_1cache_1_1CacheMachine_a73aa8703216e8cfef44223771303699c}} 
+std\+::shared\+\_\+ptr$<$ spdlog\+::logger $>$ {\bfseries cache\+\_\+events\+\_\+logger}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_a691709ed03b9c3cd64dfb49add9a8ee6}\label{classral_1_1cache_1_1CacheMachine_a691709ed03b9c3cd64dfb49add9a8ee6}} 
+bool {\bfseries is\+\_\+array\+\_\+access}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_af469fe34b376e2daeca01385e0a9c765}\label{classral_1_1cache_1_1CacheMachine_af469fe34b376e2daeca01385e0a9c765}} 
+int {\bfseries global\+\_\+index}
+\end{DoxyCompactItemize}
+\subsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1CacheMachine_ac21e493ee5d04706d92bde2ac4946260}\label{classral_1_1cache_1_1CacheMachine_ac21e493ee5d04706d92bde2ac4946260}} 
+static std\+::size\+\_\+t {\bfseries cache\+\_\+count}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A class that represents a Cache Machine on a multi-\/tier (G\+PU memory, C\+PU memory, Disk memory) cache system. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Machine.\+h\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Machine.\+cpp\end{DoxyCompactItemize}

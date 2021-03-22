@@ -1,0 +1,153 @@
+\hypertarget{classral_1_1cache_1_1GPUCacheData}{}\section{ral\+:\+:cache\+:\+:G\+P\+U\+Cache\+Data Class Reference}
+\label{classral_1_1cache_1_1GPUCacheData}\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+
+
+{\ttfamily \#include $<$Cache\+Data.\+h$>$}
+
+
+
+Inheritance diagram for ral\+:\+:cache\+:\+:G\+P\+U\+Cache\+Data\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=217pt]{classral_1_1cache_1_1GPUCacheData__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for ral\+:\+:cache\+:\+:G\+P\+U\+Cache\+Data\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=230pt]{classral_1_1cache_1_1GPUCacheData__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classral_1_1cache_1_1GPUCacheData_aecac4050bf35d52a069842bda9e01906}{G\+P\+U\+Cache\+Data} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table)
+\item 
+\hyperlink{classral_1_1cache_1_1GPUCacheData_a0844305a3dca5ec2582254b3ba83f7d7}{G\+P\+U\+Cache\+Data} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table, const \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} \&\hyperlink{classral_1_1cache_1_1CacheData_aaeb232ef3aa8c2a3d86e1169ed2e8152}{metadata})
+\item 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ \hyperlink{classral_1_1cache_1_1GPUCacheData_a7efe1d821067ba5266df18adb701bf5f}{decache} () override
+\item 
+size\+\_\+t \hyperlink{classral_1_1cache_1_1GPUCacheData_a4fc8aecb334114f0ef07ce37be0e8900}{size\+In\+Bytes} () const override
+\item 
+void \hyperlink{classral_1_1cache_1_1GPUCacheData_a35d56396384cd4380141d47291d3e55f}{set\+\_\+names} (const std\+::vector$<$ std\+::string $>$ \&\hyperlink{classral_1_1cache_1_1CacheData_aa2c8d58823d781cc1f8e6e589d897642}{names}) override
+\item 
+virtual \hyperlink{classral_1_1cache_1_1GPUCacheData_ad592cf9835ac4b7f0056a8a1e7f0fe10}{$\sim$\+G\+P\+U\+Cache\+Data} ()
+\item 
+\hyperlink{classral_1_1frame_1_1BlazingTableView}{ral\+::frame\+::\+Blazing\+Table\+View} \hyperlink{classral_1_1cache_1_1GPUCacheData_af2765b19b50907081b1e73c07a2155eb}{get\+Table\+View} ()
+\item 
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_acfb3dca58fcf14708e1b57f84d8b0f50}\label{classral_1_1cache_1_1GPUCacheData_acfb3dca58fcf14708e1b57f84d8b0f50}} 
+void {\bfseries set\+\_\+data} (std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ table)
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$ \hyperlink{classral_1_1cache_1_1GPUCacheData_a2a960bdb89bb40964a9c317f1b06fd8c}{data}
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+A \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} that keeps its dataframe in G\+PU memory. This is a \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} representation that wraps a \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table}. It is the most performant since its construction and decaching are basically no ops. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_aecac4050bf35d52a069842bda9e01906}\label{classral_1_1cache_1_1GPUCacheData_aecac4050bf35d52a069842bda9e01906}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!G\+P\+U\+Cache\+Data@{G\+P\+U\+Cache\+Data}}
+\index{G\+P\+U\+Cache\+Data@{G\+P\+U\+Cache\+Data}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{G\+P\+U\+Cache\+Data()}{GPUCacheData()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::\+G\+P\+U\+Cache\+Data (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$}]{table }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Constructor 
+\begin{DoxyParams}{Parameters}
+{\em table} & The Blazing\+Table that is moved into the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_a0844305a3dca5ec2582254b3ba83f7d7}\label{classral_1_1cache_1_1GPUCacheData_a0844305a3dca5ec2582254b3ba83f7d7}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!G\+P\+U\+Cache\+Data@{G\+P\+U\+Cache\+Data}}
+\index{G\+P\+U\+Cache\+Data@{G\+P\+U\+Cache\+Data}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{G\+P\+U\+Cache\+Data()}{GPUCacheData()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::\+G\+P\+U\+Cache\+Data (\begin{DoxyParamCaption}\item[{std\+::unique\+\_\+ptr$<$ \hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table} $>$}]{table,  }\item[{const \hyperlink{classral_1_1cache_1_1MetadataDictionary}{Metadata\+Dictionary} \&}]{metadata }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Constructor 
+\begin{DoxyParams}{Parameters}
+{\em table} & The Blazing\+Table that is moved into the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. \\
+\hline
+{\em metadata} & The metadata that will be used in transport and planning. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_ad592cf9835ac4b7f0056a8a1e7f0fe10}\label{classral_1_1cache_1_1GPUCacheData_ad592cf9835ac4b7f0056a8a1e7f0fe10}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!````~G\+P\+U\+Cache\+Data@{$\sim$\+G\+P\+U\+Cache\+Data}}
+\index{````~G\+P\+U\+Cache\+Data@{$\sim$\+G\+P\+U\+Cache\+Data}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{$\sim$\+G\+P\+U\+Cache\+Data()}{~GPUCacheData()}}
+{\footnotesize\ttfamily virtual ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::$\sim$\+G\+P\+U\+Cache\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+Destructor 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_a7efe1d821067ba5266df18adb701bf5f}\label{classral_1_1cache_1_1GPUCacheData_a7efe1d821067ba5266df18adb701bf5f}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!decache@{decache}}
+\index{decache@{decache}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{decache()}{decache()}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$\hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table}$>$ ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::decache (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Move the Blazing\+Table out of this Cache This function only exists so that we can interact with all cache data by calling decache on them. \begin{DoxyReturn}{Returns}
+The Blazing\+Table that was used to construct this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data}. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classral_1_1cache_1_1CacheData_a2db8fdd2151babd7a07f4c6e246b710c}{ral\+::cache\+::\+Cache\+Data}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_af2765b19b50907081b1e73c07a2155eb}\label{classral_1_1cache_1_1GPUCacheData_af2765b19b50907081b1e73c07a2155eb}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!get\+Table\+View@{get\+Table\+View}}
+\index{get\+Table\+View@{get\+Table\+View}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{get\+Table\+View()}{getTableView()}}
+{\footnotesize\ttfamily \hyperlink{classral_1_1frame_1_1BlazingTableView}{ral\+::frame\+::\+Blazing\+Table\+View} ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::get\+Table\+View (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get a \hyperlink{classral_1_1frame_1_1BlazingTableView}{ral\+::frame\+::\+Blazing\+Table\+View} of the underlying data. This allows you to read the data while it remains in cache. \begin{DoxyReturn}{Returns}
+a view of the data in this instance. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_a35d56396384cd4380141d47291d3e55f}\label{classral_1_1cache_1_1GPUCacheData_a35d56396384cd4380141d47291d3e55f}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!set\+\_\+names@{set\+\_\+names}}
+\index{set\+\_\+names@{set\+\_\+names}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{set\+\_\+names()}{set\_names()}}
+{\footnotesize\ttfamily void ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::set\+\_\+names (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Set the names of the columns of a Blazing\+Table. 
+\begin{DoxyParams}{Parameters}
+{\em names} & a vector of the column names. \\
+\hline
+\end{DoxyParams}
+
+
+Implements \hyperlink{classral_1_1cache_1_1CacheData_a3bb1623a4266ba7c961d325023ff13c6}{ral\+::cache\+::\+Cache\+Data}.
+
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_a4fc8aecb334114f0ef07ce37be0e8900}\label{classral_1_1cache_1_1GPUCacheData_a4fc8aecb334114f0ef07ce37be0e8900}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!size\+In\+Bytes@{size\+In\+Bytes}}
+\index{size\+In\+Bytes@{size\+In\+Bytes}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{size\+In\+Bytes()}{sizeInBytes()}}
+{\footnotesize\ttfamily size\+\_\+t ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::size\+In\+Bytes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+Get the amount of G\+PU memory consumed by this \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} Having this function allows us to have one api for seeing the consumption of all the \hyperlink{classral_1_1cache_1_1CacheData}{Cache\+Data} objects that are currently in Caches. \begin{DoxyReturn}{Returns}
+The number of bytes the Blazing\+Table consumes. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classral_1_1cache_1_1CacheData_aaad8a726296574845f01f9380dcee40d}{ral\+::cache\+::\+Cache\+Data}.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classral_1_1cache_1_1GPUCacheData_a2a960bdb89bb40964a9c317f1b06fd8c}\label{classral_1_1cache_1_1GPUCacheData_a2a960bdb89bb40964a9c317f1b06fd8c}} 
+\index{ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}!data@{data}}
+\index{data@{data}!ral\+::cache\+::\+G\+P\+U\+Cache\+Data@{ral\+::cache\+::\+G\+P\+U\+Cache\+Data}}
+\subsubsection{\texorpdfstring{data}{data}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$\hyperlink{classral_1_1frame_1_1BlazingTable}{ral\+::frame\+::\+Blazing\+Table}$>$ ral\+::cache\+::\+G\+P\+U\+Cache\+Data\+::data\hspace{0.3cm}{\ttfamily [protected]}}
+
+Stores the data to be returned in decache 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/execution\+\_\+graph/logic\+\_\+controllers/Cache\+Data.\+h\end{DoxyCompactItemize}

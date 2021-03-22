@@ -1,0 +1,179 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1io_1_1data__parser" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>ral::io::data_parser</compoundname>
+    <derivedcompoundref refid="classral_1_1io_1_1arrow__parser" prot="public" virt="non-virtual">ral::io::arrow_parser</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1csv__parser" prot="public" virt="non-virtual">ral::io::csv_parser</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1gdf__parser" prot="public" virt="non-virtual">ral::io::gdf_parser</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1json__parser" prot="public" virt="non-virtual">ral::io::json_parser</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1orc__parser" prot="public" virt="non-virtual">ral::io::orc_parser</derivedcompoundref>
+    <derivedcompoundref refid="classral_1_1io_1_1parquet__parser" prot="public" virt="non-virtual">ral::io::parquet_parser</derivedcompoundref>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1io_1_1data__parser_1a0c91feb81678403e9fd44076869c8ea2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>virtual std::unique_ptr&lt;ral::frame::BlazingTable&gt; ral::io::data_parser::parse_batch</definition>
+        <argsstring>(ral::io::data_handle, const Schema &amp;, std::vector&lt; int &gt;, std::vector&lt; cudf::size_type &gt;)</argsstring>
+        <name>parse_batch</name>
+        <reimplementedby refid="classral_1_1io_1_1json__parser_1a992383cf7446818b506cabdbc96bb770">parse_batch</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1orc__parser_1a67cf475095de14b92c1c61a8f784230d">parse_batch</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__parser_1af52d94871db8f8b1fee81f304a83acbf">parse_batch</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1parquet__parser_1a92203135608653a5a7a7594a63ef4a64">parse_batch</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1csv__parser_1aa5f2a8243cc1897ec38162f5955e1265">parse_batch</reimplementedby>
+        <param>
+          <type><ref refid="structral_1_1io_1_1data__handle" kindref="compound">ral::io::data_handle</ref></type>
+        </param>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+        </param>
+        <param>
+          <type>std::vector&lt; int &gt;</type>
+        </param>
+        <param>
+          <type>std::vector&lt; cudf::size_type &gt;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" line="26" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" bodystart="26" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__parser_1abdb1c7acce3b3ad154252a94053921bb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>size_t</type>
+        <definition>virtual size_t ral::io::data_parser::get_num_partitions</definition>
+        <argsstring>()</argsstring>
+        <name>get_num_partitions</name>
+        <reimplementedby refid="classral_1_1io_1_1gdf__parser_1a3bddac0fcbb1b75ca1bfc6f6caefa793">get_num_partitions</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" line="34" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" bodystart="34" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__parser_1a00beeb22738fcb9f3027ca01480fec99" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void ral::io::data_parser::parse_schema</definition>
+        <argsstring>(std::shared_ptr&lt; arrow::io::RandomAccessFile &gt; file, ral::io::Schema &amp;schema)=0</argsstring>
+        <name>parse_schema</name>
+        <reimplementedby refid="classral_1_1io_1_1arrow__parser_1a64424836e1e59df80a393c77f31d1f2d">parse_schema</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1json__parser_1aff4871574deac794565c9eea47614243">parse_schema</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1orc__parser_1ad3ac521b63ec30e23d2759b6c37c8ece">parse_schema</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__parser_1af0b1fc1badf60726c2bf1d04ef0296b7">parse_schema</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1parquet__parser_1aeae0917773d88f50a6851b3a79973520">parse_schema</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1csv__parser_1ae9d6249732a74e43c231257b7a84334b">parse_schema</reimplementedby>
+        <param>
+          <type>std::shared_ptr&lt; arrow::io::RandomAccessFile &gt;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1io_1_1Schema" kindref="compound">ral::io::Schema</ref> &amp;</type>
+          <declname>schema</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" line="38" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__parser_1a3baa7b548a8709c3604a4164c2a747d0" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>virtual std::unique_ptr&lt;ral::frame::BlazingTable&gt; ral::io::data_parser::get_metadata</definition>
+        <argsstring>(std::vector&lt; std::shared_ptr&lt; arrow::io::RandomAccessFile &gt;&gt;, int)</argsstring>
+        <name>get_metadata</name>
+        <reimplementedby refid="classral_1_1io_1_1orc__parser_1aa25ff68d31995b000b7805f0f313e46b">get_metadata</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1parquet__parser_1a30b2c688d97fe7c0532d4d0481c333ae">get_metadata</reimplementedby>
+        <param>
+          <type>std::vector&lt; std::shared_ptr&lt; arrow::io::RandomAccessFile &gt;&gt;</type>
+        </param>
+        <param>
+          <type>int</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" line="41" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" bodystart="41" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__parser_1adb75d2db677272a1d26ab29bfd5dd954" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>DataType</type>
+        <definition>virtual DataType ral::io::data_parser::type</definition>
+        <argsstring>() const</argsstring>
+        <name>type</name>
+        <reimplementedby refid="classral_1_1io_1_1json__parser_1a7dfd06541866d0872bbce8381cb65769">type</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1arrow__parser_1aa01d534dac941d08da9b4b9786e75ada">type</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1gdf__parser_1a3742f063139b4a48c62e396d7f843855">type</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1orc__parser_1a91a7ef5f1263d5ce111b691250176e6b">type</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1parquet__parser_1abf6b588cc6ce92c92af20d9c298007a8">type</reimplementedby>
+        <reimplementedby refid="classral_1_1io_1_1csv__parser_1a037073b233a35609fb13a00e295c959c">type</reimplementedby>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" line="47" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" bodystart="47" bodyend="47"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="158">
+        <label>ral::io::arrow_parser</label>
+        <link refid="classral_1_1io_1_1arrow__parser"/>
+        <childnode refid="157" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="159">
+        <label>ral::io::csv_parser</label>
+        <link refid="classral_1_1io_1_1csv__parser"/>
+        <childnode refid="157" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="162">
+        <label>ral::io::orc_parser</label>
+        <link refid="classral_1_1io_1_1orc__parser"/>
+        <childnode refid="157" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="163">
+        <label>ral::io::parquet_parser</label>
+        <link refid="classral_1_1io_1_1parquet__parser"/>
+        <childnode refid="157" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="157">
+        <label>ral::io::data_parser</label>
+        <link refid="classral_1_1io_1_1data__parser"/>
+      </node>
+      <node id="161">
+        <label>ral::io::json_parser</label>
+        <link refid="classral_1_1io_1_1json__parser"/>
+        <childnode refid="157" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="160">
+        <label>ral::io::gdf_parser</label>
+        <link refid="classral_1_1io_1_1gdf__parser"/>
+        <childnode refid="157" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" line="23" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/DataParser.h" bodystart="23" bodyend="48"/>
+    <listofallmembers>
+      <member refid="classral_1_1io_1_1data__parser_1a3baa7b548a8709c3604a4164c2a747d0" prot="public" virt="virtual"><scope>ral::io::data_parser</scope><name>get_metadata</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1abdb1c7acce3b3ad154252a94053921bb" prot="public" virt="virtual"><scope>ral::io::data_parser</scope><name>get_num_partitions</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1a0c91feb81678403e9fd44076869c8ea2" prot="public" virt="virtual"><scope>ral::io::data_parser</scope><name>parse_batch</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1a00beeb22738fcb9f3027ca01480fec99" prot="public" virt="pure-virtual"><scope>ral::io::data_parser</scope><name>parse_schema</name></member>
+      <member refid="classral_1_1io_1_1data__parser_1adb75d2db677272a1d26ab29bfd5dd954" prot="public" virt="virtual"><scope>ral::io::data_parser</scope><name>type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

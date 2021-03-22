@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1io_1_1data__loader" kind="class" language="C++" prot="public">
+    <compoundname>ral::io::data_loader</compoundname>
+    <includes refid="DataLoader_8h" local="no">DataLoader.h</includes>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classral_1_1io_1_1data__loader_1aa117c8956f3908882faff72183ad1298" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__provider" kindref="compound">data_provider</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;data_provider&gt; ral::io::data_loader::provider</definition>
+        <argsstring></argsstring>
+        <name>provider</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>DataProviders are able to serve up one or more arrow::io::RandomAccessFile objects </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="56" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classral_1_1io_1_1data__loader_1a9031915f5139b6b697d701797905f2d1" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__parser" kindref="compound">data_parser</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;data_parser&gt; ral::io::data_loader::parser</definition>
+        <argsstring></argsstring>
+        <name>parser</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>parsers are able to parse arrow::io::RandomAccessFile objects of a specific file type and convert them into gdf_column_cpp </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="61" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1a2f549d77c5c3829b76a27b1db9a577bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::data_loader::data_loader</definition>
+        <argsstring>(std::shared_ptr&lt; data_parser &gt; parser, std::shared_ptr&lt; data_provider &gt; provider)</argsstring>
+        <name>data_loader</name>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__parser" kindref="compound">data_parser</ref> &gt;</type>
+          <declname>parser</declname>
+        </param>
+        <param>
+          <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__provider" kindref="compound">data_provider</ref> &gt;</type>
+          <declname>provider</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="35" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.cpp" bodystart="23" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1a1f846c566fd651cf7d41731ad691833c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::io::data_loader::data_loader</definition>
+        <argsstring>(const data_loader &amp;)=default</argsstring>
+        <name>data_loader</name>
+        <param>
+          <type>const <ref refid="classral_1_1io_1_1data__loader" kindref="compound">data_loader</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="36" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1a712792bdb1fbf3e7f06ab032363a4e07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__loader" kindref="compound">data_loader</ref> &gt;</type>
+        <definition>std::shared_ptr&lt; data_loader &gt; ral::io::data_loader::clone</definition>
+        <argsstring>()</argsstring>
+        <name>clone</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="37" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.cpp" bodystart="26" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1a511128b54bbe7873d8522f4390d17613" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>ral::io::data_loader::~data_loader</definition>
+        <argsstring>()</argsstring>
+        <name>~data_loader</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="39" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.cpp" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1ad8039b7741f3ccb9ac21a5aa3b90b176" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ral::io::data_loader::get_schema</definition>
+        <argsstring>(Schema &amp;schema, std::vector&lt; std::pair&lt; std::string, cudf::type_id &gt;&gt; non_file_columns)</argsstring>
+        <name>get_schema</name>
+        <param>
+          <type><ref refid="classral_1_1io_1_1Schema" kindref="compound">Schema</ref> &amp;</type>
+          <declname>schema</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; std::pair&lt; std::string, cudf::type_id &gt;&gt;</type>
+          <declname>non_file_columns</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="41" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.cpp" bodystart="33" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1ac5b4739744d0b6d0526eeb0a4ebbfb09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::io::data_loader::get_metadata</definition>
+        <argsstring>(int offset)</argsstring>
+        <name>get_metadata</name>
+        <param>
+          <type>int</type>
+          <declname>offset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="43" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.cpp" bodystart="67" bodyend="97"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1a1af2abef13bd1427445bae65f2a8d552" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__provider" kindref="compound">data_provider</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;data_provider&gt; ral::io::data_loader::get_provider</definition>
+        <argsstring>()</argsstring>
+        <name>get_provider</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="45" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" bodystart="45" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1io_1_1data__loader_1a15d64ae48a0d068b00a36adf1e17ccce" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_ptr&lt; <ref refid="classral_1_1io_1_1data__parser" kindref="compound">data_parser</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;data_parser&gt; ral::io::data_loader::get_parser</definition>
+        <argsstring>()</argsstring>
+        <name>get_parser</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="48" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" bodystart="48" bodyend="50"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>class is used for loading data from some kind of file type using some kind of file provider in our case we will be using blazing-io to read and write files but a local version could also be made </para>    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" line="33" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/DataLoader.h" bodystart="33" bodyend="62"/>
+    <listofallmembers>
+      <member refid="classral_1_1io_1_1data__loader_1a712792bdb1fbf3e7f06ab032363a4e07" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>clone</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1a2f549d77c5c3829b76a27b1db9a577bf" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>data_loader</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1a1f846c566fd651cf7d41731ad691833c" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>data_loader</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1ac5b4739744d0b6d0526eeb0a4ebbfb09" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>get_metadata</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1a15d64ae48a0d068b00a36adf1e17ccce" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>get_parser</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1a1af2abef13bd1427445bae65f2a8d552" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>get_provider</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1ad8039b7741f3ccb9ac21a5aa3b90b176" prot="public" virt="non-virtual"><scope>ral::io::data_loader</scope><name>get_schema</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1a9031915f5139b6b697d701797905f2d1" prot="private" virt="non-virtual"><scope>ral::io::data_loader</scope><name>parser</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1aa117c8956f3908882faff72183ad1298" prot="private" virt="non-virtual"><scope>ral::io::data_loader</scope><name>provider</name></member>
+      <member refid="classral_1_1io_1_1data__loader_1a511128b54bbe7873d8522f4390d17613" prot="public" virt="virtual"><scope>ral::io::data_loader</scope><name>~data_loader</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

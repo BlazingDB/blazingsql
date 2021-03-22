@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classral_1_1cache_1_1ConcatCacheData" kind="class" language="C++" prot="public">
+    <compoundname>ral::cache::ConcatCacheData</compoundname>
+    <basecompoundref refid="classral_1_1cache_1_1CacheData" prot="public" virt="non-virtual">ral::cache::CacheData</basecompoundref>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classral_1_1cache_1_1ConcatCacheData_1a420b449b6862f7db831e7e51acb6fee5" prot="protected" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;CacheData&gt; &gt; ral::cache::ConcatCacheData::_cache_datas</definition>
+        <argsstring></argsstring>
+        <name>_cache_datas</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="568" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="568" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classral_1_1cache_1_1ConcatCacheData_1a9b88f49d90532642cb20be1de7f414c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ral::cache::ConcatCacheData::ConcatCacheData</definition>
+        <argsstring>(std::vector&lt; std::unique_ptr&lt; CacheData &gt;&gt; cache_datas, const std::vector&lt; std::string &gt; &amp;col_names, const std::vector&lt; cudf::data_type &gt; &amp;schema)</argsstring>
+        <name>ConcatCacheData</name>
+        <param>
+          <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> &gt;&gt;</type>
+          <declname>cache_datas</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>col_names</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; cudf::data_type &gt; &amp;</type>
+          <declname>schema</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructor <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>table</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The cache_datas that will be concatenated when decached. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>col_names</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The names of the columns in the dataframe. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>schema</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The types of the columns in the dataframe. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="541" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="291" bodyend="299"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1ConcatCacheData_1af726fc27fcf1621fff1f399f8b2d3cec" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>std::unique_ptr&lt; <ref refid="classral_1_1frame_1_1BlazingTable" kindref="compound">ral::frame::BlazingTable</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; ral::frame::BlazingTable &gt; ral::cache::ConcatCacheData::decache</definition>
+        <argsstring>() override</argsstring>
+        <name>decache</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1a2db8fdd2151babd7a07f4c6e246b710c">decache</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Decaches all caches datas and concatenates them into one BlazingTable <simplesect kind="return"><para>The BlazingTable that results from concatenating all cache datas. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="547" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="301" bodyend="320"/>
+        <references refid="classral_1_1cache_1_1CacheData_1a7a43a46a362c8fe93a7af81debbeca1b" compoundref="CacheData_8h" startline="248">ral::cache::CacheData::col_names</references>
+        <references refid="classral_1_1cache_1_1CacheData_1aec9a1b3c0fb78cfdb3bd5494bcee2d8f" compoundref="CacheData_8h" startline="249">ral::cache::CacheData::schema</references>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1ConcatCacheData_1a25914d06c36e4a1748dc9479adc5ccd8" prot="public" static="no" const="yes" explicit="no" inline="no" virt="virtual">
+        <type>size_t</type>
+        <definition>size_t ral::cache::ConcatCacheData::sizeInBytes</definition>
+        <argsstring>() const override</argsstring>
+        <name>sizeInBytes</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1aaad8a726296574845f01f9380dcee40d">sizeInBytes</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Get the amount of GPU memory consumed by this <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> Having this function allows us to have one api for seeing the consumption of all the <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> objects that are currently in Caches. <simplesect kind="return"><para>The number of bytes the BlazingTable consumes. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="555" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="322" bodyend="328"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1ConcatCacheData_1a02f400f33f88ba3e216f5899fa4f12b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void ral::cache::ConcatCacheData::set_names</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;names) override</argsstring>
+        <name>set_names</name>
+        <reimplements refid="classral_1_1cache_1_1CacheData_1a3bb1623a4266ba7c961d325023ff13c6">set_names</reimplements>
+        <param>
+          <type>const std::vector&lt; std::string &gt; &amp;</type>
+          <declname>names</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Set the names of the columns. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>names</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>a vector of the column names. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="561" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="330" bodyend="334"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1ConcatCacheData_1ab6b4c1d4bd8752827d522d8911547a1e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; std::unique_ptr&lt; <ref refid="classral_1_1cache_1_1CacheData" kindref="compound">CacheData</ref> &gt; &gt;</type>
+        <definition>std::vector&lt; std::unique_ptr&lt; CacheData &gt; &gt; ral::cache::ConcatCacheData::releaseCacheDatas</definition>
+        <argsstring>()</argsstring>
+        <name>releaseCacheDatas</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="563" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp" bodystart="336" bodyend="338"/>
+      </memberdef>
+      <memberdef kind="function" id="classral_1_1cache_1_1ConcatCacheData_1a80135012152898a8bc2e490ef56fd053" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual ral::cache::ConcatCacheData::~ConcatCacheData</definition>
+        <argsstring>()</argsstring>
+        <name>~ConcatCacheData</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="565" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="565" bodyend="565"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="132">
+        <label>ral::cache::ConcatCacheData</label>
+        <link refid="classral_1_1cache_1_1ConcatCacheData"/>
+        <childnode refid="133" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="133">
+        <label>ral::cache::CacheData</label>
+        <link refid="classral_1_1cache_1_1CacheData"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="134">
+        <label>ral::cache::ConcatCacheData</label>
+        <link refid="classral_1_1cache_1_1ConcatCacheData"/>
+        <childnode refid="135" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="135">
+        <label>ral::cache::CacheData</label>
+        <link refid="classral_1_1cache_1_1CacheData"/>
+        <childnode refid="136" relation="usage">
+          <edgelabel>metadata</edgelabel>
+        </childnode>
+      </node>
+      <node id="136">
+        <label>ral::cache::MetadataDictionary</label>
+        <link refid="classral_1_1cache_1_1MetadataDictionary"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" line="533" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h" bodystart="533" bodyend="569"/>
+    <listofallmembers>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1a420b449b6862f7db831e7e51acb6fee5" prot="protected" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>_cache_datas</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1acf9d130e22baac61d4689c52e36b9c17" prot="protected" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>cache_type</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a257a4e0a13e894093e8ae37da1612c62" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7967efd36e3cbf3b35b7010f138fcbce" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>CacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7a43a46a362c8fe93a7af81debbeca1b" prot="protected" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>col_names</name></member>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1a9b88f49d90532642cb20be1de7f414c5" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>ConcatCacheData</name></member>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1af726fc27fcf1621fff1f399f8b2d3cec" prot="public" virt="virtual"><scope>ral::cache::ConcatCacheData</scope><name>decache</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1af70878c08fae1935cd0a39999cabf6fb" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>downgradeCacheData</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a747bc7b9113756471ce8a7bce2c46689" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>get_schema</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a6669c7c34305f2099cede2be98433604" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>get_type</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a7e3fea5c3558948f4c461998f7ef434b" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>getMetadata</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aaeb232ef3aa8c2a3d86e1169ed2e8152" prot="protected" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>metadata</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a4cdddfb8e552e0e3e91877ae80e5fc9e" prot="protected" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>n_rows</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aa2c8d58823d781cc1f8e6e589d897642" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>names</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1acddfe8617004fc875fff972ae5b1f616" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>num_columns</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1a14a5b9fadf872c12d633e38bb6f9f07d" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>num_rows</name></member>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1ab6b4c1d4bd8752827d522d8911547a1e" prot="public" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>releaseCacheDatas</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1aec9a1b3c0fb78cfdb3bd5494bcee2d8f" prot="protected" virt="non-virtual"><scope>ral::cache::ConcatCacheData</scope><name>schema</name></member>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1a02f400f33f88ba3e216f5899fa4f12b8" prot="public" virt="virtual"><scope>ral::cache::ConcatCacheData</scope><name>set_names</name></member>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1a25914d06c36e4a1748dc9479adc5ccd8" prot="public" virt="virtual"><scope>ral::cache::ConcatCacheData</scope><name>sizeInBytes</name></member>
+      <member refid="classral_1_1cache_1_1CacheData_1ac66a4910198d677594609b455c4ecde8" prot="public" virt="virtual"><scope>ral::cache::ConcatCacheData</scope><name>~CacheData</name></member>
+      <member refid="classral_1_1cache_1_1ConcatCacheData_1a80135012152898a8bc2e490ef56fd053" prot="public" virt="virtual"><scope>ral::cache::ConcatCacheData</scope><name>~ConcatCacheData</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

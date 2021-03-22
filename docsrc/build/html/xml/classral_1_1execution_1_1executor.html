@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class executor &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class priority" href="classral_1_1execution_1_1priority.html" />
+    <link rel="prev" title="Class UcpWorkerAddress" href="classral_1_1communication_1_1UcpWorkerAddress.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../engine/index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/classral_1_1execution_1_1executor.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="class-executor">
+<span id="exhale-class-classral-1-1execution-1-1executor"></span><h1>Class executor<a class="headerlink" href="#class-executor" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_executor.h.html#file-home-tom-documents-programming-romulo-blazingsql-blazingsql-engine-src-execution-graph-logic-controllers-taskflow-executor-h"><span class="std std-ref">File executor.h</span></a></p></li>
+</ul>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral9execution8executorE">
+<span id="_CPPv3N3ral9execution8executorE"></span><span id="_CPPv2N3ral9execution8executorE"></span><span id="ral::execution::executor"></span><span class="target" id="classral_1_1execution_1_1executor"></span><em class="property">class </em><code class="sig-prename descclassname">ral::execution<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">executor</code><a class="headerlink" href="#_CPPv4N3ral9execution8executorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor7executeEv">
+<span id="_CPPv3N3ral9execution8executor7executeEv"></span><span id="_CPPv2N3ral9execution8executor7executeEv"></span><span id="ral::execution::executor::execute"></span><span class="target" id="classral_1_1execution_1_1executor_1a6e6ac943f9eaf839cc0e41eb23439072"></span>void <code class="sig-name descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor7executeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor14last_exceptionEv">
+<span id="_CPPv3N3ral9execution8executor14last_exceptionEv"></span><span id="_CPPv2N3ral9execution8executor14last_exceptionEv"></span><span id="ral::execution::executor::last_exception"></span><span class="target" id="classral_1_1execution_1_1executor_1a09da28a656f7612cc886a846bb6d64af"></span>std::exception_ptr <code class="sig-name descname">last_exception</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor14last_exceptionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor13has_exceptionEv">
+<span id="_CPPv3N3ral9execution8executor13has_exceptionEv"></span><span id="_CPPv2N3ral9execution8executor13has_exceptionEv"></span><span id="ral::execution::executor::has_exception"></span><span class="target" id="classral_1_1execution_1_1executor_1aaed7cfdaada8399996aed20602d8daa8"></span>bool <code class="sig-name descname">has_exception</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor13has_exceptionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE">
+<span id="_CPPv3N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::execution::executor::add_task__std::vector:std::unique_ptr:ral::cache::CacheData::.std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelP.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1execution_1_1executor_1aa11c54e453247b7f83d6670eea50bfcd"></span>size_t <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>kernel</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE">
+<span id="_CPPv3N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::execution::executor::add_task__std::vector:std::unique_ptr:ral::cache::CacheData::.std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelP.s.s.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1execution_1_1executor_1a77fdef46e83963032e67583e4d5392ca"></span>void <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>kernel</em>, size_t <em>attempts</em>, size_t <em>task_id</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE">
+<span id="_CPPv3N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE"></span><span id="_CPPv2N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE"></span><span id="ral::execution::executor::add_task__std::unique_ptr:task:"></span><span class="target" id="classral_1_1execution_1_1executor_1a2877afac758bb887955083a58f645e25"></span>void <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>std::unique_ptr&lt;<a class="reference internal" href="#_CPPv4N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE" title="ral::execution::executor::add_task::task">task</a>&gt; <em>task</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor21remove_task_from_backEv">
+<span id="_CPPv3N3ral9execution8executor21remove_task_from_backEv"></span><span id="_CPPv2N3ral9execution8executor21remove_task_from_backEv"></span><span id="ral::execution::executor::remove_task_from_back"></span><span class="target" id="classral_1_1execution_1_1executor_1a2eee292b6f3aa81c120431cc64e155f0"></span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1execution_1_1task.html#_CPPv4N3ral9execution4taskE" title="ral::execution::task">task</a>&gt; <code class="sig-name descname">remove_task_from_back</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor21remove_task_from_backEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor23notify_memory_safety_cvEv">
+<span id="_CPPv3N3ral9execution8executor23notify_memory_safety_cvEv"></span><span id="_CPPv2N3ral9execution8executor23notify_memory_safety_cvEv"></span><span id="ral::execution::executor::notify_memory_safety_cv"></span><span class="target" id="classral_1_1execution_1_1executor_1a898f9b6d96ea8994790ea4a142ddb4f5"></span>void <code class="sig-name descname">notify_memory_safety_cv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor23notify_memory_safety_cvEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor12get_instanceEv">
+<span id="_CPPv3N3ral9execution8executor12get_instanceEv"></span><span id="_CPPv2N3ral9execution8executor12get_instanceEv"></span><span id="ral::execution::executor::get_instance"></span><span class="target" id="classral_1_1execution_1_1executor_1a79eb5575c98cca07b162018e50e91e4b"></span><a class="reference internal" href="#_CPPv4N3ral9execution8executorE" title="ral::execution::executor">executor</a> *<code class="sig-name descname">get_instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor12get_instanceEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor13init_executorEid">
+<span id="_CPPv3N3ral9execution8executor13init_executorEid"></span><span id="_CPPv2N3ral9execution8executor13init_executorEid"></span><span id="ral::execution::executor::init_executor__i.double"></span><span class="target" id="classral_1_1execution_1_1executor_1a0bd22a4c3d346642f762193878c6395b"></span>void <code class="sig-name descname">init_executor</code><span class="sig-paren">(</span>int <em>num_threads</em>, double <em>processing_memory_limit_threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor13init_executorEid" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="classral_1_1communication_1_1UcpWorkerAddress.html" title="previous page">Class UcpWorkerAddress</a>
+    <a class='right-next' id="next-link" href="classral_1_1execution_1_1priority.html" title="next page">Class priority</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

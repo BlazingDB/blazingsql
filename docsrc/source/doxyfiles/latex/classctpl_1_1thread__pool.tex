@@ -1,0 +1,40 @@
+\hypertarget{classctpl_1_1thread__pool}{}\section{ctpl\+:\+:thread\+\_\+pool$<$ T $>$ Class Template Reference}
+\label{classctpl_1_1thread__pool}\index{ctpl\+::thread\+\_\+pool$<$ T $>$@{ctpl\+::thread\+\_\+pool$<$ T $>$}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_a8cbc9d02323c0494c12f2205b76cd97a}\label{classctpl_1_1thread__pool_a8cbc9d02323c0494c12f2205b76cd97a}} 
+{\bfseries thread\+\_\+pool} (int n\+Threads)
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_a43e0d9660a610fd36d3a3ef05742c124}\label{classctpl_1_1thread__pool_a43e0d9660a610fd36d3a3ef05742c124}} 
+int {\bfseries size} ()
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_afff06541d5b6d640ced059f8104c73fd}\label{classctpl_1_1thread__pool_afff06541d5b6d640ced059f8104c73fd}} 
+int {\bfseries n\+\_\+idle} ()
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_a671a47dd92273b92863d65205fb00665}\label{classctpl_1_1thread__pool_a671a47dd92273b92863d65205fb00665}} 
+T \& {\bfseries get\+\_\+thread} (int i)
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_a5616835c86ef785a07a2ca3311a93956}\label{classctpl_1_1thread__pool_a5616835c86ef785a07a2ca3311a93956}} 
+void {\bfseries resize} (int n\+Threads)
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_adf4ad2b34040beddf63b679096bb36fa}\label{classctpl_1_1thread__pool_adf4ad2b34040beddf63b679096bb36fa}} 
+void {\bfseries clear\+\_\+queue} ()
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_ae21941f71d94787161b927ee66904f9a}\label{classctpl_1_1thread__pool_ae21941f71d94787161b927ee66904f9a}} 
+std\+::function$<$ void(int)$>$ {\bfseries pop} ()
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_a1f16a023992e5d1dfbb442cdfb640bcb}\label{classctpl_1_1thread__pool_a1f16a023992e5d1dfbb442cdfb640bcb}} 
+void {\bfseries stop} (bool is\+Wait=false)
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_aefdd0e6eae5ef91b2b23878d268b43d7}\label{classctpl_1_1thread__pool_aefdd0e6eae5ef91b2b23878d268b43d7}} 
+{\footnotesize template$<$typename F , typename... Rest$>$ }\\auto {\bfseries push} (F \&\&f, Rest \&\&... rest) -\/$>$ std\+::future$<$ decltype(f(0, rest...))$>$
+\item 
+\mbox{\Hypertarget{classctpl_1_1thread__pool_a2e127b44a824f43c5d3eb96dc5fb2212}\label{classctpl_1_1thread__pool_a2e127b44a824f43c5d3eb96dc5fb2212}} 
+{\footnotesize template$<$typename F $>$ }\\auto {\bfseries push} (F \&\&f) -\/$>$ std\+::future$<$ decltype(f(0))$>$
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/tom/\+Documents/programming/romulo\+\_\+blazingsql/blazingsql/engine/src/utilities/ctpl\+\_\+stl.\+h\end{DoxyCompactItemize}

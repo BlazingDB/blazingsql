@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="dir_996f45160da62e1a3d7f6046fad68f51" kind="dir">
+    <compoundname>/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine</compoundname>
+    <innerdir refid="dir_3d9126aa00c041bc0b8f859d1965a0f4">/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/"/>
+  </compounddef>
+</doxygen>

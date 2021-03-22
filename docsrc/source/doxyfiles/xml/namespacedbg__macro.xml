@@ -1,0 +1,320 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespacedbg__macro" kind="namespace" language="C++">
+    <compoundname>dbg_macro</compoundname>
+    <innerclass refid="classdbg__macro_1_1DebugOutput" prot="public">dbg_macro::DebugOutput</innerclass>
+    <innerclass refid="structdbg__macro_1_1has__begin__end__size" prot="public">dbg_macro::has_begin_end_size</innerclass>
+    <innernamespace refid="namespacedbg__macro_1_1detail__detector">dbg_macro::detail_detector</innernamespace>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="dbg_8hpp_1a3d5961fae5aaaacb8b2f5bf549eaa4e4" prot="public" static="no">
+        <type>typename <ref refid="structdbg__macro_1_1detail__detector_1_1detector" kindref="compound">detail_detector::detector</ref>&lt; <ref refid="structdbg__macro_1_1detail__detector_1_1nonesuch" kindref="compound">detail_detector::nonesuch</ref>, void, Op, Args... &gt;::value_t</type>
+        <definition>using dbg_macro::is_detected = typedef typename detail_detector::detector&lt;detail_detector::nonesuch, void, Op, Args...&gt;::value_t</definition>
+        <argsstring></argsstring>
+        <name>is_detected</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="118" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="dbg_8hpp_1a5fccea185f880b828afeaf9121a07eb3" prot="public" static="no">
+        <type>decltype(begin(std::declval&lt; T &gt;()))</type>
+        <definition>using dbg_macro::detect_begin_t = typedef decltype(begin(std::declval&lt;T&gt;()))</definition>
+        <argsstring></argsstring>
+        <name>detect_begin_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="123" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="dbg_8hpp_1af741237ad6c9ecc9146e511f9b5f2617" prot="public" static="no">
+        <type>decltype(end(std::declval&lt; T &gt;()))</type>
+        <definition>using dbg_macro::detect_end_t = typedef decltype(end(std::declval&lt;T&gt;()))</definition>
+        <argsstring></argsstring>
+        <name>detect_end_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="126" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="dbg_8hpp_1a7aa5f53d554fd9d654d9d16a7d7f7f05" prot="public" static="no">
+        <type>decltype(std::declval&lt; T &gt;().size())</type>
+        <definition>using dbg_macro::detect_size_t = typedef decltype(std::declval&lt;T&gt;().size())</definition>
+        <argsstring></argsstring>
+        <name>detect_size_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="129" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="129" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="dbg_8hpp_1a4166480f854c53ec062cf61c871087fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>const char *</type>
+        <definition>const char* dbg_macro::type_name_impl</definition>
+        <argsstring>()</argsstring>
+        <name>type_name_impl</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="50" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="50" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a829df0c4b81fd3769d3712023397964e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>std::string</type>
+        <definition>std::string dbg_macro::type_name</definition>
+        <argsstring>()</argsstring>
+        <name>type_name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="63" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="63" bodyend="81"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a655d7497da1e6d375b19ac6e1a5e8293" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+        </templateparamlist>
+        <type>std::string</type>
+        <definition>std::string dbg_macro::type_name&lt; std::string &gt;</definition>
+        <argsstring>()</argsstring>
+        <name>type_name&lt; std::string &gt;</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="84" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="84" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a8cd9706dcf99965377842446769f3527" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>std::enable_if&lt;!<ref refid="structdbg__macro_1_1has__begin__end__size" kindref="compound">has_begin_end_size</ref>&lt; T &gt;::value, bool &gt;::type</type>
+        <definition>std::enable_if&lt;!has_begin_end_size&lt;T&gt;::value, bool&gt;::type dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, const T &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const T &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="141" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="141" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1ae827cdc8b6fe9b66cc015cdcb17f89ac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, const bool &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const bool &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="148" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="148" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a7d2713ea440a6f885567be1f4b983e98" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, const char &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const char &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="154" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="154" bodyend="157"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a4f8125f57f1a6411a815ff14b0585d25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename P</type>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, P *const &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>P *const &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="160" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="160" bodyend="167"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1aead8b7b31ac4e59314cb6dd0559cc199" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>int</type>
+            <declname>N</declname>
+            <defname>N</defname>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, const char(&amp;value)[N])</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const char(&amp;)</type>
+          <declname>value</declname>
+          <array>[N]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="170" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="170" bodyend="173"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1aa9fdf7314d3ed417ce417e2d54d94b3e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, const char *const &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const char *const &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="176" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="176" bodyend="179"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a47085a02f3d4771e8a32b62147566d1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename Container</type>
+          </param>
+        </templateparamlist>
+        <type>std::enable_if&lt; <ref refid="structdbg__macro_1_1has__begin__end__size" kindref="compound">has_begin_end_size</ref>&lt; Container &gt;::value, bool &gt;::type</type>
+        <definition>std::enable_if&lt;has_begin_end_size&lt;Container&gt;::value, bool&gt;::type dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, Container const &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>Container const &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="198" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="198" bodyend="217"/>
+      </memberdef>
+      <memberdef kind="function" id="dbg_8hpp_1a6fdcf2651bcb47e3d703dccd86e14ad7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool dbg_macro::prettyPrint</definition>
+        <argsstring>(std::ostream &amp;stream, const std::string &amp;value)</argsstring>
+        <name>prettyPrint</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="220" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" bodystart="220" bodyend="223"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/transport/common/dbg.hpp" line="45" column="1"/>
+  </compounddef>
+</doxygen>

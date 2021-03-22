@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overview &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.4eb26a98c046fa117c2b75e31c15adbb.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.3edd59071b60732de7f5.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interops" href="interops.html" />
+    <link rel="prev" title="Task Executor" href="executor.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../getting_started/index.html">Getting started</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="index.html">Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../xml/library_root.html">Library API</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+          
+            
+                <li class="">
+                    <a href="overview.html">Overview</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="arch.html">Technology Stack</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="caches.html">Caches</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="communication.html">Communication</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="data_structures.html">Data Structures</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="executor.html">Task Executor</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Overview</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="interops.html">Interops</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="io.html">I/O</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="kernels.html">Kernels</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="memory_management.html">Memory Management</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="relational_algebra.html">Relational algebra</a>
+                </li>
+            
+          
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#sql-query-to-relational-algrbra" class="nav-link">SQL Query to relational algrbra</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#execution-graph-dag-of-kernels-and-caches" class="nav-link">Execution Graph: DAG of Kernels and Caches</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#kernels" class="nav-link">Kernels</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#task-executor-and-tasks" class="nav-link">Task Executor and Tasks</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/engine/graph.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="sql-query-to-relational-algrbra">
+<h2>SQL Query to relational algrbra<a class="headerlink" href="#sql-query-to-relational-algrbra" title="Permalink to this headline">¶</a></h2>
+<p>When a user runs a query using <cite>bc.sql(query)</cite>, that query is sent to Apache Calcite
+where it is parsed into relational algebra and then optimized. That optimized
+algebra comes back into python and can always be viewed by calling
+<cite>bc.explain(query)</cite>. The optimized relational algebra is sent via dask to each
+of its workers along with sources of information (cudfs, or files).</p>
+<p>On each worker the relational algebra is converted into a physical plan. Every
+relational algebra step maps to 1 or more physical plan steps. That physical
+plan is then used to construct an execution graph which is a DAG of Kernels and Caches.</p>
+</div>
+<div class="section" id="execution-graph-dag-of-kernels-and-caches">
+<h2>Execution Graph: DAG of Kernels and Caches<a class="headerlink" href="#execution-graph-dag-of-kernels-and-caches" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="resources/join_example.jpg"><img alt="A drawing of two nodes executing a Scan kernel, followed by a hash partition kernel that scatters data between the two nodes followed by a Join kernel." src="resources/join_example.jpg" style="width: 800px;" /></a>
+<p>The execution graph is a directed acyclic graph with nodes that are kernels and caches that are edges.
+The above image gives a good overview of how we try to organize various operations that need to be performed on one or more dataframes or groups of files.
+Every kernel is connected to every other kernel only through a cache. The purpose of the cache is to hold data as a CacheData between computational stages.
+CacheData objects can move data between different memory layers, so that the data processing algorithms performed can scale to beyond what one single memory
+layer can hold. All Kernels implement the <a class="reference external" href="api/classral_1_1cache_1_1kernel.html">Kernel</a> interface or one of their derived classes.
+A kernels purpose is to organize the flow and orchestration of performing complex distributed operations but it does not perform any of the execution itself.
+Instead, it generates tasks which are sent to the Task Executor, which is the one which will perform the execution itself.
+The final output of a DAG of kernels and caches is a Cache which will contain the result.</p>
+<p>The Kernels push information forward into caches and kernels pull those cached data representations to get inputs. They are decached only right before
+computation is about to take place.</p>
+<ul class="simple">
+<li><p>The engine operates on partitions of data that form part of one larger distributed DataFrame.</p></li>
+<li><p>That data can reside in GPU, CPU, in local file systems or on distributed file systems like hdfs.</p></li>
+<li><p>The data can currently only be operated on using a GPU</p></li>
+<li><p>The DAG is homogenous across the nodes</p></li>
+<li><p>Data only moves from one kernel to another through a Cache.</p></li>
+</ul>
+<div class="section" id="kernels">
+<h3>Kernels<a class="headerlink" href="#kernels" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="kernels.html"><span class="doc">Kernels Main Page</span></a></p>
+<ul class="simple">
+<li><p>Know what transformations are taking place.</p></li>
+<li><p>Is not responsible for invoking the execution though it has a function do_process which every kernel must implement.</p></li>
+<li><p>Keeps track of a tasks completion or failure state.</p></li>
+<li><p>Can change the implementation of the algorithm they are providing depending on characteristics of the data, topology and resources</p></li>
+<li><p>Could easily be expanded upon to create kernels that target multiple backends</p></li>
+</ul>
+<p>The kernel being ignorant of what is coming through it allows it to be more concerned with the logical execution of a plan without being tied to one specific execution model. Given that we currently only support the CUDA execution model we have yet to fully seperate these concerns.</p>
+<p>A list of the kernels can be found by looking at the derived types found in <a class="reference external" href="api/classral_1_1cache_1_1kernel.html">Kernels</a> and <a class="reference external" href="api/classral_1_1cache_1_1distributing__kernel.html">Distributing Kernels</a></p>
+</div>
+</div>
+<div class="section" id="task-executor-and-tasks">
+<h2>Task Executor and Tasks<a class="headerlink" href="#task-executor-and-tasks" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="executor.html"><span class="doc">Task Executor Page</span></a></p>
+<p>The task executor’s job is to take all of the jobs in the queue and actually schedule them to run on the hardware that we are targetting. Currently we only target Nvidia GPUs with our executor. It manages access to resources like system and gpu memory and limits the number of tasks that are being executed concurrently. It also is what provides the ability to retry operations that failed due to lack of resources that can be retried when resources are more plentiful.</p>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="executor.html" title="previous page">Task Executor</a>
+    <a class='right-next' id="next-link" href="interops.html" title="next page">Interops</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.3edd59071b60732de7f5.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

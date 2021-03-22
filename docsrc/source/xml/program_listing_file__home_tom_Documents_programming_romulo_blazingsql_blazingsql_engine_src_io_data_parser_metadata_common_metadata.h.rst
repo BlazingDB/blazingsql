@@ -1,0 +1,28 @@
+
+.. _program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_common_metadata.h:
+
+Program Listing for File common_metadata.h
+==========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_data_parser_metadata_common_metadata.h>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #ifndef METADATA_H_
+   #define METADATA_H_
+   
+   #include "execution_graph/logic_controllers/LogicPrimitives.h"
+   
+   std::unique_ptr<ral::frame::BlazingTable> make_dummy_metadata_table_from_col_names(std::vector<std::string> col_names);
+   
+   std::unique_ptr<cudf::column> make_cudf_column_from_vector(
+       cudf::data_type dtype, std::basic_string<char> &vector, unsigned long column_size);
+   
+   std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type);
+   
+   std::basic_string<char> get_typed_vector_content(
+       cudf::type_id dtype, std::vector<int64_t> &vector);
+   
+   #endif  // METADATA_H_

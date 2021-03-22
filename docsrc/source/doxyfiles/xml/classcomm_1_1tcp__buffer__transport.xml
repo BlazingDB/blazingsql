@@ -1,0 +1,239 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="classcomm_1_1tcp__buffer__transport" kind="class" language="C++" prot="public">
+    <compoundname>comm::tcp_buffer_transport</compoundname>
+    <basecompoundref refid="classcomm_1_1buffer__transport" prot="public" virt="non-virtual">comm::buffer_transport</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classcomm_1_1tcp__buffer__transport_1a957059564a4eed82af748d1963cbfb1c" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::tcp_buffer_transport::ral_id</definition>
+        <argsstring></argsstring>
+        <name>ral_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="152" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="152" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1tcp__buffer__transport_1ab8a37bd6993e48d6faf5b4a3301b886f" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int comm::tcp_buffer_transport::message_id</definition>
+        <argsstring></argsstring>
+        <name>message_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="153" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="153" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1tcp__buffer__transport_1a42943e2ecb7a671b1ab685a32f535a9c" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; int &gt;</type>
+        <definition>std::vector&lt;int&gt; comm::tcp_buffer_transport::socket_fds</definition>
+        <argsstring></argsstring>
+        <name>socket_fds</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="154" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="154" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classcomm_1_1tcp__buffer__transport_1a8252e8b22cf11dc60bd084685f21b411" prot="private" static="no" mutable="no">
+        <type><ref refid="classctpl_1_1thread__pool" kindref="compound">ctpl::thread_pool</ref>&lt; BlazingThread &gt; *</type>
+        <definition>ctpl::thread_pool&lt;BlazingThread&gt;* comm::tcp_buffer_transport::allocate_copy_buffer_pool</definition>
+        <argsstring></argsstring>
+        <name>allocate_copy_buffer_pool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="155" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="155" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classcomm_1_1tcp__buffer__transport_1a612b73b9fd1cc8fc656e6073bf25bd4e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::tcp_buffer_transport::tcp_buffer_transport</definition>
+        <argsstring>(std::vector&lt; node &gt; destinations, ral::cache::MetadataDictionary metadata, std::vector&lt; size_t &gt; buffer_sizes, std::vector&lt; blazingdb::transport::ColumnTransport &gt; column_transports, std::vector&lt; ral::memory::blazing_chunked_column_info &gt; chunked_column_infos, int ral_id, ctpl::thread_pool&lt; BlazingThread &gt; *allocate_copy_buffer_pool, bool require_acknowledge)</argsstring>
+        <name>tcp_buffer_transport</name>
+        <param>
+          <type>std::vector&lt; <ref refid="classcomm_1_1node" kindref="compound">node</ref> &gt;</type>
+          <declname>destinations</declname>
+        </param>
+        <param>
+          <type><ref refid="classral_1_1cache_1_1MetadataDictionary" kindref="compound">ral::cache::MetadataDictionary</ref></type>
+          <declname>metadata</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; size_t &gt;</type>
+          <declname>buffer_sizes</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; <ref refid="structblazingdb_1_1transport_1_1ColumnTransport" kindref="compound">blazingdb::transport::ColumnTransport</ref> &gt;</type>
+          <declname>column_transports</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; <ref refid="structral_1_1memory_1_1blazing__chunked__column__info" kindref="compound">ral::memory::blazing_chunked_column_info</ref> &gt;</type>
+          <declname>chunked_column_infos</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ral_id</declname>
+        </param>
+        <param>
+          <type><ref refid="classctpl_1_1thread__pool" kindref="compound">ctpl::thread_pool</ref>&lt; BlazingThread &gt; *</type>
+          <declname>allocate_copy_buffer_pool</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>require_acknowledge</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="134" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="379" bodyend="419"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1tcp__buffer__transport_1a54b7c456f0b4c226f6f5db545dded67a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>comm::tcp_buffer_transport::~tcp_buffer_transport</definition>
+        <argsstring>()</argsstring>
+        <name>~tcp_buffer_transport</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="143" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="461" bodyend="465"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1tcp__buffer__transport_1aa2a4513884e0e8e6b9996bb800d12dcf" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void comm::tcp_buffer_transport::send_begin_transmission</definition>
+        <argsstring>() override</argsstring>
+        <name>send_begin_transmission</name>
+        <reimplements refid="classcomm_1_1buffer__transport_1a0ea6dd0f6412b2422cc47706ad34dad9">send_begin_transmission</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="145" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="421" bodyend="436"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classcomm_1_1tcp__buffer__transport_1a1b9b0e80fbdf55c5217446ad025b47bd" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void comm::tcp_buffer_transport::send_impl</definition>
+        <argsstring>(const char *buffer, size_t buffer_size) override</argsstring>
+        <name>send_impl</name>
+        <reimplements refid="classcomm_1_1buffer__transport_1a7c4d1651a8af5965619c9e37b225859d">send_impl</reimplements>
+        <param>
+          <type>const char *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>buffer_size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="148" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="443" bodyend="459"/>
+      </memberdef>
+      <memberdef kind="function" id="classcomm_1_1tcp__buffer__transport_1a55d958a8177cb50981ca4e615a2e5669" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void comm::tcp_buffer_transport::receive_acknowledge</definition>
+        <argsstring>()</argsstring>
+        <name>receive_acknowledge</name>
+        <reimplements refid="classcomm_1_1buffer__transport_1a6aa1fb3a4543ace7e5c06914252a02e4">receive_acknowledge</reimplements>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="149" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp" bodystart="437" bodyend="441"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="409">
+        <label>comm::buffer_transport</label>
+        <link refid="classcomm_1_1buffer__transport"/>
+      </node>
+      <node id="408">
+        <label>comm::tcp_buffer_transport</label>
+        <link refid="classcomm_1_1tcp__buffer__transport"/>
+        <childnode refid="409" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="411">
+        <label>comm::buffer_transport</label>
+        <link refid="classcomm_1_1buffer__transport"/>
+        <childnode refid="412" relation="usage">
+          <edgelabel>metadata</edgelabel>
+        </childnode>
+      </node>
+      <node id="410">
+        <label>comm::tcp_buffer_transport</label>
+        <link refid="classcomm_1_1tcp__buffer__transport"/>
+        <childnode refid="411" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="412">
+        <label>ral::cache::MetadataDictionary</label>
+        <link refid="classral_1_1cache_1_1MetadataDictionary"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" line="131" column="1" bodyfile="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp" bodystart="131" bodyend="157"/>
+    <listofallmembers>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a8252e8b22cf11dc60bd084685f21b411" prot="private" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>allocate_copy_buffer_pool</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a3bf404422bf786f01a45066f48a751c6" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>buffer_sent</name></member>
+      <member refid="classcomm_1_1buffer__transport_1ae01314b9b03cd1278a20996dafc4dcb0" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>buffer_sizes</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a012bb1c7d1f7a2e9512815cafd95ef80" prot="public" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>buffer_transport</name></member>
+      <member refid="classcomm_1_1buffer__transport_1aa02f7f37ea5c8c4343e3289d6b9e132c" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>chunked_column_infos</name></member>
+      <member refid="classcomm_1_1buffer__transport_1ad5104419e3ecfca874534e12804b48fc" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>column_transports</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a57085a949db7cafedccdd6ce8db29b9e" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>completion_condition_variable</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a625bc455a5fc03c79cb4501c6b993aa8" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>destinations</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a81080122f0355dae745d7bf6453152a8" prot="public" virt="virtual"><scope>comm::tcp_buffer_transport</scope><name>increment_begin_transmission</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a3b921d1808fb74d95f83146de5269cb6" prot="public" virt="virtual"><scope>comm::tcp_buffer_transport</scope><name>increment_frame_transmission</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1ab8a37bd6993e48d6faf5b4a3301b886f" prot="private" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>message_id</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a0b3c07ac433f3c7b114e677f399e3210" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>metadata</name></member>
+      <member refid="classcomm_1_1buffer__transport_1aaef40e35a9a214ecb83d44493937449e" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>mutex</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a957059564a4eed82af748d1963cbfb1c" prot="private" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>ral_id</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a55d958a8177cb50981ca4e615a2e5669" prot="protected" virt="virtual"><scope>comm::tcp_buffer_transport</scope><name>receive_acknowledge</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a089d28bc6f8f3eac8a89705bd7391a30" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>require_acknowledge</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a0a7ae6691d0a182c4567f3001f96aefe" prot="public" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>send</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1aa2a4513884e0e8e6b9996bb800d12dcf" prot="public" virt="virtual"><scope>comm::tcp_buffer_transport</scope><name>send_begin_transmission</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a1b9b0e80fbdf55c5217446ad025b47bd" prot="protected" virt="virtual"><scope>comm::tcp_buffer_transport</scope><name>send_impl</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a42943e2ecb7a671b1ab685a32f535a9c" prot="private" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>socket_fds</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a612b73b9fd1cc8fc656e6073bf25bd4e" prot="public" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>tcp_buffer_transport</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a22e84756f6b66324df67bdd556600c19" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>transmitted_acknowledgements</name></member>
+      <member refid="classcomm_1_1buffer__transport_1af9c04a8af736e05980d62b7448142b30" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>transmitted_begin_frames</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a1c8254316bfcb05204a196bece986f68" prot="protected" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>transmitted_frames</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a6388e67a79f9a5c2e80ed45b23e6327c" prot="public" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>wait_for_begin_transmission</name></member>
+      <member refid="classcomm_1_1buffer__transport_1aef710177ed4367311b1d8e70acead7c2" prot="public" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>wait_until_complete</name></member>
+      <member refid="classcomm_1_1buffer__transport_1a26262247b49fe649d2b1c62e4b7dfb90" prot="public" virt="virtual"><scope>comm::tcp_buffer_transport</scope><name>~buffer_transport</name></member>
+      <member refid="classcomm_1_1tcp__buffer__transport_1a54b7c456f0b4c226f6f5db545dded67a" prot="public" virt="non-virtual"><scope>comm::tcp_buffer_transport</scope><name>~tcp_buffer_transport</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

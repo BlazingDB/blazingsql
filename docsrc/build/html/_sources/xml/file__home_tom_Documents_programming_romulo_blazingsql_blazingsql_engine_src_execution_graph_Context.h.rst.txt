@@ -1,0 +1,92 @@
+
+.. _file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_Context.h:
+
+File Context.h
+==============
+
+|exhale_lsh| :ref:`Parent directory <dir__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph>` (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/execution_graph/Context.h``)
+------------------------------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_Context.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``map``
+
+- ``mutex``
+
+- ``transport/Node.h`` (:ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_transport_Node.h`)
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_io_DataLoader.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_CalciteInterpreter.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_CacheData.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalFilter.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_distribution_primitives.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_Context.cpp`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_execution_graph_logic_controllers_LogicalProject.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_GroupBy.h`
+
+- :ref:`file__home_tom_Documents_programming_romulo_blazingsql_blazingsql_engine_src_operators_OrderBy.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_blazingdb`
+
+- :ref:`namespace_blazingdb__manager`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classblazingdb_1_1manager_1_1Context`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70`
+

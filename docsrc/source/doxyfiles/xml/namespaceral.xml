@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="namespaceral" kind="namespace" language="C++">
+    <compoundname>ral</compoundname>
+    <innerclass refid="classral_1_1MemoryMonitor" prot="public">ral::MemoryMonitor</innerclass>
+    <innernamespace refid="namespaceral_1_1batch">ral::batch</innernamespace>
+    <innernamespace refid="namespaceral_1_1cache">ral::cache</innernamespace>
+    <innernamespace refid="namespaceral_1_1communication">ral::communication</innernamespace>
+    <innernamespace refid="namespaceral_1_1distribution">ral::distribution</innernamespace>
+    <innernamespace refid="namespaceral_1_1execution">ral::execution</innernamespace>
+    <innernamespace refid="namespaceral_1_1frame">ral::frame</innernamespace>
+    <innernamespace refid="namespaceral_1_1io">ral::io</innernamespace>
+    <innernamespace refid="namespaceral_1_1memory">ral::memory</innernamespace>
+    <innernamespace refid="namespaceral_1_1operators">ral::operators</innernamespace>
+    <innernamespace refid="namespaceral_1_1parser">ral::parser</innernamespace>
+    <innernamespace refid="namespaceral_1_1processor">ral::processor</innernamespace>
+    <innernamespace refid="namespaceral_1_1skip__data">ral::skip_data</innernamespace>
+    <innernamespace refid="namespaceral_1_1utilities">ral::utilities</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/tom/Documents/programming/romulo_blazingsql/blazingsql/engine/src/bmr/BufferProvider.cpp" line="16" column="1"/>
+  </compounddef>
+</doxygen>
