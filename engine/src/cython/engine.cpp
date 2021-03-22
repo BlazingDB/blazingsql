@@ -7,12 +7,8 @@
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
-#include "../io/data_parser/sql/MySQLParser.h"
-#include "../io/data_parser/sql/SQLiteParser.h"
 #include "../io/data_provider/GDFDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
-#include "../io/data_provider/sql/MySQLDataProvider.h"
-#include "../io/data_provider/sql/SQLiteDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
 
@@ -24,6 +20,15 @@
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
 
+#ifdef MYSQL_SUPPORT
+#include "../io/data_parser/sql/MySQLParser.h"
+#include "../io/data_provider/sql/MySQLDataProvider.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include "../io/data_parser/sql/SQLiteParser.h"
+#include "../io/data_provider/sql/SQLiteDataProvider.h"
+#endif
 
 using namespace fmt::literals;
 
@@ -73,17 +78,21 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		} else if(fileType == ral::io::DataType::MYSQL) {
+#ifdef MYSQL_SUPPORT
       parser = std::make_shared<ral::io::mysql_parser>();
       auto sql = ral::io::getSqlInfo(args_map);
       provider = std::make_shared<ral::io::mysql_data_provider>(sql);
       isSqlProvider = true;
+#endif
     } else if(fileType == ral::io::DataType::SQLITE) {
+#ifdef SQLITE_SUPPORT
   //		parser = std::make_shared<ral::io::sqlite_parser>();
   //    auto sql = ral::io::getSqlInfo(args_map);
   //    provider = std::make_shared<ral::io::sqlite_data_provider>(sql.schema,
   //                                                               sql.table,
   //                                                               sql.table_filter,                                                          sql.table_batch_size);
   //    isSqlProvider = true;
+#endif
     }
 
 		std::vector<Uri> uris;

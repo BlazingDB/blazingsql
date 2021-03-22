@@ -107,6 +107,10 @@ option(BUILD_BENCHMARKS "Configure CMake to build (google) benchmarks" OFF)
 option(GCS_SUPPORT "Enables support for GCS fileSystem" ON)
 option(S3_SUPPORT "Enables support for S3 fileSystem" ON)
 
+option(MYSQL_SUPPORT "Enables support for MySQL database" ON)
+option(SQLITE_SUPPORT "Enables support for SQLite database" ON)
+option(POSTGRESQL_SUPPORT "Enables support for Postgre database" ON)
+
 ###################################################################################################
 # - cudart options --------------------------------------------------------------------------------
 # cudart can be statically linked or dynamically linked. The python ecosystem wants dynamic linking
@@ -255,16 +259,10 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/AbstractSQLDataProvider.cpp
-              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
-              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
-              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/AbstractSQLParser.cpp
-              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp
-              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp
-              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
@@ -309,13 +307,52 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp              
         )
 
+if(MYSQL_SUPPORT)
+    add_definitions(-DMYSQL_SUPPORT)
+    set(MYSQL_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp)
+    set(MYSQL_LIBRARY libmysqlcppconn-static.a)
+    message(STATUS "MySQL support is enabled!")
+else()
+    message(STATUS "MySQL support is disabled!")
+endif()
+
+if(SQLITE_SUPPORT)
+    add_definitions(-DSQLITE_SUPPORT)
+    set(SQLITE_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
+    set(SQLITE_LIBRARY libsqlite3.a)
+    message(STATUS "SQLite support is enabled!")
+else()
+    message(STATUS "SQLite support is disabled!")
+endif()
+
+if(POSTGRESQL_SUPPORT)
+    add_definitions(-DPOSTGRESQL_SUPPORT)
+    set(SQLITE_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
+    # TODO percy c.gonzales
+    #set(POSTGRESQL_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
+    message(STATUS "PostgreSQL support is enabled!")
+else()
+    message(STATUS "MyPostgreSQL support is disabled!")
+endif()
+
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
 # These new var are for custom build process (powerpc)
 link_directories($ENV{SNAPPY_INSTALL_DIR})
 link_directories($ENV{LZ4_INSTALL_DIR})
 
-add_library(blazingsql-engine SHARED ${SRC_FILES})
+add_library(blazingsql-engine SHARED
+    ${SRC_FILES}
+    ${MYSQL_DATABASE_SRC_FILES}
+    ${SQLITE_DATABASE_SRC_FILES}
+    ${POSTGRESQL_SRC_FILES}
+)
 
 if(GCS_SUPPORT)
     find_package(storage_client REQUIRED)
@@ -361,9 +398,9 @@ target_link_libraries(blazingsql-engine
     gcov
     
     # TODO percy use cmake::find
-    # sql deps
-    libmysqlcppconn-static.a
-    libsqlite3.so
+    ${MYSQL_LIBRARY}
+    ${SQLITE_LIBRARY}
+    ${POSTGRESQL_LIBRARY}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")

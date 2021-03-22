@@ -26,6 +26,8 @@ requirements:
         - gtest 1.10
         - aws-sdk-cpp
         - google-cloud-cpp 1.16.0
+        - mysql-connector-cpp 8
+        - sqlite 3
         - cppzmq
         - python
         - setuptools

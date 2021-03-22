@@ -5,16 +5,22 @@
 #include "../io/data_parser/JSONParser.h"
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ParquetParser.h"
-#include "../io/data_parser/sql/MySQLParser.h"
-#include "../io/data_provider/sql/MySQLDataProvider.h"
-#include "../io/data_parser/sql/SQLiteParser.h"
-#include "../io/data_provider/sql/SQLiteDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"
 #include "parser/expression_tree.hpp"
 
 #include <blazingdb/io/Config/BlazingContext.h>
+
+#ifdef MYSQL_SUPPORT
+#include "../io/data_parser/sql/MySQLParser.h"
+#include "../io/data_provider/sql/MySQLDataProvider.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include "../io/data_parser/sql/SQLiteParser.h"
+#include "../io/data_provider/sql/SQLiteDataProvider.h"
+#endif
 
 using namespace fmt::literals;
 
@@ -61,17 +67,21 @@ TableSchema parseSchema(std::vector<std::string> files,
 	} else if(fileType == ral::io::DataType::CSV) {
 		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	} else if(fileType == ral::io::DataType::MYSQL) {
+#ifdef MYSQL_SUPPORT
 		parser = std::make_shared<ral::io::mysql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::mysql_data_provider>(sql);
+#endif
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::SQLITE) {
+#ifdef SQLITE_SUPPORT
 //		parser = std::make_shared<ral::io::sqlite_parser>();
 //    auto sql = ral::io::getSqlInfo(args_map);
 //    provider = std::make_shared<ral::io::sqlite_data_provider>(sql.schema,
 //                                                               sql.table,
 //                                                               sql.table_filter,                                                          sql.table_batch_size);
 //    isSqlProvider = true;
+#endif
   }
 
   if (!isSqlProvider) {

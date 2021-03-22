@@ -123,7 +123,7 @@ std::unique_ptr<cudf::column> build_str_cudf_col(size_t total_rows,
       //std::cout << std::string(buff[i]) << "\n";
   }
   cudf::test::strings_column_wrapper vals(buff, buff+total_rows, valids.begin());
-  return std::move(vals.release());
+  return vals.release();
 }
 
 cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
