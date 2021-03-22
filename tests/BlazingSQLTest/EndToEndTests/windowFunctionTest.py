@@ -1125,41 +1125,65 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_51"
-            query = """select min(o_orderkey) over
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                query = """select min(o_orderkey) over
+                                (
+                                    partition by o_orderstatus, o_clerk
+                                    order by o_orderdate
+                                    ROWS BETWEEN 2 PRECEDING
+                                    AND 1 FOLLOWING
+                                ) min_keys, 
+                            ) min_keys, 
+                                ) min_keys, 
+                                max(o_orderkey) over
+                                (
+                                    partition by o_orderstatus, o_clerk
+                                    order by o_orderdate
+                                    ROWS BETWEEN 2 PRECEDING
+                                    AND 1 FOLLOWING
+                                ) max_keys, o_orderkey, o_orderpriority
+                            from orders
+                            where o_orderpriority <> '2-HIGH'
+                            and o_clerk = 'Clerk#000000880'
+                            order by o_orderkey
+                            limit 50"""
+            else:
+                # NOTE: pyspark put the nulls at the begining and blazing to the end (as drill)
+                # so, we want make sure the orders are the same
+                query = """select min(o_orderkey) over
                             (
-                                partition by o_orderstatus, o_clerk
-                                order by o_orderdate
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice
                                 ROWS BETWEEN 2 PRECEDING
                                 AND 1 FOLLOWING
                             ) min_keys, 
                             max(o_orderkey) over
                             (
-                                partition by o_orderstatus, o_clerk
-                                order by o_orderdate
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice
                                 ROWS BETWEEN 2 PRECEDING
                                 AND 1 FOLLOWING
                             ) max_keys, o_orderkey, o_orderpriority
                         from orders
                         where o_orderpriority <> '2-HIGH'
                         and o_clerk = 'Clerk#000000880'
-                        order by o_orderkey
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        order by o_orderstatus, o_totalprice
                         limit 50"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    spark,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_52"
             query = """with new_nation as (
