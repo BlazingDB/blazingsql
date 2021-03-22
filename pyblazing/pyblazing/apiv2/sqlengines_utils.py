@@ -2,7 +2,6 @@ from typing import Any, AnyStr, Dict, TypedDict
 
 from pyblazing.apiv2 import DataType
 
-
 SQLEngineDataTypeMap = {
     "mysql": DataType.MYSQL,
     "sqlite": DataType.SQLITE,
