@@ -41,8 +41,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 
-            # TODO: BOUNDED/UNBOUNDED, ROW/RANGE: Calcite issue when get optimized plan
-
             # ------------------- ORDER BY ------------------------
             
             # queryId = "TEST_01"
@@ -1198,8 +1196,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_53"
             query = """select max(l_partkey) over
                             (
-                                partition by l_linestatus
-                                order by l_quantity desc, l_orderkey
+                                partition by l_suppkey, l_partkey, l_linenumber
+                                order by l_extendedprice desc, l_orderkey, l_quantity
                                 ROWS BETWEEN 6 PRECEDING
                                 AND 2 FOLLOWING
                             ) max_keys,
@@ -1207,24 +1205,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         from lineitem
                         where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
                         and l_linestatus = 'F'
-                        order by l_orderkey, max_keys
+                        -- as pyspark put the nulls at the begining and blazing to the end
+                        -- we want make sure the orders are the same
+                        and l_extendedprice is not null
+                        order by l_extendedprice, l_orderkey, max_keys
                         limit 50"""
 
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    spark,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             # using diffs columns to partition and first_value()
             queryId = "TEST_54"
