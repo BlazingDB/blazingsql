@@ -23,15 +23,18 @@ jobs:
       # Runs a single command using the runners shell
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: "apt -y install doxygen"
           build-command: "make html -e"
           docs-folder: "docsrc/"
+      - uses: mattnotmitt/doxygen-action@v1
+        with:
+          working-directory: 'docsrc/'
+          doxyfile-path: 'source/Doxyfile'
       - name: Commit documentation changes
         run: |
           git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch main --single-branch main
-          rm -rf docsrc/_build/html/xml
-          rm -rf docsrc/_build/html/_sources
-          cp -a docsrc/_build/html/. docs/
+          sudo rm -rf docsrc/build/html/xml
+          sudo rm -rf docsrc/build/html/_sources
+          cp -a docsrc/build/html/. docs/
           cp -a docsrc/doxyfiles/html/. docs/api/
           cd docs
           touch .nojekyll
