@@ -1,4 +1,4 @@
-from typing import Any, AnyStr, Dict, TypedDict
+import typing
 
 from pyblazing.apiv2 import DataType
 
@@ -10,7 +10,7 @@ SQLEngineDataTypeMap = {
 }
 
 
-class SQLEngineArgs(TypedDict):
+class SQLEngineArgs(typing.TypedDict):
     # TODO cris percy update the docs
     """Members:
         from_sql_engine(str): sql engine name (v.g. mysql, postgresql, sqlite.)
@@ -32,7 +32,9 @@ class SQLEngineArgs(TypedDict):
     sql_table_batch_size: int
 
 
-def GetSQLEngineArgs(kwargs: Dict[AnyStr, Any], sql_table) -> SQLEngineArgs:
+def GetSQLEngineArgs(
+    kwargs: typing.Dict[typing.AnyStr, typing.Any], sql_table
+) -> SQLEngineArgs:
     kwargs["sql_table"] = sql_table
     return SQLEngineArgs(**kwargs)
 
