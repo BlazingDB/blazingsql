@@ -1,6 +1,9 @@
 # Minimal makefile for Sphinx documentation
 #
 
+# Minimal makefile for Sphinx documentation
+#
+
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?=
@@ -18,3 +21,10 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+doxygen:
+	@doxygen "$(SOURCEDIR)/Doxyfile"
+
+clean:
+	@rm	-rf	"$(BUILDDIR)" doxyfiles
+	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
