@@ -2267,7 +2267,7 @@ class BlazingContext(object):
                 )
             else:
                 table = BlazingTable(table_name, input, DataType.CUDF)
-        elif isinstance(input, list) and not "from_sql" in kwargs:
+        elif isinstance(input, list) and "from_sql" not in kwargs:
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
