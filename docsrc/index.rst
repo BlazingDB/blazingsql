@@ -29,6 +29,7 @@ BlazingSQL provides a high-performance distributed SQL engine in Python. Built o
    :caption: Contents:
 
    graph
+   api
    arch
    relational_algebra
    kernels
@@ -39,8 +40,6 @@ BlazingSQL provides a high-performance distributed SQL engine in Python. Built o
    communication
    interops
    api/library_root
-
-
 
 Indices and tables
 ==================

@@ -1,0 +1,7 @@
+alabaster==0.7.12
+breathe==4.27.0
+commonmark==0.9.1
+exhale==0.2.3
+recommonmark==0.7.1
+sphinx==3.4.3
+pydata-sphinx-theme==0.4.3
