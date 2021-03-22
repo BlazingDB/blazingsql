@@ -25,21 +25,12 @@ BlazingSQL provides a high-performance distributed SQL engine in Python. Built o
     # Display query results
 
 .. toctree::
-   :maxdepth: 10
+   :maxdepth: 3
    :caption: Contents:
 
-   graph
-   api
-   arch
-   relational_algebra
-   kernels
-   caches
-   executor
-   memory_management
-   data_structures
-   communication
-   interops
-   api/library_root
+   getting_started/index
+   engine/index
+   xml/library_root
 
 Indices and tables
 ==================
