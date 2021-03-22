@@ -4,7 +4,7 @@ from pyblazing.apiv2 import DataType
 
 
 SQLEngineDataTypeMap = {
-    'mysql': DataType.MYSQL,
+    "mysql": DataType.MYSQL,
     # TODO: support for more db engines
 }
 
@@ -43,22 +43,26 @@ class SQLEngineError(Exception):
     like mysql, postgresql, sqlite, etc.
     """
 
+
 class UnsupportedSQLEngineError(SQLEngineError):
     """When unrecognized sql engine is passed by user."""
+
     def __init__(self, engineName: str):
         self.engineName = engineName
 
     def __str__(self):
-        return (f'The sql engine "{self.engineName}" has no support'
-                ' or is no correct. The available engines are the following:'
-                f' {SQLEngineDataTypeMap.keys()}')
+        return (
+            f'The sql engine "{self.engineName}" has no support'
+            " or is no correct. The available engines are the following:"
+            f" {SQLEngineDataTypeMap.keys()}"
+        )
 
 
 class MissingSQLEngineArgError(SQLEngineError):
     """When an arg is not present in user kwargs. {@see SQLEngineArgs}"""
 
     def __init__(self, missingName: str):
-      self.missingName = missingName
+        self.missingName = missingName
 
     def __str__(self):
-      return f'Missing SQL engine argument {self.missingName}'
+        return f"Missing SQL engine argument {self.missingName}"

@@ -20,7 +20,8 @@ from pyblazing.apiv2.algebra import get_json_plan
 from pyblazing.apiv2.sqlengines_utils import (
     GetSQLEngineArgs,
     SQLEngineDataTypeMap,
-    UnsupportedSQLEngineError)
+    UnsupportedSQLEngineError,
+)
 
 import json
 import collections
@@ -924,7 +925,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "sql_password",
             "sql_schema",
             "sql_table_filter",
-            "sql_table_batch_size"
+            "sql_table_batch_size",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -1126,10 +1127,7 @@ class BlazingTable(object):
         nodeFilesList = []
         if self.files is None:
             for i in range(0, numSlices):
-                bt = BlazingTable(self.name,
-                                  self.input,
-                                  self.fileType,
-                                  args=self.args)
+                bt = BlazingTable(self.name, self.input, self.fileType, args=self.args)
                 bt.column_names = self.column_names
                 bt.column_types = self.column_types
                 nodeFilesList.append(bt)
@@ -2269,7 +2267,7 @@ class BlazingContext(object):
                 )
             else:
                 table = BlazingTable(table_name, input, DataType.CUDF)
-        elif isinstance(input, list) and not 'from_sql' in kwargs:
+        elif isinstance(input, list) and not "from_sql" in kwargs:
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
@@ -2457,27 +2455,30 @@ class BlazingContext(object):
                 table_name, input, DataType.DASK_CUDF, client=self.dask_client
             )
 
-        if 'from_sql' in kwargs:
-          sqlEngineName = kwargs['from_sql']
+        if "from_sql" in kwargs:
+            sqlEngineName = kwargs["from_sql"]
 
-          try:
-            sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
-          except KeyError as error:
-            raise UnsupportedSQLEngineError(sqlEngineName) from error
+            try:
+                sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
+            except KeyError as error:
+                raise UnsupportedSQLEngineError(sqlEngineName) from error
 
-          sqlEngineArgs = GetSQLEngineArgs(kwargs, input[0])
+            sqlEngineArgs = GetSQLEngineArgs(kwargs, input[0])
 
-          parsedSchema, _ = self._parseSchema(input, sqlEngineName, kwargs, [], False, [])
+            parsedSchema, _ = self._parseSchema(
+                input, sqlEngineName, kwargs, [], False, []
+            )
 
-          # TODO: merge parsed schema info about columns and types into tables
-          table = BlazingTable(table_name,
-                               input,
-                               sqlEngineDataType,
-                               args=sqlEngineArgs,
-                               client=self.dask_client)
-          table.column_names = parsedSchema["names"]
-          table.column_types = parsedSchema["types"]
-
+            # TODO: merge parsed schema info about columns and types into tables
+            table = BlazingTable(
+                table_name,
+                input,
+                sqlEngineDataType,
+                args=sqlEngineArgs,
+                client=self.dask_client,
+            )
+            table.column_names = parsedSchema["names"]
+            table.column_types = parsedSchema["types"]
 
         if table is not None:
             self.add_remove_table(table_name, True, table)
@@ -3083,8 +3084,9 @@ class BlazingContext(object):
                     currentTableNodes.append(query_table)
 
             elif (
-                query_table.fileType == DataType.MYSQL
-                #or query_table.fileType == DataType.
+                query_table.fileType
+                == DataType.MYSQL
+                # or query_table.fileType == DataType.
             ):
                 if query_table.has_metadata():
                     currentTableNodes = self._optimize_skip_data_getSlices(
