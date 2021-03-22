@@ -1,9 +1,0 @@
-<map id="ral::batch::PartwiseJoin::run" name="ral::batch::PartwiseJoin::run">
-<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="277,5,400,47"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="488,64,611,105"/>
-<area shape="rect" id="node4" href="$classral_1_1cache_1_1CacheData.html#a14a5b9fadf872c12d633e38bb6f9f07d" title="ral::cache::CacheData\l::num_rows" alt="" coords="262,123,415,164"/>
-<area shape="rect" id="node5" href="$classral_1_1cache_1_1CacheData.html#aaad8a726296574845f01f9380dcee40d" title="ral::cache::CacheData\l::sizeInBytes" alt="" coords="262,188,415,229"/>
-<area shape="rect" id="node6" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="239,253,439,295"/>
-<area shape="rect" id="node7" href="$classral_1_1cache_1_1kernel.html#af6b7b538f6a692393f314a4f1037d4a6" title="Adds a BlazingTable into the output cache. " alt="" coords="261,319,416,360"/>
-<area shape="rect" id="node8" href="$classral_1_1cache_1_1kernel.html#aa9e353759b65c2c53571cf80b0213d31" title="Returns the id message as a string. " alt="" coords="487,319,612,360"/>
-</map>

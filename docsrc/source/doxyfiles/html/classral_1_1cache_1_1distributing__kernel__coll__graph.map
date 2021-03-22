@@ -1,4 +1,0 @@
-<map id="ral::cache::distributing_kernel" name="ral::cache::distributing_kernel">
-<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html" title="This interface represents a computation unit in the execution graph. Each kernel has basically and in..." alt="" coords="97,5,219,32"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1port.html" title="This class represent a diccionary of tuples &lt;port_name, cache_machine&gt; used by each kernel (input and..." alt="" coords="181,117,290,143"/>
-</map>

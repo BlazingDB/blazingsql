@@ -1,4 +1,0 @@
-<map id="comm::tcp_buffer_transport" name="comm::tcp_buffer_transport">
-<area shape="rect" id="node2" href="$classcomm_1_1buffer__transport.html" title="Base class used to send a chunk of bytes throught a transport protocol e.g. TCP, UCP, etc. " alt="" coords="27,95,184,121"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1MetadataDictionary.html" title="ral::cache::MetadataDictionary" alt="" coords="5,5,205,32"/>
-</map>
