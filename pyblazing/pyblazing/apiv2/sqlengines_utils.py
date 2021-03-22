@@ -1,11 +1,13 @@
-from typing import Any, AnyStr, Dict, get_type_hints, TypedDict
+from typing import Any, AnyStr, Dict, TypedDict
 
 from pyblazing.apiv2 import DataType
 
 
 SQLEngineDataTypeMap = {
     "mysql": DataType.MYSQL,
-    # TODO: support for more db engines
+    "sqlite": DataType.SQLITE,
+    "postgresql": DataType.POSTGRESQL,
+    # TODO percy c.gonzales support for more db engines
 }
 
 
@@ -32,8 +34,6 @@ class SQLEngineArgs(TypedDict):
 
 
 def GetSQLEngineArgs(kwargs: Dict[AnyStr, Any], sql_table) -> SQLEngineArgs:
-    hintsDict = get_type_hints(SQLEngineArgs)
-    argsNames = hintsDict.keys()
     kwargs["sql_table"] = sql_table
     return SQLEngineArgs(**kwargs)
 
