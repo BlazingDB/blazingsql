@@ -93,6 +93,7 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
   TableInfo tableInfo = ExecuteTableInfo(connection, sql);
 
   column_names = tableInfo.column_names;
+  column_types = tableInfo.column_types;
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
