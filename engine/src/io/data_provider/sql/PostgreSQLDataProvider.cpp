@@ -10,10 +10,18 @@
 namespace ral {
 namespace io {
 
+namespace {
+
 const std::string MakePostgreSQLConnectionString(const sql_info &sql) {
   std::ostringstream os;
-  os << "dbname = " << sql.schema;
+  os << "host=" << sql.host
+     << " port=" << sql.port
+     << " dbname=" << sql.schema
+     << " user=" << sql.user
+     << " password=" << sql.password;
   return os.str();
+}
+
 }
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
@@ -27,6 +35,9 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
     throw std::runtime_error("Connection to database failed: " +
         std::string{PQerrorMessage(connection)});
   }
+
+  std::cout << "PostgreSQL version: "
+            << PQserverVersion(connection) << std::endl;
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
