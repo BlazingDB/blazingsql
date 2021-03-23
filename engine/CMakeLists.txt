@@ -256,13 +256,12 @@ endif()
 
 if(POSTGRESQL_SUPPORT)
     # TODO postgresql percy
-    #add_definitions(-DPOSTGRESQL_SUPPORT)
-    #set(POSTGRESQL_DATABASE_SRC_FILES
-    #    ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
-    #    ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
-    # TODO percy c.gonzales
-    #set(POSTGRESQL_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
-    #message(STATUS "PostgreSQL support is enabled!")
+    add_definitions(-DPOSTGRESQL_SUPPORT)
+    set(POSTGRESQL_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
+    set(POSTGRESQL_LIBRARY libpq.so)
+    message(STATUS "PostgreSQL support is enabled!")
 else()
     message(STATUS "MyPostgreSQL support is disabled!")
 endif()
