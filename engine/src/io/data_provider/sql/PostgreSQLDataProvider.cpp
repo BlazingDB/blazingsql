@@ -46,6 +46,21 @@ public:
   std::set<ColumnInfo> columnInfos;
 };
 
+TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
+  PGresult *result = PQexec(connection, MakeQueryForColumnsInfo(sql).c_str());
+  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    throw std::runtime_error("Error access for columns info");
+    PQclear(result);
+    PQfinish(connection);
+  }
+
+  TableInfo tableInfo{sql.table, std::set<ColumnInfo>{}};
+
+  for (int i = 0; i < PQntuples(result); i++) {}
+
+  return tableInfo;
+}
+
 }
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
@@ -63,15 +78,7 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
   std::cout << "PostgreSQL version: "
             << PQserverVersion(connection) << std::endl;
 
-  PGresult *result = PQexec(connection, MakeQueryForColumnsInfo(sql).c_str());
-  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-    throw std::runtime_error("Error access for columns info");
-    PQclear(result);
-    PQfinish(connection);
-  }
-
-  int resultNtuples = PQntuples(result);
-
+  TableInfo tableInfo = ExecuteTableInfo(sql);
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
