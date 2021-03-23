@@ -3,7 +3,6 @@
  *     Copyright 2021 Cristhian Alberto Gonzales Castillo <percy@blazingdb.com>
  */
 
-#include <set>
 #include <sstream>
 
 #include "PostgreSQLDataProvider.h"
@@ -34,16 +33,12 @@ const std::string MakeQueryForColumnsInfo(const sql_info &sql) {
   return os.str();
 }
 
-class ColumnInfo {
-public:
-  std::string name;
-  std::string type;
-};
-
 class TableInfo {
 public:
-  std::string tableName;
-  std::set<ColumnInfo> columnInfos;
+  std::vector<std::string> column_names;
+  std::vector<std::string> column_types;
+};
+
 };
 
 TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
@@ -54,9 +49,13 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
     PQfinish(connection);
   }
 
-  TableInfo tableInfo{sql.table, std::set<ColumnInfo>{}};
+  int resultNtuples = PQntuples(result);
+  TableInfo tableInfo;
 
-  for (int i = 0; i < PQntuples(result); i++) {}
+  tableInfo.column_names.reserve(resultNtuples);
+  tableInfo.column_types.reserve(resultNtuples);
+
+  for (int i = 0; i < resultNtuples; i++) {}
 
   return tableInfo;
 }
@@ -78,7 +77,9 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
   std::cout << "PostgreSQL version: "
             << PQserverVersion(connection) << std::endl;
 
-  TableInfo tableInfo = ExecuteTableInfo(sql);
+  TableInfo tableInfo = ExecuteTableInfo(connection, sql);
+
+  column_names = tableInfo.column_names;
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
