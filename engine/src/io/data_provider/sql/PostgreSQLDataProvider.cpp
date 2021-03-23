@@ -5,16 +5,27 @@
 
 #include "PostgreSQLDataProvider.h"
 
+#include <sstream>
+
 namespace ral {
 namespace io {
 
+const std::string MakePostgreSQLConnectionString(const sql_info &sql) {
+  std::ostringstream os;
+  os << "dbname = " << sql.schema;
+  return os.str();
+}
+
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
 	  : abstractsql_data_provider(sql) {
-  std::string dbname = "dbtest";
-  connection = PQconnectdb(("dbname = " + dbname).c_str());
+  connection = PQconnectdb(MakePostgreSQLConnectionString(sql).c_str());
 
   if (PQstatus(connection) != CONNECTION_OK) {
-    throw std::runtime_error("invalid postgresql connection");
+    std::cerr << "Connection to database failed: "
+              << PQerrorMessage(connection)
+              << std::endl; // TODO: build error messages by ostreams
+    throw std::runtime_error("Connection to database failed: " +
+        std::string{PQerrorMessage(connection)});
   }
 }
 
