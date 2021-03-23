@@ -22,6 +22,17 @@ const std::string MakePostgreSQLConnectionString(const sql_info &sql) {
   return os.str();
 }
 
+const std::string MakeQueryForColumnsInfo(const sql_info &sql) {
+  std::ostringstream os;
+  os << "select column_name, data_type"
+        " from information_schema.tables as tables"
+        " join information_schema.columns as columns"
+        " on tables.table_name = columns.table_name"
+        " where tables.table_catalog = '" <<  sql.schema
+     << "' and tables.table_name = '" << sql.table <<"'";
+  return os.str();
+}
+
 }
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
@@ -38,6 +49,13 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
 
   std::cout << "PostgreSQL version: "
             << PQserverVersion(connection) << std::endl;
+
+  PGresult *result = PQexec(connection, MakeQueryForColumnsInfo(sql).c_str());
+  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    throw std::runtime_error("Error access for columns info");
+    PQclear(result);
+    PQfinish(connection);
+  }
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
