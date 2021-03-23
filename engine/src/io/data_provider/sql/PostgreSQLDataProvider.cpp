@@ -1,6 +1,6 @@
 /*
  * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Cristhian Alberto Gonzales Castillo <percy@blazingdb.com>
+ *     Copyright 2021 Cristhian Alberto Gonzales Castillo <cristhian@blazingdb.com>
  */
 
 #include <sstream>
@@ -37,8 +37,6 @@ class TableInfo {
 public:
   std::vector<std::string> column_names;
   std::vector<std::string> column_types;
-};
-
 };
 
 TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {

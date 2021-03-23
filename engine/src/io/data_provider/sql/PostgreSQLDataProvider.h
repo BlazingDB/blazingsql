@@ -1,6 +1,6 @@
 /*
  * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Cristhian Alberto Gonzales Castillo <percy@blazingdb.com>
+ *     Copyright 2021 Cristhian Alberto Gonzales Castillo <cristhian@blazingdb.com>
  */
 
 #ifndef POSTGRESQLDATAPROVIDER_H_
