@@ -2285,12 +2285,12 @@ class BlazingContext(object):
                 )
 
             for p_schema, type_schema in extra_columns:
-                if 'names' in kwargs:
-                    found = p_schema in kwargs['names']
+                if "names" in kwargs:
+                    found = p_schema in kwargs["names"]
                     if found:
-                        id = kwargs['names'].index(p_schema)
-                        kwargs['names'].pop(id)
-                        kwargs['dtype'].pop(id)
+                        id = kwargs["names"].index(p_schema)
+                        kwargs["names"].pop(id)
+                        kwargs["dtype"].pop(id)
 
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
