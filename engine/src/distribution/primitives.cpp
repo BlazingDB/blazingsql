@@ -102,7 +102,6 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
 	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 
-
 	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
 	std::vector<Node> all_nodes = context->getAllNodes();
 

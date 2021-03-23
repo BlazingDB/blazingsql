@@ -21,13 +21,17 @@ enum AggregateKind{
 	COUNT_VALID,
 	COUNT_ALL,
 	COUNT_DISTINCT,
-	ROW_NUMBER
+	ROW_NUMBER,
+	LAG,
+	LEAD,
+	NTH_ELEMENT
 };
 
 namespace ral {
 namespace operators {
 
-	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input);
+	// offset param is needed for `LAG` and `LEAD` aggs
+	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input, int offset = 0);
 
 	AggregateKind get_aggregation_operation(std::string expression_in);
 
@@ -35,7 +39,7 @@ namespace operators {
 		parseGroupByExpression(const std::string & queryString, std::size_t num_cols);
 
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
-		modGroupByParametersForMerge(const std::vector<int> & group_column_indices, 
+		modGroupByParametersPostComputeAggregations(const std::vector<int> & group_column_indices, 
 		const std::vector<AggregateKind> & aggregation_types, const std::vector<std::string> & merging_column_names);
 
 	std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(

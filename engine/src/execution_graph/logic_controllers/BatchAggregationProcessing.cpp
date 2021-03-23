@@ -129,7 +129,7 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
     // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
     // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
     int num_partitions = this->context->getTotalNodes();
-    
+
     // If its an aggregation without group by we want to send all the results to the master node
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
     if (group_column_indices.size() == 0) {
@@ -168,10 +168,10 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
             std::vector<CudfTableView> partitioned;
             std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
             if (batch_view.num_rows() > 0) {
-                std::vector<cudf::size_type> hased_data_offsets;
-                std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
+                std::vector<cudf::size_type> hashed_data_offsets;
+                std::tie(hashed_data, hashed_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
                 // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-                std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+                std::vector<cudf::size_type> split_indexes(hashed_data_offsets.begin() + 1, hashed_data_offsets.end());
                 partitioned = cudf::split(hashed_data->view(), split_indexes);
             } else {
                 //  copy empty view
@@ -209,7 +209,9 @@ kstatus DistributeAggregateKernel::run() {
     std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
         aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression, cache_data->num_columns());
 
-    std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
+    // we want to update the `columns_to_hash` because the input could have more columns after ComputeAggregateKernel
+    std::tie(columns_to_hash, std::ignore, std::ignore, std::ignore) = ral::operators::modGroupByParametersPostComputeAggregations(group_column_indices,
+                                                                                             aggregation_types, cache_data->names());
 
     while(cache_data != nullptr ){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
@@ -307,7 +309,7 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
         std::vector<AggregateKind> mod_aggregation_types;
         std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
-            mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
+            mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersPostComputeAggregations(
             group_column_indices, aggregation_types, concatenated->names());
 
         std::unique_ptr<ral::frame::BlazingTable> columns = nullptr;

@@ -14,7 +14,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["customer"]
+        tables = ["customer", "nation"]
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -134,6 +134,38 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_06"
             query = "select floor(c_acctbal), c_acctbal from customer"
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+            
+            # This is not considered an unaryOp (-) query but need to be considered
+            queryId = "TEST_07"
+            query = "select n_nationkey, -n_nationkey from nation"
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # This is not considered an unaryOp (-) query but need to be considered
+            queryId = "TEST_08"
+            query = "select -(cast(n_nationkey as double)) from nation"
             runTest.run_query(
                 bc,
                 drill,

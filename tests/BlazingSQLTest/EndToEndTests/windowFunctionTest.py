@@ -39,11 +39,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             print("==============================")
 
-            # TODO: LAG() and LEAD(): Calcite issue when get optimized plan
-
             # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
-
-            # TODO: FIRST_VALUE() and LAST_VALUE(): cudf aggs no supported currently
 
             # TODO: BOUNDED/UNBOUNDED, ROW/RANGE: Calcite issue when get optimized plan
 
@@ -292,18 +288,23 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where l_partkey < 250
                         and l_linenumber > 4
                         order by l_orderkey, l_partkey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1409
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_14"
             query = """select sum(o_custkey) over 
@@ -426,6 +427,86 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_19"
+            query = """with first_window_order as (
+                            select max(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) o_max_prices,
+                                min(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) o_min_prices,
+                                o_orderkey, o_orderpriority, o_custkey,
+                                o_totalprice, o_clerk
+                            from orders
+                        ), order_operated as (
+                            select * from first_window_order
+                            where o_max_prices < 19750.0
+                            and o_clerk <> 'Clerk#000000880'
+                            and o_orderpriority in ('2-HIGH', '5-LOW')
+                            order by o_orderkey, o_custkey, o_totalprice
+                            limit 1250
+                        )
+                        select sum(o_max_prices) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) sum_max_prices,
+                               o_orderkey, o_min_prices, o_orderpriority from order_operated
+                        order by o_orderkey, o_min_prices, o_totalprice
+                        limit 450"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_20"
+            query = """with reduced_order as (
+                            select o_orderkey, o_custkey, o_orderpriority,
+                                o_orderstatus, o_totalprice, o_clerk
+                            from orders
+                            where o_totalprice < 1750.0
+                            and o_clerk <> 'Clerk#000000880'
+                            order by o_orderkey, o_custkey, o_totalprice
+                            limit 3500
+                        ), window_orders as (
+                            select min(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice
+                                ) o_min_prices,
+                                o_orderkey, o_orderpriority, o_orderstatus
+                            from reduced_order
+                        )
+                        select o_orderkey, o_min_prices, o_orderpriority
+                        from window_orders
+                        where o_orderstatus in ('O', 'F')
+                        and o_orderpriority = '2-HIGH'
+                        order by o_orderkey, o_min_prices"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # ------------ PARTITION BY + ORDER BY ----------------
 
             queryId = "TEST_21"
@@ -488,18 +569,23 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where o_totalprice < 1352.0
                         order by o_custkey, o_orderpriority, o_orderkey
                         limit 50"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1410
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_24"
             query = """select sum(n.n_nationkey) over 
@@ -565,18 +651,23 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         from customer
                         where c_acctbal < 95.0
                         order by c_custkey, row_num"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1411
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_27"
             query = """select row_number() over 
@@ -588,9 +679,95 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         from customer
                         where c_acctbal < 155.0
                         order by c_custkey, row_num desc"""
+
+            # TODO: Failed test with nulls
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_28"
+            query = """select lag(l_partkey, 2) over 
+                            (
+                                partition by l_linestatus
+                                order by l_orderkey, l_quantity desc
+                            ) lag_keys, 
+                            l_linestatus, l_partkey, l_extendedprice
+                        from lineitem
+                        where l_partkey < 750
+                        and l_linenumber >= 6
+                        order by l_extendedprice, l_partkey, lag_keys
+                        limit 30"""
             runTest.run_query(
                 bc,
-                drill,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_29"
+            query = """select lead(l_partkey, 3) over 
+                            (
+                                partition by l_linestatus
+                                order by l_extendedprice
+                            ) lead_keys, 
+                            l_linestatus, l_partkey, l_extendedprice
+                        from lineitem
+                        where l_partkey < 950
+                        and l_linenumber >= 7
+                        order by l_extendedprice, l_partkey
+                        limit 40"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_30"
+            query = """select (o_orderkey + o_custkey) as key_priority,
+                            max(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_max_prices,
+                            o_custkey + o_totalprice, 
+                            min(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_min_prices,
+                            o_custkey - o_totalprice + 5
+                        from orders
+                        where o_orderstatus not in ('O', 'F')
+                        and o_totalprice < 85000
+                        and o_orderpriority <> '2-HIGH'
+                        order by key_priority, o_max_prices"""
+            runTest.run_query(
+                bc,
+                spark,
                 query,
                 queryId,
                 queryType,
@@ -679,6 +856,426 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             runTest.run_query(
                 bc,
                 drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # NOTE: order by in the over clause is mandatory for spark
+            queryId = "TEST_34"
+            query = """select min(n_nationkey) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) min_keys,
+                            lag(n_nationkey, 2) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) lag_col,
+                            max(n_nationkey) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) max_keys,
+                            n_nationkey, n_name, n_regionkey
+                            from nation order by n_nationkey"""
+            runTest.run_query(
+               bc,
+               spark,
+               query,
+               queryId,
+               queryType,
+               worder,
+               "",
+               acceptable_difference,
+               use_percentage,
+               fileSchemaType,
+            )
+
+            queryId = "TEST_35"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 6000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority"""
+
+            # TODO: Failed test with nulls
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_36"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) sum_keys,
+                            lead(o_custkey, 3) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) lead_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 6000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority"""
+
+            # TODO: Failed test with nulls
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_37"
+            query = """select 
+                            max(n.n_nationkey) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) max_keys,
+                            lead(n.n_nationkey, 2) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) lead_keys,
+                            n.n_nationkey, l.l_extendedprice, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_partkey 
+                        order by l.l_extendedprice, l_comment
+                        limit 10"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # using the same column `c_nationkey` to partition
+            # and first_value()
+            queryId = "TEST_38"
+            query = """select first_value(c_nationkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_custkey desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 125.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # using the same column `c_nationkey` to partition
+            # and last_value()
+            queryId = "TEST_39"
+            query = """select last_value(c_nationkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_custkey desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 125.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_40"
+            query = """select 
+                            max(n.n_nationkey) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) max_keys,
+                            lead(n.n_nationkey, 2) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) lead_keys,
+                            first_value(n.n_nationkey) over
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) first_keys,
+                            last_value(n.n_nationkey) over
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) last_keys,
+                            n.n_nationkey, l.l_extendedprice, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_partkey 
+                        order by l.l_extendedprice, l_comment
+                        limit 10"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_41"
+            query = """select (o_orderkey + o_custkey) as key_priority,
+                            o_custkey + o_totalprice, 
+                            first_value(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_first_prices,
+                            o_custkey - o_totalprice + 6
+                        from orders
+                        where o_orderstatus not in ('O', 'F')
+                        and o_totalprice < 55000
+                        and o_orderpriority <> '2-HIGH'
+                        order by key_priority, o_first_prices"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # ------------ ROWS bounding ----------------
+
+            queryId = "TEST_50"
+            query = """select min(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                                ROWS BETWEEN 1 PRECEDING
+                                AND 1 FOLLOWING
+                            ) min_val,
+ 							n_nationkey, n_regionkey, n_name
+                        from nation order by n_nationkey"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_51"
+            query = """select min(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_clerk
+                                order by o_orderdate
+                                ROWS BETWEEN 2 PRECEDING
+                                AND 1 FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_clerk
+                                order by o_orderdate
+                                ROWS BETWEEN 2 PRECEDING
+                                AND 1 FOLLOWING
+                            ) max_keys, o_orderkey, o_orderpriority
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        order by o_orderkey
+                        limit 50"""
+
+            # TODO: Failed test with nulls
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_52"
+            query = """with new_nation as (
+                    select n.n_nationkey as n_natio1,
+                        n.n_name as n_nam1,
+                        n.n_regionkey as n_region1
+                    from nation as n
+                    inner join region as r
+                    on n.n_nationkey = r.r_regionkey
+                )
+                select avg(cast(nn.n_natio1 as double)) over 
+                    (
+                        partition by nn.n_region1
+                        order by nn.n_nam1
+                        ROWS BETWEEN 3 PRECEDING
+                        AND 2 FOLLOWING
+                    ) avg_keys,
+                    nn.n_natio1, nn.n_nam1, nn.n_region1
+                from new_nation nn
+                order by nn.n_natio1, avg_keys"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_53"
+            query = """select max(l_partkey) over
+                            (
+                                partition by l_linestatus
+                                order by l_quantity desc, l_orderkey
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_keys,
+                            l_linestatus, l_extendedprice
+                        from lineitem
+                        where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                        and l_linestatus = 'F'
+                        order by l_orderkey, max_keys
+                        limit 50"""
+
+            # TODO: Failed test with nulls
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            # using diffs columns to partition and first_value()
+            queryId = "TEST_54"
+            query = """select first_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_55"
+            query = """select last_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name
+                            ) last_key,
+                            c_phone, c_nationkey, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by last_key, c_nationkey, c_phone"""  
+            runTest.run_query(
+                bc,
+                spark,
                 query,
                 queryId,
                 queryType,
