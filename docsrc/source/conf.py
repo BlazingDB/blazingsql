@@ -51,7 +51,7 @@ extensions = ['recommonmark',
                 # 'exhale'
                 ]
 
-autosummary_generate = False 
+autosummary_generate = True 
 
 # # Setup the exhale extension
 # exhale_args = {
@@ -132,7 +132,6 @@ html_theme_options = {
         {"name": "BlazingSQL", "url": "https://blazingsql.com"}
     ]
     , "show_toc_level": "3"
-    , "sidebar_toc_level": "3"
     , "navigation_with_keys": True
 }
 
@@ -149,6 +148,3 @@ html_context = {
 
 def setup(app):
     app.add_js_file("js/d3.v3.min.js")
-
-# extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/blob/branch-0.19/%s',
-#                     'View on github')}
