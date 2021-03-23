@@ -630,29 +630,15 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_26"
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                query = """select row_number() over 
-                                (
-                                    partition by c_nationkey
-                                    order by c_custkey desc
-                                ) row_num,
-                                c_phone, UPPER(SUBSTRING(c_name, 1, 8))
-                            from customer
-                            where c_acctbal < 95.0
-                            order by c_custkey, row_num"""
-            else:
-                # NOTE: c_custkey contains nulls so just ordering by c_custkey will fail
-                # when comparing against other engine
-                query = """select row_number() over 
-                            (
-                                partition by c_nationkey
-                                order by c_custkey desc, c_acctbal
-                            ) row_num,
-                            c_phone, UPPER(SUBSTRING(c_name, 1, 8))
-                        from customer
-                        where c_acctbal < 95.0
-                        order by row_num, c_acctbal"""
+            query = """select row_number() over 
+                        (
+                            partition by c_nationkey
+                            order by c_custkey desc, c_acctbal
+                        ) row_num,
+                        c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                    from customer
+                    where c_acctbal < 95.0
+                    order by row_num, c_acctbal"""
             runTest.run_query(
                 bc,
                 drill,
@@ -1125,33 +1111,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_51"
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                query = """select min(o_orderkey) over
-                                (
-                                    partition by o_orderstatus, o_clerk
-                                    order by o_orderdate
-                                    ROWS BETWEEN 2 PRECEDING
-                                    AND 1 FOLLOWING
-                                ) min_keys, 
-                            ) min_keys, 
-                                ) min_keys, 
-                                max(o_orderkey) over
-                                (
-                                    partition by o_orderstatus, o_clerk
-                                    order by o_orderdate
-                                    ROWS BETWEEN 2 PRECEDING
-                                    AND 1 FOLLOWING
-                                ) max_keys, o_orderkey, o_orderpriority
-                            from orders
-                            where o_orderpriority <> '2-HIGH'
-                            and o_clerk = 'Clerk#000000880'
-                            order by o_orderkey
-                            limit 50"""
-            else:
-                # NOTE: pyspark put the nulls at the begining and blazing to the end (as drill)
-                # so, we want make sure the orders are the same
-                query = """select min(o_orderkey) over
+            query = """select min(o_orderkey) over
                             (
                                 partition by o_orderstatus, o_orderpriority
                                 order by o_totalprice
