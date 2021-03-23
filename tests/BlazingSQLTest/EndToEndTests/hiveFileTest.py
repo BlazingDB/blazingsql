@@ -44,7 +44,7 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
         print("==============================")
 
         queryId = "TEST_01"
-        query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' order by o_orderkey"
+        query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' and o_orderpriority IS NOT NULL and o_orderstatus IS NOT NULL and o_orderdate IS NOT NULL order by o_orderkey"
         runTest.run_query(
             bc,
             spark,
@@ -61,7 +61,8 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
 
         queryId = "TEST_02"
         query = """select c_nationkey, c_acctbal + 3 as c_acctbal_new
-                    from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' """
+                    from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' 
+                    and c_nationkey IS NOT NULL and c_mktsegment IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -81,7 +82,10 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
                     inner join orders as o on l.l_orderkey = o.o_orderkey
                     and l.l_commitdate < o.o_orderdate
                     and l.l_receiptdate > o.o_orderdate
-                    where o.o_orderdate <= '1992-01-31'"""
+                    where o.o_orderdate <= '1992-01-31'
+                    and o.o_orderpriority IS NOT NULL 
+                    and o.o_orderstatus IS NOT NULL 
+                    and o.o_orderdate IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -100,6 +104,9 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
         query = """ select l_linenumber, l_shipmode, l_returnflag 
                     from lineitem 
                     where l_shipmode in ('AIR','FOB','MAIL','RAIL') and l_returnflag in ('A', 'N')
+                    and l_shipmode IS NOT NULL
+                    and l_linestatus IS NOT NULL
+                    and l_returnflag IS NOT NULL
                     order by l_orderkey"""
         runTest.run_query(
             bc,
@@ -200,7 +207,12 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
                     where n1.n_nationkey = 1
                     and n2.n_nationkey = 2
                     and o.o_orderkey < 20
-                    and o.o_orderdate <= '1992-01-31'"""
+                    and o.o_orderdate <= '1992-01-31'
+                    and o.o_orderpriority IS NOT NULL 
+                    and o.o_orderstatus IS NOT NULL 
+                    and o.o_orderdate IS NOT NULL
+                    and c.c_nationkey IS NOT NULL
+                    and c.c_mktsegment IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -369,7 +381,7 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
         print("==============================")
 
         queryId = "TEST_01"
-        query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' order by o_orderkey"
+        query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' and o_orderpriority IS NOT NULL and o_orderstatus IS NOT NULL order by o_orderkey"
         runTest.run_query(
             bc,
             spark,
@@ -386,7 +398,8 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
 
         queryId = "TEST_02"
         query = """select c_nationkey, c_acctbal + 3 as c_acctbal_new
-                            from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' """
+                            from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' 
+                            and c_nationkey IS NOT NULL and c_mktsegment IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -406,7 +419,10 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
                             inner join orders as o on l.l_orderkey = o.o_orderkey
                             and l.l_commitdate < o.o_orderdate
                             and l.l_receiptdate > o.o_orderdate
-                            where o.o_orderdate <= '1992-01-31'"""
+                            where o.o_orderdate <= '1992-01-31'
+                            and o.o_orderpriority IS NOT NULL 
+                            and o.o_orderstatus IS NOT NULL 
+                            and o.o_orderdate IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -425,6 +441,9 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
         query = """ select l_linenumber, l_shipmode, l_returnflag 
                             from lineitem 
                             where l_shipmode in ('AIR','FOB','MAIL','RAIL') and l_returnflag in ('A', 'N')
+                            and l_shipmode IS NOT NULL
+                            and l_linestatus IS NOT NULL
+                            and l_returnflag IS NOT NULL
                             order by l_orderkey"""
         runTest.run_query(
             bc,
@@ -525,7 +544,12 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
                             where n1.n_nationkey = 1
                             and n2.n_nationkey = 2
                             and o.o_orderkey < 20
-                            and o.o_orderdate <= '1992-01-31'"""
+                            and o.o_orderdate <= '1992-01-31'
+                            and o.o_orderpriority IS NOT NULL 
+                            and o.o_orderstatus IS NOT NULL 
+                            and o.o_orderdate IS NOT NULL
+                            and c.c_nationkey IS NOT NULL
+                            and c.c_mktsegment IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -678,7 +702,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
         query_spark = """   select o_totalprice 
                             from orders 
                             where o_orderstatus = 'F' and o_orderpriority <> '2-HIGH' 
-                            and o_orderstatus <> 'P' and o_orderdate <= '1992-01-15' 
+                            and o_orderstatus <> 'P' and o_orderdate <= '1992-01-15'
+                            and o_orderpriority IS NOT NULL and o_orderstatus IS NOT NULL and o_orderdate IS NOT NULL 
                             order by o_orderkey"""
         runTest.run_query(
             bc,
@@ -707,7 +732,10 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                             and l.l_shipmode not in ('MAIL', 'RAIL')
                             and o.o_orderpriority <> '2-HIGH'
                             and o.o_orderstatus <> 'P'
-                            and o.o_orderdate <= '1992-01-15'"""
+                            and o.o_orderdate <= '1992-01-15'
+                            and o.o_orderpriority IS NOT NULL 
+                            and o.o_orderstatus IS NOT NULL 
+                            and o.o_orderdate IS NOT NULL"""
         runTest.run_query(
             bc,
             spark,
@@ -731,6 +759,9 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                             from lineitem
                             where l_shipmode in ('AIR','FOB') and l_returnflag in ('A', 'N')
                             and l_linestatus not in ('O')
+                            and l_shipmode IS NOT NULL
+                            and l_linestatus IS NOT NULL
+                            and l_returnflag IS NOT NULL
                             order by l_orderkey"""
         runTest.run_query(
             bc,
@@ -862,6 +893,11 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                             and l.l_linestatus not in ('O') and l.l_shipmode not in ('MAIL', 'RAIL')
                             and n1.n_regionkey not in (0, 1) and n2.n_regionkey not in (0, 1)
                             and s_nationkey not in (10, 11, 12, 13, 14, 15)
+                            and o.o_orderpriority IS NOT NULL 
+                            and o.o_orderstatus IS NOT NULL 
+                            and o.o_orderdate IS NOT NULL
+                            and c.c_nationkey IS NOT NULL
+                            and c.c_mktsegment IS NOT NULL
                             """
         runTest.run_query(
             bc,
@@ -905,6 +941,15 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             break
 
 def main(dask_client, spark, dir_data_file, bc, nRals):
+    global tmpPath
+    tmpPath = '/tmp/BlazingSQL/partitions/'
+
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    if testsWithNulls == "true":
+        tmpPath += "nulls/"
+    else:
+        tmpPath += "without-nulls/"
+
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     for fileSchemaType in data_types:
@@ -921,7 +966,11 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
     gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
 
 def createPartitions(fileSchemaType, dir_data_file):
-    dir_data = dir_data_file + "/tpch"
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    if testsWithNulls == "true":
+        dir_data = dir_data_file + "/tpch-with-nulls"
+    else:
+        dir_data = dir_data_file + "/tpch"
 
     ext = cs.get_extension(fileSchemaType)
 
