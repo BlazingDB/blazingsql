@@ -21,7 +21,7 @@ public:
   virtual ~postgresql_data_provider();
 
 private:
-  std::unique_ptr<PGconn> connection;
+  PGconn *connection;
 };
 
 } /* namespace io */

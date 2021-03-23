@@ -331,7 +331,7 @@ endif()
 
 if(POSTGRESQL_SUPPORT)
     add_definitions(-DPOSTGRESQL_SUPPORT)
-    set(SQLITE_DATABASE_SRC_FILES
+    set(POSTGRESQL_DATABASE_SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
     # TODO percy c.gonzales
@@ -351,7 +351,7 @@ add_library(blazingsql-engine SHARED
     ${SRC_FILES}
     ${MYSQL_DATABASE_SRC_FILES}
     ${SQLITE_DATABASE_SRC_FILES}
-    ${POSTGRESQL_SRC_FILES}
+    ${POSTGRESQL_DATABASE_SRC_FILES}
 )
 
 if(GCS_SUPPORT)
