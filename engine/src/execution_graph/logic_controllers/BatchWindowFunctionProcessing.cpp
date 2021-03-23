@@ -49,6 +49,8 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     cudf::column_view col_view_to_agg,
     std::size_t pos, int & agg_param_count ) {
 
+    std::cout<<"ComputeWindowKernel::compute_column_from_window_function start"<<std::endl;
+
     std::unique_ptr<cudf::aggregation> window_aggregation;
 
     // we want firs get the type of aggregation
@@ -144,10 +146,13 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, window_aggregation);
         }
     } else {
+        std::cout<<"ComputeWindowKernel::compute_column_from_window_function 0"<<std::endl;
         if (window_expression_contains_bounds(this->expression)) {
+            std::cout<<"ComputeWindowKernel::compute_column_from_window_function 1"<<std::endl;
             // TODO: for now just ROWS bounds works (not RANGE)
             windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
         } else {
+            std::cout<<"ComputeWindowKernel::compute_column_from_window_function 2"<<std::endl;
            // WSM TODO Error not yet supported
         }
     }
@@ -166,6 +171,8 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
     }
 
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+
+    std::cout<<"ComputeWindowKernel::do_process "<<input->num_rows()<<std::endl;
 
     try{
         cudf::table_view input_table_cudf_view = input->view();
@@ -437,6 +444,8 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     this->num_batches = 0;
 	
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+
+    std::cout<<"OverlapAccumulatorKernel::OverlapAccumulatorKernel "<<this->preceding_value<<" "<<this->following_value<<std::endl;
 
     ral::cache::cache_settings cache_machine_config;
 	cache_machine_config.type = ral::cache::CacheType::SIMPLE;
@@ -936,6 +945,7 @@ kstatus OverlapAccumulatorKernel::run() {
         batch_with_overlaps.push_back(following_overlap_cache->get_or_wait_CacheData(batch_ind));
 
         std::unique_ptr<ral::cache::ConcatCacheData> new_cache_data = std::make_unique<ral::cache::ConcatCacheData>(std::move(batch_with_overlaps), col_names, schema);
+        std::cout<<"OverlapGeneratorKernel::run gen output cache "<<new_cache_data->num_rows()<<std::endl;
         this->add_to_output_cache(std::move(new_cache_data));
     }
 

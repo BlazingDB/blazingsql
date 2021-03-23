@@ -646,6 +646,9 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 	int preceding_value, following_value;
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+	if (over_clause.length() == 0){
+		over_clause = get_first_over_expression_from_logical_plan(logical_plan, "ORDER BY");
+	}
 
 	// the default behavior when not bounds are passed is
 	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
