@@ -16,9 +16,9 @@ plan is then used to construct an execution graph which is a DAG of Kernels and 
 
 
 Execution Graph: DAG of Kernels and Caches
--------------------------
+------------------------------------------
 
-.. image:: /resources/join_example.jpg
+.. image:: /_static/resources/join_example.jpg
   :width: 800
   :alt: A drawing of two nodes executing a Scan kernel, followed by a hash partition kernel that scatters data between the two nodes followed by a Join kernel.
 
