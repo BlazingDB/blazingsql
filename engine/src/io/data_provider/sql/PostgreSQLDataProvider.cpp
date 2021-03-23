@@ -49,13 +49,26 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
     PQfinish(connection);
   }
 
+  int resultNfields = PQnfields(result);
+  if (resultNfields < 2) {
+    throw std::runtime_error("Invalid status for information schema");
+  }
+
+  const std::string resultFirstFname{PQfname(result, 0)};
+  const std::string resultSecondFname{PQfname(result, 1)};
+  if (resultFirstFname != "column_name" || resultSecondFname != "data_type") {
+    throw std::runtime_error("Invalid columns for information schema");
+  }
+
   int resultNtuples = PQntuples(result);
   TableInfo tableInfo;
-
   tableInfo.column_names.reserve(resultNtuples);
   tableInfo.column_types.reserve(resultNtuples);
 
-  for (int i = 0; i < resultNtuples; i++) {}
+  for (int i = 0; i < resultNtuples; i++) {
+    tableInfo.column_names.emplace_back(std::string{PQgetvalue(result, i, 0)});
+    tableInfo.column_types.emplace_back(std::string{PQgetvalue(result, i, 1)});
+  }
 
   return tableInfo;
 }
