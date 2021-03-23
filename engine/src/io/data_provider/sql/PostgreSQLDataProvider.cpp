@@ -3,9 +3,10 @@
  *     Copyright 2021 Cristhian Alberto Gonzales Castillo <percy@blazingdb.com>
  */
 
-#include "PostgreSQLDataProvider.h"
-
+#include <set>
 #include <sstream>
+
+#include "PostgreSQLDataProvider.h"
 
 namespace ral {
 namespace io {
@@ -33,6 +34,18 @@ const std::string MakeQueryForColumnsInfo(const sql_info &sql) {
   return os.str();
 }
 
+class ColumnInfo {
+public:
+  std::string name;
+  std::string type;
+};
+
+class TableInfo {
+public:
+  std::string tableName;
+  std::set<ColumnInfo> columnInfos;
+};
+
 }
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
@@ -56,6 +69,9 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
     PQclear(result);
     PQfinish(connection);
   }
+
+  int resultNtuples = PQntuples(result);
+
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
