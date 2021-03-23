@@ -12,7 +12,6 @@ queryType = "Hive File"
 
 tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
 data_types = [DataType.CSV, DataType.PARQUET]
-tmpPath = '/tmp/BlazingSQL/partitions/'
 
 def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
 
@@ -1018,7 +1017,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                             ('o_orderstatus', 'str'),
                                                             ('o_orderdate', 'timestamp')],
                                          output=tmpPath + ext + '/orders/',
-                                         num_files=4)
+                                         num_files=1)
 
     # customer table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "customer", ext),
@@ -1030,7 +1029,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                            partitions_schema=[('c_nationkey', 'int32'),
                                                             ('c_mktsegment', 'str')],
                                            output= tmpPath + ext + '/customer/',
-                                           num_files=4)
+                                           num_files=1)
 
     # lineitem table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "lineitem", ext),
@@ -1045,7 +1044,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                             ('l_linestatus', 'str'),
                                                             ('l_returnflag', 'str')],
                                            output= tmpPath + ext + '/lineitem/',
-                                           num_files=4)
+                                           num_files=1)
 
     # nation table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "nation", ext),
@@ -1055,7 +1054,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                'n_regionkey': [0,1,2,3,4]},
                                            partitions_schema=[('n_regionkey', 'int32')],
                                            output= tmpPath + ext + '/nation/',
-                                           num_files=4)
+                                           num_files=1)
 
     # part table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "part", ext),
@@ -1073,7 +1072,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                                'WRAP JAR', 'WRAP PACK', 'WRAP PKG']},
                                            partitions_schema=[('p_container', 'str')],
                                            output= tmpPath + ext + '/part/',
-                                           num_files=4)
+                                           num_files=1)
 
     # supplier table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "supplier", ext),
@@ -1083,7 +1082,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]},
                                            partitions_schema=[('s_nationkey', 'int32')],
                                            output= tmpPath + ext + '/supplier/',
-                                           num_files=4)
+                                           num_files=1)
 
 if __name__ == "__main__":
 
