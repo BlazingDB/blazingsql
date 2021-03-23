@@ -231,6 +231,42 @@ include_directories(
     "${ARROW_INCLUDE_DIR}"
     )
 
+if(MYSQL_SUPPORT)
+    add_definitions(-DMYSQL_SUPPORT)
+    set(MYSQL_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp)
+    set(MYSQL_LIBRARY libmysqlcppconn-static.a)
+    message(STATUS "MySQL support is enabled!")
+else()
+    message(STATUS "MySQL support is disabled!")
+endif()
+
+if(SQLITE_SUPPORT)
+    # TODO sqlite percy
+    #add_definitions(-DSQLITE_SUPPORT)
+    #set(SQLITE_DATABASE_SRC_FILES
+    #    ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
+    #    ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
+    #set(SQLITE_LIBRARY libsqlite3.so)
+    #message(STATUS "SQLite support is enabled!")
+else()
+    message(STATUS "SQLite support is disabled!")
+endif()
+
+if(POSTGRESQL_SUPPORT)
+    # TODO postgresql percy
+    #add_definitions(-DPOSTGRESQL_SUPPORT)
+    #set(POSTGRESQL_DATABASE_SRC_FILES
+    #    ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
+    #    ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
+    # TODO percy c.gonzales
+    #set(POSTGRESQL_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
+    #message(STATUS "PostgreSQL support is enabled!")
+else()
+    message(STATUS "MyPostgreSQL support is disabled!")
+endif()
+
 ## Target source files
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheData.cpp
@@ -304,42 +340,13 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
 
-              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp              
+              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp
+
+              # SQL
+              ${MYSQL_DATABASE_SRC_FILES}
+              ${SQLITE_DATABASE_SRC_FILES}
+              ${POSTGRESQL_DATABASE_SRC_FILES}
         )
-
-if(MYSQL_SUPPORT)
-    add_definitions(-DMYSQL_SUPPORT)
-    set(MYSQL_DATABASE_SRC_FILES
-        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp)
-    set(MYSQL_LIBRARY libmysqlcppconn-static.a)
-    message(STATUS "MySQL support is enabled!")
-else()
-    message(STATUS "MySQL support is disabled!")
-endif()
-
-if(SQLITE_SUPPORT)
-    add_definitions(-DSQLITE_SUPPORT)
-    set(SQLITE_DATABASE_SRC_FILES
-        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
-    set(SQLITE_LIBRARY libsqlite3.so)
-    message(STATUS "SQLite support is enabled!")
-else()
-    message(STATUS "SQLite support is disabled!")
-endif()
-
-if(POSTGRESQL_SUPPORT)
-    add_definitions(-DPOSTGRESQL_SUPPORT)
-    set(SQLITE_DATABASE_SRC_FILES
-        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
-    # TODO percy c.gonzales
-    #set(POSTGRESQL_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
-    message(STATUS "PostgreSQL support is enabled!")
-else()
-    message(STATUS "MyPostgreSQL support is disabled!")
-endif()
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
