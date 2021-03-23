@@ -1,3 +1,5 @@
+:notoc: 
+
 .. BlazingSQL documentation master file, created by
    sphinx-quickstart on Mon Jul 20 12:19:33 2020.
 
@@ -25,12 +27,14 @@ BlazingSQL provides a high-performance distributed SQL engine in Python. Built o
     # Display query results
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
+   :hidden:
    :caption: Contents:
 
    getting_started/index
    engine/index
-   xml/library_root
+   use_cases/index
+   reference/index
 
 Indices and tables
 ==================

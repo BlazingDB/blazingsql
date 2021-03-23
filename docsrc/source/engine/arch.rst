@@ -1,7 +1,7 @@
 Technology Stack
 ================
 
-.. image:: _static/resources/tech_stack.png
+.. image:: ../_static/resources/tech_stack.png
   :width: 800
   :alt: Technology Stack for Distributed BlazingSQL 
 
