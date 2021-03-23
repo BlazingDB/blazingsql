@@ -6,8 +6,6 @@
 #ifndef POSTGRESQLDATAPROVIDER_H_
 #define POSTGRESQLDATAPROVIDER_H_
 
-#include <memory>
-
 #include "AbstractSQLDataProvider.h"
 
 #include <libpq-fe.h>
@@ -18,16 +16,12 @@ namespace io {
 
 class postgresql_data_provider : public abstractsql_data_provider {
 public:
-	postgresql_data_provider(const sql_connection &sql_conn,
-                           const std::string &table,
-                           size_t batch_size_hint = abstractsql_data_provider::DETAULT_BATCH_SIZE_HINT,
-                           bool use_partitions = false);
+	postgresql_data_provider(const sql_info &sql);
 
   virtual ~postgresql_data_provider();
 
 private:
-  std::shared_ptr<PGconn> connection;
-
+  std::unique_ptr<PGconn> connection;
 };
 
 } /* namespace io */

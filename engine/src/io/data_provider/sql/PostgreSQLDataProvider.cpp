@@ -8,11 +8,8 @@
 namespace ral {
 namespace io {
 
-postgresql_data_provider::postgresql_data_provider(const sql_connection &sql_conn,
-                                                   const std::string &table,
-                                                   size_t batch_size_hint,
-                                                   bool use_partitions)
-	  : abstractsql_data_provider(sql_conn, table, batch_size_hint, use_partitions) {
+postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
+	  : abstractsql_data_provider(sql) {
   std::string dbname = "dbtest";
   auto connection = PQconnectdb(("dbname = " + dbname).c_str());
 
@@ -22,7 +19,9 @@ postgresql_data_provider::postgresql_data_provider(const sql_connection &sql_con
   }
 }
 
-postgresql_data_provider::~postgresql_data_provider() = default;
+postgresql_data_provider::~postgresql_data_provider() {
+  PQfinish(connection.get());
+}
 
 } /* namespace io */
 } /* namespace ral */
