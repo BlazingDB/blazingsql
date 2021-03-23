@@ -33,7 +33,7 @@ namespace operators {
 	// offset param is needed for `LAG` and `LEAD` aggs
 	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input, int offset = 0);
 
-	AggregateKind get_aggregation_operation(std::string expression_in);
+	AggregateKind get_aggregation_operation(std::string expression_in, bool is_window_operation = false);
 
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
 		parseGroupByExpression(const std::string & queryString, std::size_t num_cols);

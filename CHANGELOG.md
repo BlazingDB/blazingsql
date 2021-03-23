@@ -31,6 +31,7 @@
 - #1392 Fix substrings with nulls
 - #1398 Fix performance regression
 - #1401 Fix support for minus unary operation
+- #1413 Fix for null tests 13 and 23 of windowFunctionTest
 - #1416 Fix full join when both tables contains nulls
 
 
