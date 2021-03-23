@@ -215,7 +215,7 @@ def _save(df, output, partition, filename, file_format, table_name):
 
 	if file_format == 'parquet':
 		output_name = path + "/" + filename + '.parquet'
-		df.to_pandas().to_parquet(output_name, compression="GZIP")
+		df.to_parquet(output_name)
 	elif file_format == 'orc':
 		output_name = path + "/" + filename + '.orc'
 		df.to_orc(output_name)
@@ -273,6 +273,13 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, fil
 
 		for partition in combination_partition:
 			where_clause = ' and '.join(partition)
+
+			query = 'select count(*) from {} where {}'.format(table_name, where_clause)
+			result = bc.sql(query)
+			total_registers = result.values.tolist()[0][0]
+
+			if total_registers == 0:
+				continue
 
 			query = 'select {} from {} where {}'.format(view_columns, table_name, where_clause)
 			_save(bc.sql(query), output, partition, table_name, file_format, table_name)
