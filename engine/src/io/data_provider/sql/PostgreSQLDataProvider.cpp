@@ -22,5 +22,23 @@ postgresql_data_provider::~postgresql_data_provider() {
   PQfinish(connection);
 }
 
+std::shared_ptr<data_provider> postgresql_data_provider::clone() {
+  return nullptr;
+}
+
+bool postgresql_data_provider::has_next() {
+  return false;
+}
+
+void postgresql_data_provider::reset() {}
+
+data_handle postgresql_data_provider::get_next(bool) {
+  return data_handle{};
+}
+
+std::size_t postgresql_data_provider::get_num_handles() {
+  return 0;
+}
+
 } /* namespace io */
 } /* namespace ral */

@@ -1,6 +1,7 @@
 #include "tests/utilities/BlazingUnitTest.h"
 #include "io/data_provider/sql/MySQLDataProvider.h"
 #include "io/data_provider/sql/SQLiteDataProvider.h"
+#include "io/data_provider/sql/PostgreSQLDataProvider.h"
 #include "io/data_parser/sql/MySQLParser.h"
 #include "io/data_parser/sql/SQLiteParser.h"
 #include <cudf_test/column_wrapper.hpp>
@@ -23,7 +24,7 @@ TEST_F(SQLProviderTest, postgresql_select_all) {
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
-  auto postgresql_provider = std::make_shared<ral::io::mysql_data_provider>(sql);
+  auto postgresql_provider = std::make_shared<ral::io::postgresql_data_provider>(sql);
 
   int rows = postgresql_provider->get_num_handles();
 

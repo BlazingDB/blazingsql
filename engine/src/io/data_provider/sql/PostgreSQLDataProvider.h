@@ -20,6 +20,16 @@ public:
 
   virtual ~postgresql_data_provider();
 
+  std::shared_ptr<data_provider> clone() override;
+
+  bool has_next() override;
+
+  void reset() override;
+
+  data_handle get_next(bool open_file = true) override;
+
+  std::size_t get_num_handles() override;
+
 private:
   PGconn *connection;
 };
