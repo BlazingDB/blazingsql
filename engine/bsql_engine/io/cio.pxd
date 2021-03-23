@@ -78,9 +78,10 @@ cdef extern from "../include/io/io.h" nogil:
         JSON = 3,
         CUDF = 4,
         DASK_CUDF = 5,
-        ARROW = 6
-        MYSQL = 7
-
+        ARROW = 6,
+        MYSQL = 7,
+        POSTGRESQL = 8,
+        SQLITE = 9
 
     cdef struct TableSchema:
         vector[BlazingTableView] blazingTableViews

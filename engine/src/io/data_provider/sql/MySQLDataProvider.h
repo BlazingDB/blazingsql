@@ -20,30 +20,39 @@ namespace io {
  */
 class mysql_data_provider : public abstractsql_data_provider {
 public:
-	mysql_data_provider(const sql_connection &sql_conn,
-                      const std::string &table,
-                      size_t batch_size_hint = abstractsql_data_provider::DETAULT_BATCH_SIZE_HINT,
-                      bool use_partitions = false);
+	mysql_data_provider(const sql_info &sql);
 
   virtual ~mysql_data_provider();
 
 	std::shared_ptr<data_provider> clone() override; 
 
-	/**
-	 * if has partions will fetch each partition if not will use the limit/offset approach 
-	 * with the batch size hint as range
+  /**
+	 * tells us if this provider can generate more sql resultsets
 	 */
-	data_handle get_next(bool = true) override;
+	bool has_next() override;
 
-  // in case the table has not partitions will return row count / batch_size_hint else
-  // will return the number of partitions
+	/**
+	 *  Resets file read count to 0 for file based DataProvider
+	 */
+	void reset() override;
+
+	/**
+	 * gets us the next arrow::io::RandomAccessFile
+	 * if open_file is false will not run te query and just returns a data_handle
+	 * with columns info
+	 */
+	data_handle get_next(bool open_file = true) override;
+
+	/**
+	 * Get the number of data_handles that will be provided.
+	 */ 
 	size_t get_num_handles() override;
 
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
-  std::vector<std::string> partitions;
-  std::vector<std::string> columns;
-  std::vector<std::string> types;
+  size_t estimated_table_row_count;
+  size_t batch_position;
+  bool table_fetch_completed;
 };
 
 } /* namespace io */

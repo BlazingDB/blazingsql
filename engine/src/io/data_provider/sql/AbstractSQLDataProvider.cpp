@@ -8,25 +8,11 @@
 namespace ral {
 namespace io {
 
-abstractsql_data_provider::abstractsql_data_provider(
-        const sql_connection &sql_conn,
-        const std::string &table,
-        size_t batch_size_hint,
-        bool use_partitions)
-	: data_provider(), sql_conn(sql_conn), table(table)
-  , batch_size_hint(batch_size_hint), use_partitions(use_partitions)
-  , batch_position(0), row_count(0), partition_count(0), current_row_count(0) {}
+abstractsql_data_provider::abstractsql_data_provider(const sql_info &sql)
+	: data_provider(), sql(sql) {}
 
 abstractsql_data_provider::~abstractsql_data_provider() {
 	this->close_file_handles(); 
-}
-
-bool abstractsql_data_provider::has_next() {
-  return this->current_row_count < row_count;
-}
-
-void abstractsql_data_provider::reset() {
-	this->batch_position = 0;
 }
 
 std::vector<data_handle> abstractsql_data_provider::get_some(std::size_t batch_count, bool){
@@ -47,6 +33,28 @@ std::vector<data_handle> abstractsql_data_provider::get_some(std::size_t batch_c
 */
 void abstractsql_data_provider::close_file_handles() {
   // NOTE we don't use any file handle for this provider so nothing to do here
+}
+
+std::string abstractsql_data_provider::build_select_from() const {
+  std::string cols;
+  if (this->column_indices.empty()) {
+    cols = "* ";
+  } else {
+    for (int i = 0; i < this->column_indices.size(); ++i) {
+      int col_idx = this->column_indices[i];
+      cols += this->column_names[col_idx];
+      if ((i + 1) == this->column_indices.size()) {
+        cols += " ";
+      } else {
+        cols += ", ";
+      }
+    }
+  }
+  return "SELECT " + cols + "FROM " + this->sql.table;
+}
+
+std::string abstractsql_data_provider::build_limit_offset(size_t offset) const {
+  return " LIMIT " + std::to_string(this->sql.table_batch_size) + " OFFSET " + std::to_string(offset);
 }
 
 } /* namespace io */

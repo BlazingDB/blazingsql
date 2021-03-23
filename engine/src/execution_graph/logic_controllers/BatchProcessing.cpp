@@ -9,6 +9,7 @@
 #include <src/utilities/DebuggingUtils.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "io/data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace batch {
@@ -122,6 +123,11 @@ kstatus TableScan::run() {
 
     std::vector<int> projections(schema.get_num_columns());
     std::iota(projections.begin(), projections.end(), 0);
+
+    if (provider->is_sql()) {
+      auto sql_provider = std::dynamic_pointer_cast<ral::io::abstractsql_data_provider>(provider);
+      sql_provider->set_column_indices(projections);
+    }
 
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
@@ -240,6 +246,11 @@ kstatus BindableTableScan::run() {
         std::iota(projections.begin(), projections.end(), 0);
     }
 
+    if (provider->is_sql()) {
+      auto sql_provider = std::dynamic_pointer_cast<ral::io::abstractsql_data_provider>(provider);
+      sql_provider->set_column_indices(projections);
+    }
+
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
         auto empty = schema.makeEmptyBlazingTable(projections);
@@ -252,6 +263,11 @@ kstatus BindableTableScan::run() {
             //this will allow us to prevent from having too many open file handles by being
             //able to limit the number of file tasks
             auto handle = provider->get_next(true);
+            if (provider->is_sql()) {
+              if (handle.sql_handle.row_count == 0) {
+                break;
+              }
+            }
             auto file_schema = schema.fileSchema(file_index);
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now

@@ -99,8 +99,6 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
     host_valids[col].resize(total_rows);
   }
 
-  //std::cout << "RESULTSET DATA -->>> read_mysql -->> " << res->rowsCount() << "\n";
-  
   int row = 0;
   int rc = 0;
   while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -358,8 +356,6 @@ std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
 	if(stmt == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
-
-  //std::cout << "RESULTSET DATA -->>> parse_batch -->> " << res->rowsCount() << "\n";
 
 	if(column_indices.size() > 0) {
 		std::vector<std::string> col_names(column_indices.size());

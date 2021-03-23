@@ -31,8 +31,13 @@
 #include <blazingdb/io/FileSystem/Uri.h>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
+#ifdef MYSQL_SUPPORT
 #include "jdbc/cppconn/resultset.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
 #include <sqlite3.h>
+#endif
 
 namespace ral {
 namespace io {
@@ -42,9 +47,15 @@ struct sql_datasource {
   std::string query;
   std::vector<std::string> column_names;
   std::vector<std::string> column_types; // always uppercase
+  std::vector<size_t> column_bytes;
+  size_t row_count;
+#ifdef MYSQL_SUPPORT
   std::shared_ptr<sql::ResultSet> mysql_resultset;
+#endif
+#ifdef SQLITE_SUPPORT
   std::shared_ptr<sqlite3_stmt> sqlite_statement;
-  // TODO percy add postgre and other backends here
+#endif
+  // TODO percy c.gonzales add postgre and other backends here
 };
 
 struct data_handle {
@@ -106,7 +117,10 @@ public:
 	 */ 
 	virtual size_t get_num_handles() = 0;
 
-
+  /**
+	 * returns true for sql providers, else false
+	 */ 
+  virtual bool is_sql() const { return false; }
 };
 
 } /* namespace io */

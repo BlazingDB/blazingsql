@@ -11,42 +11,28 @@
 namespace ral {
 namespace io {
 
-// TODO percy this connection logic belong to the parsers
-struct sql_connection {
+struct sql_info {
   std::string host;
   size_t port;
   std::string user;
   std::string password;
   std::string schema; // aka database name
+  std::string table;
+  std::string table_filter;
+  size_t table_batch_size;
 };
 
 /**
- * can generate a series of randomaccessfiles from uris that are provided
- * when it goes out of scope it will close any files it opened
+ * serves as base abstract class for all sql providers
+ * can generate a series of resultsets from databases that are provided
+ * when it goes out of scope it will close any resultset it opened
  * this last point is debatable in terms of if this is the desired functionality
  */
 class abstractsql_data_provider : public data_provider {
 public:
-  static const size_t DETAULT_BATCH_SIZE_HINT = 100;
-
-  // in case the table is partitioned if partition size > batch_size_hint will still use 
-  // batch_size_hint for each partition fech
-  abstractsql_data_provider(const sql_connection &sql_conn,
-                            const std::string &table,
-                            size_t batch_size_hint = abstractsql_data_provider::DETAULT_BATCH_SIZE_HINT,
-                            bool use_partitions = false);
+  abstractsql_data_provider(const sql_info &sql);
 
   virtual ~abstractsql_data_provider();
-
-  /**
-	 * tells us if there are more files in the list of uris to be provided
-	 */
-	bool has_next() override;
-
-  /**
-	 *  Resets batch position to 0
-	 */
-	void reset() override;
 
   /**
 	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
@@ -60,49 +46,27 @@ public:
 	 */
 	void close_file_handles() override;
 
+  bool is_sql() const override { return true; }
+
+  /**
+	 * Set the column indices (aka projections) that will use to select the table
+	 */
+  void set_column_indices(std::vector<int> column_indices) { this->column_indices = column_indices; }
+
 protected:
-  // TODO percy docs
+  // returns SELECT ... FROM
+  std::string build_select_from() const;
 
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-  sql_connection sql_conn;
+  // returns LIMIT ... OFFSET
+  std::string build_limit_offset(size_t offset) const;
 
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-  std::string table;
-
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-	size_t batch_size_hint;
-
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-  bool use_partitions;
-
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-  size_t batch_position;
-
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */  
-  size_t row_count; // total_rows
-
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-  size_t partition_count;
-  
-  
-  /**
-	 * stores the limit ... that were opened by the provider to be closed when it goes out of scope
-	 */
-  size_t current_row_count;
+protected:
+  sql_info sql;
+  std::pair<std::string, std::string> query_parts;
+  std::vector<int> column_indices;
+  std::vector<std::string> column_names;
+  std::vector<std::string> column_types;
+  std::vector<size_t> column_bytes;
 };
 
 } /* namespace io */

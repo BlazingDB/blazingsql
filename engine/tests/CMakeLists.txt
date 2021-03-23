@@ -61,10 +61,9 @@ function(configure_test TEST_NAME Tests_SRCS)
         cudftestutil
 
         # TODO percy use cmake::find
-        # sql deps
-        libmysqlcppconn-static.a
-        libsqlite3.so
-        libpq.a
+        ${MYSQL_LIBRARY}
+        ${SQLITE_LIBRARY}
+        ${POSTGRESQL_LIBRARY}
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES

@@ -26,6 +26,7 @@ requirements:
         - gtest 1.10
         - aws-sdk-cpp
         - google-cloud-cpp 1.16.0
+        - mysql-connector-cpp 8
         - cppzmq
         - python
         - setuptools
@@ -44,6 +45,7 @@ requirements:
         - jpype1
         - netifaces
         - pyhive
+        - sqlite 3
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
