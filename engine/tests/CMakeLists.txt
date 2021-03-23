@@ -18,7 +18,7 @@ function(configure_test TEST_NAME Tests_SRCS)
                    ${PROJECT_SOURCE_DIR}/tests/cython_errors_dummy.cpp
                    ${PROJECT_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
     link_directories($ENV{PREFIX}/lib)
-    
+
     target_link_libraries(${TEST_NAME}
         gmock_main
         gmock
@@ -59,7 +59,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         libspdlog.a
 
         cudftestutil
-        
+
         # TODO percy use cmake::find
         ${MYSQL_LIBRARY}
         ${SQLITE_LIBRARY}

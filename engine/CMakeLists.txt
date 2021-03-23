@@ -358,7 +358,7 @@ add_library(blazingsql-engine SHARED
     ${SRC_FILES}
     ${MYSQL_DATABASE_SRC_FILES}
     ${SQLITE_DATABASE_SRC_FILES}
-    ${POSTGRESQL_SRC_FILES}
+    ${POSTGRESQL_DATABASE_SRC_FILES}
 )
 
 if(GCS_SUPPORT)
@@ -403,7 +403,7 @@ target_link_libraries(blazingsql-engine
 
     # Library needed for blazing communication repository (debug)
     gcov
-    
+
     # TODO percy use cmake::find
     ${MYSQL_LIBRARY}
     ${SQLITE_LIBRARY}
