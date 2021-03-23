@@ -498,9 +498,25 @@ bool is_window_function(std::string query_part) { return (query_part.find("OVER"
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
-bool window_expression_contains_partition(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
+bool window_expression_contains_partition_by(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
 
-bool window_expression_contains_order(std::string query_part) { return (query_part.find("ORDER") != std::string::npos); }
+bool window_expression_contains_order_by(std::string query_part) { return (query_part.find("ORDER BY") != std::string::npos); }
+
+bool window_expression_contains_bounds(std::string query_part) { return (query_part.find("BETWEEN") != std::string::npos); }
+
+bool window_expression_contains_bounds_by_range(std::string query_part) { return (query_part.find("RANGE") != std::string::npos); }
+
+bool is_lag_or_lead_aggregation(std::string expression) {
+	return (expression == "LAG" || expression == "LEAD");
+}
+
+bool is_first_value_window(std::string expression) {
+	return (expression == "FIRST_VALUE");
+}
+
+bool is_last_value_window(std::string expression) {
+	return (expression == "LAST_VALUE");
+}
 
 // input: LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                       max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $0)])
@@ -968,4 +984,17 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 	}
 
 	return std::make_tuple(by_passing_project, by_passing_project_with_aliases, aliases);
+}
+
+// input: -($3)
+// output: -(0, $3)
+std::string fill_minus_op_with_zero(std::string expression) {
+	std::size_t total_vars = StringUtil::findAndCountAllMatches(expression, "$");
+	if (expression.at(0) == '-' && total_vars == 1 && expression.find(",") == expression.npos) {
+		std::string left_expr = expression.substr(0, 2);
+		std::string right_expr = expression.substr(2, expression.size() - left_expr.size());
+		expression = left_expr + "0, " + right_expr;
+	}
+
+	return expression;
 }
