@@ -346,15 +346,30 @@ kstatus Projection::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    while(cache_data != nullptr ){
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
+    RAL_EXPECTS(cache_data != nullptr, "ERROR: Projection::run() first input CacheData was nullptr");
 
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
+    // When this kernel will project all the columns (with or without aliases)
+    // we want to avoid caching and decahing for this kernel
+    bool bypassing_project, bypassing_project_with_aliases;
+    std::vector<std::string> aliases;
+    std::vector<std::string> column_names = cache_data->names();
+    std::tie(bypassing_project, bypassing_project_with_aliases, aliases) = bypassingProject(this->expression, column_names);
 
+    while(cache_data != nullptr){
+        if (bypassing_project_with_aliases) {
+            cache_data->set_names(aliases);
+            this->add_to_output_cache(std::move(cache_data));
+        } else if (bypassing_project) {
+            this->add_to_output_cache(std::move(cache_data));
+        } else {
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+        }
         cache_data = this->input_cache()->pullCacheData();
     }
 

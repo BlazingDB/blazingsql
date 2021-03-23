@@ -214,6 +214,13 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 	this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, right_array_cache_name);
 
 	std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
+
+	if (this->filter_statement != "" && this->join_type != INNER_JOIN){
+		throw std::runtime_error("Outer joins with inequalities are not currently supported");
+	}
+	if (this->join_type == RIGHT_JOIN) {
+		throw std::runtime_error("Right Outer Joins are not currently supported");
+	}
 }
 
 std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_left_set(){

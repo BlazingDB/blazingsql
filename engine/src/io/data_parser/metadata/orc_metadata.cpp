@@ -5,6 +5,7 @@
 #include "utilities/CommonOperations.h"
 
 #include <cudf/column/column_factories.hpp>
+#include <cudf/detail/utilities/vector_factories.hpp>
 #include <numeric>
 
 std::basic_string<char> get_typed_vector_str_content(cudf::type_id dtype, std::vector<std::string> & vector) {
@@ -135,9 +136,21 @@ void set_min_max(
 		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int32_t>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
+	} else if (statistic.type() == cudf::io::statistics_type::DECIMAL) {
+		throw std::runtime_error("ERROR: currently not supported statistic type for DECIMAL in ORC set_min_max");
+	} else if (statistic.type() == cudf::io::statistics_type::BINARY) {
+		throw std::runtime_error("ERROR: currently not supported statistic type for BINARY in ORC set_min_max");
 	} else {
-		throw std::runtime_error("Invalid statistic type in set_min_max");
+		throw std::runtime_error("ERROR: not supported statistic type for NONE in ORC set_min_max");
 	}
+}
+
+bool is_decimal_or_empty_dtype(cudf::type_id type_id) {
+	if (type_id == cudf::type_id::DECIMAL32 || type_id == cudf::type_id::DECIMAL64 || type_id == cudf::type_id::EMPTY) {
+		return true;
+	}
+
+	return false;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
@@ -267,12 +280,16 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	std::size_t not_string_count = 0;
 	for (std::size_t index = 0; index < metadata_names.size(); index++) {
 		cudf::data_type dtype = metadata_dtypes[index];
-		// we need to handle `strings` in a different way
-		if (dtype == cudf::data_type{cudf::type_id::STRING}) {
+		if (is_decimal_or_empty_dtype(dtype.id())) {
+			continue;
+		} // we need to handle `strings` in a different way
+		else if (dtype == cudf::data_type{cudf::type_id::STRING}) {
 			std::vector<std::string> vector_str = get_all_str_values_in_the_same_col(minmax_string_metadata, string_count);
 			string_count++;
 			std::pair<std::vector<char>, std::vector<cudf::size_type>> result_pair = concat_strings(vector_str);
-			std::unique_ptr<cudf::column> col = cudf::make_strings_column(result_pair.first, result_pair.second, {}, 0);
+			auto d_chars = cudf::detail::make_device_uvector_sync(result_pair.first);
+			auto d_offsets = cudf::detail::make_device_uvector_sync(result_pair.second);
+			std::unique_ptr<cudf::column> col = cudf::make_strings_column(d_chars, d_offsets, {}, 0);
 			minmax_metadata_gdf_table[index] = std::move(col);
 		} else {
 			std::vector<int64_t> vector = get_all_values_in_the_same_col(minmax_metadata, not_string_count);
