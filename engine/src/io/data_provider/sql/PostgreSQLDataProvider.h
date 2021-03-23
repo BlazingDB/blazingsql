@@ -9,7 +9,6 @@
 #include "AbstractSQLDataProvider.h"
 
 #include <libpq-fe.h>
-#include <jdbc/cppconn/connection.h>
 
 namespace ral {
 namespace io {
