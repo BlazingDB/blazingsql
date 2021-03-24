@@ -38,13 +38,16 @@ The BlazingSQL engine has several other very important components that lend to i
    :caption: Contents:
 
    arch
-   caches
-   communication
-   data_structures
-   executor
+   pyblazing
+   relational_algebra
    graph
+   kernels
+   caches
+   executor
+   memory_management
+   communication
    interops
    io 
-   kernels
-   memory_management
-   relational_algebra
+   data_structures 
+   
+   
