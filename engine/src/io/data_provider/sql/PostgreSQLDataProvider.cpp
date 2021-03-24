@@ -5,6 +5,8 @@
 
 #include <sstream>
 
+#include <netinet/in.h>
+
 #include "PostgreSQLDataProvider.h"
 
 namespace ral {
@@ -24,7 +26,7 @@ const std::string MakePostgreSQLConnectionString(const sql_info &sql) {
 
 const std::string MakeQueryForColumnsInfo(const sql_info &sql) {
   std::ostringstream os;
-  os << "select column_name, data_type"
+  os << "select column_name, data_type, character_maximum_length"
         " from information_schema.tables as tables"
         " join information_schema.columns as columns"
         " on tables.table_name = columns.table_name"
@@ -37,6 +39,7 @@ class TableInfo {
 public:
   std::vector<std::string> column_names;
   std::vector<std::string> column_types;
+  std::vector<std::size_t> column_bytes;
 };
 
 TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
@@ -47,25 +50,31 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
     throw std::runtime_error("Error access for columns info");
   }
 
-  int resultNfields = PQnfields(result);
-  if (resultNfields < 2) {
-    throw std::runtime_error("Invalid status for information schema");
-  }
-
-  const std::string resultFirstFname{PQfname(result, 0)};
-  const std::string resultSecondFname{PQfname(result, 1)};
-  if (resultFirstFname != "column_name" || resultSecondFname != "data_type") {
-    throw std::runtime_error("Invalid columns for information schema");
-  }
-
   int resultNtuples = PQntuples(result);
   TableInfo tableInfo;
   tableInfo.column_names.reserve(resultNtuples);
   tableInfo.column_types.reserve(resultNtuples);
 
+  int columnNameFn = PQfnumber(result, "column_name");
+  int dataTypeFn = PQfnumber(result, "column_name");
+  int characterMaximumLengthFn = PQfnumber(result, "character_maximum_length");
+
   for (int i = 0; i < resultNtuples; i++) {
-    tableInfo.column_names.emplace_back(std::string{PQgetvalue(result, i, 0)});
-    tableInfo.column_types.emplace_back(std::string{PQgetvalue(result, i, 1)});
+    tableInfo.column_names.emplace_back(
+        std::string{PQgetvalue(result, i, columnNameFn)});
+    tableInfo.column_types.emplace_back(
+        std::string{PQgetvalue(result, i, dataTypeFn)});
+
+    if (PQgetisnull(result, i, characterMaximumLengthFn)) {
+      tableInfo.column_bytes.emplace_back(8);
+    } else {
+      const char *characterMaximumLengthBytes = PQgetvalue(
+          result, i, characterMaximumLengthFn);
+      const std::uint32_t characterMaximumLength = ntohl(
+          *reinterpret_cast<const std::uint32_t*>(characterMaximumLengthBytes));
+      tableInfo.column_bytes.emplace_back(static_cast<const std::size_t>(
+            characterMaximumLength));
+    }
   }
 
   return tableInfo;
@@ -93,6 +102,7 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
 
   column_names = tableInfo.column_names;
   column_types = tableInfo.column_types;
+  column_bytes = tableInfo.column_bytes;
 }
 
 postgresql_data_provider::~postgresql_data_provider() {
