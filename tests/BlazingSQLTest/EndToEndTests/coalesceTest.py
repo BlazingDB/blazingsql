@@ -280,23 +280,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                         AND o.o_orderkey = c.c_nationkey
                 ) SELECT * FROM main_lr
                 """
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1404
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_14"
             query = """
@@ -338,23 +333,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             select * from lastjoin
             """
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1405
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

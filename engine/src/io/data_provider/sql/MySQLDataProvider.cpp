@@ -155,7 +155,7 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
 
     while (res->next()) {
       std::string col_name = res->getString("COLUMN_NAME").asStdString();
-      std::string col_type = StringUtil::toUpper(res->getString("DATA_TYPE").asStdString());
+      std::string col_type = StringUtil::toUpper(res->getString("COLUMN_TYPE").asStdString());
       size_t max_bytes = 8; // max bytes date = 5+3(frac secs) = 8 ... then the largest comes from strings
 
       if (is_string_test(col_type)) {

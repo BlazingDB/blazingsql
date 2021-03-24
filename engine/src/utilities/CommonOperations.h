@@ -37,7 +37,7 @@ std::unique_ptr<cudf::column> vector_to_column(std::vector<T> vect, cudf::data_t
 
 // This is only for numerics
 template<typename T>
-std::vector<T> vector_to_column(cudf::column_view column){
+std::vector<T> column_to_vector(cudf::column_view column){
 	std::vector<T> host_data(column.size());
   	CUDA_TRY(cudaMemcpy(host_data.data(), column.data<T>(), column.size() * sizeof(T), cudaMemcpyDeviceToHost));
 	return host_data;

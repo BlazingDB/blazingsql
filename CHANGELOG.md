@@ -32,6 +32,10 @@
 - #1392 Fix substrings with nulls
 - #1398 Fix performance regression
 - #1401 Fix support for minus unary operation
+- #1415 Fixed bug where num_batches was not getting set in BindableTableScan 
+- #1413 Fix for null tests 13 and 23 of windowFunctionTest
+- #1416 Fix full join when both tables contains nulls
+
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
@@ -58,6 +62,8 @@
 - #1347 Fixing issue when reading orc metadata from DATE dtype
 - #1338 Window Function support for LEAD and LAG statements 
 - #1362 give useful message when file extension is not recognized
+- #1361 Supporting first_value and last_value for Window Function
+
 
 ## Improvements
 - #1293 Added optional acknowledgments to message sending
