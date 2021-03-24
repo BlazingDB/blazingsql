@@ -31,9 +31,9 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 	ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 3306;
-  sql.user = "blazing";
-  sql.password = "admin";
-  sql.schema = "bz3";
+//  sql.user = "blazing";
+//  sql.password = "admin";
+//  sql.schema = "bz3";
 //  //sql.table = "departments";
   //sql.table = "DATABASECHANGELOG";
   sql.table = "new_table";
@@ -41,12 +41,12 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 //  sql.table_filter = "";
 //  sql.table_batch_size = 100;
 
-//  sql.user = "lucho";
-//  sql.password = "admin";
-//  sql.schema = "employees";
-//  //sql.table = "departments";
-//  //sql.table = "employees";
-//  sql.table = "dept_manager";
+  sql.user = "lucho";
+  sql.password = "admin";
+  sql.schema = "employees";
+  //sql.table = "departments";
+  //sql.table = "employees";
+  sql.table = "dept_manager";
 
 
   sql.table_filter = "";
@@ -61,8 +61,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   auto handle = mysql_provider->get_next(false); // false so we make sure dont go to the db and get the schema info only
   parser.parse_schema(handle, schema);
 
-  //std::vector<int> column_indices = {2};
-  std::vector<int> column_indices;
+  std::vector<int> column_indices = {0};
+  //std::vector<int> column_indices;
   if (column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
     column_indices.resize(num_cols);
