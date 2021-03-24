@@ -333,21 +333,24 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
+				columns_in_common,
+				cudf::null_equality::UNEQUAL);
 		} else if(this->join_type == LEFT_JOIN) {
 			result_table = cudf::left_join(
 				table_left.view(),
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
+				columns_in_common,
+				cudf::null_equality::UNEQUAL);
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
+				columns_in_common,
+				cudf::null_equality::UNEQUAL);
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}
