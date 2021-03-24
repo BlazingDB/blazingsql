@@ -1,5 +1,5 @@
-Overview
-========
+BlazingSQL Execution Graph
+==========================
 
 SQL Query to relational algebra
 -------------------------------
