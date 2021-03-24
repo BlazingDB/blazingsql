@@ -3,8 +3,6 @@
 
 BlazingSQL can query raw files or in-memory DataFrames, but you must first create a table before you can run a query on it.
 
-See [Creating Tables](doc:creating-tables) for more detailed information.
-
 As an example we're going to create three tables; two, from files in AWS S3, and one from a local, already existent, GPU DataFrame (GDF).
 
 .. code-block:: python
