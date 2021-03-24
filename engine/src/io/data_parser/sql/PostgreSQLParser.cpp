@@ -15,9 +15,10 @@ cudf::type_id MapPostgreSQLType(const std::string &columnType) {
   // TODO(cristhian): complete type list
   std::unordered_map<std::string, cudf::type_id> postgreSQL2CudfUmap{
       {"", cudf::type_id::EMPTY},
-      {"int8", cudf::type_id::INT8},  // ????? check intX x = bytes?
+      {"int4", cudf::type_id::INT64},
       {"text", cudf::type_id::STRING},
   };
+  // TODO NOTE: move to switch statement
   try {
     return postgreSQL2CudfUmap.at(columnType);
   } catch (const std::out_of_range &) {
