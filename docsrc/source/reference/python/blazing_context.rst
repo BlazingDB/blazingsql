@@ -40,6 +40,7 @@ Managing tables
    BlazingContext.describe_table
    BlazingContext.list_tables
    BlazingContext.partition
+   BlazingContext.add_remove_table
 
 Querying tables
 ~~~~~~~~~~~~~~~
