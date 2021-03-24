@@ -96,6 +96,7 @@ export BLAZINGSQL_E2E_WORKSHEET="BSQL Log Results" # or "BSQL Performance Result
 export BLAZINGSQL_E2E_LOG_INFO=''
 export BLAZINGSQL_E2E_COMPARE_RESULTS=true
 export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=""
+export BLAZINGSQL_E2E_TEST_WITH_NULLS="false" # use this when you want to use the dataset with nulls
 
 #ComparissonTest
 export BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE=false
