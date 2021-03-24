@@ -25,10 +25,6 @@ TEST_F(SQLProviderTest, postgresql_select_all) {
   sql.table_batch_size = 2000;
 
   auto postgresql_provider = std::make_shared<ral::io::postgresql_data_provider>(sql);
-
-  int rows = postgresql_provider->get_num_handles();
-
-  EXPECT_GT(rows, 0);
 }
 
 TEST_F(SQLProviderTest, mysql_select_all) {
@@ -51,7 +47,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 //  //sql.table = "departments";
 //  //sql.table = "employees";
 //  sql.table = "dept_manager";
- 
+
 
   sql.table_filter = "";
   sql.table_batch_size = 2000;

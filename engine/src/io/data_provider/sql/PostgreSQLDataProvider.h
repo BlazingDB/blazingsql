@@ -31,6 +31,7 @@ public:
 
 private:
   PGconn *connection;
+  bool table_fetch_completed;
 };
 
 } /* namespace io */

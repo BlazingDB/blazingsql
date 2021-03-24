@@ -74,7 +74,7 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
 }
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
-	  : abstractsql_data_provider(sql) {
+	  : abstractsql_data_provider(sql), table_fetch_completed{false} {
   connection = PQconnectdb(MakePostgreSQLConnectionString(sql).c_str());
 
   if (PQstatus(connection) != CONNECTION_OK) {
@@ -99,11 +99,12 @@ postgresql_data_provider::~postgresql_data_provider() {
 }
 
 std::shared_ptr<data_provider> postgresql_data_provider::clone() {
-  return nullptr;
+  return std::static_pointer_cast<data_provider>(
+      std::make_shared<postgresql_data_provider>(sql));
 }
 
 bool postgresql_data_provider::has_next() {
-  return false;
+  return table_fetch_completed == false;
 }
 
 void postgresql_data_provider::reset() {}
