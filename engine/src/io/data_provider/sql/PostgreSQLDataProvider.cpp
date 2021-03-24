@@ -42,9 +42,9 @@ public:
 TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
   PGresult *result = PQexec(connection, MakeQueryForColumnsInfo(sql).c_str());
   if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-    throw std::runtime_error("Error access for columns info");
     PQclear(result);
     PQfinish(connection);
+    throw std::runtime_error("Error access for columns info");
   }
 
   int resultNfields = PQnfields(result);
@@ -113,8 +113,43 @@ void postgresql_data_provider::reset() {
   batch_position = 0;
 }
 
-data_handle postgresql_data_provider::get_next(bool) {
-  return data_handle{};
+data_handle postgresql_data_provider::get_next(bool open_file) {
+  data_handle handle;
+
+  handle.sql_handle.table = sql.table;
+  handle.sql_handle.column_names = column_names;
+  handle.sql_handle.column_types = column_types;
+
+  if (!open_file) {
+    return handle;
+  }
+
+  const std::string select_from = build_select_from();
+  const std::string where = sql.table_filter.empty() ? "" : " where ";
+  const std::string query = select_from + where + sql.table_filter +
+    build_limit_offset(batch_position);
+
+  batch_position += sql.table_batch_size;
+  PGresult *result = PQexec(connection, query.c_str());
+
+  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    PQclear(result);
+    PQfinish(connection);
+    throw std::runtime_error("Error getting next batch from postgresql");
+  }
+
+  int resultNtuples = PQntuples(result);
+
+  if (!resultNtuples) {
+    table_fetch_completed = true;
+  }
+
+  handle.sql_handle.column_bytes = column_bytes;
+  // TODO(percy, cristhian): add a generic resultset to store it for all engines
+  // handle.result_set = MakeResultSetFromPostgreSQLResult(result);
+  handle.uri = Uri("postgresql", "", sql.schema + "/" + sql.table, "", "");
+
+  return handle;
 }
 
 std::size_t postgresql_data_provider::get_num_handles() {
