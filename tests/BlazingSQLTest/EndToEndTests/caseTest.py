@@ -289,7 +289,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_14"
             query = """select CASE WHEN l_comment in ('ABC') THEN 'CDE' END S, l_quantity
-                    from lineitem order by l_quantity limit 100"""
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
             runTest.run_query(
                 bc,
                 drill,
@@ -305,7 +305,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_15"
             query = """select CASE WHEN l_comment in ('ABC') THEN l_comment END S, l_quantity
-                    from lineitem order by l_quantity limit 100"""
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
             runTest.run_query(
                 bc,
                 drill,
@@ -321,7 +321,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_16"
             query = """select CASE WHEN l_comment is null THEN 'ABC' END S, l_quantity
-                    from lineitem order by l_quantity limit 100"""
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
+
             runTest.run_query(
                 bc,
                 drill,

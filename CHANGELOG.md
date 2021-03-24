@@ -8,8 +8,9 @@
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
 - #1322 Updated and enabled several E2E tests
 - #1333 Fixing build due to cudf update
-- #1344 Removed GPUCacheDataMetadata class 
+- #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
+- #1331 Added flag to enable null e2e testing
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -29,7 +30,10 @@
 - #1387 Skip getting orc metadata for decimal type
 - #1392 Fix substrings with nulls
 - #1398 Fix performance regression
+- #1401 Fix support for minus unary operation
+- #1413 Fix for null tests 13 and 23 of windowFunctionTest
 - #1400 Fix for Column aliases when exists a Join op
+
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
@@ -56,6 +60,8 @@
 - #1347 Fixing issue when reading orc metadata from DATE dtype
 - #1338 Window Function support for LEAD and LAG statements 
 - #1362 give useful message when file extension is not recognized
+- #1361 Supporting first_value and last_value for Window Function
+
 
 ## Improvements
 - #1293 Added optional acknowledgments to message sending
