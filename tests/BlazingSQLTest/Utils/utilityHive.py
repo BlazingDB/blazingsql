@@ -5,6 +5,7 @@ import filecmp
 import shutil
 from itertools import combinations
 import pandas
+import dask_cudf
 
 __all__ = ["create_hive_partition_data", "test_hive_partition_data"]
 
@@ -206,6 +207,9 @@ def _get_columns_names(bc, table_name):
 	return columns
 
 def _save(df, output, partition, filename, file_format, table_name):
+	if type(df) is dask_cudf.core.DataFrame:
+		df = df.compute()
+
 	partition_folder = '/'.join(partition)
 	partition_folder = partition_folder.replace("'","")
 
@@ -276,6 +280,10 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, fil
 
 			query = 'select count(*) from {} where {}'.format(table_name, where_clause)
 			result = bc.sql(query)
+
+			if type(result) is dask_cudf.core.DataFrame:
+				result = result.compute()
+
 			total_registers = result.values.tolist()[0][0]
 
 			if total_registers == 0:
@@ -291,6 +299,10 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, fil
 
 			query = 'select count(*) from {} where {}'.format(table_name, where_clause)
 			result = bc.sql(query)
+
+			if type(result) is dask_cudf.core.DataFrame:
+				result = result.compute()
+
 			total_registers = result.values.tolist()[0][0]
 
 			if total_registers == 0:
@@ -300,6 +312,10 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, fil
 
 			index = 0
 			df = bc.sql('select {} from {} where {}'.format(view_columns, table_name, where_clause))
+
+			if type(df) is dask_cudf.core.DataFrame:
+				df = df.compute()
+
 			for i in range(0, total_registers, registers_per_parquet):
 				pf = df.iloc[i:i+registers_per_parquet]
 
@@ -326,7 +342,12 @@ def create_hive_partition_data(input, file_format, table_name, partitions, outpu
 	data_partition_array_dict = []
 	for partition in partitions:
 		if partition in columns:
-			valuesPartition = bc.sql(f'select distinct({partition}) from {table_name}').to_pandas().to_dict()
+			result = bc.sql(f'select distinct({partition}) from {table_name}')
+
+			if type(result) is dask_cudf.core.DataFrame:
+				result = result.compute()
+
+			valuesPartition = result.to_pandas().to_dict()
 			finalValues = list(set(valuesPartition[partition].values()) & set(partitions[partition]))
 			dictOfvalues = {i: finalValues[i] for i in range(0, len(finalValues))}
 			valuesPartition[partition] = dictOfvalues
