@@ -201,7 +201,7 @@ private:
 	std::shared_ptr<ral::io::data_parser> parser;
 	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
 	size_t file_index = 0;
-	double num_batches;
+	size_t num_batches;
 	bool filtered;
 };
 
