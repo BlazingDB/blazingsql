@@ -4,6 +4,7 @@
 #include "io/data_provider/sql/PostgreSQLDataProvider.h"
 #include "io/data_parser/sql/MySQLParser.h"
 #include "io/data_parser/sql/SQLiteParser.h"
+#include "io/data_parser/sql/PostgreSQLParser.h"
 #include <cudf_test/column_wrapper.hpp>
 #include <cudf_test/column_utilities.hpp>
 #include "utilities/DebuggingUtils.h"
@@ -14,7 +15,7 @@
 struct SQLProviderTest : public BlazingUnitTest {};
 
 TEST_F(SQLProviderTest, postgresql_select_all) {
-	ral::io::sql_info sql;
+  ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 5432;
   sql.user = "myadmin";
@@ -24,7 +25,15 @@ TEST_F(SQLProviderTest, postgresql_select_all) {
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
-  auto postgresql_provider = std::make_shared<ral::io::postgresql_data_provider>(sql);
+  auto postgresql_provider =
+      std::make_shared<ral::io::postgresql_data_provider>(sql);
+
+  ral::io::postgresql_parser parser;
+  ral::io::Schema schema;
+  // false so we make sure dont go to the  db and get the schema info only
+  auto handle = postgresql_provider->get_next(false);
+
+  parser.parse_schema(handle, schema);
 }
 
 TEST_F(SQLProviderTest, mysql_select_all) {

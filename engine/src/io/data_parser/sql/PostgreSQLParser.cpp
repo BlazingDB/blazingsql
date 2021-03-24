@@ -45,9 +45,12 @@ postgresql_parser::parse_batch(data_handle handle,
 void postgresql_parser::parse_schema(data_handle handle, Schema &schema) {
   const bool is_in_file = true;
   std::size_t file_index = 0;
-  for (const std::string &column_name : handle.sql_handle.column_names) {
-    cudf::type_id column_type = MapPostgreSQLType(column_name);
-    schema.add_column(column_name, column_type, file_index++, is_in_file);
+  const std::size_t columnsLength = handle.sql_handle.column_names.size();
+  for (std::size_t i = 0; i < columnsLength; i++) {
+    const std::string &column_type = handle.sql_handle.column_types.at(i);
+    cudf::type_id type = MapPostgreSQLType(column_type);
+    const std::string &name = handle.sql_handle.column_names.at(i);
+    schema.add_column(name, type, file_index++, is_in_file);
   }
 }
 
