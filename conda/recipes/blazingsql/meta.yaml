@@ -27,6 +27,7 @@ requirements:
         - aws-sdk-cpp
         - google-cloud-cpp 1.16.0
         - mysql-connector-cpp 8
+        - libpq 13
         - cppzmq
         - python
         - setuptools
@@ -54,7 +55,6 @@ requirements:
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm
         - ipywidgets
-        - libpq 13
 
 test:
     requires:
