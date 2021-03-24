@@ -4,8 +4,8 @@
 Python API Reference
 ====================
 
-These pages provide a comprehensive review of all Python API for BlazingSQL. 
-Python is the main interaction layer for BlazingSQL and it starts with the :doc:`BlazingContext()<blazing_context>`.
+This page gives an overview of all public BlazingSQL Python  objects, functions and
+methods. All classes and functions exposed in ``pandas.*`` namespace are public.
 
 .. toctree::
    :maxdepth: 3
@@ -13,4 +13,3 @@ Python is the main interaction layer for BlazingSQL and it starts with the :doc:
    blazing_context
    storage_plugins
    tables
-

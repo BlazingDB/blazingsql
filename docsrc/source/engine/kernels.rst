@@ -33,19 +33,19 @@ The base kernel also provides mechanisms for tracking the state of tasks which w
 
 Non Distributing Kernels
 ------------------------
-* `BindableTableScan <api/classral_1_1batch_1_1BindableTableScan.html>`_
-* `ComputeAggregateKernel <api/classral_1_1batch_1_1ComputeAggregateKernel.html>`_
-* `ComputeWindowKernel <api/classral_1_1batch_1_1ComputeAggregateKernel.html>`_
-* `Filter <api/classral_1_1batch_1_1Filter.html>`_
-* `MergeAggregateKernel <api/classral_1_1batch_1_1MergeAggregateKernel.html>`_
-* `MergeStreamKernel <api/classral_1_1batch_1_1MergeStreamKernel.html>`_
-* `OutputKernel <api/classral_1_1batch_1_1OutputKernel.html>`_
-* `PartitionSingleNodeKernel <api/classral_1_1batch_1_1PartitionSingleNodeKernel.html>`_
-* `PartwiseJoin <api/classral_1_1batch_1_1PartwiseJoin.html>`_
-* `Print <api/classral_1_1batch_1_1PartitionSingleNodeKernel.html>`_
-* `Projection <api/classral_1_1batch_1_1Projection.html>`_
-* `TableScan <api/classral_1_1batch_1_1TableScan.html>`_
-* `UnionKernel <api/classral_1_1batch_1_1UnionKernel.html>`_
+* `BindableTableScan <../xml/classral_1_1batch_1_1BindableTableScan.html>`_
+* `ComputeAggregateKernel <../xml/classral_1_1batch_1_1ComputeAggregateKernel.html>`_
+* `ComputeWindowKernel <../xml/classral_1_1batch_1_1ComputeAggregateKernel.html>`_
+* `Filter <../xml/classral_1_1batch_1_1Filter.html>`_
+* `MergeAggregateKernel <../xml/classral_1_1batch_1_1MergeAggregateKernel.html>`_
+* `MergeStreamKernel <../xml/classral_1_1batch_1_1MergeStreamKernel.html>`_
+* `OutputKernel <../xml/classral_1_1batch_1_1OutputKernel.html>`_
+* `PartitionSingleNodeKernel <../xml/classral_1_1batch_1_1PartitionSingleNodeKernel.html>`_
+* `PartwiseJoin <../xml/classral_1_1batch_1_1PartwiseJoin.html>`_
+* `Print <../xml/classral_1_1batch_1_1PartitionSingleNodeKernel.html>`_
+* `Projection <../xml/classral_1_1batch_1_1Projection.html>`_
+* `TableScan <../xml/classral_1_1batch_1_1TableScan.html>`_
+* `UnionKernel <../xml/classral_1_1batch_1_1UnionKernel.html>`_
 
 
 Distributing kernels
@@ -53,17 +53,17 @@ Distributing kernels
 
 Kernels that distribute information between different nodes have a series of helper functions that it allow it to push dataframes or portions of dataframes to other nodes. It has no expectations about how those messages will be distributed and all it does is push these dataframes into a cache with routing information.
 
-* `DistributeAggregateKernel <api/classral_1_1batch_1_1DistributeAggregateKernel.html>`_
-* `JoinPartitionKernel <api/classral_1_1batch_1_1JoinPartitionKernel.html>`_
-* `LimitKernel <api/classral_1_1batch_1_1LimitKernel.html>`_
-* `PartitionKernel <api/classral_1_1batch_1_1PartitionKernel.html>`_
-* `SortAndSampleKernel <api/classral_1_1batch_1_1SortAndSampleKernel.html>`_
+* `DistributeAggregateKernel <../xml/classral_1_1batch_1_1DistributeAggregateKernel.html>`_
+* `JoinPartitionKernel <../xml/classral_1_1batch_1_1JoinPartitionKernel.html>`_
+* `LimitKernel <../xml/classral_1_1batch_1_1LimitKernel.html>`_
+* `PartitionKernel <../xml/classral_1_1batch_1_1PartitionKernel.html>`_
+* `SortAndSampleKernel <../xml/classral_1_1batch_1_1SortAndSampleKernel.html>`_
 
 
 Implementing a Basic Kernel
 ---------------------------
 
-A Kernel has two functions that must be implemented for it to be operational. A `run() <api/classral_1_1cache_1_1kernel.html#classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7>`_ function that takes no parameters and a `do_process() <api/classral_1_1cache_1_1kernel.html#classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625>`_ function. Below we are going to go over an example of a simple kernel and how these two functions are implemented.
+A Kernel has two functions that must be implemented for it to be operational. A `run() <../xml/classral_1_1cache_1_1kernel.html#classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7>`_ function that takes no parameters and a `do_process() <../xml/classral_1_1cache_1_1kernel.html#classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625>`_ function. Below we are going to go over an example of a simple kernel and how these two functions are implemented.
 
 In addition to this there are other functions that if implemented will allow the engine to be more judicious in how it schedules work. Examples of this are things like estimate_output_bytes() and estimate_operating_bytes() lets the engine be able to estimate how much memory it will need for either storing the output or will need as temporary space to perform this kernels operation on a specified input.
 

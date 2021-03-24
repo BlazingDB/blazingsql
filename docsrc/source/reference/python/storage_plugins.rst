@@ -1,7 +1,14 @@
+.. currentmodule:: blazingsql
+
 Storage Plugins
 ===============
 
-.. toctree::
-   :maxdepth: 3
-   :hidden:
-   :glob:
+.. autosummary::
+   :toctree: api/
+
+   BlazingContext.gs
+   BlazingContext.hdfs
+   BlazingContext.localfs
+   BlazingContext.s3
+   BlazingContext.show_filesystems
+
