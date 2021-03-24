@@ -71,6 +71,7 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
     } else {
       const char *characterMaximumLengthBytes = PQgetvalue(
           result, i, characterMaximumLengthFn);
+      // NOTE postgresql representation of number is in network order
       const std::uint32_t characterMaximumLength = ntohl(
           *reinterpret_cast<const std::uint32_t*>(characterMaximumLengthBytes));
       tableInfo.column_bytes.emplace_back(static_cast<const std::size_t>(
