@@ -26,7 +26,7 @@ void postgresql_parser::parse_schema(ral::io::data_handle handle,
 
 std::unique_ptr<frame::BlazingTable>
 postgresql_parser::get_metadata(std::vector<data_handle> handles, int offset) {
-return nullptr;
+  return nullptr;
 }
 
 }  // namespace io
