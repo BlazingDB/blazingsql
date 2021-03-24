@@ -47,34 +47,31 @@ extensions = ['recommonmark',
                 'sphinx.ext.todo',
                 'sphinx.ext.autodoc',
                 "sphinx.ext.autosummary",
-                # 'breathe',
-                # 'exhale'
+                'breathe',
+                'exhale'
                 ]
 
 autosummary_generate = True 
 autosummary_imported_members = False
 
 # # Setup the exhale extension
-# exhale_args = {
-#     # These arguments are required
-#     "containmentFolder":     "./xml",
-#     "rootFileName":          "library_root.rst",
-#     "rootFileTitle":         "Library API",
-#     "doxygenStripFromPath":  "..",
-#     # Suggested optional arguments
-#     "createTreeView":        True,
-#     # TIP: if using the sphinx-bootstrap-theme, you need
-#     "treeViewIsBootstrap": True,
-#     "exhaleExecutesDoxygen": True,
-#     "exhaleUseDoxyfile": True,
-    
-# }
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./xml",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    #"treeViewIsBootstrap": True
+}
 
-# # Setup the breathe extension
-# breathe_projects = {
-#     "BlazingSQL Engine": "./doxyfiles/xml"
-# }
-# breathe_default_project = "BlazingSQL Engine"
+# Setup the breathe extension
+breathe_projects = {
+    "BlazingSQL Engine": "./xml"
+}
+breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -96,7 +93,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'pydata_sphinx_theme'
+html_theme = 'sphinx_book_theme'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
