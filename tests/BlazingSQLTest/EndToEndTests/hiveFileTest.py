@@ -958,7 +958,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
     executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
 
-    shutil.rmtree( tmpPath)
+    shutil.rmtree(tmpPath, ignore_errors=True)
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
