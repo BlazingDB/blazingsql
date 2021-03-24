@@ -26,5 +26,5 @@ doxygen:
 	@doxygen "$(SOURCEDIR)/Doxyfile"
 
 clean:
-	@rm	-rf	"$(BUILDDIR)" doxyfiles
+	@rm	-rf	"$(BUILDDIR)" "$(SOURCEDIR)/xml"
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

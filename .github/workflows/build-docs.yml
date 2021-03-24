@@ -21,21 +21,18 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          build-command: "make html -e"
-          docs-folder: "docsrc/"
       - uses: mattnotmitt/doxygen-action@v1
         with:
           working-directory: 'docsrc/'
           doxyfile-path: 'source/Doxyfile'
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          build-command: "make html -e"
+          docs-folder: "docsrc/"
       - name: Commit documentation changes
         run: |
           git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch main --single-branch main
-          sudo rm -rf docsrc/build/html/xml
-          sudo rm -rf docsrc/build/html/_sources
           cp -a docsrc/build/html/. docs/
-          cp -a docsrc/doxyfiles/html/. docs/api/
           cd docs
           touch .nojekyll
           git config --local user.email "action@github.com"
