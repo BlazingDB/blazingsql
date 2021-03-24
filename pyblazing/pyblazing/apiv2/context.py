@@ -1195,7 +1195,7 @@ def load_config_options_from_env(user_config_options: dict):
     config_options = {}
     default_values = {
         "JOIN_PARTITION_SIZE_THRESHOLD": 400000000,
-        "CONCATENATING_CACHE_NUM_BYTES_TIMEOUT": 100000,
+        "CONCATENATING_CACHE_NUM_BYTES_TIMEOUT": 100,
         "MAX_JOIN_SCATTER_MEM_OVERHEAD": 500000000,
         "MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE": 8,
         "NUM_BYTES_PER_ORDER_BY_PARTITION": 400000000,
@@ -1311,7 +1311,7 @@ class BlazingContext(object):
                     default: 400000000
             CONCATENATING_CACHE_NUM_BYTES_TIMEOUT : Time in ms to wait to try to 
                     have the bytes desired in a ConcatenatingCacheMachine.
-                    default: 100000 (100 ms)
+                    default: 100 (100 ms)
             MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more
                     likely one of the tables of join will be scattered to all
                     the nodes, instead of doing a standard hash based

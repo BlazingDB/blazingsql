@@ -253,7 +253,7 @@ public:
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
 		int cond_var_timeout = (num_bytes_timeout > -1 && num_bytes_timeout < timeout) ? num_bytes_timeout : timeout;
-		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, num_bytes, num_bytes_timeout, this] {
+		while(!condition_variable_.wait_for(lock, cond_var_timeout*1ms, [&blazing_timer, num_bytes, num_bytes_timeout, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				size_t total_bytes = 0;
 				if (!done_waiting) {					
