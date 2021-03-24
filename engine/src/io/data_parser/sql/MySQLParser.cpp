@@ -105,7 +105,7 @@ cudf::type_id parse_mysql_column_type(const std::string t) {
   if (mysql_is_cudf_string(t)) return cudf::type_id::STRING;
   // test numeric data types ...
   if (StringUtil::beginsWith(t, "BOOL") || 
-      StringUtil::beginsWith(t, "BOOLEAN")) return cudf::type_id::BOOL8;
+      StringUtil::beginsWith(t, "BOOLEAN") || (t == "TINYINT(1)")) return cudf::type_id::BOOL8;
   if (StringUtil::beginsWith(t, "TINYINT")) return cudf::type_id::INT8;
   if (StringUtil::beginsWith(t, "INT") || 
       StringUtil::beginsWith(t, "INTEGER")) return cudf::type_id::INT32;
@@ -144,32 +144,15 @@ std::unique_ptr<cudf::column> build_fixed_width_cudf_col(size_t total_rows,
   }
   const cudf::size_type size = total_rows;
   auto data = rmm::device_buffer{buff.data(), size * sizeof(T)};
-  auto ret = std::make_unique<cudf::column>(cudf::data_type{cudf::type_to_id<T>()},
+  auto data_type = cudf::data_type(cudf_type_id);
+  auto ret = std::make_unique<cudf::column>(data_type,
                                      size,
-                                     buff,
+                                     data,
                                      cudf_internals::make_null_mask(valids.data(), valids.data() + total_rows),
                                      cudf::UNKNOWN_NULL_COUNT);
   return ret;
 }
 
-std::unique_ptr<cudf::column> build_bool_cudf_col(size_t total_rows,
-                                                  char *host_col,
-                                                  size_t data_size,
-                                                  const std::vector<uint8_t> &valids)
-{
-  std::vector<bool> buff(total_rows);
-  for (int i =0; i < total_rows; ++i) {
-    buff[i] = *(bool*)(host_col + data_size*i);
-  }
-  const cudf::size_type size = total_rows;
-  auto data = rmm::device_buffer{buff.data(), size * sizeof(uint8_t)};
-  auto ret = std::make_unique<cudf::column>(cudf::data_type{cudf::type_to_id<bool>()},
-                                     size,
-                                     buff,
-                                     cudf_internals::make_null_mask(valids.data(), valids.data() + total_rows),
-                                     cudf::UNKNOWN_NULL_COUNT);
-  return ret;
-}
 std::unique_ptr<cudf::column> build_str_cudf_col(size_t total_rows,
                                                  char *host_col,
                                                  size_t data_size,
@@ -388,7 +371,7 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         cudf_cols[col] = build_fixed_width_cudf_col<double>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
       } break;
       case cudf::type_id::BOOL8: {
-        cudf_cols[col] = build_bool_cudf_col(total_rows, host_cols[col], data_size, valids);
+        cudf_cols[col] = build_fixed_width_cudf_col<uint8_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
       } break;
       case cudf::type_id::TIMESTAMP_DAYS: {
         auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);

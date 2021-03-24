@@ -45,8 +45,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   sql.password = "admin";
   sql.schema = "employees";
   //sql.table = "departments";
-  //sql.table = "employees";
-  sql.table = "dept_manager";
+  sql.table = "employees";
+  //sql.table = "dept_manager";
 
 
   sql.table_filter = "";
@@ -61,7 +61,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   auto handle = mysql_provider->get_next(false); // false so we make sure dont go to the db and get the schema info only
   parser.parse_schema(handle, schema);
 
-  std::vector<int> column_indices = {0};
+  std::vector<int> column_indices = {0, 6};
   //std::vector<int> column_indices;
   if (column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
