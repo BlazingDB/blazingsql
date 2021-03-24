@@ -8,13 +8,35 @@ The classes that must be implemented are derived from message_receiver, message_
 
 
 
-TCP
----
+Messages
+--------
 
-UCX
----
+All node to node communications follow the structure below.
+
+Structure
+^^^^^^^^^
+
+.. image:: /_static/resources/comm-buffers.jpg
+
+A message consists of both a dataframe and metadata. The dataframe can be empty in the case of sending messages that only contain plan information. The metadata is just a std::map<std::string,std::string>.
+
 
 Memory Layout
--------------
+^^^^^^^^^^^^^
+It is not always clear, particularly when leveraging hardware such as the GPU, that the NIC will have direct access to the memory being used to operate on data. Allocations are the bain of performance. For transporting we use fixed size buffers and pack a table into 1 or more buffers.
 
-It is not always clear, particularly when leveraging hardware such as the GPU, that the NIC will have direct access to the memory being used to operate on data. Messages for this reason can be transported in various ways using either the memory in the space in which it lies or by packing those buffers into a series of pre allocated fixed size buffers for transmission. The latter basically operates as follows. Get a fixed size buffers and put as much of the table into it as possible. If that's less space than a column requires then said column is split up amongst multiple buffers, any space left over from the last buffer is space used for the next column. Similarly if a series of columns are particularly small, they might all reside within the same buffer. This makes the
+.. image:: /_static/resources/comm-buffers.jpg
+
+This allows both the send of receivers of messages to use fixed size pre allocated buffers for transporting information back and forth. Making sending and receiving very fast. It has the overhead of a memcpy for operations where the data on the sending side resided in a space the NIC can read from.
+
+
+Communication Protocols
+-----------------------
+
+
+
+TCP
+^^^
+
+UCX
+^^^

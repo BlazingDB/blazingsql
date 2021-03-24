@@ -1,7 +1,7 @@
 Overview
 ========
 
-SQL Query to relational algrbra
+SQL Query to relational algebra
 -------------------------------
 
 When a user runs a query using `bc.sql(query)`, that query is sent to Apache Calcite
@@ -23,15 +23,15 @@ Execution Graph: DAG of Kernels and Caches
   :alt: A drawing of two nodes executing a Scan kernel, followed by a hash partition kernel that scatters data between the two nodes followed by a Join kernel.
 
 The execution graph is a directed acyclic graph with nodes that are kernels and caches that are edges.
-The above image gives a good overview of how we try to organize various operations that need to be performed on one or more dataframes or groups of files. 
-Every kernel is connected to every other kernel only through a cache. The purpose of the cache is to hold data as a CacheData between computational stages. 
-CacheData objects can move data between different memory layers, so that the data processing algorithms performed can scale to beyond what one single memory 
-layer can hold. All Kernels implement the `Kernel <api/classral_1_1cache_1_1kernel.html>`_ interface or one of their derived classes. 
-A kernels purpose is to organize the flow and orchestration of performing complex distributed operations but it does not perform any of the execution itself. 
-Instead, it generates tasks which are sent to the Task Executor, which is the one which will perform the execution itself. 
+The above image gives a good overview of how we try to organize various operations that need to be performed on one or more dataframes or groups of files.
+Every kernel is connected to every other kernel only through a cache. The purpose of the cache is to hold data as a CacheData between computational stages.
+CacheData objects can move data between different memory layers, so that the data processing algorithms performed can scale to beyond what one single memory
+layer can hold. All Kernels implement the `Kernel <api/classral_1_1cache_1_1kernel.html>`_ interface or one of their derived classes.
+A kernels purpose is to organize the flow and orchestration of performing complex distributed operations but it does not perform any of the execution itself.
+Instead, it generates tasks which are sent to the Task Executor, which is the one which will perform the execution itself.
 The final output of a DAG of kernels and caches is a Cache which will contain the result.
 
-The Kernels push information forward into caches and kernels pull those cached data representations to get inputs. They are decached only right before 
+The Kernels push information forward into caches and kernels pull those cached data representations to get inputs. They are decached only right before
 computation is about to take place.
 
 * The engine operates on partitions of data that form part of one larger distributed DataFrame.
@@ -61,4 +61,3 @@ Task Executor and Tasks
 :doc:`Task Executor Page <executor>`
 
 The task executor's job is to take all of the jobs in the queue and actually schedule them to run on the hardware that we are targetting. Currently we only target Nvidia GPUs with our executor. It manages access to resources like system and gpu memory and limits the number of tasks that are being executed concurrently. It also is what provides the ability to retry operations that failed due to lack of resources that can be retried when resources are more plentiful.
-
