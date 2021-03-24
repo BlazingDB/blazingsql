@@ -56,7 +56,7 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
   tableInfo.column_types.reserve(resultNtuples);
 
   int columnNameFn = PQfnumber(result, "column_name");
-  int dataTypeFn = PQfnumber(result, "column_name");
+  int dataTypeFn = PQfnumber(result, "data_type");
   int characterMaximumLengthFn = PQfnumber(result, "character_maximum_length");
 
   for (int i = 0; i < resultNtuples; i++) {
@@ -65,8 +65,9 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
     tableInfo.column_types.emplace_back(
         std::string{PQgetvalue(result, i, dataTypeFn)});
 
+    // NOTE character_maximum_length is used for char or byte string type
     if (PQgetisnull(result, i, characterMaximumLengthFn)) {
-      tableInfo.column_bytes.emplace_back(8);
+      tableInfo.column_bytes.emplace_back(0);
     } else {
       const char *characterMaximumLengthBytes = PQgetvalue(
           result, i, characterMaximumLengthFn);
