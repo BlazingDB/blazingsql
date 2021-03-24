@@ -32,6 +32,8 @@ public:
 private:
   PGconn *connection;
   bool table_fetch_completed;
+  std::size_t batch_position;
+  std::size_t estimated_table_row_count;
 };
 
 } /* namespace io */

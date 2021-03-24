@@ -74,7 +74,8 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
 }
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
-	  : abstractsql_data_provider(sql), table_fetch_completed{false} {
+	  : abstractsql_data_provider(sql), table_fetch_completed{false},
+      batch_position{0}, estimated_table_row_count{0} {
   connection = PQconnectdb(MakePostgreSQLConnectionString(sql).c_str());
 
   if (PQstatus(connection) != CONNECTION_OK) {
@@ -107,14 +108,18 @@ bool postgresql_data_provider::has_next() {
   return table_fetch_completed == false;
 }
 
-void postgresql_data_provider::reset() {}
+void postgresql_data_provider::reset() {
+  table_fetch_completed = true;
+  batch_position = 0;
+}
 
 data_handle postgresql_data_provider::get_next(bool) {
   return data_handle{};
 }
 
 std::size_t postgresql_data_provider::get_num_handles() {
-  return 0;
+  std::size_t ret = estimated_table_row_count / sql.table_batch_size;
+  return ret == 0 ? ret : 1;
 }
 
 } /* namespace io */
