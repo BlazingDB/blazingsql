@@ -12,7 +12,7 @@ if [ ! -z $2 ]; then
   PYTHON_VERSION=$2
 fi
 
-RAPIDS_VERSION="0.17"
+RAPIDS_VERSION="0.18"
 if [ ! -z $3 ]; then
   RAPIDS_VERSION=$3
 fi
