@@ -4,31 +4,40 @@
  * <cristhian@blazingdb.com>
  */
 
+#include <array>
+
 #include "PostgreSQLParser.h"
 
 namespace ral {
 namespace io {
 
-namespace {
+static const std::array<const char *, 9> postgresql_string_type_hints = {
+    "character",
+    "character varying",
+    "money",
+    "bytea",
+    "text",
+    "anyarray",
+    "numeric",
+    "integer",
+    "name"};
 
-cudf::type_id MapPostgreSQLType(const std::string &columnType) {
-  // TODO(cristhian): complete type list
-  std::unordered_map<std::string, cudf::type_id> postgreSQL2CudfUmap{
-      {"", cudf::type_id::EMPTY},
-      {"int4", cudf::type_id::INT64},
-      {"text", cudf::type_id::STRING},
-  };
-  // TODO NOTE: move to switch statement
-  try {
-    return postgreSQL2CudfUmap.at(columnType);
-  } catch (const std::out_of_range &) {
-    std::cerr << "Unsupported postgreSQL column type: " << columnType
-              << std::endl;
-    throw std::runtime_error("Unsupported postgreSQL column type");
-  }
+static inline bool postgresql_is_cudf_string(const std::string &hint) {
+  const auto *result =
+      std::find_if(std::cbegin(postgresql_string_type_hints),
+                   std::cend(postgresql_string_type_hints),
+                   [&hint](const char *c_hint) {
+                     return std::strcmp(c_hint, hint.c_str()) == 0;
+                   });
+  return result != std::cend(postgresql_string_type_hints);
 }
 
-}  // namespace
+static inline cudf::type_id MapPostgreSQLType(const std::string &columnType) {
+  if (postgresql_is_cudf_string(columnType)) {
+    return cudf::type_id::STRING;
+  }
+  throw std::runtime_error("PostgreSQL type hint not found: " + columnType);
+}
 
 postgresql_parser::postgresql_parser() = default;
 
