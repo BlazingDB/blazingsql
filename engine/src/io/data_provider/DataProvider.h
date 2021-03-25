@@ -39,6 +39,10 @@
 #include <sqlite3.h>
 #endif
 
+#ifdef POSTGRESQL_SUPPORT
+#include <libpq-fe.h>
+#endif
+
 namespace ral {
 namespace io {
 
@@ -55,7 +59,10 @@ struct sql_datasource {
 #ifdef SQLITE_SUPPORT
   std::shared_ptr<sqlite3_stmt> sqlite_statement;
 #endif
-  // TODO percy c.gonzales add postgre and other backends here
+#ifdef POSTGRESQL_SUPPORT
+  std::shared_ptr<PGresult> postgresql_result;
+#endif
+  // TODO percy c.gonzales add other backends here
 };
 
 struct data_handle {
@@ -68,7 +75,7 @@ struct data_handle {
 	data_handle(
 		std::shared_ptr<arrow::io::RandomAccessFile> file_handle,
 		std::map<std::string, std::string> column_values,
-		Uri uri,										 
+		Uri uri,
 		frame::BlazingTableView table_view)
 	: file_handle(file_handle), column_values(column_values), uri(uri), table_view(table_view){
 	}
@@ -84,7 +91,7 @@ struct data_handle {
 class data_provider {
 public:
 
-	virtual std::shared_ptr<data_provider> clone() = 0; 
+	virtual std::shared_ptr<data_provider> clone() = 0;
 
 	/**
 	 * tells us if this provider can generate more arrow::io::RandomAccessFile instances
@@ -102,7 +109,7 @@ public:
 	virtual data_handle get_next(bool open_file = true) = 0;
 
 	/**
-	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files,
 	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
 	 */
 	virtual std::vector<data_handle> get_some(std::size_t num_files, bool open_file = true) = 0;
@@ -113,13 +120,13 @@ public:
 	virtual void close_file_handles() = 0;
 
 	/**
-	 * Get the number of data_handles that will be provided. 
-	 */ 
+	 * Get the number of data_handles that will be provided.
+	 */
 	virtual size_t get_num_handles() = 0;
 
   /**
 	 * returns true for sql providers, else false
-	 */ 
+	 */
   virtual bool is_sql() const { return false; }
 };
 

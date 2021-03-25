@@ -15,7 +15,7 @@ namespace io {
 
 class postgresql_data_provider : public abstractsql_data_provider {
 public:
-	postgresql_data_provider(const sql_info &sql);
+  postgresql_data_provider(const sql_info &sql);
 
   virtual ~postgresql_data_provider();
 

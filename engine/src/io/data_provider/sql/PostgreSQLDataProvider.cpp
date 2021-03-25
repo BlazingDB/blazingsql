@@ -16,11 +16,8 @@ namespace {
 
 const std::string MakePostgreSQLConnectionString(const sql_info &sql) {
   std::ostringstream os;
-  os << "host=" << sql.host
-     << " port=" << sql.port
-     << " dbname=" << sql.schema
-     << " user=" << sql.user
-     << " password=" << sql.password;
+  os << "host=" << sql.host << " port=" << sql.port << " dbname=" << sql.schema
+     << " user=" << sql.user << " password=" << sql.password;
   return os.str();
 }
 
@@ -30,8 +27,8 @@ const std::string MakeQueryForColumnsInfo(const sql_info &sql) {
         " from information_schema.tables as tables"
         " join information_schema.columns as columns"
         " on tables.table_name = columns.table_name"
-        " where tables.table_catalog = '" <<  sql.schema
-     << "' and tables.table_name = '" << sql.table <<"'";
+        " where tables.table_catalog = '"
+     << sql.schema << "' and tables.table_name = '" << sql.table << "'";
   return os.str();
 }
 
@@ -67,38 +64,39 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
 
     // NOTE character_maximum_length is used for char or byte string type
     if (PQgetisnull(result, i, characterMaximumLengthFn)) {
-      tableInfo.column_bytes.emplace_back(0);
+      // TODO(recy, cristhian): check the minimum size for types
+      tableInfo.column_bytes.emplace_back(8);
     } else {
-      const char *characterMaximumLengthBytes = PQgetvalue(
-          result, i, characterMaximumLengthFn);
+      const char *characterMaximumLengthBytes =
+          PQgetvalue(result, i, characterMaximumLengthFn);
       // NOTE postgresql representation of number is in network order
-      const std::uint32_t characterMaximumLength = ntohl(
-          *reinterpret_cast<const std::uint32_t*>(characterMaximumLengthBytes));
-      tableInfo.column_bytes.emplace_back(static_cast<const std::size_t>(
-            characterMaximumLength));
+      const std::uint32_t characterMaximumLength =
+          ntohl(*reinterpret_cast<const std::uint32_t *>(
+              characterMaximumLengthBytes));
+      tableInfo.column_bytes.emplace_back(
+          static_cast<const std::size_t>(characterMaximumLength));
     }
   }
 
   return tableInfo;
 }
 
-}
+}  // namespace
 
 postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
-	  : abstractsql_data_provider(sql), table_fetch_completed{false},
+    : abstractsql_data_provider(sql), table_fetch_completed{false},
       batch_position{0}, estimated_table_row_count{0} {
   connection = PQconnectdb(MakePostgreSQLConnectionString(sql).c_str());
 
   if (PQstatus(connection) != CONNECTION_OK) {
-    std::cerr << "Connection to database failed: "
-              << PQerrorMessage(connection)
-              << std::endl; // TODO: build error messages by ostreams
+    std::cerr << "Connection to database failed: " << PQerrorMessage(connection)
+              << std::endl;
     throw std::runtime_error("Connection to database failed: " +
-        std::string{PQerrorMessage(connection)});
+                             std::string{PQerrorMessage(connection)});
   }
 
-  std::cout << "PostgreSQL version: "
-            << PQserverVersion(connection) << std::endl;
+  std::cout << "PostgreSQL version: " << PQserverVersion(connection)
+            << std::endl;
 
   TableInfo tableInfo = ExecuteTableInfo(connection, sql);
 
@@ -107,9 +105,7 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
   column_bytes = tableInfo.column_bytes;
 }
 
-postgresql_data_provider::~postgresql_data_provider() {
-  PQfinish(connection);
-}
+postgresql_data_provider::~postgresql_data_provider() { PQfinish(connection); }
 
 std::shared_ptr<data_provider> postgresql_data_provider::clone() {
   return std::static_pointer_cast<data_provider>(
@@ -132,14 +128,12 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
   handle.sql_handle.column_names = column_names;
   handle.sql_handle.column_types = column_types;
 
-  if (!open_file) {
-    return handle;
-  }
+  if (!open_file) { return handle; }
 
   const std::string select_from = build_select_from();
   const std::string where = sql.table_filter.empty() ? "" : " where ";
   const std::string query = select_from + where + sql.table_filter +
-    build_limit_offset(batch_position);
+                            build_limit_offset(batch_position);
 
   batch_position += sql.table_batch_size;
   PGresult *result = PQexec(connection, query.c_str());
@@ -152,13 +146,10 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
 
   int resultNtuples = PQntuples(result);
 
-  if (!resultNtuples) {
-    table_fetch_completed = true;
-  }
+  if (!resultNtuples) { table_fetch_completed = true; }
 
   handle.sql_handle.column_bytes = column_bytes;
-  // TODO(percy, cristhian): add a generic resultset to store it for all engines
-  // handle.result_set = MakeResultSetFromPostgreSQLResult(result);
+  //handle.sql_handle.postgresql_result.reset(result);
   handle.uri = Uri("postgresql", "", sql.schema + "/" + sql.table, "", "");
 
   return handle;
