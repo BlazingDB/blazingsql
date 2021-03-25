@@ -39,7 +39,15 @@ MapPostgreSQLTypeName(const std::string &columnTypeName) {
   if (columnTypeName == "smallint") { return cudf::type_id::INT16; }
   if (columnTypeName == "integer") { return cudf::type_id::INT32; }
   if (columnTypeName == "bigint") { return cudf::type_id::INT64; }
-  throw std::runtime_error("PostgreSQL type hint not found: " + columnType);
+  if (columnTypeName == "decimal") { return cudf::type_id::DECIMAL64; }
+  if (columnTypeName == "numeric") { return cudf::type_id::DECIMAL64; }
+  if (columnTypeName == "real") { return cudf::type_id::FLOAT32; }
+  if (columnTypeName == "double precision") { return cudf::type_id::FLOAT64; }
+  if (columnTypeName == "smallserial") { return cudf::type_id::INT16; }
+  if (columnTypeName == "serial") { return cudf::type_id::INT32; }
+  if (columnTypeName == "bigserial") { return cudf::type_id::INT64; }
+  if (columnTypeName == "boolean") { return cudf::type_id::BOOL8; }
+  throw std::runtime_error("PostgreSQL type hint not found: " + columnTypeName);
 }
 
 postgresql_parser::postgresql_parser() = default;
