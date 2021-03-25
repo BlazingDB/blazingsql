@@ -63,6 +63,9 @@ MapPostgreSQLTypeName(const std::string &columnTypeName) {
   if (columnTypeName == "interval") {
     return cudf::type_id::DURATION_MICROSECONDS;
   }
+  if (columnTypeName == "inet") { return cudf::type_id::UINT64; }
+  if (columnTypeName == "USER-DEFINED") { return cudf::type_id::STRUCT; }
+  if (columnTypeName == "ARRAY") { return cudf::type_id::LIST; }
   throw std::runtime_error("PostgreSQL type hint not found: " + columnTypeName);
 }
 
