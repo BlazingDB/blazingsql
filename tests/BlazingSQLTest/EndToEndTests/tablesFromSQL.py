@@ -1,4 +1,5 @@
 from blazingsql import DataType
+""" 
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
@@ -21,7 +22,7 @@ sql_table_filters = {
 sql_table_batch_sizes = {
     "lineitem": 3000,
 } 
-
+ """
 
 def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
     sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
@@ -72,7 +73,15 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     print(queryType)
     print("==============================")
 
-    start_mem = gpuMemory.capture_gpu_memory_usage()
-    executionTest(dask_client, drill, dir_data_lc, bc, nRals)
-    end_mem = gpuMemory.capture_gpu_memory_usage()
-    gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+    #start_mem = gpuMemory.capture_gpu_memory_usage()
+    #executionTest(dask_client, drill, dir_data_lc, bc, nRals)
+    #end_mem = gpuMemory.capture_gpu_memory_usage()
+    #gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+
+
+
+from DataBase import createSchema as cs
+
+cs.mysql_stuff(DataType.MYSQL)
+
+
