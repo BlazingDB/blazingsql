@@ -25,6 +25,7 @@ takes input data and generates a task to process the data, which is executed by 
 Supporting components
 ---------------------
 The BlazingSQL engine has several other very important components that lend to its extensibility, flexibility and performance:
+
 * :doc:`Memory management <memory_management>` features
 * :doc:`Communication <communication>` library that allow for very performant node to node communication using either TCP or UCX. 
 * :doc:`Interops: <interops>` BlazingSQL's own row based operations engine.

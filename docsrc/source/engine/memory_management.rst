@@ -5,8 +5,6 @@ Memory Management
 
 BlazingMemoryResource
 ^^^^^^^^^^^^^^^^^^^^^
-:blazing_repo:`View in Github</engine/src/bmr/BlazingMemoryResource.h>`
-
 BlazingSQL has a `BlazingMemoryResource` interface that it uses for tracking memory consumption.
 There are three implementations `blazing_device_memory_resource`, `blazing_host_memory_resource` and `blazing_disk_memory_resource`
 to manange to keep track of GPU, HOST and DISK memory consumption.
@@ -29,8 +27,6 @@ employed by BSQL to manage memory consumption.
 
 MemoryMonitor
 ^^^^^^^^^^^^^
-:blazing_repo:`View in Github</engine/src/bmr/MemoryMonitor.h>`
-
 BlazingSQL has a `MemoryMonitor` class that it instantiates for every query that is run. This MemoryMonitor will wake up every 50ms (configurable by MEMORY_MONITOR_PERIOD)
 and check the GPU memory consumption as tracked by `blazing_device_memory_resource`. If memory consumption is too high, it will traverse the execution graph from the last node (final output)
 to the first nodes (TableScans) downgrading CacheData as it can, to bring GPU memory consumption underneath its threshold. Downgrading CacheData means, taking a GPU CacheData and moving
@@ -40,7 +36,7 @@ The `MemoryMonitor` helps ensure that memory GPU consumption does not get too hi
 
 
 Task Execution Resource Management
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The task executor tries to ensure that when it schedules tasks to run, that it does not run out of resources. There are two configuration options that
 control how many concurrent tasks can be executred:
 - *EXECUTOR_THREADS*: This sets a hard maximum number of concurrent tasks that can be executed

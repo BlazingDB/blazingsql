@@ -45,8 +45,7 @@ Physical Plan Multi GPU
               BindableTableScan(table=[[main, orders]], filters=[[<($0, 10)]], projects=[[0, 1, 3]], aliases=[[$f0, o_custkey, o_totalprice]])
 
 
-The conversion of the relational algebra gets done by the function ``transform_json_tree`` in
-:blazing_repo:`PhysicalPlanGenerator.h</engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h>`.
+The conversion of the relational algebra gets done by the function ``transform_json_tree``. 
 This function gets called by ``build_batch_graph``.
 
 This new relational algebra plan is converted into a graph and each node in the graph becomes an execution kernel, while each edge becomes a ``CacheMachine``.

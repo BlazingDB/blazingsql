@@ -89,9 +89,6 @@ public:
 
 	bool has_messages_now(std::vector<std::string> messages);
 
-	std::size_t get_num_batches(){
-		return cache_count;
-	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
