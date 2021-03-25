@@ -551,6 +551,7 @@ public class PushProjector {
     }
     int refIdx = offset - 1;
     List<Pair<RexNode, String>> newProjects = new ArrayList<>();
+	List<String> originalNames = projChild.getRowType().getFieldNames();
     List<RelDataTypeField> destFields = projChild.getRowType().getFieldList();
 	List<String> fieldNames = origProj.getRowType().getFieldNames();
 
@@ -578,9 +579,17 @@ public class PushProjector {
       assert refIdx >= 0;
       final RelDataTypeField destField = destFields.get(refIdx - offset);
 		if (!rightSide) {
-			newProjects.add(Pair.of(rexBuilder.makeInputRef(destField.getType(), refIdx - offset),  fieldsMap.get(refIdx - offset)));
+			String leftName = fieldsMap.get(refIdx - offset);
+			if (leftName == null) {
+				leftName = originalNames.get(refIdx - offset);
+			}
+			newProjects.add(Pair.of(rexBuilder.makeInputRef(destField.getType(), refIdx - offset),  leftName));
 		} else {
-			newProjects.add(Pair.of(rexBuilder.makeInputRef(destField.getType(), refIdx - offset),  fieldsMap.get(refIdx)));
+			String rightName = fieldsMap.get(refIdx);
+			if (rightName == null) {
+				rightName = originalNames.get(refIdx - offset);
+			}
+			newProjects.add(Pair.of(rexBuilder.makeInputRef(destField.getType(), refIdx - offset),  rightName));
 		}
     }
 	
