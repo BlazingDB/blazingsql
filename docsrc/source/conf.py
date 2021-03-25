@@ -34,7 +34,8 @@ author = 'BlazingDB, Inc.'
 language = "en"
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.18'
+version = '0.18'
+release = f'v{version}'
 
 
 # -- General configuration ---------------------------------------------------
@@ -80,7 +81,7 @@ templates_path = ['_templates']
 primary_domain = 'py'
 
 # Tell sphinx what the pygments highlight language should be.
-highlight_language = 'cpp'
+highlight_language = 'py'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -136,6 +137,9 @@ html_theme_options = {
 # html_theme_options = {
     
 # }
+
+extlinks = {'io': (f'https://github.com/rapidsai/cudf/tree/branch-{version}/cpp/src/%s',
+                      'cuIO ')}
 
 html_context = {
     "github_user": "blazingdb",
@@ -259,9 +263,22 @@ class AccessorCallableDocumenter(AccessorLevelDocumenter, MethodDocumenter):
     def format_name(self):
         return MethodDocumenter.format_name(self).rstrip(".__call__")
 
+def rstjinja(app, docname, source):
+    """
+    Render our pages as a jinja template for fancy templating goodness.
+    """
+    # https://www.ericholscher.com/blog/2016/jul/25/integrating-jinja-rst-sphinx/
+    # Make sure we're outputting HTML
+    if app.builder.format != "html":
+        return
+    src = source[0]
+    rendered = app.builder.templates.render_string(src, app.config.html_context)
+    source[0] = rendered
+
 def setup(app):
     app.add_js_file("js/d3.v3.min.js")
     app.connect("autodoc-skip-member", skip)
+    # app.connect("source-read", rstjinja)
     # app.connect("autodoc-process-docstring", remove_flags_docstring)
     # app.connect("autodoc-process-docstring", process_class_docstrings)
     # app.connect("autodoc-process-docstring", process_business_alias_docstrings)
