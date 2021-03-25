@@ -32,6 +32,8 @@ std::tuple<std::string, std::string, std::string, std::string> parseExpressionTo
 
 void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
 
+void parseJoinConditionToEqualityTypes(const std::string & condition, std::vector<cudf::null_equality> & equalityTypes);
+
 void split_inequality_join_into_join_and_filter(const std::string & join_statement, std::string & new_join_statement, std::string & filter_statement);
 
 class PartwiseJoin : public kernel {
