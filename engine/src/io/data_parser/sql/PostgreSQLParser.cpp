@@ -47,6 +47,22 @@ MapPostgreSQLTypeName(const std::string &columnTypeName) {
   if (columnTypeName == "serial") { return cudf::type_id::INT32; }
   if (columnTypeName == "bigserial") { return cudf::type_id::INT64; }
   if (columnTypeName == "boolean") { return cudf::type_id::BOOL8; }
+  if (columnTypeName == "date") { return cudf::type_id::TIMESTAMP_DAYS; }
+  if (columnTypeName == "timestamp without time zone") {
+    return cudf::type_id::TIMESTAMP_MICROSECONDS;
+  }
+  if (columnTypeName == "timestamp with time zone") {
+    return cudf::type_id::TIMESTAMP_MICROSECONDS;
+  }
+  if (columnTypeName == "time without time zone") {
+    return cudf::type_id::DURATION_MICROSECONDS;
+  }
+  if (columnTypeName == "time with time zone") {
+    return cudf::type_id::DURATION_MICROSECONDS;
+  }
+  if (columnTypeName == "interval") {
+    return cudf::type_id::DURATION_MICROSECONDS;
+  }
   throw std::runtime_error("PostgreSQL type hint not found: " + columnTypeName);
 }
 
