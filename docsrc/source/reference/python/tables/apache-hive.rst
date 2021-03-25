@@ -52,7 +52,8 @@ Example
     
     # create a table called "hive_table_name2" from a hive table called my "my_hive_table_name" in database "db2"
     bc.create_table(
-        "hive_table_name2", cursor, 
+        "hive_table_name2", 
+        cursor, 
         hive_table_name="my_hive_table_name", 
         hive_database_name="db2") 
 

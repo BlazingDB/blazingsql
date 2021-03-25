@@ -1,5 +1,3 @@
-{{ header }}
-
 .. _blazing_context:
 
 
