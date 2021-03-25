@@ -8,7 +8,8 @@ Technology Stack
 Python
 ------
 All the user facing apis are in python. This includes creating a BlazingContext, creating tables and running queries.
-The python side of BlazingSQL relies on cudf and dask, since the results of a query are either a cudf DataFrame or in distributed mode a  dask_cudf DataFrame
+The python side of BlazingSQL relies on cudf and dask, since the results of a query are either a cudf DataFrame or in distributed mode a dask_cudf DataFrame. The python
+side interfaces with the C++ side by using `Cython <https://cython.org/>`_.
 
 Dask
 ----
