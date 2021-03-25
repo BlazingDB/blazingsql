@@ -56,7 +56,6 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_STR_UPPER:
 	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
-	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return true;
 	default:
 		return false;
@@ -90,6 +89,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:

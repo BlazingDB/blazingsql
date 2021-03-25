@@ -11,7 +11,6 @@
 - #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
 - #1331 Added flag to enable null e2e testing
-- #1351 Added support for IS NOT DISTINCT FROM for joins and filters
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -35,6 +34,7 @@
 - #1415 Fixed bug where num_batches was not getting set in BindableTableScan 
 - #1413 Fix for null tests 13 and 23 of windowFunctionTest
 - #1416 Fix full join when both tables contains nulls
+- #1351 Fixed 'count distinct' related issues
 
 
 ## Deprecated Features
