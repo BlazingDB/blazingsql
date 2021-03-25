@@ -20,7 +20,7 @@ struct cache_settings {
 	int num_partitions = 1;
 	std::shared_ptr<Context> context;
 	std::size_t concat_cache_num_bytes = 400000000;  ///< Applicable only for concatenating caches
-	int num_bytes_timeout = 100000;  ///< Applicable only for concatenating caches
+	int num_bytes_timeout = 100;  ///< Applicable only for concatenating caches
 	bool concat_all = false; ///< Applicable only for concatenating caches
 };
 
