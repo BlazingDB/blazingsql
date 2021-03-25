@@ -1309,7 +1309,7 @@ class BlazingContext(object):
                     Too small can lead to overpartitioning, too big can lead
                     to OOM errors.
                     default: 400000000
-            CONCATENATING_CACHE_NUM_BYTES_TIMEOUT : Time in ms to wait to try to 
+            CONCATENATING_CACHE_NUM_BYTES_TIMEOUT : Time in ms to wait to try to
                     have the bytes desired in a ConcatenatingCacheMachine.
                     default: 100 (100 ms)
             MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more
