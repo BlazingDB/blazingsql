@@ -11,9 +11,6 @@ ARG RAPIDS_VERSION="0.18"
 SHELL ["/bin/bash", "-c"]
 ENV PYTHONDONTWRITEBYTECODE=true
 
-#RUN --mount=type=cache,target=/var/cache/apt \
-#    --mount=type=cache,target=/tmp \
-#    --mount=type=cache,target=/usr/local/pkgs \
 RUN apt-get update -qq && \
     apt-get install curl git -yqq --no-install-recommends && \
     apt-get clean -y && \
@@ -35,10 +32,7 @@ RUN apt-get update -qq && \
     geoviews seaborn matplotlib holoviews colorcet && \
     conda clean -afy && \
     rm -rf /var/cache/apt /var/lib/apt/lists/* /tmp/miniconda.sh /usr/local/pkgs/* && \
-# Clean in a separate layer as calling conda still generates some __pycache__ files
-#  rm -rf /usr/local/envs/bsql/lib/python3.7/site-packages/pip /usr/local/envs/bsql/lib/python3.7/idlelib /usr/local/envs/bsql/lib/python3.7/ensurepip \
-#RUN find /usr/local/envs/bsql -name '*.a' -delete && \
-  rm -rf /usr/local/envs/bsql/conda-meta && \
+    rm -rf /usr/local/envs/bsql/conda-meta && \
     rm -rf /usr/local/envs/bsql/include && \
     rm /usr/local/envs/bsql/lib/libpython3.7m.so.1.0 && \
     find /usr/local/envs/bsql -name '__pycache__' -type d -exec rm -rf '{}' '+' && \
@@ -57,19 +51,17 @@ RUN apt-get update -qq && \
     /usr/local/envs/bsql/qml \
     /usr/local/envs/bsql/qsci \
     /usr/local/envs/bsql/mkspecs && \
-  find /usr/local/envs/bsql/lib/python3.7/site-packages -name 'tests' -type d -exec rm -rf '{}' '+' && \
-  find /usr/local/envs/bsql/lib/python3.7/site-packages -name '*.pyx' -delete && \
-  find /usr/local/envs/bsql -name '*.c' -delete && \
+    find /usr/local/envs/bsql/lib/python3.7/site-packages -name 'tests' -type d -exec rm -rf '{}' '+' && \
+    find /usr/local/envs/bsql/lib/python3.7/site-packages -name '*.pyx' -delete && \
+    find /usr/local/envs/bsql -name '*.c' -delete && \
   git clone --branch=master https://github.com/BlazingDB/Welcome_to_BlazingSQL_Notebooks /blazingsql && \
   rm -rf /blazingsql/.git && \
-#RUN mkdir /pkg && conda run -p /usr/local/envs/bsql python -m pip install --no-deps /pkg
   mkdir /.local /.jupyter /.cupy && chmod 777 /.local /.jupyter /.cupy
-#ENV PATH="/bsql/bin:${PATH}" LD_LIBRARY_PATH="/bsql/lib:${LD_LIBRARY_PATH}" CONDA_PREFIX="/bsql/" NUMBAPRO_NVVM="/bsql/lib/libnvvm.so" CUPY_CACHE_DIR="/tmp"
+
 WORKDIR /blazingsql
 COPY run_jupyter.sh /blazingsql
 
 # Jupyter
 EXPOSE 8888
-#CMD ["jupyter-lab" , "--notebook=/blazingsql/", "--allow-root", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--NotebookApp.token='rapids'"]
 CMD ["/blazingsql/run_jupyter.sh"]
 
