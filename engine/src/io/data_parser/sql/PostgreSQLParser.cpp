@@ -11,7 +11,7 @@
 namespace ral {
 namespace io {
 
-static const std::array<const char *, 9> postgresql_string_type_hints = {
+static const std::array<const char *, 8> postgresql_string_type_hints = {
     "character",
     "character varying",
     "money",
@@ -19,7 +19,6 @@ static const std::array<const char *, 9> postgresql_string_type_hints = {
     "text",
     "anyarray",
     "numeric",
-    "integer",
     "name"};
 
 static inline bool postgresql_is_cudf_string(const std::string &hint) {
@@ -32,10 +31,14 @@ static inline bool postgresql_is_cudf_string(const std::string &hint) {
   return result != std::cend(postgresql_string_type_hints);
 }
 
-static inline cudf::type_id MapPostgreSQLType(const std::string &columnType) {
-  if (postgresql_is_cudf_string(columnType)) {
+static inline cudf::type_id
+MapPostgreSQLTypeName(const std::string &columnTypeName) {
+  if (postgresql_is_cudf_string(columnTypeName)) {
     return cudf::type_id::STRING;
   }
+  if (columnTypeName == "smallint") { return cudf::type_id::INT16; }
+  if (columnTypeName == "integer") { return cudf::type_id::INT32; }
+  if (columnTypeName == "bigint") { return cudf::type_id::INT64; }
   throw std::runtime_error("PostgreSQL type hint not found: " + columnType);
 }
 
@@ -58,7 +61,7 @@ void postgresql_parser::parse_schema(data_handle handle, Schema &schema) {
   const std::size_t columnsLength = handle.sql_handle.column_names.size();
   for (std::size_t i = 0; i < columnsLength; i++) {
     const std::string &column_type = handle.sql_handle.column_types.at(i);
-    cudf::type_id type = MapPostgreSQLType(column_type);
+    cudf::type_id type = MapPostgreSQLTypeName(column_type);
     const std::string &name = handle.sql_handle.column_names.at(i);
     schema.add_column(name, type, file_index++, is_in_file);
   }
