@@ -79,9 +79,9 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     #gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
 
 
+def aaaaa():
+    from DataBase import createSchema as cs
 
-from DataBase import createSchema as cs
-
-cs.mysql_stuff(DataType.MYSQL)
+    cs.mysql_stuff(DataType.MYSQL)
 
 

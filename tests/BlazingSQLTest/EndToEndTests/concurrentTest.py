@@ -108,7 +108,7 @@ def start_queries(bc, dask_client, nRals, tokens, dir_data_lc, tables):
     done = {} # sampleId -> True|False (fetch completed?)
     extra_args = {
         "dir_data_lc": dir_data_lc,
-        "tables": tables,
+        "table_names": tables,
         "init_tables": True,
         "ds_types": data_types,
     }
