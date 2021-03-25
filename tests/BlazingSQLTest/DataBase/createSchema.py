@@ -16,6 +16,13 @@ from pyhive import hive
 from Configuration import Settings as Settings
 from DemoTest.chronometer import Chronometer
 
+SQLEngineStringDataTypeMap = {
+    DataType.MYSQL: "mysql",
+    DataType.SQLITE: "sqlite",
+    DataType.POSTGRESQL: "postgresql",
+    # TODO percy c.gonzales support for more db engines
+}
+
 # ************** READ TPCH DATA AND CREATE TABLES ON DRILL ****************
 
 tpchTables = [
@@ -1194,6 +1201,9 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     tables = kwargs.get("tables", tpchTables)
     table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
+    sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
+    sql_table_batch_map = kwargs.get("sql_table_batch_size_map", {})
+
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if tables[0] in smilesTables:
@@ -1238,6 +1248,30 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         #     dask_df = dask_cudf.read_parquet(table_files)
         #     dask_df = bc.unify_partitions(dask_df)
         #     t = bc.create_table(table, dask_df)
+        elif fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
+            from_sql = SQLEngineStringDataTypeMap[fileSchemaType]
+            sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
+            sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
+            sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
+            sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
+            sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+            sql_table_filter = ""
+            sql_table_batch_size = 1000
+
+            if table in sql_table_filter_map:
+                sql_table_filter = sql_table_filter_map[table]
+            if table in sql_table_batch_map:
+                sql_table_batch_size = sql_table_batch_size_map[table]
+
+            bc.create_table(table_names[i], table_names[i],
+                from_sql = from_sql,
+                sql_hostname = sql_hostname,
+                sql_port = sql_port,
+                sql_username = sql_username,
+                sql_password = sql_password,
+                sql_schema = sql_schema,
+                sql_table_filter = sql_table_filter,
+                sql_table_batch_size = sql_table_batch_size)
         else:
             bc.create_table(table_names[i], table_files)
 

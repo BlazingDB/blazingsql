@@ -10,16 +10,29 @@ from .concurrentTest import *
 
 queryType = "TablesFromSQL"
 
-# {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
-datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tables)) for ds in data_types)
+data_types = [
+    DataType.MYSQL,
+] 
 
-def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables):
+sql_table_filters = {
+    "lineitem": "l_quantity < 24",
+}
+
+sql_table_batch_sizes = {
+    "lineitem": 3000,
+} 
+
+
+def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
+    sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
+    sql_table_batch_size_map = kwargs.get("sql_table_batch_size_map", {})
     print("######## Starting queries ...########")
-    done = {} # sampleId -> True|False (fetch completed?)
     extra_args = {
-        "dir_data_lc": dir_data_lc,
-        "tables": tables,
-        "init_tables": True
+        "table_names": tables,
+        "init_tables": True,
+        "ds_types": data_types,
+        "sql_table_filter_map": sql_table_filter_map,
+        "sql_table_batch_size_map": sql_table_batch_size_map,
     }
     currrentFileSchemaType = data_types[0]
     for sampleId, query, queryId, fileSchemaType in samples(bc, dask_client, nRals, **extra_args):
@@ -47,7 +60,12 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables):
 
 
 def executionTest(dask_client, drill, dir_data_lc, bc, nRals):
-    run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables)
+    extra_args = {
+        "sql_table_filter_map": sql_table_filters,
+        "sql_table_batch_size_map": sql_table_batch_sizes,
+    }
+    run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **extra_args)
+
 
 def main(dask_client, drill, dir_data_lc, bc, nRals):
     print("==============================")

@@ -35,9 +35,6 @@ worder = 1
 use_percentage = False
 acceptable_difference = 0.01
 
-# {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
-datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tables)) for ds in data_types)
-
 def start_query(bc, tokens, query, sampleId):
     print("==>> Start query for sample", sampleId)
     token = bc.sql(query, return_token = True)
@@ -66,8 +63,8 @@ def fetch_result(bc, tokens, sampleId, drill, query, queryId, fileSchemaType):
     return False
 
 
-def datasources(dask_client, nRals):
-    for fileSchemaType in data_types:
+def datasources(dask_client, nRals, ds_types):
+    for fileSchemaType in ds_types:
         if skip_test(dask_client, nRals, fileSchemaType, queryType):
             continue
         yield fileSchemaType
@@ -76,16 +73,27 @@ def datasources(dask_client, nRals):
 def samples(bc, dask_client, nRals, **kwargs):
     init_tables = kwargs.get("init_tables", False)
     dir_data_lc = kwargs.get("dir_data_lc", "")
+    table_names = kwargs.get("table_names", [])
+    ds_types = kwargs.get("ds_types", [])
+    sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
+    sql_table_batch_size_map = kwargs.get("sql_table_batch_size_map", {})
 
-    for fileSchemaType in datasources(dask_client, nRals):
-        dstables = datasource_tables[fileSchemaType]
+    # {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
+    ds_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in table_names)) for ds in ds_types)
 
+    for fileSchemaType in datasources(dask_client, nRals, ds_types):
+        dstables = ds_tables[fileSchemaType]
         if init_tables:
             print("Creating tables for", str(fileSchemaType))
-            cs.create_tables(bc, dir_data_lc, fileSchemaType, tables = tables, table_names=list(dstables.values()))
+            cs.create_tables(bc, dir_data_lc, fileSchemaType,
+                tables = table_names,
+                table_names = list(dstables.values()),
+                sql_table_filter_map = sql_table_filter_map,
+                sql_table_batch_size_map = sql_table_batch_size_map
+            )
             print("All tables were created for", str(fileSchemaType))
-        i = 0
 
+        i = 0
         queries = [get_tpch_query(q, dstables) for q in tpch_queries]
         for query in queries:
             i = i + 1
@@ -101,7 +109,8 @@ def start_queries(bc, dask_client, nRals, tokens, dir_data_lc, tables):
     extra_args = {
         "dir_data_lc": dir_data_lc,
         "tables": tables,
-        "init_tables": True
+        "init_tables": True,
+        "ds_types": data_types,
     }
     for sampleId, query, _, _ in samples(bc, dask_client, nRals, **extra_args):
         start_query(bc, tokens, query, sampleId)
@@ -116,7 +125,7 @@ def fetch_results(bc, dask_client, nRals, tokens, drill, done):
     break_flag = False
     total_samples = len(done)
     while done_count < total_samples and not break_flag:
-        for sampleId, query, queryId, fileSchemaType in samples(bc, dask_client, nRals):
+        for sampleId, query, queryId, fileSchemaType in samples(bc, dask_client, nRals, ds_types = data_types):
             if not done[sampleId]:
                 if fetch_result(bc, tokens, sampleId, drill, query, queryId, fileSchemaType):
                     done[sampleId] = True

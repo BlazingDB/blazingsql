@@ -100,16 +100,17 @@ def main():
             drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
         )
 
-        # Create Table Spark -------------------------------------------------
-        from pyspark.sql import SparkSession
+        # TODO percy uncomment this
+        # # Create Table Spark -------------------------------------------------
+        # from pyspark.sql import SparkSession
 
-        spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
-        createSchema.init_spark_schema(
-            spark, Settings.data["TestSettings"]["dataDirectory"]
-        )
-        createSchema.init_spark_schema(
-            spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
-        )
+        # spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
+        # createSchema.init_spark_schema(
+        #     spark, Settings.data["TestSettings"]["dataDirectory"]
+        # )
+        # createSchema.init_spark_schema(
+        #     spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
+        # )
 
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
 
