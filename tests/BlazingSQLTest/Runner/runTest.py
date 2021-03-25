@@ -315,6 +315,7 @@ def get_codTest(test_name):
         "Message Validation": "MESSAGEVAL",
         "Json tests": "JSON",
         "Concurrent": "CONCUR",
+        "TablesFromSQL": "TABFROMSQL",
     }
 
     return switcher.get(test_name)
