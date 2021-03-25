@@ -140,58 +140,62 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
             query_spark=query,
         )
 
-        queryId = "TEST_06"
-        query = """select p.p_partkey, p.p_mfgr
-                    from part p
-                    where p.p_type like '%STEEL'"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
+        if int(nRals) == 1:
+            queryId = "TEST_06"
+            query = """select p.p_partkey, p.p_mfgr
+                        from part p
+                        where p.p_type like '%STEEL'
+                        and p.p_container IS NOT NULL"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query,
+            )
 
-        queryId = "TEST_07"
-        query = """select p_partkey, p_mfgr, p_container
-                    from part
-                    where p_size = 35 and p_container like 'WRAP%'"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
+            queryId = "TEST_07"
+            query = """select p_partkey, p_mfgr, p_container
+                        from part
+                        where p_size = 35 and p_container like 'WRAP%'
+                        and p_container IS NOT NULL"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query,
+            )
 
-        queryId = "TEST_08"
-        query = """select count(s_suppkey), count(s_nationkey)
-                    from supplier"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
+            queryId = "TEST_08"
+            query = """select count(s_suppkey), count(s_nationkey)
+                        from supplier
+                        where s_nationkey IS NOT NULL"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query,
+            )
 
         queryId = "TEST_09"
         query = """select n1.n_nationkey as supp_nation,
@@ -477,58 +481,59 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
             query_spark=query,
         )
 
-        queryId = "TEST_06"
-        query = """select p.p_partkey, p.p_mfgr
-                            from part p
-                            where p.p_type like '%STEEL'"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
+        if int(nRals) == 1:
+            queryId = "TEST_06"
+            query = """select p.p_partkey, p.p_mfgr
+                                from part p
+                                where p.p_type like '%STEEL'"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query,
+            )
 
-        queryId = "TEST_07"
-        query = """select p_partkey, p_mfgr, p_container
-                            from part
-                            where p_size = 35 and p_container like 'WRAP%'"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
+            queryId = "TEST_07"
+            query = """select p_partkey, p_mfgr, p_container
+                                from part
+                                where p_size = 35 and p_container like 'WRAP%'"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query,
+            )
 
-        queryId = "TEST_08"
-        query = """select count(s_suppkey), count(s_nationkey)
-                            from supplier"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
+            queryId = "TEST_08"
+            query = """select count(s_suppkey), count(s_nationkey)
+                                from supplier"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query,
+            )
 
         queryId = "TEST_09"
         query = """select n1.n_nationkey as supp_nation,
@@ -796,70 +801,71 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             query_spark=query_spark,
         )
 
-        queryId = "TEST_005"
-        query = """select p.p_partkey, p.p_mfgr
-                            from part p
-                            where p.p_type like '%STEEL'"""
-        query_spark = """select p.p_partkey, p.p_mfgr
-                            from part p
-                            where p.p_type like '%STEEL'
-                            and p_container not in ('JUMBO BAG', 'JUMBO BOX', 'JUMBO CAN', 'JUMBO CASE',
-                                                    'JUMBO DRUM', 'JUMBO JAR', 'JUMBO PACK', 'JUMBO PKG')"""
+        if int(nRals) == 1:
+            queryId = "TEST_005"
+            query = """select p.p_partkey, p.p_mfgr
+                                from part p
+                                where p.p_type like '%STEEL'"""
+            query_spark = """select p.p_partkey, p.p_mfgr
+                                from part p
+                                where p.p_type like '%STEEL'
+                                and p_container not in ('JUMBO BAG', 'JUMBO BOX', 'JUMBO CAN', 'JUMBO CASE',
+                                                        'JUMBO DRUM', 'JUMBO JAR', 'JUMBO PACK', 'JUMBO PKG')"""
 
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query_spark,
-        )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query_spark,
+            )
 
-        queryId = "TEST_006"
-        query = """select p_partkey, p_mfgr, p_container
-                            from part
-                            where p_size = 35 and p_container like 'WRAP%'"""
-        query_spark = """select p_partkey, p_mfgr, p_container
-                            from part
-                            where p_size = 35 and p_container like 'WRAP%'"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query_spark,
-        )
+            queryId = "TEST_006"
+            query = """select p_partkey, p_mfgr, p_container
+                                from part
+                                where p_size = 35 and p_container like 'WRAP%'"""
+            query_spark = """select p_partkey, p_mfgr, p_container
+                                from part
+                                where p_size = 35 and p_container like 'WRAP%'"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query_spark,
+            )
 
-        queryId = "TEST_007"
-        query = """ select count(s_suppkey), count(s_nationkey)
-                    from supplier"""
-        query_spark = """   select count(s_suppkey), count(s_nationkey)
-                            from supplier
-                            where s_nationkey not in (10, 11, 12, 13, 14, 15)"""
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query_spark,
-        )
+            queryId = "TEST_007"
+            query = """ select count(s_suppkey), count(s_nationkey)
+                        from supplier"""
+            query_spark = """   select count(s_suppkey), count(s_nationkey)
+                                from supplier
+                                where s_nationkey not in (10, 11, 12, 13, 14, 15)"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query_spark,
+            )
 
         queryId = "TEST_008"
         query = """select n1.n_nationkey as supp_nation,

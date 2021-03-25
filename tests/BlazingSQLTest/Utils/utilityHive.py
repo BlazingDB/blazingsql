@@ -330,7 +330,7 @@ def create_hive_partition_data(input, file_format, table_name, partitions, outpu
 	if not os.path.exists(output):
 		os.makedirs(output)
 
-	bc = BlazingContext()
+	bc = BlazingContext(dask_client=None)
 	if file_format == 'psv':
 		dtypes = get_dtypes(table_name)
 		col_names = get_column_names(table_name)
@@ -358,7 +358,7 @@ def create_hive_partition_data(input, file_format, table_name, partitions, outpu
 	_save_partition_files(bc, table_name, data_partition_array_dict, output, file_format, num_files)
 
 def testing_load_hive_table(table_name, file_format, location, partitions, partitions_schema):
-	bc2 = BlazingContext()
+	bc2 = BlazingContext(dask_client=None)
 
 	if file_format == 'psv':
 		dtypes = get_dtypes(table_name)
