@@ -6,6 +6,8 @@
 
 #include <array>
 
+#include <cudf/io/types.hpp>
+
 #include "PostgreSQLParser.h"
 
 namespace ral {
@@ -29,6 +31,16 @@ static inline bool postgresql_is_cudf_string(const std::string &hint) {
                      return std::strcmp(c_hint, hint.c_str()) == 0;
                    });
   return result != std::cend(postgresql_string_type_hints);
+}
+
+static inline cudf::io::table_with_metadata
+read_postgresql(std::shared_ptr<PGresult> &pgResult,
+                const std::vector<int> &column_indices,
+                const std::vector<cudf::type_id> &cudf_types,
+                const std::vector<size_t> &column_bytes,
+                size_t total_rows) {
+  cudf::io::table_with_metadata tableWithMetadata;
+  return tableWithMetadata;
 }
 
 static inline cudf::type_id
@@ -78,7 +90,26 @@ postgresql_parser::parse_batch(data_handle handle,
                                const Schema &schema,
                                std::vector<int> column_indices,
                                std::vector<cudf::size_type> row_groups) {
-  // Here I need the result set from postgresl
+  auto pgResult = handle.sql_handle.postgresql_result;
+  if (!pgResult) {
+    return schema.makeEmptyBlazingTable(column_indices);
+  }
+
+  if (column_indices.size() > 0) {
+    std::vector<std::string> columnNames;
+    columnNames.reserve(column_indices.size());
+    std::transform(column_indices.cbegin(),
+                   column_indices.cend(),
+                   std::back_inserter(columnNames),
+                   std::bind1st(std::mem_fun(&Schema::get_name), &schema));
+
+    auto tableWithMetadata = read_postgresql(pgResult,
+                                             column_indices,
+                                             schema.get_dtypes(),
+                                             handle.sql_handle.column_bytes,
+                                             handle.sql_handle.row_count);
+  }
+
   return nullptr;
 }
 
