@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <cudf/copying.hpp>
+#include <cudf/replace.hpp>
 #include <cudf/strings/capitalize.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
@@ -17,6 +18,7 @@
 #include "LogicalProject.h"
 #include "utilities/transform.hpp"
 #include "Interpreter/interpreter_cpp.h"
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace processor {
@@ -288,7 +290,18 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
-
+            std::unique_ptr<cudf::column> start_temp = nullptr;
+            std::unique_ptr<cudf::column> end_temp = nullptr;
+            if (start_column.has_nulls()) {
+              cudf::numeric_scalar<int32_t> start_zero(0);
+              start_temp = cudf::replace_nulls(start_column, start_zero);
+              start_column = start_temp->view();
+            }
+            if (end_column.has_nulls()) {
+              cudf::numeric_scalar<int32_t> end_zero(0);
+              end_temp = cudf::replace_nulls(end_column, end_zero);            
+              end_column = end_temp->view();
+            }
             computed_col = cudf::strings::slice_strings(column, start_column, end_column);
         }
         break;
@@ -774,7 +787,11 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(expressions.size());
+    // Let's clean all the expressions that contains Window functions (if exists)
+    // as they should be updated with new indices
+    std::vector<std::string> new_expressions = clean_window_function_expressions(expressions, table.num_columns());
+
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(new_expressions.size());
 
     std::vector<bool> column_used(table.num_columns(), false);
     std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
@@ -783,8 +800,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
 
     function_evaluator_transformer evaluator{table};
-    for(size_t i = 0; i < expressions.size(); i++){
-        std::string expression = replace_calcite_regex(expressions[i]);
+    for(size_t i = 0; i < new_expressions.size(); i++){
+        std::string expression = replace_calcite_regex(new_expressions[i]);
         expression = expand_if_logical_op(expression);
 
         parser::parse_tree tree;
@@ -887,9 +904,9 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         out_columns.clear();
         computed_columns.clear();
 
-        size_t const half_size = expressions.size() / 2;
-        std::vector<std::string> split_lo(expressions.begin(), expressions.begin() + half_size);
-        std::vector<std::string> split_hi(expressions.begin() + half_size, expressions.end());
+        size_t const half_size = new_expressions.size() / 2;
+        std::vector<std::string> split_lo(new_expressions.begin(), new_expressions.begin() + half_size);
+        std::vector<std::string> split_hi(new_expressions.begin() + half_size, new_expressions.end());
         auto out_cols_lo = evaluate_expressions(table, split_lo);
         auto out_cols_hi = evaluate_expressions(table, split_hi);
 
@@ -921,10 +938,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
   const std::string & query_part,
   blazingdb::manager::Context * /*context*/) {
 
-    std::string combined_expression = query_part.substr(
-        query_part.find("(") + 1,
-        (query_part.rfind(")") - query_part.find("(")) - 1
-    );
+    std::string combined_expression = get_query_part(query_part);
 
     std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
     std::vector<std::string> expressions(named_expressions.size());
@@ -934,6 +948,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
 
         std::string name = named_expr.substr(0, named_expr.find("=["));
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
+        expression = fill_minus_op_with_zero(expression);
 
         expressions[i] = expression;
         out_column_names[i] = name;

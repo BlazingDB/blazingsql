@@ -20,7 +20,7 @@ def initialize():
     memory_list = []
 
     if data:
-        raise ValueError("Initialize must be called once")
+        return
 
     dateNow = datetime.now()
 
@@ -72,6 +72,7 @@ def create_json():
     logInfo = os.getenv("BLAZINGSQL_E2E_LOG_INFO", "")
     gspreadCacheHint = os.getenv("BLAZINGSQL_E2E_GSPREAD_CACHE", "false")
     compare_results = os.getenv("BLAZINGSQL_E2E_COMPARE_RESULTS", "true")
+    testsWithNulls = os.getenv("BLAZINGSQL_E2E_TEST_WITH_NULLS", "false")
     targetTestGroups = os.getenv(
         "BLAZINGSQL_E2E_TARGET_TEST_GROUPS", ""
     )  # comma separated values, if empty will run all the e2e tests
@@ -117,6 +118,7 @@ def create_json():
         "logInfo": logInfo,
         "gspreadCacheHint": gspreadCacheHint,
         "compare_results": compare_results,
+        "testsWithNulls": testsWithNulls,
         "targetTestGroups": targetTestGroups,
     }
 
@@ -124,3 +126,5 @@ def create_json():
         "compareByPercentaje": compareByPercentaje,
         "acceptableDifference": acceptableDifference,
     }
+
+initialize()

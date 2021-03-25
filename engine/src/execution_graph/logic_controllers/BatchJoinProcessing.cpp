@@ -214,6 +214,13 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 	this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, right_array_cache_name);
 
 	std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
+
+	if (this->filter_statement != "" && this->join_type != INNER_JOIN){
+		throw std::runtime_error("Outer joins with inequalities are not currently supported");
+	}
+	if (this->join_type == RIGHT_JOIN) {
+		throw std::runtime_error("Right Outer Joins are not currently supported");
+	}
 }
 
 std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_left_set(){
@@ -320,12 +327,12 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 			table_left.view(),
 			table_right.view());
 	} else {
+		bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+		bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 		if(this->join_type == INNER_JOIN) {
 			//Removing nulls on key columns before joining
 			std::unique_ptr<CudfTable> table_left_dropna;
 			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 			if(has_nulls_left){
 				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
 			}
@@ -360,7 +367,8 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
+				columns_in_common,
+				(has_nulls_left && has_nulls_right) ? cudf::null_equality::UNEQUAL : cudf::null_equality::EQUAL);
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}
@@ -407,19 +415,19 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			this->add_to_output_cache(std::move(joined));
 		}
 
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
 	try{
 		this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
 		this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		//can still recover if the input was not a GPUCacheData
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
@@ -1051,9 +1059,9 @@ ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::uni
 
 			return {ral::execution::task_status::FAIL, std::string("In JoinPartitionKernel::do_process Invalid operation_type"), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 		}
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), input_consumed ? std::vector< std::unique_ptr<ral::frame::BlazingTable> > () : std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 	return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};

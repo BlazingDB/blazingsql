@@ -19,14 +19,12 @@ import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.rules.FilterJoinRule;
-import org.apache.calcite.rel.rules.AggregateExpandDistinctAggregatesRule;
 import org.apache.calcite.rel.rules.FilterAggregateTransposeRule;
 import org.apache.calcite.rel.rules.FilterRemoveIsNotDistinctFromRule;
 import org.apache.calcite.rel.rules.FilterMergeRule;
 import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
 import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
-import org.apache.calcite.rel.rules.ProjectRemoveRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
 import org.apache.calcite.rel.rules.ReduceExpressionsRule;
 import org.apache.calcite.rel.rules.ProjectToWindowRule;
@@ -181,8 +179,31 @@ public class RelationalAlgebraGenerator {
 	public RelNode
 	getOptimizedRelationalAlgebra(RelNode nonOptimizedPlan) throws RelConversionException {
 		if(rules == null) {
-			program = new HepProgramBuilder()
-						  .addRuleInstance(ProjectToWindowRule.PROJECT)
+			// TODO: this is a temporal workaround due to the issue with ProjectToWindowRule
+			// with constant values like  LEAD($1, 5)
+			if (RelOptUtil.toString(nonOptimizedPlan).indexOf("OVER") != -1) {
+				program = new HepProgramBuilder()
+					      //.addRuleInstance(ProjectToWindowRule.PROJECT)
+						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
+						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
+						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.JOIN)
+						  .addRuleInstance(ProjectMergeRule.INSTANCE)
+						  .addRuleInstance(FilterMergeRule.INSTANCE)
+						  //.addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
+						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
+
+						  //The following three rules evaluate expressions in Projects and Filters
+						  //.addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
+						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
+
+						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
+						  .addRuleInstance(FilterTableScanRule.INSTANCE)
+						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
+						  .addRuleInstance(AggregateReduceFunctionsRule.INSTANCE)
+						  .build();
+			} else {
+				program = new HepProgramBuilder()
+						  //.addRuleInstance(ProjectToWindowRule.PROJECT)
 						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.JOIN)
@@ -190,7 +211,6 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
-						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
 						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
@@ -201,6 +221,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
 						  .addRuleInstance(AggregateReduceFunctionsRule.INSTANCE)
 						  .build();
+			}
 		} else {
 			HepProgramBuilder programBuilder = new HepProgramBuilder();
 			for(RelOptRule rule : rules) {

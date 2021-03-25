@@ -37,8 +37,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             use_percentage = False
             acceptable_difference = 0.01
 
-            # if fileSchemaType == DataType.PARQUET : print('Save file arrow')
-
             print("==============================")
             print(queryType)
             print("==============================")
@@ -139,27 +137,25 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #ERROR: Different values
-            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1327
-            # queryId = "TEST_06"
-            # query = """select SUM(COALESCE(n2.n_nationkey, 100)),
-            #         COUNT(DISTINCT(COALESCE(n1.n_nationkey,32))),
-            #         n2.n_regionkey as n1key from nation as n1
-            #         full outer join nation as n2
-            #         on n1.n_nationkey = n2.n_nationkey + 6
-            #         GROUP BY n2.n_regionkey"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
+            queryId = "TEST_06"
+            query = """select SUM(COALESCE(n2.n_nationkey, 100)),
+                    COUNT(DISTINCT(COALESCE(n1.n_nationkey,32))),
+                    n2.n_regionkey as n1key from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    GROUP BY n2.n_regionkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_07"
             query = """select MIN(COALESCE(n.n_nationkey, r.r_regionkey)),
@@ -200,27 +196,25 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #ERROR: Different values
-            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1327
-            # queryId = 'TEST_09'
-            # query = """select SUM(COALESCE(n2.n_nationkey, 100)),
-            #       COUNT(DISTINCT(COALESCE(n1.n_nationkey,32))),
-            #       COALESCE(n2.n_regionkey, 100) as n1key from nation as n1
-            #       full outer join nation as n2
-            #       on n1.n_nationkey = n2.n_nationkey + 6
-            #       GROUP BY COALESCE(n2.n_regionkey, 100)"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
+            queryId = 'TEST_09'
+            query = """select SUM(COALESCE(n2.n_nationkey, 100)),
+                  COUNT(DISTINCT(COALESCE(n1.n_nationkey,32))),
+                  COALESCE(n2.n_regionkey, 100) as n1key from nation as n1
+                  full outer join nation as n2
+                  on n1.n_nationkey = n2.n_nationkey + 6
+                  GROUP BY COALESCE(n2.n_regionkey, 100)"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_10"
             query = "SELECT COALESCE(l_shipinstruct, l_comment) FROM lineitem"

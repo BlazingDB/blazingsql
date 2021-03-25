@@ -247,6 +247,71 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_13"
+            query = """select n_nationkey as n1, n_name as n2,
+                              n_regionkey as n3, n_comment as n4
+                        from nation"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # This test enables `by_passing_project = true`in the ProjectionKernel
+            queryId = "TEST_14"
+            query = """select n_nationkey, n_name, n_regionkey from 
+                            (
+                                select n_nationkey, n_name,
+                                    n_regionkey, n_comment
+                                from nation
+                                where n_nationkey < 6 limit 4
+                            ) 
+                        order by n_nationkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # This test enables `by_passing_project_with_aliases = true`in the ProjectionKernel
+            queryId = "TEST_15"
+            query = """select col_n0, col_n1, col_n2 from 
+                            (
+                                select n_nationkey as col_n0,
+                                       n_name as col_n1,
+                                       n_regionkey as col_n2,
+                                       n_comment as col_n3
+                                from nation
+                                where n_nationkey < 6 limit 4 
+                            ) 
+                        order by col_n0"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break

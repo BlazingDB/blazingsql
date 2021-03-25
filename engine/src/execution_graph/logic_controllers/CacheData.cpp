@@ -105,6 +105,7 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 	}	
 }
 
+// BEGIN CPUCacheData
 
 CPUCacheData::CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table, bool use_pinned)
 	: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
@@ -113,16 +114,16 @@ CPUCacheData::CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table, 
 }
 
 CPUCacheData::CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table,const MetadataDictionary & metadata, bool use_pinned)
-	: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()),
-	metadata(metadata)
+	: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
 {
 	this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView(), use_pinned);
+	this->metadata = metadata;
 }
 
 CPUCacheData::CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
 			std::vector<ral::memory::blazing_chunked_column_info> && chunked_column_infos,
 			std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations,
-			const MetadataDictionary & metadata) : metadata(metadata) {
+			const MetadataDictionary & metadata)  {
 
 	
 	this->cache_type = CacheDataType::CPU;
@@ -136,6 +137,7 @@ CPUCacheData::CPUCacheData(const std::vector<blazingdb::transport::ColumnTranspo
 		this->n_rows = column_transports[0].metadata.size;
 	}
 	this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(chunked_column_infos), std::move(allocations));
+	this->metadata = metadata;
 }
 
 CPUCacheData::CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
@@ -143,7 +145,49 @@ CPUCacheData::CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_ta
 {
 }
 
+// END CPUCacheData
 
+// BEGIN CacheDataLocalFile
+
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
+	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
+{
+	this->size_in_bytes = table->sizeInBytes();
+	this->filePath_ = orc_files_path + "/.blazing-temp-" + ctx_token + "-" + randomString(64) + ".orc";
+
+	// filling this->col_names
+	for(auto name : table->names()) {
+		this->col_names.push_back(name);
+	}
+
+	int attempts = 0;
+	int attempts_limit = 10;
+	while(attempts <= attempts_limit){
+		try {
+			cudf::io::table_metadata metadata;
+			for(auto name : table->names()) {
+				metadata.column_names.emplace_back(name);
+			}
+
+			cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
+				.metadata(&metadata);
+
+			cudf::io::write_orc(out_opts);
+		} catch (cudf::logic_error & err){
+            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+			if(logger) {
+				logger->error("|||{info}||||rows|{rows}",
+					"info"_a="Failed to create CacheDataLocalFile in path: " + this->filePath_ + " attempt " + std::to_string(attempts),
+					"rows"_a=table->num_rows());
+			}	
+			attempts++;
+			if (attempts == attempts_limit){
+				throw;
+			}
+			std::this_thread::sleep_for (std::chrono::milliseconds(5 * attempts));
+		}
+	}
+}
 
 size_t CacheDataLocalFile::fileSizeInBytes() const {
 	struct stat st;
@@ -166,8 +210,12 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	// Remove temp orc files
 	const char *orc_path_file = this->filePath_.c_str();
 	remove(orc_path_file);
-	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
+	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->col_names );
 }
+
+// END CacheDataLocalFile
+
+// BEGIN CacheDataIO
 
 CacheDataIO::CacheDataIO(ral::io::data_handle handle,
 	std::shared_ptr<ral::io::data_parser> parser,
@@ -186,6 +234,7 @@ CacheDataIO::CacheDataIO(ral::io::data_handle handle,
 size_t CacheDataIO::sizeInBytes() const{
 	return 0;
 }
+
 std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 	if (schema.all_in_file()){
 		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, projections, row_group_ids);
@@ -235,43 +284,9 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 	}
 }
 
+// END CacheDataIO
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
-	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
-{
-	this->size_in_bytes = table->sizeInBytes();
-	this->filePath_ = orc_files_path + "/.blazing-temp-" + ctx_token + "-" + randomString(64) + ".orc";
-
-	int attempts = 0;
-	int attempts_limit = 10;
-	while(attempts <= attempts_limit){
-		try {
-			cudf::io::table_metadata metadata;
-			for(auto name : table->names()) {
-				metadata.column_names.emplace_back(name);
-			}
-
-			cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
-				.metadata(&metadata);
-
-			cudf::io::write_orc(out_opts);
-		} catch (cudf::logic_error & err){
-            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-			if(logger) {
-				logger->error("|||{info}||||rows|{rows}",
-					"info"_a="Failed to create CacheDataLocalFile in path: " + this->filePath_ + " attempt " + std::to_string(attempts),
-					"rows"_a=table->num_rows());
-			}	
-			attempts++;
-			if (attempts == attempts_limit){
-				throw;
-			}
-			std::this_thread::sleep_for (std::chrono::milliseconds(5 * attempts));
-		}
-	}
-
-	
-}
+// BEGIN ConcatCacheData
 
 ConcatCacheData::ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema)
 	: CacheData(CacheDataType::CONCATENATING, col_names, schema, 0), _cache_datas{std::move(cache_datas)} {
@@ -312,9 +327,17 @@ size_t ConcatCacheData::sizeInBytes() const {
 	return total_size;
 };
 
-std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
-	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
+void ConcatCacheData::set_names(const std::vector<std::string> & names) {
+	for (size_t i = 0; i < _cache_datas.size(); ++i) {
+		_cache_datas[i]->set_names(names);
+	}
 }
+
+std::vector<std::unique_ptr<CacheData>> ConcatCacheData::releaseCacheDatas(){
+	return std::move(_cache_datas);
+}
+
+// END ConcatCacheData
 
 }  // namespace cache
 } // namespace ral

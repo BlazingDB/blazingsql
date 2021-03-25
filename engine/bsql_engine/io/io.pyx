@@ -179,9 +179,9 @@ cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int
         return cio.initialize( ralId, worker_id, network_iface_name, ralCommunicationPort, workers_ucp_info, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
 
-cdef void finalizePython() nogil except +:
+cdef void finalizePython(vector[int] ctx_tokens) nogil except +:
     with nogil:
-        cio.finalize()
+        cio.finalize(ctx_tokens)
 
 cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
@@ -262,7 +262,7 @@ cdef class PyBlazingCache:
            column_views.push_back(cython_col.view())
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
         deref(blazing_table).ensureOwnership()
-        cdef unique_ptr[cio.GPUCacheDataMetaData] ptr = make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)
+        cdef unique_ptr[cio.GPUCacheData] ptr = make_unique[cio.GPUCacheData](move(blazing_table),c_metadata)
         cdef string msg_id = metadata["message_id"].encode()
         with nogil:
             deref(self.c_cache).addCacheData(blaz_move2(ptr),msg_id,1)
@@ -287,15 +287,12 @@ cdef class PyBlazingCache:
             deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id,1)
 
     def pull_from_cache(self):
-        cdef unique_ptr[CacheData] cache_data_generic
+        cdef unique_ptr[CacheData] cache_data
         with nogil:
-            cache_data_generic = blaz_move(deref(self.c_cache).pullCacheData())
-        cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
-        cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()
-        table = blaz_move(table_and_meta.first)
-
-        metadata = table_and_meta.second
-
+            cache_data = blaz_move(deref(self.c_cache).pullCacheData())
+        cdef MetadataDictionary metadata = deref(cache_data).getMetadata()
+        cdef unique_ptr[BlazingTable] table = deref(cache_data).decache()
+        
         metadata_temp = metadata.get_values()
         metadata_py = {}
         for key_val in metadata_temp:
@@ -327,8 +324,11 @@ cpdef initializeCaller(uint16_t ralId, string worker_id, string network_iface_na
     return (transport_out,transport_in, port)
 
 
-cpdef finalizeCaller():
-    finalizePython()
+cpdef finalizeCaller(ctx_tokens: [int]):
+    cdef vector[int] tks
+    for ctx_token in ctx_tokens:
+        tks.push_back(ctx_token)
+    finalizePython(tks)
 
 cpdef getFreeMemoryCaller():
     return getFreeMemoryPython()
@@ -544,7 +544,7 @@ cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_sc
         blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
-          for cython_col in cython_table._data.values():
+          for cython_col in cython_table._data.columns:
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews

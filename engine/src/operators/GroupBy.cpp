@@ -76,11 +76,12 @@ std::string aggregator_to_string(AggregateKind aggregation) {
 	}
 }
 
-AggregateKind get_aggregation_operation(std::string expression_in) {
+AggregateKind get_aggregation_operation(std::string expression_in, bool is_window_operation) {
 
 	std::string operator_string = get_aggregation_operation_string(expression_in);
 	std::string expression = get_string_between_outer_parentheses(expression_in);
-	if (expression == "" && operator_string == "COUNT"){
+
+	if (expression == "" && operator_string == "COUNT" && is_window_operation == false){
 		return AggregateKind::COUNT_ALL;
 	} else if(operator_string == "SUM") {
 		return AggregateKind::SUM;
@@ -96,7 +97,13 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 		return AggregateKind::ROW_NUMBER;
 	} else if(operator_string == "COUNT") {
 		return AggregateKind::COUNT_VALID;
-	} else if(operator_string == "COUNT_DISTINCT") {
+	} else if (operator_string == "LEAD") {
+		return AggregateKind::LEAD;
+	} else if (operator_string == "LAG") {
+		return AggregateKind::LAG;
+	} else if (operator_string == "FIRST_VALUE" || operator_string == "LAST_VALUE") {
+		return AggregateKind::NTH_ELEMENT;
+	}else if(operator_string == "COUNT_DISTINCT") {
 		return AggregateKind::COUNT_DISTINCT;
 	} else if(operator_string == "$SUM0_DISTINCT") {
 		return AggregateKind::SUM0;
@@ -106,7 +113,7 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 		"In get_aggregation_operation function: aggregation type not supported, " + operator_string);
 }
 
-std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input){
+std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input, int offset){
 	if(input == AggregateKind::SUM){
 		return cudf::make_sum_aggregation();
 	}else if(input == AggregateKind::MEAN){
@@ -123,6 +130,12 @@ std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input){
 		return cudf::make_count_aggregation(cudf::null_policy::INCLUDE);
 	}else if(input == AggregateKind::SUM0){
 		return cudf::make_sum_aggregation();
+	}else if(input == AggregateKind::LAG){
+		return cudf::make_lag_aggregation(offset);	
+	}else if(input == AggregateKind::LEAD){
+		return cudf::make_lead_aggregation(offset);	
+	}else if(input == AggregateKind::NTH_ELEMENT){
+		return cudf::make_nth_element_aggregation(offset, cudf::null_policy::INCLUDE);	
 	}else if(input == AggregateKind::COUNT_DISTINCT){
 		return cudf::make_nunique_aggregation(cudf::null_policy::EXCLUDE);
 	}else if(input == AggregateKind::SUM0_DISTINCT){
@@ -193,7 +206,7 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 
 
 std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>,	std::vector<std::string>>
-	modGroupByParametersForMerge(const std::vector<int> & group_column_indices,
+	modGroupByParametersPostComputeAggregations(const std::vector<int> & group_column_indices,
 		const std::vector<AggregateKind> & aggregation_types, const std::vector<std::string> & merging_column_names) {
 
 	std::vector<AggregateKind> mod_aggregation_types = aggregation_types;

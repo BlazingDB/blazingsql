@@ -46,7 +46,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     group by o_orderstatus, o_orderkey"""
             runTest.run_query(
                 bc,
-                drill,
+                spark, #because Drill outputs some inf's instead of NaN
                 query,
                 queryId,
                 queryType,

@@ -88,10 +88,10 @@ void task::run(cudaStream_t stream, executor * executor){
                     last_input_decached++;
                     input_gpu.push_back(std::move(input->decache()));
             }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         int i = 0;
         for(auto & input : inputs){
-            if (i < last_input_decached && (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA)){
+            if (i < last_input_decached && input->get_type() == ral::cache::CacheDataType::GPU ){
                 //this was a gpu cachedata so now its not valid
                 static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
             }
@@ -111,7 +111,7 @@ void task::run(cudaStream_t stream, executor * executor){
         }else{
             throw;
         }
-    }catch(std::exception & e){
+    }catch(const std::exception& e){
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
@@ -150,7 +150,7 @@ void task::run(cudaStream_t stream, executor * executor){
         std::size_t i = 0;
         for(auto & input : inputs){
             if(input != nullptr){
-                if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
+                if  (input->get_type() == ral::cache::CacheDataType::GPU){
                     //this was a gpu cachedata so now its not valid
                     if(task_result.inputs.size() > 0 && i <= task_result.inputs.size() && task_result.inputs[i] != nullptr && task_result.inputs[i]->is_valid()){ 
                         static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
@@ -206,10 +206,10 @@ executor::executor(int num_threads, double processing_memory_limit_threshold) :
 }
 
 void executor::execute(){
-    while(shutdown == 0){
+    while(shutdown == 0 && exception_holder.empty()){
         //consider using get_all and calling in a loop.
         auto cur_task = this->task_queue.pop_or_wait();
-        auto f = pool.push([&cur_task, this](int thread_id){
+        pool.push([cur_task{std::move(cur_task)}, this](int thread_id){
             std::size_t memory_needed = cur_task->task_memory_needed();
 
             // Here we want to wait until we make sure we have enough memory to operate, or if there are no tasks currently running, then we want to go ahead and run
@@ -230,18 +230,18 @@ void executor::execute(){
                 });
 
             active_tasks_counter++;
-            cur_task->run(this->streams[thread_id],this);
+
+            try {
+                cur_task->run(this->streams[thread_id],this);
+            } catch(...) {
+                std::unique_lock<std::mutex> lock(exception_holder_mutex);
+                exception_holder.push(std::current_exception());
+                cur_task->fail();
+            }
+
             active_tasks_counter--;
             memory_safety_cv.notify_all();
         });
-
-        try {
-            f.get();
-        } catch(...) {
-            std::unique_lock<std::mutex> lock(exception_holder_mutex);
-            exception_holder.push(std::current_exception());
-            cur_task->fail();
-        }
     }
 }
 
