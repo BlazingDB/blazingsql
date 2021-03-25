@@ -16,7 +16,6 @@ reduced data to other nodes (PartitionKernel), and one that combines those multi
 Base Kernel
 ------------
 
-The Kernel base class, :blazing_repo:`found here</engine/src/execution_graph/logic_controllers/taskflow/kernel.h>`, 
 provides many of the functionalities which are common to all Kernels. 
 
 For example: All kernels have an input port and an output port. Each of which
