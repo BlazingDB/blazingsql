@@ -181,7 +181,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         
         // fill all the Kind aggregations
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
-            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i]);
+            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
             this->aggs_wind_func.push_back(aggr_kind_i);
         }
 

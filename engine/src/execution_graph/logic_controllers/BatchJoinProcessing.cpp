@@ -327,12 +327,12 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 			table_left.view(),
 			table_right.view());
 	} else {
+		bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+		bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 		if(this->join_type == INNER_JOIN) {
 			//Removing nulls on key columns before joining
 			std::unique_ptr<CudfTable> table_left_dropna;
 			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 			if(has_nulls_left){
 				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
 			}
@@ -367,7 +367,8 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
+				columns_in_common,
+				(has_nulls_left && has_nulls_right) ? cudf::null_equality::UNEQUAL : cudf::null_equality::EQUAL);
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}
