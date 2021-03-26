@@ -2,7 +2,7 @@
 
 ## New Features
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
-
+- #1349 Add e2e test for Hive Partitioned Data
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -11,6 +11,7 @@
 - #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
 - #1331 Added flag to enable null e2e testing
+- #1419 Added concat cache machine timeout 
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
