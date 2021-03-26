@@ -37,9 +37,16 @@ static inline cudf::io::table_with_metadata
 read_postgresql(std::shared_ptr<PGresult> &pgResult,
                 const std::vector<int> &column_indices,
                 const std::vector<cudf::type_id> &cudf_types,
-                const std::vector<size_t> &column_bytes,
-                size_t total_rows) {
+                const std::vector<std::size_t> &column_bytes,
+                std::size_t total_rows) {
   cudf::io::table_with_metadata tableWithMetadata;
+
+  std::vector<std::unique_ptr<cudf::column>> cudf_columns{
+      column_indices.size()};
+
+  tableWithMetadata.tbl =
+      std::make_unique<cudf::table>(std::move(cudf_columns));
+
   return tableWithMetadata;
 }
 
