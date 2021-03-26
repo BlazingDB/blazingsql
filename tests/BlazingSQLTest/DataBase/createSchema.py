@@ -4,6 +4,7 @@ import tempfile
 from collections import OrderedDict
 from os import listdir
 from os.path import isdir
+from enum import IntEnum, unique
 
 import cudf
 import dask_cudf
@@ -1254,3 +1255,49 @@ def create_hive_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         table = bc.create_table(table, cursor)
         # table = bc.create_table(table, cursor, file_format=fileSchemaType)
         print(table)
+
+@unique
+class HiveCreateTableType(IntEnum):
+    AUTO = 0,
+    WITH_PARTITIONS = 1
+
+def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTableType, partitions,
+                                  partitions_schema, **kwargs):
+    ext = get_extension(fileSchemaType)
+
+    if fileSchemaType not in [DataType.CSV, DataType.PARQUET, DataType.ORC]:
+        raise RuntimeError("It is not a valid file format for create table hive")
+
+    tables = kwargs.get("tables", tpchTables)
+
+    if createTableType == HiveCreateTableType.AUTO:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table, dir_partitions + table, file_format=ext, delimiter="|", dtype=dtypes,
+                                names=col_names)
+
+            else:
+                bc.create_table(table, dir_partitions + table, file_format=ext)
+
+    elif createTableType == HiveCreateTableType.WITH_PARTITIONS:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema,
+                                delimiter="|",
+                                dtype=dtypes,
+                                names=col_names)
+
+            else:
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema)

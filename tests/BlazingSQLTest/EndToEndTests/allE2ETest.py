@@ -65,6 +65,7 @@ from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
 from EndToEndTests import concurrentTest
+from EndToEndTests import hiveFileTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -125,6 +126,9 @@ def main():
     runAllTests = (
         len(targetTestGroups) == 0
     )  # if targetTestGroups was empty the user wants to run all the tests
+
+    if runAllTests or ("hiveFileTest" in targetTestGroups):
+        hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
