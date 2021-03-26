@@ -522,6 +522,10 @@ public class PushProjector {
 
 	// Function similar than `createProjectRefsAndExprs`
 	// but consider the aliases before transpose with a Join
+	// If in the future we have issues related to the aliases (when transposing a Project with a Join)
+	// we can review this function
+	// PR related to this -> https://github.com/BlazingDB/blazingsql/pull/1400
+	// Issue related to this -> https://github.com/BlazingDB/blazingsql/issues/1393
 	/**
    * Creates a projection based on the inputs specified in a bitmap and the
    * expressions that need to be preserved. The expressions are appended after
