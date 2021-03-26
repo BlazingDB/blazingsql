@@ -75,27 +75,40 @@ cudf::null_equality parseJoinConditionToEqualityTypes(const std::string & condit
 	// TODO: right now this only works for equijoins
 	// since this is all that is implemented at the time
 
+	std::string clean_expression = clean_calcite_expression(condition);
+	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
+
+	std::vector<cudf::null_equality> joinEqualityTypes;
+
+	for(std::string token : tokens) {
+		if(is_operator_token(token)) {
+			// so far only equijoins are supported in libgdf
+			if(token == "="){
+				joinEqualityTypes.push_back(cudf::null_equality::UNEQUAL);
+			} else if(token == "IS_NOT_DISTINCT_FROM") {
+				joinEqualityTypes.push_back(cudf::null_equality::EQUAL);
+			} else if(token != "AND") {
+				throw std::runtime_error("In evaluate_join function: unsupported non-equijoins operator");
+			}
+		}
+	}
+
+	if(joinEqualityTypes.empty()){
+		throw std::runtime_error("In evaluate_join function: unrecognized joining type operators");
+	}
+
 	// TODO: There may be cases where there is a mixture of
 	// equality operators. We do not support it for now,
 	// since that is not supported in cudf.
 	// We only rely on the first equality type found.
 	// Related issue: https://github.com/BlazingDB/blazingsql/issues/1421
 
-	std::string clean_expression = clean_calcite_expression(condition);
-	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-
-	for(std::string token : tokens) {
-		if(is_operator_token(token)) {
-			// so far only equijoins are supported in libgdf
-			if(token == "="){
-				return cudf::null_equality::UNEQUAL;
-			} else if(token == "IS_NOT_DISTINCT_FROM") {
-				return cudf::null_equality::EQUAL;
-			} else if(token != "AND") {
-				throw std::runtime_error("In evaluate_join function: unsupported non-equijoins operator");
-			}
-		}
+	bool all_types_are_equal = std::all_of(joinEqualityTypes.begin(), joinEqualityTypes.end(), [&](const cudf::null_equality & elem) {return elem == joinEqualityTypes.front();});
+	if(!all_types_are_equal){
+		throw std::runtime_error("In evaluate_join function: unsupported different equijoins operators");
 	}
+
+	return joinEqualityTypes[0];
 }
 
 /*
