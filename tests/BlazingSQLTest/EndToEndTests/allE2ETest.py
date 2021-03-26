@@ -64,6 +64,7 @@ from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
+from EndToEndTests import windowNoPartitionTest
 from EndToEndTests import concurrentTest
 from pynvml import nvmlInit
 from Runner import runTest
@@ -286,6 +287,9 @@ def main():
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("windowNoPartitionTest" in targetTestGroups):
+        windowNoPartitionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if testsWithNulls != "true":
         if runAllTests or ("concurrentTest" in targetTestGroups):

@@ -66,6 +66,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         metadata.add_value(
             ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
     }
+    std::cout<<"send_message MESSAGE_ID: "<<metadata.get_values()[ral::cache::MESSAGE_ID]<<std::endl;
 
     for(auto meta_value : extra_metadata.get_values()) {
         metadata.add_value(meta_value.first, meta_value.second);

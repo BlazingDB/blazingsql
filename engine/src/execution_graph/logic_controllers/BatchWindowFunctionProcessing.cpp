@@ -612,7 +612,7 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
             extra_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, std::to_string(target_batch_index));
             extra_metadata.add_value(ral::cache::OVERLAP_STATUS, overlap_status);
 
-            std::vector<std::string> target_ids = {std::to_string(target_node_index)};
+            std::vector<std::string> target_ids = {context->getNode(target_node_index).id()};
             send_message(std::move(output_table),
                 false, //specific_cache
                 "", //cache_id
@@ -645,56 +645,72 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
 }
 
 void OverlapAccumulatorKernel::fulfillment_receiver(){
+    std::cout<<"OverlapAccumulatorKernel::fulfillment_receiver() 0"<<std::endl;
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     int total_nodes = context->getTotalNodes();
     if (self_node_index == 0){
         messages_expected = 1;       
-        std::string sender_node_id = std::to_string(self_node_index + 1);
+        std::string sender_node_id = context->getNode(self_node_index + 1).id();
         expected_message_ids.push_back(FOLLOWING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     } else if (self_node_index == total_nodes - 1) {
         messages_expected = 1;
-        std::string sender_node_id = std::to_string(self_node_index - 1);
+        std::string sender_node_id = context->getNode(self_node_index - 1).id();
         expected_message_ids.push_back(PRECEDING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     } else {
         messages_expected = 2;
-        std::string sender_node_id = std::to_string(self_node_index + 1);
+        std::string sender_node_id = context->getNode(self_node_index + 1).id();
         expected_message_ids.push_back(FOLLOWING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-        sender_node_id = std::to_string(self_node_index - 1);
+        sender_node_id = context->getNode(self_node_index - 1).id();
         expected_message_ids.push_back(PRECEDING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     }
+    std::cout<<"OverlapAccumulatorKernel::fulfillment_receiver() 1"<<std::endl;
     message_receiver(expected_message_ids, messages_expected);
+    std::cout<<"OverlapAccumulatorKernel::fulfillment_receiver() 2"<<std::endl;
 }
 
 void OverlapAccumulatorKernel::following_request_receiver(){
+    std::cout<<"OverlapAccumulatorKernel::following_request_receiver() 0"<<std::endl;
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     if (self_node_index != 0) {
         int messages_expected = 1;
-        std::string sender_node_id = std::to_string(self_node_index - 1);
+        std::string sender_node_id = context->getNode(self_node_index - 1).id();
         expected_message_ids.push_back(FOLLOWING_REQUEST + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
+        std::cout<<"OverlapAccumulatorKernel::following_request_receiver() 1"<<std::endl;
         message_receiver(expected_message_ids, messages_expected);
     }    
+    std::cout<<"OverlapAccumulatorKernel::following_request_receiver() 2"<<std::endl;
 }
 
 void OverlapAccumulatorKernel::preceding_request_receiver(){
+    std::cout<<"OverlapAccumulatorKernel::preceding_request_receiver() 0"<<std::endl;
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     if (self_node_index != context->getTotalNodes() - 1) {
         int messages_expected = 1;
-        std::string sender_node_id = std::to_string(self_node_index + 1);
+        std::string sender_node_id = context->getNode(self_node_index + 1).id();
         expected_message_ids.push_back(PRECEDING_REQUEST + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
+        std::cout<<"OverlapAccumulatorKernel::preceding_request_receiver() 1"<<std::endl;
         message_receiver(expected_message_ids, messages_expected);
     }    
+    std::cout<<"OverlapAccumulatorKernel::preceding_request_receiver() 2"<<std::endl;
 }
 
 
 void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expected_message_ids, int messages_expected){
 
+    std::cout<<"OverlapAccumulatorKernel::message_receiver messages_expected ";
+    for (auto msg : expected_message_ids){
+        std::cout<<msg<<" , ";
+    }
+    std::cout<<std::endl;
+
     int messages_received = 0;
     while(messages_received < messages_expected){
         auto message_cache_data = this->query_graph->get_input_message_cache()->pullAnyCacheData(expected_message_ids);
         auto metadata = message_cache_data->getMetadata();
+        std::cout<<"OverlapAccumulatorKernel::message_receiver received message type "<<metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE)<<std::endl;
         messages_received++;
         if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST
             || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_REQUEST){
@@ -795,7 +811,7 @@ void OverlapAccumulatorKernel::send_request(bool preceding, int source_node_inde
     extra_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, std::to_string(target_batch_index));
     extra_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, std::to_string(source_node_index));
 
-    std::vector<std::string> target_ids = {std::to_string(source_node_index)};
+    std::vector<std::string> target_ids = {context->getNode(source_node_index).id()};     // here source_node refers to the source of the data. Since this is a request, the target of the message is the source of the data
     send_message(nullptr,
         false, //specific_cache
         "", //cache_id
@@ -840,6 +856,8 @@ kstatus OverlapAccumulatorKernel::run() {
     }
     preceding_overlap_statuses.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
     following_overlap_status.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
+
+    std::cout<<"OverlapAccumulatorKernel::run() 0"<<std::endl;
     
     // lets send the requests for the first preceding overlap and last following overlap of this node
     if (total_nodes > 1 && self_node_index > 0){
@@ -848,6 +866,7 @@ kstatus OverlapAccumulatorKernel::run() {
     if (total_nodes > 1 && self_node_index < total_nodes - 1){
         send_request(false, self_node_index + 1, self_node_index, num_batches-1, this->following_value);
     }
+    std::cout<<"OverlapAccumulatorKernel::run() 1"<<std::endl;
 
     // lets fill the empty overlaps that go at the very end of the cluster
     if (self_node_index == 0){ // first overlap of first node, so make it empty
@@ -866,10 +885,12 @@ kstatus OverlapAccumulatorKernel::run() {
         fulfillment_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::fulfillment_receiver, this);
         following_request_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::following_request_receiver, this);
     }
-    
+    std::cout<<"OverlapAccumulatorKernel::run() 2"<<std::endl;
     for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
         if (cur_batch_ind > 0){
+            std::cout<<"OverlapAccumulatorKernel::run() 3 "<<cur_batch_ind<<std::endl;
             auto overlap_cache_data = input_preceding_overlap_cache->pullCacheData();
+            std::cout<<"OverlapAccumulatorKernel::run() 4 "<<cur_batch_ind<<std::endl;
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
@@ -891,9 +912,12 @@ kstatus OverlapAccumulatorKernel::run() {
                 }
             }
         }
-    
+
+        std::cout<<"OverlapAccumulatorKernel::run() 5"<<std::endl;
         if (cur_batch_ind < num_batches - 1){
+            std::cout<<"OverlapAccumulatorKernel::run() 6 "<<cur_batch_ind<<std::endl;
             auto overlap_cache_data = input_following_overlap_cache->pullCacheData();
+            std::cout<<"OverlapAccumulatorKernel::run() 7 "<<cur_batch_ind<<std::endl;
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
@@ -917,8 +941,10 @@ kstatus OverlapAccumulatorKernel::run() {
         }
     }
 
+    std::cout<<"OverlapAccumulatorKernel::run() 8"<<std::endl;
     // the preceding request will be fulfilled by the last batch, so we want to do all the batches before we try to fulfill it
     preceding_request_receiver();
+    std::cout<<"OverlapAccumulatorKernel::run() 9"<<std::endl;
      
     // lets wait until the receiver threads are done. 
     // When its done, it means we have received overlap requests and have made tasks for them, and
@@ -927,6 +953,7 @@ kstatus OverlapAccumulatorKernel::run() {
         fulfillment_receiver_thread.join();
         following_request_receiver_thread.join();
     }
+    std::cout<<"OverlapAccumulatorKernel::run() 10"<<std::endl;
 
     // lets wait to make sure that all tasks are done
     std::unique_lock<std::mutex> lock(kernel_mutex);
