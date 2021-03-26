@@ -2288,6 +2288,14 @@ class BlazingContext(object):
                     "ERROR: if your input file doesn't have an extension, you have to specify the `file_format`. Or if its a directory, it needs to end in a slash"
                 )
 
+            for p_schema, type_schema in extra_columns:
+                if "names" in kwargs:
+                    found = p_schema in kwargs["names"]
+                    if found:
+                        id = kwargs["names"].index(p_schema)
+                        kwargs["names"].pop(id)
+                        kwargs["dtype"].pop(id)
+
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,

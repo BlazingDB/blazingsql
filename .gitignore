@@ -6,6 +6,7 @@
 .idea/
 
 engine/cmake-build-debug/
+cmake-*
 
 algebra.log
 
