@@ -7,6 +7,7 @@
 #include <array>
 
 #include <cudf/io/types.hpp>
+#include <libpq-fe.h>
 
 #include "PostgreSQLParser.h"
 
@@ -39,6 +40,22 @@ read_postgresql(std::shared_ptr<PGresult> &pgResult,
                 const std::vector<cudf::type_id> &cudf_types,
                 const std::vector<std::size_t> &column_bytes,
                 std::size_t total_rows) {
+  const std::size_t resultNfields = PQnfields(pgResult.get());
+  if (resultNfields != column_indices.size() ||
+      resultNfields != column_bytes.size() ||
+      resultNfields != cudf_types.size()) {
+    throw std::runtime_error(
+        "Not equal columns for indices and bytes in PostgreSQL filter");
+  }
+
+  const int resultNtuples = PQntuples(pgResult.get());
+  for (int i = 0; i < resultNtuples; i++) {
+    for (const std::size_t projection_index : column_indices) {
+      cudf::type_id cudf_type_id = cudf_types[projection_index];
+      std::vector<std::uint8_t> valids(total_rows);
+    }
+  }
+
   cudf::io::table_with_metadata tableWithMetadata;
 
   std::vector<std::unique_ptr<cudf::column>> cudf_columns{
