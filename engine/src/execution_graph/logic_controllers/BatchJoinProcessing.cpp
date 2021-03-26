@@ -71,15 +71,15 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	}
 }
 
-void parseJoinConditionToEqualityTypes(const std::string & condition, std::vector<cudf::null_equality> & equalityTypes) {
+cudf::null_equality parseJoinConditionToEqualityTypes(const std::string & condition) {
 	// TODO: right now this only works for equijoins
 	// since this is all that is implemented at the time
 
-	// TODO: for this to work properly we can only do multi column join
-	// when we have ands, when we have hors we hvae to perform the joisn seperately then
-	// do a unique merge of the indices
-
-	// right now with pred push down the join codnition takes the filters as the second argument to condition
+	// TODO: There may be cases where there is a mixture of
+	// equality operators. We do not support it for now,
+	// since that is not supported in cudf.
+	// We only rely on the first equality type found.
+	// Related issue: https://github.com/BlazingDB/blazingsql/issues/1421
 
 	std::string clean_expression = clean_calcite_expression(condition);
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
@@ -88,10 +88,9 @@ void parseJoinConditionToEqualityTypes(const std::string & condition, std::vecto
 		if(is_operator_token(token)) {
 			// so far only equijoins are supported in libgdf
 			if(token == "="){
-				equalityTypes.push_back(cudf::null_equality::UNEQUAL);
-			}
-			else if(token == "IS_NOT_DISTINCT_FROM") {
-				equalityTypes.push_back(cudf::null_equality::EQUAL);
+				return cudf::null_equality::UNEQUAL;
+			} else if(token == "IS_NOT_DISTINCT_FROM") {
+				return cudf::null_equality::EQUAL;
 			} else if(token != "AND") {
 				throw std::runtime_error("In evaluate_join function: unsupported non-equijoins operator");
 			}
@@ -358,15 +357,14 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 		bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
 		bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 		if(this->join_type == INNER_JOIN) {
-			std::vector<cudf::null_equality> equalityTypes;
-			parseJoinConditionToEqualityTypes(this->condition, equalityTypes);
+			cudf::null_equality equalityType = parseJoinConditionToEqualityTypes(this->condition);
 			result_table = cudf::inner_join(
 				table_left.view(),
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
 				columns_in_common,
-				equalityTypes[0]);
+				equalityType);
 		} else if(this->join_type == LEFT_JOIN) {
 			//Removing nulls on right key columns before joining
 			std::unique_ptr<CudfTable> table_right_dropna;
