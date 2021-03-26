@@ -35,6 +35,7 @@
 - #1415 Fixed bug where num_batches was not getting set in BindableTableScan 
 - #1413 Fix for null tests 13 and 23 of windowFunctionTest
 - #1416 Fix full join when both tables contains nulls
+- #1423 Fix temporary directory for hive partition test
 
 
 ## Deprecated Features
