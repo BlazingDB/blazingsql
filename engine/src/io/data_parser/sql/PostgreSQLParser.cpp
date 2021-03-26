@@ -35,7 +35,7 @@ static inline bool postgresql_is_cudf_string(const std::string &hint) {
 }
 
 static inline cudf::io::table_with_metadata
-read_postgresql(std::shared_ptr<PGresult> &pgResult,
+read_postgresql(const std::shared_ptr<PGresult> &pgResult,
                 const std::vector<int> &column_indices,
                 const std::vector<cudf::type_id> &cudf_types,
                 const std::vector<std::size_t> &column_bytes,
@@ -53,6 +53,32 @@ read_postgresql(std::shared_ptr<PGresult> &pgResult,
     for (const std::size_t projection_index : column_indices) {
       cudf::type_id cudf_type_id = cudf_types[projection_index];
       std::vector<std::uint8_t> valids(total_rows);
+
+      switch (cudf_type_id) {
+      case cudf::type_id::EMPTY: break;
+      case cudf::type_id::INT8:
+      case cudf::type_id::INT16:
+      case cudf::type_id::INT32: break;
+      case cudf::type_id::INT64: break;
+      case cudf::type_id::UINT8:
+      case cudf::type_id::UINT16:
+      case cudf::type_id::UINT32: break;
+      case cudf::type_id::UINT64: break;
+      case cudf::type_id::FLOAT32:
+      case cudf::type_id::FLOAT64: break;
+      case cudf::type_id::BOOL8: break;
+      case cudf::type_id::TIMESTAMP_DAYS:
+      case cudf::type_id::TIMESTAMP_SECONDS:
+      case cudf::type_id::TIMESTAMP_MILLISECONDS:
+      case cudf::type_id::TIMESTAMP_MICROSECONDS:
+      case cudf::type_id::TIMESTAMP_NANOSECONDS:
+      case cudf::type_id::STRING: break;
+      case cudf::type_id::LIST: break;
+      case cudf::type_id::DECIMAL32: break;
+      case cudf::type_id::DECIMAL64: break;
+      case cudf::type_id::STRUCT: break;
+      default: throw std::runtime_error("Invalid cudf type id");
+      }
     }
   }
 
@@ -115,9 +141,7 @@ postgresql_parser::parse_batch(data_handle handle,
                                std::vector<int> column_indices,
                                std::vector<cudf::size_type> row_groups) {
   auto pgResult = handle.sql_handle.postgresql_result;
-  if (!pgResult) {
-    return schema.makeEmptyBlazingTable(column_indices);
-  }
+  if (!pgResult) { return schema.makeEmptyBlazingTable(column_indices); }
 
   if (column_indices.size() > 0) {
     std::vector<std::string> columnNames;
