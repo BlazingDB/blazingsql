@@ -7,6 +7,7 @@ from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
 import shutil
 import pandas
+import tempfile
 
 queryType = "Hive File"
 
@@ -947,7 +948,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
 
 def main(dask_client, spark, dir_data_file, bc, nRals):
     global tmpPath
-    tmpPath = '/tmp/BlazingSQL/partitions/'
+    tempdir = tempfile.TemporaryDirectory(dir="/tmp")
+    tmpPath = tempdir.name + '/BlazingSQL/partitions/'
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
     if testsWithNulls == "true":
@@ -963,8 +965,6 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
     executionTestAuto(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
-
-    shutil.rmtree(tmpPath, ignore_errors=True)
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
