@@ -150,6 +150,7 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
 
   handle.sql_handle.column_bytes = column_bytes;
   handle.sql_handle.postgresql_result.reset(result, PQclear);
+  handle.sql_handle.row_count = PQntuples(result);
   handle.uri = Uri("postgresql", "", sql.schema + "/" + sql.table, "", "");
 
   return handle;

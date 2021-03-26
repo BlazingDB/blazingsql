@@ -48,11 +48,90 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         "Not equal columns for indices and bytes in PostgreSQL filter");
   }
 
+  std::vector<void *> host_cols;
+  host_cols.reserve(column_indices.size());
+  std::transform(
+      column_indices.cbegin(),
+      column_indices.cend(),
+      std::back_inserter(host_cols),
+      [&pgResult, &cudf_types](const int projection_index) {
+        const int fsize = PQfsize(pgResult.get(), projection_index);
+        const int ntuples = PQntuples(pgResult.get());
+        if (fsize < 0) {  // STRING, STRUCT, LIST, and similar cases
+          auto *vector = new std::vector<std::string>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        // primitives cases
+        const cudf::type_id cudf_type_id = cudf_types[projection_index];
+        switch (cudf_type_id) {
+        case cudf::type_id::INT8: {
+          auto *vector = new std::vector<std::int8_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::INT16: {
+          auto *vector = new std::vector<std::int16_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::INT32: {
+          auto *vector = new std::vector<std::int32_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::INT64: {
+          auto *vector = new std::vector<std::int64_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::UINT8: {
+          auto *vector = new std::vector<std::uint8_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::UINT16: {
+          auto *vector = new std::vector<std::uint16_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::UINT32: {
+          auto *vector = new std::vector<std::uint32_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::UINT64: {
+          auto *vector = new std::vector<std::uint64_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::FLOAT32: {
+          auto *vector = new std::vector<float>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::FLOAT64: {
+          auto *vector = new std::vector<double>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::BOOL8: {
+          auto *vector = new std::vector<std::uint8_t>;
+          vector->reserve(ntuples);
+          return static_cast<void *>(vector);
+        }
+        default:
+          throw std::runtime_error("Invalid allocation for cudf type id");
+        }
+      });
+
   const int resultNtuples = PQntuples(pgResult.get());
   for (int i = 0; i < resultNtuples; i++) {
     for (const std::size_t projection_index : column_indices) {
       cudf::type_id cudf_type_id = cudf_types[projection_index];
       std::vector<std::uint8_t> valids(total_rows);
+
+      const char *resultValue = PQgetvalue(pgResult.get(), i, projection_index);
 
       switch (cudf_type_id) {
       case cudf::type_id::EMPTY: break;
