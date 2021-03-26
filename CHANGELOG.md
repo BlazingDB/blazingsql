@@ -36,6 +36,7 @@
 - #1413 Fix for null tests 13 and 23 of windowFunctionTest
 - #1416 Fix full join when both tables contains nulls
 - #1423 Fix temporary directory for hive partition test
+- #1422 Fix for predict file type when directory is provided as input
 
 
 ## Deprecated Features
