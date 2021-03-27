@@ -30,7 +30,7 @@ sql_table_batch_sizes = {
     "lineitem": 3000,
 } 
 tpch_queries = [
-    "TEST_1",
+    "TEST_01",
 #    "TEST_13",
 #    "TEST_07",
 #    "TEST_12",

@@ -213,7 +213,7 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
       // case cudf::type_id::DICTIONARY32: {} break;
       case cudf::type_id::STRING: {
         auto *tmp = new cudf_string_col();
-        tmp->offsets.push_back(0);
+        tmp->offsets.resize(1, 0);
         host_cols[col] = tmp;
       } break;
       // TODO percy
@@ -353,15 +353,15 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         // case cudf::type_id::DURATION_NANOSECONDS: {} break;
         // case cudf::type_id::DICTIONARY32: {} break;
         case cudf::type_id::STRING: {
-          sql::SQLString raw_data = res->getString(mysql_col);
+          std::string real_data = res->getString(mysql_col).asStdString();
+          cudf_string_col *v = (cudf_string_col*)host_cols[col];
           if (res->wasNull()) {
             valid = 0;
           } else {
-            cudf_string_col *v = (cudf_string_col*)host_cols[col];
-            std::string real_data = raw_data.asStdString();
             v->chars.insert(v->chars.end(), std::cbegin(real_data), std::cend(real_data));
-            v->offsets.push_back(v->offsets.back() + real_data.length());
           }
+          auto len = valid? real_data.length() : 0;
+          v->offsets.push_back(v->offsets.back() + len);
         } break;
         // TODO percy
         case cudf::type_id::LIST: {} break;

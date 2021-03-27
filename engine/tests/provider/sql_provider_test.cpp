@@ -77,7 +77,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   //std::vector<int> column_indices;
   //std::vector<int> column_indices = {0, 6};
   //std::vector<int> column_indices = {0, 4}; // line item id fgloat
-  std::vector<int> column_indices = {4}; // line item fgloat
+  //std::vector<int> column_indices = {4}; // line item fgloat
+  std::vector<int> column_indices = {8}; // line item ret_flag
   //std::vector<int> column_indices = {1}; // nation 1 name
   if (column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
