@@ -59,8 +59,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 
   
   sql.schema = "tpch";
-  //sql.table = "lineitem";
-  sql.table = "nation";
+  sql.table = "lineitem";
+  //sql.table = "nation";
 
   sql.table_filter = "";
   sql.table_batch_size = 2000;
