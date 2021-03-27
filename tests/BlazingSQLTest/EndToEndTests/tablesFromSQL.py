@@ -11,39 +11,51 @@ data_types = [
     DataType.MYSQL,
     #DataType.POSTGRESQL,
     #DataType.SQLITE,
-]  # TODO json
-tables = [
-#    "nation",
-#    "region",
-#    "customer",
-    "lineitem",
-#    "orders",
-#    "supplier",
-#    "part",
-#    "partsupp",
+    # TODO percy c.gonzales
 ]
+
+tables = [
+    "nation",
+    "region",
+    "customer",
+    "lineitem",
+    "orders",
+    "supplier",
+    "part",
+    "partsupp",
+]
+
 sql_table_filters = {
-    "lineitem": "l_quantity < 24",
+#    "lineitem": "l_quantity < 24",
 }
 
+# aprox. taken from parquet parts (tpch with nulls 2 parts)
 sql_table_batch_sizes = {
-    "lineitem": 3000,
-} 
+    "nation": 30,
+    "region": 10,
+    "customer": 7000,
+    "lineitem": 300000,
+    "orders": 7500,
+    "supplier": 600,
+    "part": 10000,
+    "partsupp": 40000,
+}
+
 tpch_queries = [
+    "TEST_13",
+    "TEST_07",
+    "TEST_12",
+    "TEST_04",
     "TEST_01",
-#    "TEST_13",
-#    "TEST_07",
-#    "TEST_12",
-#    "TEST_04",
-#    "TEST_01",
 ]
+
 # Parameter to indicate if its necessary to order
 # the resulsets before compare them
 worder = 1
 use_percentage = False
 acceptable_difference = 0.01
 
-# {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
+# example: {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
 datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tables)) for ds in data_types)
 
 
