@@ -18,10 +18,6 @@ from pyhive import hive
 from Configuration import Settings as Settings
 from DemoTest.chronometer import Chronometer
 
-# TODO percy create a separated mysql mod
-import mysql.connector
-from mysql.connector import errorcode
-
 
 SQLEngineStringDataTypeMap = {
     DataType.MYSQL: "mysql",

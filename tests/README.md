@@ -242,6 +242,11 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	```
 
 #### MySQL, PostgreSQL, SQLite testing
+For MySQL you will need to install this lib:
+```shell-script
+conda install -c conda-forge mysql-connector-python
+```
+
 To run the tests for tables from other SQL databases just define these env vars before run the test:
 
 ```shell-script
