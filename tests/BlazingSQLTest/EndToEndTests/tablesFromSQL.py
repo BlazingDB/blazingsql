@@ -13,10 +13,10 @@ data_types = [
     #DataType.SQLITE,
 ]  # TODO json
 tables = [
-    "nation",
+#    "nation",
 #    "region",
 #    "customer",
-#    "lineitem",
+    "lineitem",
 #    "orders",
 #    "supplier",
 #    "part",
@@ -30,11 +30,12 @@ sql_table_batch_sizes = {
     "lineitem": 3000,
 } 
 tpch_queries = [
-    "TEST_13",
-    "TEST_07",
-    "TEST_12",
-    "TEST_04",
-    "TEST_01",
+    "TEST_1",
+#    "TEST_13",
+#    "TEST_07",
+#    "TEST_12",
+#    "TEST_04",
+#    "TEST_01",
 ]
 # Parameter to indicate if its necessary to order
 # the resulsets before compare them
@@ -74,8 +75,7 @@ def samples(bc, dask_client, nRals, **kwargs):
             print("All tables were created for", str(fileSchemaType))
         i = 0
 
-        #queries = [get_tpch_query(q, dstables) for q in tpch_queries]
-        queries = ["select n_name from nation_MYSQL"]
+        queries = [get_tpch_query(q, dstables) for q in tpch_queries]
         for query in queries:
             i = i + 1
             istr = str(i) if i > 10 else "0"+str(i)

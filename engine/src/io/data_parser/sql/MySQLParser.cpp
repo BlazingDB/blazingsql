@@ -118,7 +118,8 @@ cudf::type_id parse_mysql_column_type(const std::string t) {
   if (StringUtil::beginsWith(t, "DATETIME")) return cudf::type_id::TIMESTAMP_MILLISECONDS;
   if (StringUtil::beginsWith(t, "TIMESTAMP")) return cudf::type_id::TIMESTAMP_MILLISECONDS;
   if (StringUtil::beginsWith(t, "YEAR")) return cudf::type_id::INT8;
-
+  // decimal TODO percy william c.cordova
+  if (StringUtil::beginsWith(t, "DECIMAL")) return cudf::type_id::FLOAT64;
 
   // TODO percy ...
 }
@@ -133,17 +134,12 @@ std::vector<cudf::type_id> parse_mysql_column_types(const std::vector<std::strin
 
 template<typename T>
 std::unique_ptr<cudf::column> build_fixed_width_cudf_col(size_t total_rows,
-                                                         char *host_col,
-                                                         size_t data_size,
+                                                         std::vector<T> *host_col,
                                                          const std::vector<uint8_t> &valids,
                                                          cudf::type_id cudf_type_id)
 {
-  std::vector<T> buff(total_rows);
-  for (int i =0; i < total_rows; ++i) {
-    buff[i] = *(T*)(host_col + data_size*i);
-  }
   const cudf::size_type size = total_rows;
-  auto data = rmm::device_buffer{buff.data(), size * sizeof(T)};
+  auto data = rmm::device_buffer{host_col->data(), size * sizeof(T)};
   auto data_type = cudf::data_type(cudf_type_id);
   auto ret = std::make_unique<cudf::column>(data_type,
                                      size,
@@ -192,15 +188,106 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
                                          size_t total_rows)
 {
   cudf::io::table_with_metadata ret;
-  std::vector<char*> host_cols(column_indices.size());
+  std::vector<void*> host_cols(column_indices.size());
   std::vector<std::vector<uint8_t>> host_valids(host_cols.size());
 
   for (int col = 0; col < host_cols.size(); ++col) {
-    size_t projection = column_indices[col];
-    size_t len = total_rows*column_bytes[projection];
-    host_cols[col] = (char*)malloc(len);
     host_valids[col].resize(total_rows);
-    memset((void*)host_cols[col], 0, total_rows);
+    size_t projection = column_indices[col];
+    cudf::type_id cudf_type_id = cudf_types[projection];
+    switch (cudf_type_id) {
+      case cudf::type_id::EMPTY: {
+      } break;
+      case cudf::type_id::INT8: {
+        std::vector<int8_t> *tmp = new std::vector<int8_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::INT16: {
+        std::vector<int16_t> *tmp = new std::vector<int16_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::INT32: {
+        std::vector<int32_t> *tmp = new std::vector<int32_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::INT64: {
+        std::vector<int64_t> *tmp = new std::vector<int64_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::UINT8: {
+        std::vector<uint8_t> *tmp = new std::vector<uint8_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::UINT16: {
+        std::vector<uint16_t> *tmp = new std::vector<uint16_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::UINT32: {
+        std::vector<uint32_t> *tmp = new std::vector<uint32_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::UINT64: {
+        std::vector<uint64_t> *tmp = new std::vector<uint64_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::FLOAT32: {
+        std::vector<float> *tmp = new std::vector<float>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::FLOAT64: {
+        std::vector<double> *tmp = new std::vector<double>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::BOOL8: {
+        std::vector<int8_t> *tmp = new std::vector<int8_t>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      case cudf::type_id::TIMESTAMP_DAYS:
+      case cudf::type_id::TIMESTAMP_SECONDS:
+      case cudf::type_id::TIMESTAMP_MILLISECONDS:
+      case cudf::type_id::TIMESTAMP_MICROSECONDS:
+      case cudf::type_id::TIMESTAMP_NANOSECONDS:
+// TODO percy it seems we don't support this yet
+//        case cudf::type_id::DURATION_DAYS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_SECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_MILLISECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_MICROSECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_NANOSECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DICTIONARY32: {
+        
+//        } break;
+      case cudf::type_id::STRING: {
+        std::vector<std::string> *tmp = new std::vector<std::string>();
+        tmp->resize(total_rows);
+        host_cols[col] = tmp;
+      } break;
+      // TODO percy
+      case cudf::type_id::LIST: {} break;
+      case cudf::type_id::DECIMAL32: {} break;
+      case cudf::type_id::DECIMAL64: {} break;
+      case cudf::type_id::STRUCT: {} break;
+    }
   }
 
   int row = 0;
@@ -208,71 +295,115 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
     for (int col = 0; col < column_indices.size(); ++col) {
       int mysql_col = col + 1; // mysql jdbc getString starts counting from 1 (not from 0)
       size_t projection = column_indices[col];
-      size_t data_size = column_bytes[projection];
-      size_t offset = row*data_size;
       uint8_t valid = 1; // 1: not null 0: null
       cudf::type_id cudf_type_id = cudf_types[projection];
-
       switch (cudf_type_id) {
         case cudf::type_id::EMPTY: {
         } break;
-        case cudf::type_id::INT8:
-        case cudf::type_id::INT16:
-        case cudf::type_id::INT32: {
-          auto raw_data = res->getInt(mysql_col);
-          char *data = (char*)&raw_data;
+        case cudf::type_id::INT8: {
+          int32_t raw_data = res->getInt(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<int8_t> *v = (std::vector<int8_t>*)host_cols[col];
+            int8_t real_data = static_cast<int8_t>(raw_data);
+            (*v)[row] = real_data;
+          }
+        } break;
+        case cudf::type_id::INT16: {
+          int32_t raw_data = res->getInt(mysql_col);
+          if (res->wasNull()) {
+            valid = 0;
+          } else {
+            std::vector<int16_t> *v = (std::vector<int16_t>*)host_cols[col];
+            int16_t real_data = static_cast<int16_t>(raw_data);
+            (*v)[row] = real_data;
+          }
+        } break;
+        case cudf::type_id::INT32: {
+          int32_t raw_data = res->getInt(mysql_col);
+          if (res->wasNull()) {
+            valid = 0;
+          } else {
+            std::vector<int32_t> *v = (std::vector<int32_t>*)host_cols[col];
+            (*v)[row] = raw_data;
           }
         } break;
         case cudf::type_id::INT64: {
-          auto raw_data = res->getInt64(mysql_col);
-          char *data = (char*)&raw_data;
+          int64_t raw_data = res->getInt64(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<int64_t> *v = (std::vector<int64_t>*)host_cols[col];
+            (*v)[row] = raw_data;
           }
         } break;
-        case cudf::type_id::UINT8:
-        case cudf::type_id::UINT16:
-        case cudf::type_id::UINT32: {
-          auto raw_data = res->getUInt(mysql_col);
-          char *data = (char*)&raw_data;
+        case cudf::type_id::UINT8: {
+          uint32_t raw_data = res->getUInt(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<uint8_t> *v = (std::vector<uint8_t>*)host_cols[col];
+            uint8_t real_data = static_cast<uint8_t>(raw_data);
+            (*v)[row] = real_data;
+          }
+        } break;
+        case cudf::type_id::UINT16: {
+          uint32_t raw_data = res->getUInt(mysql_col);
+          if (res->wasNull()) {
+            valid = 0;
+          } else {
+            std::vector<uint16_t> *v = (std::vector<uint16_t>*)host_cols[col];
+            uint16_t real_data = static_cast<uint16_t>(raw_data);
+            (*v)[row] = real_data;
+          }
+        } break;
+        case cudf::type_id::UINT32: {
+          uint32_t raw_data = res->getUInt(mysql_col);
+          if (res->wasNull()) {
+            valid = 0;
+          } else {
+            std::vector<uint32_t> *v = (std::vector<uint32_t>*)host_cols[col];
+            (*v)[row] = raw_data;
           }
         } break;
         case cudf::type_id::UINT64: {
-          auto raw_data = res->getUInt64(mysql_col);
-          char *data = (char*)&raw_data;
+          uint64_t raw_data = res->getUInt64(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<uint64_t> *v = (std::vector<uint64_t>*)host_cols[col];
+            (*v)[row] = raw_data;
           }
         } break;
-        case cudf::type_id::FLOAT32:
-        case cudf::type_id::FLOAT64: {
-          auto raw_data = res->getDouble(mysql_col);
-          char *data = reinterpret_cast<char*>(&raw_data, sizeof(long double));
+        case cudf::type_id::FLOAT32: {
+          long double raw_data = res->getDouble(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<float> *v = (std::vector<float>*)host_cols[col];
+            float real_data = static_cast<float>(raw_data);
+            (*v)[row] = real_data;
+          }
+        } break;
+        case cudf::type_id::FLOAT64: {
+          long double raw_data = res->getDouble(mysql_col);
+          if (res->wasNull()) {
+            valid = 0;
+          } else {
+            std::vector<double> *v = (std::vector<double>*)host_cols[col];
+            double real_data = static_cast<double>(raw_data);
+            (*v)[row] = real_data;
           }
         } break;
         case cudf::type_id::BOOL8: {
-          auto raw_data = res->getBoolean(mysql_col);
-          char *data = (char*)&raw_data;
+          bool raw_data = res->getBoolean(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<int8_t> *v = (std::vector<int8_t>*)host_cols[col];
+            int8_t real_data = static_cast<int8_t>(raw_data);
+            (*v)[row] = real_data;
           }
         } break;
         case cudf::type_id::TIMESTAMP_DAYS:
@@ -300,26 +431,20 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           
 //        } break;
         case cudf::type_id::STRING: {
-          auto mysql_str = res->getString(mysql_col);
-          char *data = data = (char*)mysql_str.c_str();
+          sql::SQLString raw_data = res->getString(mysql_col);
           if (res->wasNull()) {
             valid = 0;
           } else {
-            strncpy(host_cols[col] + offset, data, data_size);
+            std::vector<std::string> *v = (std::vector<std::string>*)host_cols[col];
+            std::string real_data = raw_data.asStdString();
+            (*v)[row] = real_data;
           }
         } break;
-        case cudf::type_id::LIST: {
-          
-        } break;
-        case cudf::type_id::DECIMAL32: {
-          
-        } break;
-        case cudf::type_id::DECIMAL64: {
-          
-        } break;
-        case cudf::type_id::STRUCT: {
-          
-        } break;
+        // TODO percy
+        case cudf::type_id::LIST: {} break;
+        case cudf::type_id::DECIMAL32: {} break;
+        case cudf::type_id::DECIMAL64: {} break;
+        case cudf::type_id::STRUCT: {} break;
       }
 
       host_valids[col][row] = valid;
@@ -331,62 +456,70 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
 
   for (int col = 0; col < column_indices.size(); ++col) {
     size_t projection = column_indices[col];
-    size_t data_size = column_bytes[projection];
     cudf::type_id cudf_type_id = cudf_types[projection];
-
     uint8_t *valids_buff = host_valids[col].data();
     std::vector<uint8_t> valids(valids_buff, valids_buff + total_rows);
-
     switch (cudf_type_id) {
       case cudf::type_id::EMPTY: {
       } break;
       case cudf::type_id::INT8: {
-        cudf_cols[col] = build_fixed_width_cudf_col<int8_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<int8_t> *v = (std::vector<int8_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<int8_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::INT16: {
-        cudf_cols[col] = build_fixed_width_cudf_col<int16_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<int16_t> *v = (std::vector<int16_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<int16_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::INT32: {
-        cudf_cols[col] = build_fixed_width_cudf_col<int32_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<int32_t> *v = (std::vector<int32_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<int32_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::INT64: {
-        cudf_cols[col] = build_fixed_width_cudf_col<int64_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<int64_t> *v = (std::vector<int64_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<int64_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::UINT8: {
-        cudf_cols[col] = build_fixed_width_cudf_col<uint8_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<uint8_t> *v = (std::vector<uint8_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<uint8_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::UINT16: {
-        cudf_cols[col] = build_fixed_width_cudf_col<uint16_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<uint16_t> *v = (std::vector<uint16_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<uint16_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::UINT32: {
-        cudf_cols[col] = build_fixed_width_cudf_col<uint32_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<uint32_t> *v = (std::vector<uint32_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<uint32_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::UINT64: {
-        cudf_cols[col] = build_fixed_width_cudf_col<uint64_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<uint64_t> *v = (std::vector<uint64_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<uint64_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::FLOAT32: {
-        cudf_cols[col] = build_fixed_width_cudf_col<float>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<float> *v = (std::vector<float>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<float>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::FLOAT64: {
-        cudf_cols[col] = build_fixed_width_cudf_col<double>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<double> *v = (std::vector<double>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<double>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::BOOL8: {
-        cudf_cols[col] = build_fixed_width_cudf_col<uint8_t>(total_rows, host_cols[col], data_size, valids, cudf_type_id);
+        std::vector<uint8_t> *v = (std::vector<uint8_t>*)host_cols[col];
+        cudf_cols[col] = build_fixed_width_cudf_col<uint8_t>(total_rows, v, valids, cudf_type_id);
       } break;
       case cudf::type_id::TIMESTAMP_DAYS: {
-        auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
-        auto vals_col = cudf::strings::to_timestamps(str_col->view(), cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}, "%Y-%m-%d");
-        cudf_cols[col] = std::move(vals_col);
+        //auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
+        //auto vals_col = cudf::strings::to_timestamps(str_col->view(), cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}, "%Y-%m-%d");
+        //cudf_cols[col] = std::move(vals_col);
       } break;
       case cudf::type_id::TIMESTAMP_SECONDS: {
-        auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
-        auto vals_col = cudf::strings::to_timestamps(str_col->view(), cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}, "%H:%M:%S");
-        cudf_cols[col] = std::move(vals_col);
+        //auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
+        //auto vals_col = cudf::strings::to_timestamps(str_col->view(), cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}, "%H:%M:%S");
+        //cudf_cols[col] = std::move(vals_col);
       } break;
       case cudf::type_id::TIMESTAMP_MILLISECONDS: {
-        auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
-        auto vals_col = cudf::strings::to_timestamps(str_col->view(), cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}, "%Y-%m-%d %H:%M:%S");
-        cudf_cols[col] = std::move(vals_col);
+        //auto str_col = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
+        //auto vals_col = cudf::strings::to_timestamps(str_col->view(), cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}, "%Y-%m-%d %H:%M:%S");
+        //cudf_cols[col] = std::move(vals_col);
       } break;
       case cudf::type_id::TIMESTAMP_MICROSECONDS: {
 
@@ -414,7 +547,7 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         
       } break;
       case cudf::type_id::STRING: {
-        cudf_cols[col] = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
+        //cudf_cols[col] = build_str_cudf_col(total_rows, host_cols[col], data_size, valids);
       } break;
       case cudf::type_id::LIST: {
         
@@ -434,7 +567,89 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
   ret.tbl = std::make_unique<cudf::table>(std::move(cudf_cols));
 
   for (int col = 0; col < host_cols.size(); ++col) {
-    free(host_cols[col]);
+    size_t projection = column_indices[col];
+    cudf::type_id cudf_type_id = cudf_types[projection];
+    switch (cudf_type_id) {
+      case cudf::type_id::EMPTY: {
+      } break;
+      case cudf::type_id::INT8: {
+        std::vector<int8_t> *tmp = new std::vector<int8_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::INT16: {
+        std::vector<int16_t> *tmp = new std::vector<int16_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::INT32: {
+        std::vector<int32_t> *tmp = new std::vector<int32_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::INT64: {
+        std::vector<int64_t> *tmp = new std::vector<int64_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::UINT8: {
+        std::vector<uint8_t> *tmp = new std::vector<uint8_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::UINT16: {
+        std::vector<uint16_t> *tmp = new std::vector<uint16_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::UINT32: {
+        std::vector<uint32_t> *tmp = new std::vector<uint32_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::UINT64: {
+        std::vector<uint64_t> *tmp = new std::vector<uint64_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::FLOAT32: {
+        std::vector<float> *tmp = new std::vector<float>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::FLOAT64: {
+        std::vector<double> *tmp = new std::vector<double>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::BOOL8: {
+        std::vector<int8_t> *tmp = new std::vector<int8_t>();
+        delete(tmp);
+      } break;
+      case cudf::type_id::TIMESTAMP_DAYS:
+      case cudf::type_id::TIMESTAMP_SECONDS:
+      case cudf::type_id::TIMESTAMP_MILLISECONDS:
+      case cudf::type_id::TIMESTAMP_MICROSECONDS:
+      case cudf::type_id::TIMESTAMP_NANOSECONDS:
+// TODO percy it seems we don't support this yet
+//        case cudf::type_id::DURATION_DAYS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_SECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_MILLISECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_MICROSECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DURATION_NANOSECONDS: {
+        
+//        } break;
+//        case cudf::type_id::DICTIONARY32: {
+        
+//        } break;
+      case cudf::type_id::STRING: {
+        std::vector<std::string> *tmp = new std::vector<std::string>();
+        delete(tmp);
+      } break;
+      // TODO percy
+      case cudf::type_id::LIST: {} break;
+      case cudf::type_id::DECIMAL32: {} break;
+      case cudf::type_id::DECIMAL64: {} break;
+      case cudf::type_id::STRUCT: {} break;
+    }
   }
 
   return ret;

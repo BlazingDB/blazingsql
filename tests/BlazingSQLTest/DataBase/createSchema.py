@@ -1289,7 +1289,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         #     t = bc.create_table(table, dask_df)
         elif fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
             sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
-            sql_table_batch_map = kwargs.get("sql_table_batch_size_map", {})
+            sql_table_batch_size_map = kwargs.get("sql_table_batch_size_map", {})
             sql = kwargs.get("sql_connection", None)
 
             from_sql = SQLEngineStringDataTypeMap[fileSchemaType]
@@ -1303,7 +1303,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
 
             if table in sql_table_filter_map:
                 sql_table_filter = sql_table_filter_map[table]
-            if table in sql_table_batch_map:
+            if table in sql_table_batch_size_map:
                 sql_table_batch_size = sql_table_batch_size_map[table]
 
             bc.create_table(table_names[i], table,
