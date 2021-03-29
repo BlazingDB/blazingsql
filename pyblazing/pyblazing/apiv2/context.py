@@ -2475,6 +2475,7 @@ class BlazingContext(object):
             except KeyError as error:
                 raise UnsupportedSQLEngineError(sqlEngineName) from error
 
+            kwargs["table"] = input[0]
             parsedSchema, _ = self._parseSchema(
                 input, sqlEngineName, kwargs, [], False, []
             )
