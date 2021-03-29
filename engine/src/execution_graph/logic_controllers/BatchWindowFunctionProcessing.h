@@ -49,10 +49,14 @@ private:
 	std::string frame_type;                        // ROWS or RANGE
 	std::vector<std::string> type_aggs_as_str;     // ["MIN", "LAG"]
 	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::LAG]
+	bool remove_overlap; 						   // If we need to remove the overlaps after computing the windows
 };
 
 
-
+const std::string TASK_ARG_REMOVE_PRECEDING_OVERLAP="remove_preceding_overlap";
+const std::string TASK_ARG_REMOVE_FOLLOWING_OVERLAP="remove_following_overlap";
+const std::string TRUE = "true";
+const std::string FALSE = "false";
 
 const std::string UNKNOWN_OVERLAP_STATUS="UNKNOWN";
 const std::string INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";

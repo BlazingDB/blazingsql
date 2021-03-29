@@ -50,18 +50,19 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                                 AND 1 FOLLOWING
                             ) min_val,
  							n_nationkey, n_regionkey, n_name
-                        from nation order by n_nationkey"""
+                        from nation"""
             runTest.run_query(
                 bc,
                 spark,
                 query,
                 queryId,
                 queryType,
-                worder,
+                0,
                 "",
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                print_result=True
             )
 
             queryId = "TEST_51"
@@ -95,6 +96,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                print_result=True
             )
 
             queryId = "TEST_52"
@@ -126,6 +128,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                print_result=True
             )
 
             queryId = "TEST_53"

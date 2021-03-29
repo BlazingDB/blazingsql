@@ -177,7 +177,6 @@ std::tuple<std::vector<int>, std::vector<cudf::order> > get_right_sorts_vars(con
 		// without `partition by`
 		else {
 			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
-			std::cout<<"get_right_sorts_vars "<<query_part<<" index "<<sortColIndices.size()<<" "<<sortColIndices[0]<<std::endl;
 		}
 	} else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
@@ -244,7 +243,6 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	else {
 		std::tie(sortColIndices, sortOrderTypes, std::ignore) = get_sort_vars(query_part);
 	}
-	std::cout<<"sample "<<query_part<<"  index  "<<sortColIndices[0]<<std::endl;
 	
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
@@ -254,7 +252,6 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::random_device rd;
 	auto samples = cudf::sample(table.view().select(sortColIndices), num_samples, cudf::sample_with_replacement::FALSE, rd());
 
-	std::cout<<"sample samples "<<samples->num_rows()<<std::endl;
 	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
 

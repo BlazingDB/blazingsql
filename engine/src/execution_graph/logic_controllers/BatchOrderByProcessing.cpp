@@ -23,7 +23,6 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
     } else {
         std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
     }
-    std::cout<<"PartitionSingleNodeKernel "<<queryString<<"  index  "<<sortColIndices[0]<<std::endl;
 }
 
 ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -489,11 +488,6 @@ ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::uniq
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
-        std::cout<<"MergeStreamKernel::do_process"<<std::endl;
-        for (int i = 0; i < inputs.size(); i++){
-            std::cout<<i<<" input has x rows: "<<inputs[i]->num_rows()<<std::endl;
-        }
-
     try{
         if (inputs.empty()) {
             // no op
@@ -505,7 +499,6 @@ ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::uniq
                 tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
             }
             auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
-            std::cout<<"MergeStreamKernel::do_process output_merge "<<output_merge->num_rows()<<std::endl;
             output->addToCache(std::move(output_merge));
         }
     }catch(const rmm::bad_alloc& e){

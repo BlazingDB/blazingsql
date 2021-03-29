@@ -41,6 +41,13 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
                                         get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
     std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
+
+    // if the window function has no partitioning but does have order by and a bounded window, then we need to remove the overlaps that are present in the data
+    if (column_indices_partitioned.size() == 0 && column_indices_ordered.size() > 0 && this->preceding_value > 0 && this->following_value > 0){
+        this->remove_overlap = true;
+    } else {
+        this->remove_overlap = false;
+    }
 }
 
 // TODO: Support for RANK() and DENSE_RANK()
@@ -48,8 +55,6 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     cudf::table_view input_table_cudf_view,
     cudf::column_view col_view_to_agg,
     std::size_t pos, int & agg_param_count ) {
-
-    std::cout<<"ComputeWindowKernel::compute_column_from_window_function start"<<std::endl;
 
     std::unique_ptr<cudf::aggregation> window_aggregation;
 
@@ -146,13 +151,10 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, window_aggregation);
         }
     } else {
-        std::cout<<"ComputeWindowKernel::compute_column_from_window_function 0"<<std::endl;
         if (window_expression_contains_bounds(this->expression)) {
-            std::cout<<"ComputeWindowKernel::compute_column_from_window_function 1"<<std::endl;
             // TODO: for now just ROWS bounds works (not RANGE)
             windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
         } else {
-            std::cout<<"ComputeWindowKernel::compute_column_from_window_function 2"<<std::endl;
            // WSM TODO Error not yet supported
         }
     }
@@ -162,17 +164,14 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
 
 ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
-        std::cout<<"ComputeWindowKernel::do_process"<<std::endl;
-
+        
     if (inputs.size() == 0) {
         return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
-
-    std::cout<<"ComputeWindowKernel::do_process "<<input->num_rows()<<std::endl;
 
     try{
         cudf::table_view input_table_cudf_view = input->view();
@@ -215,6 +214,30 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         }
 
         std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
+        if (this->remove_overlap){
+            bool remove_preceding = args.at(TASK_ARG_REMOVE_PRECEDING_OVERLAP) == TRUE;
+            bool remove_following = args.at(TASK_ARG_REMOVE_FOLLOWING_OVERLAP) == TRUE;
+
+            if (remove_preceding || remove_following) {
+                std::vector<cudf::size_type> split_indexes;
+                if (remove_preceding) {
+                    split_indexes.push_back(this->preceding_value);
+                }
+                if (remove_following) {
+                    split_indexes.push_back(cudf_table_window->num_rows() - this->following_value);
+                }
+
+                auto split_window_view = cudf::split(cudf_table_window->view(), split_indexes);
+                std::unique_ptr<cudf::table> temp_table_window;
+                if (remove_preceding){
+                    temp_table_window = std::make_unique<cudf::table>(split_window_view[1]);
+                } else {
+                    temp_table_window = std::make_unique<cudf::table>(split_window_view[0]);
+                }
+                cudf_table_window = std::move(temp_table_window);
+            }
+        } 
+        
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
 
         if (windowed_table) {
@@ -235,21 +258,53 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
 kstatus ComputeWindowKernel::run() {
     CodeTimer timer;
 
-    std::cout<<"ComputeWindowKernel::run()"<<std::endl;
+    int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+    int num_nodes = context->getTotalNodes();
+
+    bool is_first_batch = true;
+    bool is_last_batch = false;
+    bool is_first_node = self_node_idx == 0;
+    bool is_last_node = self_node_idx == num_nodes - 1;
 
     std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
 
-    while (cache_data != nullptr ){
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
+    if (this->remove_overlap){
+        while (cache_data != nullptr ){
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
 
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
+            cache_data = this->input_cache()->pullCacheData();
+            if (cache_data == nullptr){
+                is_last_batch = true;
+            }
 
-        cache_data = this->input_cache()->pullCacheData();
+            std::map<std::string, std::string> task_args;
+            task_args[TASK_ARG_REMOVE_PRECEDING_OVERLAP] = !(is_first_batch && is_first_node) ? TRUE : FALSE;
+            task_args[TASK_ARG_REMOVE_FOLLOWING_OVERLAP] = !(is_last_batch && is_last_node) ? TRUE : FALSE;
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this, 
+                    task_args);
+
+            is_first_batch = false;
+        }
+    } else {
+        while (cache_data != nullptr ){
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+
+            cache_data = this->input_cache()->pullCacheData();
+        }
     }
+
+    
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
@@ -285,6 +340,7 @@ OverlapGeneratorKernel::OverlapGeneratorKernel(std::size_t kernel_id, const std:
     total_nodes = context->getTotalNodes();    
 }
 
+
 ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
@@ -293,7 +349,6 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
 
         std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
-        std::cout<<"OverlapGeneratorKernel::do_process "<<input->num_rows()<<std::endl;
         std::string overlap_type = args.at(TASK_ARG_OVERLAP_TYPE);
         
         // first lets do the preceding overlap
@@ -338,8 +393,6 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
 
 kstatus OverlapGeneratorKernel::run() {
 
-    std::cout<<"OverlapGeneratorKernel::run()"<<std::endl;
-
     CodeTimer timer;
     bool all_done = false;
     bool neighbors_notified_of_complete = false;
@@ -350,7 +403,6 @@ kstatus OverlapGeneratorKernel::run() {
     output_following_overlap_cache = this->output_.get_cache("following_overlaps");
 
     std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    std::cout<<"OverlapGeneratorKernel::run() first batch "<<cache_data->num_rows()<<std::endl;
     int batch_index = 0;
     while (cache_data != nullptr ){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
@@ -373,7 +425,6 @@ kstatus OverlapGeneratorKernel::run() {
         }
 
         if (cache_data == nullptr && batch_index == 0) {  // this is the first and last batch, then we dont need to process overlaps
-        std::cout<<"OverlapGeneratorKernel::run() first and last "<<inputs[0]->num_rows()<<std::endl;
             this->output_batches_cache->addCacheData(std::move(inputs[0]));
         } else {
             ral::execution::executor::get_instance()->add_task(
@@ -444,8 +495,6 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     this->num_batches = 0;
 	
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
-
-    std::cout<<"OverlapAccumulatorKernel::OverlapAccumulatorKernel "<<this->preceding_value<<" "<<this->following_value<<std::endl;
 
     ral::cache::cache_settings cache_machine_config;
 	cache_machine_config.type = ral::cache::CacheType::SIMPLE;
@@ -551,11 +600,6 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
         std::vector<ral::frame::BlazingTableView> tables_to_concat;
         size_t rows_remaining = overlap_size;
 
-        std::cout<<"OverlapGeneratorKernel::do_process"<<std::endl;
-        for (int i = 0; i < inputs.size(); i++){
-            std::cout<<i<<" input has x rows: "<<inputs[i]->num_rows()<<std::endl;
-        }
-
         if (preceding) {
             
             for (int i = inputs.size() -1; i >= 0; i--){
@@ -645,7 +689,6 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
 }
 
 void OverlapAccumulatorKernel::fulfillment_receiver(){
-    std::cout<<"OverlapAccumulatorKernel::fulfillment_receiver() 0"<<std::endl;
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     int total_nodes = context->getTotalNodes();
@@ -664,53 +707,38 @@ void OverlapAccumulatorKernel::fulfillment_receiver(){
         sender_node_id = context->getNode(self_node_index - 1).id();
         expected_message_ids.push_back(PRECEDING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     }
-    std::cout<<"OverlapAccumulatorKernel::fulfillment_receiver() 1"<<std::endl;
     message_receiver(expected_message_ids, messages_expected);
-    std::cout<<"OverlapAccumulatorKernel::fulfillment_receiver() 2"<<std::endl;
 }
 
 void OverlapAccumulatorKernel::following_request_receiver(){
-    std::cout<<"OverlapAccumulatorKernel::following_request_receiver() 0"<<std::endl;
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     if (self_node_index != 0) {
         int messages_expected = 1;
         std::string sender_node_id = context->getNode(self_node_index - 1).id();
         expected_message_ids.push_back(FOLLOWING_REQUEST + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-        std::cout<<"OverlapAccumulatorKernel::following_request_receiver() 1"<<std::endl;
         message_receiver(expected_message_ids, messages_expected);
     }    
-    std::cout<<"OverlapAccumulatorKernel::following_request_receiver() 2"<<std::endl;
 }
 
 void OverlapAccumulatorKernel::preceding_request_receiver(){
-    std::cout<<"OverlapAccumulatorKernel::preceding_request_receiver() 0"<<std::endl;
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     if (self_node_index != context->getTotalNodes() - 1) {
         int messages_expected = 1;
         std::string sender_node_id = context->getNode(self_node_index + 1).id();
         expected_message_ids.push_back(PRECEDING_REQUEST + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-        std::cout<<"OverlapAccumulatorKernel::preceding_request_receiver() 1"<<std::endl;
         message_receiver(expected_message_ids, messages_expected);
     }    
-    std::cout<<"OverlapAccumulatorKernel::preceding_request_receiver() 2"<<std::endl;
 }
 
 
 void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expected_message_ids, int messages_expected){
 
-    std::cout<<"OverlapAccumulatorKernel::message_receiver messages_expected ";
-    for (auto msg : expected_message_ids){
-        std::cout<<msg<<" , ";
-    }
-    std::cout<<std::endl;
-
     int messages_received = 0;
     while(messages_received < messages_expected){
         auto message_cache_data = this->query_graph->get_input_message_cache()->pullAnyCacheData(expected_message_ids);
         auto metadata = message_cache_data->getMetadata();
-        std::cout<<"OverlapAccumulatorKernel::message_receiver received message type "<<metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE)<<std::endl;
         messages_received++;
         if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST
             || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_REQUEST){
@@ -825,8 +853,6 @@ void OverlapAccumulatorKernel::send_request(bool preceding, int source_node_inde
 
 kstatus OverlapAccumulatorKernel::run() {
 
-    std::cout<<"OverlapAccumulatorKernel::run()"<<std::endl;
-
     CodeTimer timer;
     bool all_done = false;
     bool neighbors_notified_of_complete = false;
@@ -856,8 +882,6 @@ kstatus OverlapAccumulatorKernel::run() {
     }
     preceding_overlap_statuses.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
     following_overlap_status.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
-
-    std::cout<<"OverlapAccumulatorKernel::run() 0"<<std::endl;
     
     // lets send the requests for the first preceding overlap and last following overlap of this node
     if (total_nodes > 1 && self_node_index > 0){
@@ -866,7 +890,6 @@ kstatus OverlapAccumulatorKernel::run() {
     if (total_nodes > 1 && self_node_index < total_nodes - 1){
         send_request(false, self_node_index + 1, self_node_index, num_batches-1, this->following_value);
     }
-    std::cout<<"OverlapAccumulatorKernel::run() 1"<<std::endl;
 
     // lets fill the empty overlaps that go at the very end of the cluster
     if (self_node_index == 0){ // first overlap of first node, so make it empty
@@ -885,12 +908,9 @@ kstatus OverlapAccumulatorKernel::run() {
         fulfillment_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::fulfillment_receiver, this);
         following_request_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::following_request_receiver, this);
     }
-    std::cout<<"OverlapAccumulatorKernel::run() 2"<<std::endl;
     for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
         if (cur_batch_ind > 0){
-            std::cout<<"OverlapAccumulatorKernel::run() 3 "<<cur_batch_ind<<std::endl;
             auto overlap_cache_data = input_preceding_overlap_cache->pullCacheData();
-            std::cout<<"OverlapAccumulatorKernel::run() 4 "<<cur_batch_ind<<std::endl;
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
@@ -913,11 +933,8 @@ kstatus OverlapAccumulatorKernel::run() {
             }
         }
 
-        std::cout<<"OverlapAccumulatorKernel::run() 5"<<std::endl;
         if (cur_batch_ind < num_batches - 1){
-            std::cout<<"OverlapAccumulatorKernel::run() 6 "<<cur_batch_ind<<std::endl;
             auto overlap_cache_data = input_following_overlap_cache->pullCacheData();
-            std::cout<<"OverlapAccumulatorKernel::run() 7 "<<cur_batch_ind<<std::endl;
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
@@ -941,10 +958,8 @@ kstatus OverlapAccumulatorKernel::run() {
         }
     }
 
-    std::cout<<"OverlapAccumulatorKernel::run() 8"<<std::endl;
     // the preceding request will be fulfilled by the last batch, so we want to do all the batches before we try to fulfill it
     preceding_request_receiver();
-    std::cout<<"OverlapAccumulatorKernel::run() 9"<<std::endl;
      
     // lets wait until the receiver threads are done. 
     // When its done, it means we have received overlap requests and have made tasks for them, and
@@ -953,7 +968,6 @@ kstatus OverlapAccumulatorKernel::run() {
         fulfillment_receiver_thread.join();
         following_request_receiver_thread.join();
     }
-    std::cout<<"OverlapAccumulatorKernel::run() 10"<<std::endl;
 
     // lets wait to make sure that all tasks are done
     std::unique_lock<std::mutex> lock(kernel_mutex);
@@ -972,7 +986,6 @@ kstatus OverlapAccumulatorKernel::run() {
         batch_with_overlaps.push_back(following_overlap_cache->get_or_wait_CacheData(batch_ind));
 
         std::unique_ptr<ral::cache::ConcatCacheData> new_cache_data = std::make_unique<ral::cache::ConcatCacheData>(std::move(batch_with_overlaps), col_names, schema);
-        std::cout<<"OverlapGeneratorKernel::run gen output cache "<<new_cache_data->num_rows()<<std::endl;
         this->add_to_output_cache(std::move(new_cache_data));
     }
 

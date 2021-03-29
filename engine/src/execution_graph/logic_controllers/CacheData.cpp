@@ -299,14 +299,11 @@ ConcatCacheData::ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_d
 }
 
 std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
-	std::cout<<"ConcatCacheData::decache() "<<std::endl;
 	if(_cache_datas.empty()) {
-		std::cout<<"ConcatCacheData::decache() empty"<<std::endl;
 		return ral::utilities::create_empty_table(col_names, schema);
 	}
 
 	if (_cache_datas.size() == 1)	{
-		std::cout<<"ConcatCacheData::decache() one part"<<std::endl;
 		return _cache_datas[0]->decache();
 	}
 
@@ -318,7 +315,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
 
 		RAL_EXPECTS(!ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views), "Concatenating tables will overflow");
 	}
-	std::cout<<"ConcatCacheData::decache() concat"<<std::endl;
 	return ral::utilities::concatTables(table_views);
 }
 
