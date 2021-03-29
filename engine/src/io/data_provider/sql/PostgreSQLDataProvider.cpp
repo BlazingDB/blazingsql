@@ -1,6 +1,7 @@
 /*
  * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Cristhian Alberto Gonzales Castillo <cristhian@blazingdb.com>
+ *     Copyright 2021 Cristhian Alberto Gonzales Castillo
+ * <cristhian@blazingdb.com>
  */
 
 #include <sstream>
@@ -136,7 +137,8 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
                             build_limit_offset(batch_position);
 
   batch_position += sql.table_batch_size;
-  PGresult *result = PQexec(connection, query.c_str());
+  PGresult *result = PQexecParams(
+      connection, query.c_str(), 0, nullptr, nullptr, nullptr, nullptr, 1);
 
   if (PQresultStatus(result) != PGRES_TUPLES_OK) {
     PQclear(result);
