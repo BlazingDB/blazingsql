@@ -919,13 +919,13 @@ def kwargs_validation(kwargs, bc_api_str):
             "get_metadata",
             # SQL Engines arguments
             "from_sql",
-            "sql_hostname",
-            "sql_port",
-            "sql_username",
-            "sql_password",
-            "sql_schema",
-            "sql_table_filter",
-            "sql_table_batch_size",
+            "hostname",
+            "port",
+            "username",
+            "password",
+            "schema",
+            "table_filter",
+            "table_batch_size",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -2475,8 +2475,7 @@ class BlazingContext(object):
             except KeyError as error:
                 raise UnsupportedSQLEngineError(sqlEngineName) from error
 
-            sqlEngineArgs = GetSQLEngineArgs(kwargs, input[0])
-
+            kwargs["table"] = input[0]
             parsedSchema, _ = self._parseSchema(
                 input, sqlEngineName, kwargs, [], False, []
             )
@@ -2486,7 +2485,7 @@ class BlazingContext(object):
                 table_name,
                 input,
                 sqlEngineDataType,
-                args=sqlEngineArgs,
+                args=kwargs,
                 client=self.dask_client,
             )
             table.column_names = parsedSchema["names"]

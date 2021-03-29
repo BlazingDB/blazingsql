@@ -297,8 +297,9 @@ def main():
             concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if testsWithNulls == "true":
-        if runAllTests or ("tablesFromSQL" in targetTestGroups):
-            tablesFromSQL.main(dask_client, drill, dir_data_file, bc, nRals)
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("tablesFromSQL" in targetTestGroups):
+                tablesFromSQL.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

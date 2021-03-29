@@ -1227,8 +1227,18 @@ def gpu_load_names(col_names_path, **kwargs):
 # (see /blazingdb-protocol/python/blazingdb/messages/blazingdb/
 #                                               protocol/DataType.py)
 def get_extension(fileSchemaType):
-    ret = str(fileSchemaType).split(".")[1].lower()
-    return ret
+    switcher = {
+        DataType.CUDF: "gdf",
+        DataType.CSV: "psv",
+        DataType.PARQUET: "parquet",
+        DataType.JSON: "json",
+        DataType.ORC: "orc",
+        DataType.DASK_CUDF: "dask_cudf",
+        DataType.MYSQL: "mysql",
+        DataType.POSTGRESQL: "postgresql",
+        DataType.SQLITE: "sqlite",
+    }
+    return switcher.get(fileSchemaType)
 
 
 # NOTE 'bool_orders_index' is the index where the table bool_orders
