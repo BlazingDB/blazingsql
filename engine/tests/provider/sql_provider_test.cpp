@@ -57,6 +57,10 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   sql.table = "employees";
   //sql.table = "dept_manager";
 
+  
+  sql.schema = "tpch";
+  sql.table = "lineitem";
+  //sql.table = "nation";
 
   sql.table_filter = "";
   sql.table_batch_size = 2000;
@@ -70,8 +74,12 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   auto handle = mysql_provider->get_next(false); // false so we make sure dont go to the db and get the schema info only
   parser.parse_schema(handle, schema);
 
-  std::vector<int> column_indices = {0, 6};
   //std::vector<int> column_indices;
+  //std::vector<int> column_indices = {0, 6};
+  //std::vector<int> column_indices = {0, 4}; // line item id fgloat
+  //std::vector<int> column_indices = {4}; // line item fgloat
+  std::vector<int> column_indices = {8}; // line item ret_flag
+  //std::vector<int> column_indices = {1}; // nation 1 name
   if (column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
     column_indices.resize(num_cols);

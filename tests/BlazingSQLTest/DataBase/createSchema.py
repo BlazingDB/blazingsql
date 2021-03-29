@@ -4,6 +4,8 @@ import tempfile
 from collections import OrderedDict
 from os import listdir
 from os.path import isdir
+import glob
+from enum import IntEnum, unique
 
 import cudf
 import dask_cudf
@@ -15,6 +17,7 @@ from pyhive import hive
 
 from Configuration import Settings as Settings
 from DemoTest.chronometer import Chronometer
+
 
 SQLEngineStringDataTypeMap = {
     DataType.MYSQL: "mysql",
@@ -40,6 +43,49 @@ extraTables = ["bool_orders"]
 tableNames = tpchTables + extraTables
 
 smilesTables = ["docked", "dcoids", "smiles", "split"]
+
+
+class sql_connection:
+    def __init__(self, **kwargs):
+        hostname = kwargs.get("hostname", "")
+        port = kwargs.get("port", 0)
+        username = kwargs.get("username", "")
+        password = kwargs.get("password", "")
+        schema = kwargs.get("schema", "")
+
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.password = password
+        self.schema = schema
+
+
+def get_sql_connection(fileSchemaType: DataType):
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+    if not sql_schema: return None
+
+    ret = sql_connection(hostname = sql_hostname,
+                         port = sql_port,
+                         username = sql_username,
+                         password = sql_password,
+                         schema = sql_schema)
+    return ret
 
 
 def getFiles_to_tmp(tpch_dir, n_files, ext):
@@ -1181,16 +1227,8 @@ def gpu_load_names(col_names_path, **kwargs):
 # (see /blazingdb-protocol/python/blazingdb/messages/blazingdb/
 #                                               protocol/DataType.py)
 def get_extension(fileSchemaType):
-    switcher = {
-        DataType.CUDF: "gdf",
-        DataType.CSV: "psv",
-        DataType.PARQUET: "parquet",
-        DataType.JSON: "json",
-        DataType.ORC: "orc",
-        DataType.DASK_CUDF: "dask_cudf",
-    }
-
-    return switcher.get(fileSchemaType)
+    ret = str(fileSchemaType).split(".")[1].lower()
+    return ret
 
 
 # NOTE 'bool_orders_index' is the index where the table bool_orders
@@ -1201,8 +1239,6 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     tables = kwargs.get("tables", tpchTables)
     table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
-    sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
-    sql_table_batch_map = kwargs.get("sql_table_batch_size_map", {})
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
@@ -1249,21 +1285,25 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         #     dask_df = bc.unify_partitions(dask_df)
         #     t = bc.create_table(table, dask_df)
         elif fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
+            sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
+            sql_table_batch_size_map = kwargs.get("sql_table_batch_size_map", {})
+            sql = kwargs.get("sql_connection", None)
+
             from_sql = SQLEngineStringDataTypeMap[fileSchemaType]
-            sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
-            sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
-            sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
-            sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
-            sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+            sql_hostname = sql.hostname
+            sql_port = sql.port
+            sql_username = sql.username
+            sql_password = sql.password
+            sql_schema = sql.schema
             sql_table_filter = ""
             sql_table_batch_size = 1000
 
             if table in sql_table_filter_map:
                 sql_table_filter = sql_table_filter_map[table]
-            if table in sql_table_batch_map:
+            if table in sql_table_batch_size_map:
                 sql_table_batch_size = sql_table_batch_size_map[table]
 
-            bc.create_table(table_names[i], table_names[i],
+            bc.create_table(table_names[i], table,
                 from_sql = from_sql,
                 sql_hostname = sql_hostname,
                 sql_port = sql_port,
@@ -1289,153 +1329,48 @@ def create_hive_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         # table = bc.create_table(table, cursor, file_format=fileSchemaType)
         print(table)
 
+@unique
+class HiveCreateTableType(IntEnum):
+    AUTO = 0,
+    WITH_PARTITIONS = 1
 
+def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTableType, partitions,
+                                  partitions_schema, **kwargs):
+    ext = get_extension(fileSchemaType)
 
+    if fileSchemaType not in [DataType.CSV, DataType.PARQUET, DataType.ORC]:
+        raise RuntimeError("It is not a valid file format for create table hive")
 
-def create_mysql_table(cursor, table_description: str):
-    try:
-        print("Creating table {}: ".format(table_description), end='')
-        cursor.execute(table_description)
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-            print("already exists.")
-        else:
-            print(err.msg)
-    else:
-        print("OK")
+    tables = kwargs.get("tables", tpchTables)
 
-def create_postgresql_table(table_description: str):
-    pass
+    if createTableType == HiveCreateTableType.AUTO:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table, dir_partitions + table, file_format=ext, delimiter="|", dtype=dtypes,
+                                names=col_names)
 
-def create_sqlite_table(table_description: str):
-    pass
+            else:
+                bc.create_table(table, dir_partitions + table, file_format=ext)
 
-def create_sql_table(fileSchemaType: DataType, table_description: str, conn_obj):
-    creator_fn = {
-        DataType.MYSQL: create_mysql_table,
-        DataType.POSTGRESQL: create_postgresql_table,
-        DataType.SQLITE: create_sqlite_table,
-    }
-    creator_fn[fileSchemaType](conn_obj, table_description)
+    elif createTableType == HiveCreateTableType.WITH_PARTITIONS:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema,
+                                delimiter="|",
+                                dtype=dtypes,
+                                names=col_names)
 
-
-mysql_tpch_table_descriptions = {
-    "nation": """create table nation  ( n_nationkey  integer,
-                                n_name       char(25),
-                                n_regionkey  integer,
-                                n_comment    varchar(152))""",
-    "region": """create table region  ( r_regionkey  integer,
-                            r_name       char(25),
-                            r_comment    varchar(152))""",
-    "part": """create table part  ( p_partkey     integer ,
-                          p_name        varchar(55) ,
-                          p_mfgr        char(25) ,
-                          p_brand       char(10) ,
-                          p_type        varchar(25) ,
-                          p_size        integer ,
-                          p_container   char(10) ,
-                          p_retailprice decimal(15,2) ,
-                          p_comment     varchar(23) )""",
-    "supplier": """create table supplier ( s_suppkey     integer ,
-                             s_name        char(25) ,
-                             s_address     varchar(40) ,
-                             s_nationkey   integer ,
-                             s_phone       char(15) ,
-                             s_acctbal     decimal(15,2) ,
-                             s_comment     varchar(101) )""",
-    "partsupp": """create table partsupp ( ps_partkey     integer ,
-                             ps_suppkey     integer ,
-                             ps_availqty    integer ,
-                             ps_supplycost  decimal(15,2)  ,
-                             ps_comment     varchar(199)  );""",
-    "customer": """create table customer ( c_custkey     integer ,
-                             c_name        varchar(25) ,
-                             c_address     varchar(40) ,
-                             c_nationkey   integer ,
-                             c_phone       char(15) ,
-                             c_acctbal     decimal(15,2)   ,
-                             c_mktsegment  char(10) ,
-                             c_comment     varchar(117) );""",
-    "orders": """create table orders  ( o_orderkey       integer ,
-                           o_custkey        integer ,
-                           o_orderstatus    char(1) ,
-                           o_totalprice     decimal(15,2) ,
-                           o_orderdate      date ,
-                           o_orderpriority  char(15) ,  
-                           o_clerk          char(15) , 
-                           o_shippriority   integer ,
-                           o_comment        varchar(79) )""",
-    "lineitem": """create table lineitem ( l_orderkey    integer ,
-                             l_partkey     integer ,
-                             l_suppkey     integer ,
-                             l_linenumber  integer ,
-                             l_quantity    decimal(15,2) ,
-                             l_extendedprice  decimal(15,2) ,
-                             l_discount    decimal(15,2) ,
-                             l_tax         decimal(15,2) ,
-                             l_returnflag  char(1) ,
-                             l_linestatus  char(1) ,
-                             l_shipdate    date ,
-                             l_commitdate  date ,
-                             l_receiptdate date ,
-                             l_shipinstruct char(25) ,
-                             l_shipmode     char(10) ,
-                             l_comment      varchar(44) )""",
-}
-
-
-def mysql_stuff(fileSchemaType: DataType, load_from_csv : bool = True):
-    import mysql.connector
-    from mysql.connector import errorcode
-
-    sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
-    sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
-    sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
-    sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
-    sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
-
-    cnx = mysql.connector.connect(
-        user = sql_username,
-        password = sql_password,
-        database = sql_schema)
-    cursor = cnx.cursor()
-
-    #for table, table_description in mysql_tpch_table_descriptions.items():
-    #    create_sql_table(fileSchemaType, table_description, cursor)
-
-    #if not load_from_csv:
-    #    return
-
-    import glob
-
-
-    the_dir = "/home/percy/Applications/anaconda/conda/envs/madona19/blazingsql-testing-files/data/tpch-with-nulls/"
-    table_file = "nation*.psv"
-    f = the_dir+ table_file
-
-    a = glob.glob(f)
-    print("SDFSFASDFASFSFASDFS")
-    print(a)
-
-    cols = get_column_names("nation")
-    h = ""
-    b = ""
-    for i,c in enumerate(cols):
-        h = h + "@" + c
-        hj = "%s = NULLIF(@%s,'null')" % (c,c)
-        b = b + hj
-        if i + 1 != len(cols):
-            h = h + ","
-            b = b + ","
-
-
-    for fi in a:
-        sql = """LOAD DATA LOCAL INFILE '%s'
-        INTO TABLE nation
-        FIELDS TERMINATED BY '|'
-        (%s)
-        SET %s;;"""
-        sql = sql % (fi, h, b)
-        print(sql)
-        #cursor.execute(sql.format(the_dir+table_file))
-
+            else:
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema)

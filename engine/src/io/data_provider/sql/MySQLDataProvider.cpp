@@ -126,15 +126,20 @@ mysql_table_info get_mysql_table_info(sql::Connection *con, const std::string &t
 // TODO percy avoid repeated code
 bool is_string_test(const std::string &t) {
   std::vector<std::string> mysql_string_types_hints = {
-    "CHARACTER",
+    "CHAR",
     "VARCHAR",
-    "VARYING CHARACTER",
-    "NCHAR",
-    "NATIVE CHARACTER",
-    "NVARCHAR",
+    "BINARY",
+    "VARBINARY",
+    "TINYBLOB",
+    "TINYTEXT",
     "TEXT",
-    "CLOB",
-    "STRING" // TODO percy ???
+    "BLOB",
+    "MEDIUMTEXT",
+    "MEDIUMBLOB",
+    "LONGTEXT",
+    "LONGBLOB",
+    "ENUM",
+    "SET"
   };
 
   for (auto hint : mysql_string_types_hints) {

@@ -241,6 +241,23 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	$ python -m EndToEndTests.fileSystemHiveTest configE2ETest.json
 	```
 
+#### MySQL, PostgreSQL, SQLite testing
+For MySQL you will need to install this lib:
+```shell-script
+conda install -c conda-forge mysql-connector-python
+```
+
+To run the tests for tables from other SQL databases just define these env vars before run the test:
+
+```shell-script
+BLAZINGSQL_E2E_SQL_HOSTNAME
+BLAZINGSQL_E2E_SQL_PORT
+BLAZINGSQL_E2E_SQL_USERNAME
+BLAZINGSQL_E2E_SQL_PASSWORD
+BLAZINGSQL_E2E_SQL_SCHEMA
+```
+
+Note BLAZINGSQL_E2E_SQL_PORT is a number and the other vars are strings!
 #### Troubleshooting
 
 Sometimes, for many reasons the E2E script test could raise an error. In that case, containers may be in an invalid state. Before try again, please check that there aren't any HDFS or Kerberos containers running by calling the stopping of the containers explicitly:
