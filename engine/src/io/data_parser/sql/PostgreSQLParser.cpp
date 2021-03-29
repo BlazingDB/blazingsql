@@ -50,17 +50,17 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   }
 
   std::vector<void *> host_cols;
-  host_cols.reserve(column_indices.size());
+  host_cols.reserve(resultNfields);
+  const int resultNtuples = PQntuples(pgResult.get());
   std::transform(
       column_indices.cbegin(),
       column_indices.cend(),
       std::back_inserter(host_cols),
-      [&pgResult, &cudf_types](const int projection_index) {
+      [&pgResult, &cudf_types, resultNtuples](const int projection_index) {
         const int fsize = PQfsize(pgResult.get(), projection_index);
-        const int ntuples = PQntuples(pgResult.get());
         if (fsize < 0) {  // STRING, STRUCT, LIST, and similar cases
           auto *vector = new std::vector<std::string>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         // primitives cases
@@ -68,57 +68,57 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         switch (cudf_type_id) {
         case cudf::type_id::INT8: {
           auto *vector = new std::vector<std::int8_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::INT16: {
           auto *vector = new std::vector<std::int16_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::INT32: {
           auto *vector = new std::vector<std::int32_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::INT64: {
           auto *vector = new std::vector<std::int64_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::UINT8: {
           auto *vector = new std::vector<std::uint8_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::UINT16: {
           auto *vector = new std::vector<std::uint16_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::UINT32: {
           auto *vector = new std::vector<std::uint32_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::UINT64: {
           auto *vector = new std::vector<std::uint64_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::FLOAT32: {
           auto *vector = new std::vector<float>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::FLOAT64: {
           auto *vector = new std::vector<double>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         case cudf::type_id::BOOL8: {
           auto *vector = new std::vector<std::uint8_t>;
-          vector->reserve(ntuples);
+          vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
         default:
@@ -126,14 +126,10 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         }
       });
 
-  const int resultNtuples = PQntuples(pgResult.get());
   for (int i = 0; i < resultNtuples; i++) {
     for (const std::size_t projection_index : column_indices) {
       cudf::type_id cudf_type_id = cudf_types[projection_index];
-      std::vector<std::uint8_t> valids(total_rows);
-
       const char *resultValue = PQgetvalue(pgResult.get(), i, projection_index);
-
       switch (cudf_type_id) {
       case cudf::type_id::INT8: {
         const std::int8_t castedValue =
@@ -257,9 +253,63 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   }
 
   cudf::io::table_with_metadata tableWithMetadata;
-
   std::vector<std::unique_ptr<cudf::column>> cudf_columns{
-      column_indices.size()};
+      static_cast<std::size_t>(resultNtuples)};
+  for (const std::size_t projection_index : column_indices) {
+    cudf::type_id cudf_type_id = cudf_types[projection_index];
+    switch (cudf_type_id) {
+    case cudf::type_id::INT8: {
+      break;
+    }
+    case cudf::type_id::INT16: {
+      break;
+    }
+    case cudf::type_id::INT32: {
+      std::vector<std::int32_t> &vector =
+          *reinterpret_cast<std::vector<std::int32_t> *>(
+              host_cols[projection_index]);
+      auto data = rmm::device_buffer(vector.data(),
+                                     resultNtuples * sizeof(std::int32_t));
+      auto data_type = cudf::data_type(cudf_type_id);
+      auto null_mask_buf = rmm::device_buffer{nullptr, 0};
+      auto ret = std::make_unique<cudf::column>(data_type,
+                                                resultNtuples,
+                                                data,
+                                                null_mask_buf,
+                                                cudf::UNKNOWN_NULL_COUNT);
+      cudf_columns[projection_index] = std::move(ret);
+      break;
+    }
+    case cudf::type_id::INT64: {
+      break;
+    }
+    case cudf::type_id::UINT8: {
+      break;
+    }
+    case cudf::type_id::UINT16: {
+      break;
+    }
+    case cudf::type_id::UINT32: {
+      break;
+    }
+    case cudf::type_id::UINT64: {
+      break;
+    }
+    case cudf::type_id::FLOAT32: {
+      break;
+    }
+    case cudf::type_id::FLOAT64: {
+      break;
+    }
+    case cudf::type_id::BOOL8: {
+      break;
+    }
+    case cudf::type_id::STRING: {
+      break;
+    }
+    default: throw std::runtime_error("Invalid cudf type id");
+    }
+  }
 
   tableWithMetadata.tbl =
       std::make_unique<cudf::table>(std::move(cudf_columns));
