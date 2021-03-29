@@ -34,14 +34,20 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
 
   parser.parse_schema(handle, schema);
 
-#define UMAP(x) {cudf::type_id::x, #x}
-
   std::unordered_map<cudf::type_id, const char *> dt2name{
-      UMAP(INT8),
-      UMAP(INT16),
-      UMAP(INT32),
-      UMAP(INT64),
-      UMAP(BOOL8),
+      {cudf::type_id::INT8, "INT8"},
+      {cudf::type_id::INT16, "INT16"},
+      {cudf::type_id::INT32, "INT32"},
+      {cudf::type_id::INT64, "INT64"},
+      {cudf::type_id::UINT8, "UINT8"},
+      {cudf::type_id::UINT16, "UINT16"},
+      {cudf::type_id::UINT32, "UINT32"},
+      {cudf::type_id::UINT64, "UINT64"},
+      {cudf::type_id::FLOAT32, "FLOAT32"},
+      {cudf::type_id::FLOAT64, "FLOAT64"},
+      {cudf::type_id::BOOL8, "BOOL8"},
+      {cudf::type_id::DECIMAL64, "DECIMAL64"},
+      {cudf::type_id::STRING, "STRING"},
   };
 
   std::cout << "SCHEMA" << std::endl
@@ -49,9 +55,13 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
             << "  columns" << std::endl;
   for (std::size_t i = 0; i < schema.get_num_columns(); i++) {
     const std::string &name = schema.get_name(i);
-    const std::string dtypename = dt2name[schema.get_dtype(i)];
-
-    std::cout << "    " << name << ": " << dtypename << std::endl;
+    std::cout << "    " << name << ": ";
+    try {
+      const std::string dtypename = dt2name[schema.get_dtype(i)];
+      std::cout << dtypename << std::endl;
+    } catch (std::exception &) {
+      std::cout << static_cast<int>(schema.get_dtype(i)) << std::endl;
+    }
   }
 }
 

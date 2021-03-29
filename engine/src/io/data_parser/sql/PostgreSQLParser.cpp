@@ -16,14 +16,7 @@ namespace ral {
 namespace io {
 
 static const std::array<const char *, 8> postgresql_string_type_hints = {
-    "character",
-    "character varying",
-    "money",
-    "bytea",
-    "text",
-    "anyarray",
-    "numeric",
-    "name"};
+    "character", "character varying", "bytea", "text", "anyarray", "name"};
 
 static inline bool postgresql_is_cudf_string(const std::string &hint) {
   const auto *result =
@@ -106,12 +99,14 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
           vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
-        case cudf::type_id::FLOAT32: {
+        case cudf::type_id::FLOAT32:
+        case cudf::type_id::DECIMAL32: {
           auto *vector = new std::vector<float>;
           vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
-        case cudf::type_id::FLOAT64: {
+        case cudf::type_id::FLOAT64:
+        case cudf::type_id::DECIMAL64: {
           auto *vector = new std::vector<double>;
           vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
@@ -209,7 +204,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         vector.push_back(hostOrderedValue);
         break;
       }
-      case cudf::type_id::FLOAT32: {
+      case cudf::type_id::FLOAT32:
+      case cudf::type_id::DECIMAL32: {
         const std::int32_t castedValue =
             *reinterpret_cast<const std::int32_t *>(resultValue);
         const std::int32_t hostOrderedValue = ntohl(castedValue);
@@ -220,7 +216,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         vector.push_back(floatCastedValue);
         break;
       }
-      case cudf::type_id::FLOAT64: {
+      case cudf::type_id::FLOAT64:
+      case cudf::type_id::DECIMAL64: {
         const std::int64_t castedValue =
             *reinterpret_cast<const std::int64_t *>(resultValue);
         const std::int64_t hostOrderedValue = ntohl(castedValue);
@@ -295,10 +292,12 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     case cudf::type_id::UINT64: {
       break;
     }
-    case cudf::type_id::FLOAT32: {
+    case cudf::type_id::FLOAT32:
+    case cudf::type_id::DECIMAL32: {
       break;
     }
-    case cudf::type_id::FLOAT64: {
+    case cudf::type_id::FLOAT64:
+    case cudf::type_id::DECIMAL64: {
       break;
     }
     case cudf::type_id::BOOL8: {
@@ -357,12 +356,14 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
           host_cols[projection_index]);
       break;
     }
-    case cudf::type_id::FLOAT32: {
+    case cudf::type_id::FLOAT32:
+    case cudf::type_id::DECIMAL32: {
       delete reinterpret_cast<std::vector<float> *>(
           host_cols[projection_index]);
       break;
     }
-    case cudf::type_id::FLOAT64: {
+    case cudf::type_id::FLOAT64:
+    case cudf::type_id::DECIMAL64: {
       delete reinterpret_cast<std::vector<double> *>(
           host_cols[projection_index]);
       break;
@@ -400,6 +401,7 @@ MapPostgreSQLTypeName(const std::string &columnTypeName) {
   if (columnTypeName == "bigserial") { return cudf::type_id::INT64; }
   if (columnTypeName == "boolean") { return cudf::type_id::BOOL8; }
   if (columnTypeName == "date") { return cudf::type_id::TIMESTAMP_DAYS; }
+  if (columnTypeName == "money") { return cudf::type_id::UINT64; }
   if (columnTypeName == "timestamp without time zone") {
     return cudf::type_id::TIMESTAMP_MICROSECONDS;
   }
