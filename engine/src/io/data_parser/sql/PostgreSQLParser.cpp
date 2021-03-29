@@ -433,7 +433,7 @@ postgresql_parser::parse_batch(data_handle handle,
   auto pgResult = handle.sql_handle.postgresql_result;
   if (!pgResult) { return schema.makeEmptyBlazingTable(column_indices); }
 
-  if (column_indices.size() > 0) {
+  if (!column_indices.empty()) {
     std::vector<std::string> columnNames;
     columnNames.reserve(column_indices.size());
     std::transform(column_indices.cbegin(),
@@ -446,6 +446,11 @@ postgresql_parser::parse_batch(data_handle handle,
                                              schema.get_dtypes(),
                                              handle.sql_handle.column_bytes,
                                              handle.sql_handle.row_count);
+    tableWithMetadata.metadata.column_names = columnNames;
+
+    auto table = std::move(tableWithMetadata.tbl);
+    return std::make_unique<frame::BlazingTable>(
+        std::move(table), tableWithMetadata.metadata.column_names);
   }
 
   return nullptr;

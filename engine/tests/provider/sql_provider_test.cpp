@@ -1,14 +1,13 @@
-#include "tests/utilities/BlazingUnitTest.h"
-#include "io/data_provider/sql/MySQLDataProvider.h"
-#include "io/data_provider/sql/SQLiteDataProvider.h"
-#include "io/data_provider/sql/PostgreSQLDataProvider.h"
 #include "io/data_parser/sql/MySQLParser.h"
-#include "io/data_parser/sql/SQLiteParser.h"
 #include "io/data_parser/sql/PostgreSQLParser.h"
-#include <cudf_test/column_wrapper.hpp>
-#include <cudf_test/column_utilities.hpp>
+#include "io/data_parser/sql/SQLiteParser.h"
+#include "io/data_provider/sql/MySQLDataProvider.h"
+#include "io/data_provider/sql/PostgreSQLDataProvider.h"
+#include "io/data_provider/sql/SQLiteDataProvider.h"
+#include "tests/utilities/BlazingUnitTest.h"
 #include "utilities/DebuggingUtils.h"
 #include <cudf_test/column_utilities.hpp>
+#include <cudf_test/column_wrapper.hpp>
 
 #include <sqlite3.h>
 
@@ -34,33 +33,53 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   auto handle = postgresql_provider->get_next(false);
 
   parser.parse_schema(handle, schema);
+
+#define UMAP(x) {cudf::type_id::x, #x}
+
+  std::unordered_map<cudf::type_id, const char *> dt2name{
+      UMAP(INT8),
+      UMAP(INT16),
+      UMAP(INT32),
+      UMAP(INT64),
+      UMAP(BOOL8),
+  };
+
+  std::cout << "SCHEMA" << std::endl
+            << "  length = " << schema.get_num_columns() << std::endl
+            << "  columns" << std::endl;
+  for (std::size_t i = 0; i < schema.get_num_columns(); i++) {
+    const std::string &name = schema.get_name(i);
+    const std::string dtypename = dt2name[schema.get_dtype(i)];
+
+    std::cout << "    " << name << ": " << dtypename << std::endl;
+  }
 }
 
 TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
-	ral::io::sql_info sql;
+  ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 3306;
-//  sql.user = "blazing";
-//  sql.password = "admin";
-//  sql.schema = "bz3";
-//  //sql.table = "departments";
-  //sql.table = "DATABASECHANGELOG";
+  //  sql.user = "blazing";
+  //  sql.password = "admin";
+  //  sql.schema = "bz3";
+  //  //sql.table = "departments";
+  // sql.table = "DATABASECHANGELOG";
   sql.table = "new_table";
-  //sql.table = "blazing_catalog_column_datatypes";
-//  sql.table_filter = "";
-//  sql.table_batch_size = 100;
+  // sql.table = "blazing_catalog_column_datatypes";
+  //  sql.table_filter = "";
+  //  sql.table_batch_size = 100;
 
   sql.user = "lucho";
   sql.password = "admin";
   sql.schema = "employees";
-  //sql.table = "departments";
+  // sql.table = "departments";
   sql.table = "employees";
-  //sql.table = "dept_manager";
+  // sql.table = "dept_manager";
 
 
   sql.schema = "tpch";
   sql.table = "lineitem";
-  //sql.table = "nation";
+  // sql.table = "nation";
 
   sql.table_filter = "";
   sql.table_batch_size = 2000;
@@ -71,15 +90,17 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
 
   ral::io::mysql_parser parser;
   ral::io::Schema schema;
-  auto handle = mysql_provider->get_next(false); // false so we make sure dont go to the db and get the schema info only
+  auto handle =
+      mysql_provider->get_next(false);  // false so we make sure dont go to the
+                                        // db and get the schema info only
   parser.parse_schema(handle, schema);
 
-  //std::vector<int> column_indices;
-  //std::vector<int> column_indices = {0, 6};
-  //std::vector<int> column_indices = {0, 4}; // line item id fgloat
-  //std::vector<int> column_indices = {4}; // line item fgloat
-  std::vector<int> column_indices = {8}; // line item ret_flag
-  //std::vector<int> column_indices = {1}; // nation 1 name
+  // std::vector<int> column_indices;
+  // std::vector<int> column_indices = {0, 6};
+  // std::vector<int> column_indices = {0, 4}; // line item id fgloat
+  // std::vector<int> column_indices = {4}; // line item fgloat
+  std::vector<int> column_indices = {8};  // line item ret_flag
+  // std::vector<int> column_indices = {1}; // nation 1 name
   if (column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
     column_indices.resize(num_cols);
@@ -92,7 +113,7 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   auto res = handle.sql_handle.mysql_resultset;
 
   bool has_next = mysql_provider->has_next();
-  std::cout << "\tNEXT?: " << (has_next?"TRUE":"FALSE") << "\n";
+  std::cout << "\tNEXT?: " << (has_next ? "TRUE" : "FALSE") << "\n";
 
 
   std::cout << "\tTABLE\n";
@@ -100,15 +121,17 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   std::cout << "total cols: " << cols.size() << "\n";
   for (int i = 0; i < cols.size(); ++i) {
     std::cout << "\ncol: " << schema.get_name(i) << "\n";
-    std::cout << "\ntyp: " << (int32_t)schema.get_dtype(i) << "\n";
+    std::cout << "\ntyp: " << (int32_t) schema.get_dtype(i) << "\n";
   }
 
   std::cout << "\n\nCUDFFFFFFFFFFFFFFFFFFFFFF\n";
 
-	std::vector<cudf::size_type> row_groups;
+  std::vector<cudf::size_type> row_groups;
 
-  std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
-  ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis");
+  std::unique_ptr<ral::frame::BlazingTable> bztbl =
+      parser.parse_batch(handle, schema, column_indices, row_groups);
+  ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(),
+                                           "holis");
 }
 
 
