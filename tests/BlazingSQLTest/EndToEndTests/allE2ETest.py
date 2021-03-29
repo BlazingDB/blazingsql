@@ -129,7 +129,8 @@ def main():
     )  # if targetTestGroups was empty the user wants to run all the tests
 
     if runAllTests or ("hiveFileTest" in targetTestGroups):
-        hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
