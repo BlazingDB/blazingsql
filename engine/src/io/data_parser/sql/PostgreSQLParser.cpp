@@ -138,52 +138,117 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
       case cudf::type_id::INT8: {
         const std::int8_t castedValue =
             *reinterpret_cast<const std::int8_t *>(resultValue);
-
-        std::vector<std::int8_t> &vector = *host_cols[projection_index];
+        std::vector<std::int8_t> &vector =
+            *reinterpret_cast<std::vector<std::int8_t> *>(
+                host_cols[projection_index]);
         vector.push_back(castedValue);
         break;
       }
       case cudf::type_id::INT16: {
         const std::int16_t castedValue =
             *reinterpret_cast<const std::int16_t *>(resultValue);
-
-        const std::int16_t hostOrderedValue = ntohl(castedValue);
-
-        std::vector<std::int16_t> &vector = *host_cols[projection_index];
+        const std::int16_t hostOrderedValue = ntohs(castedValue);
+        std::vector<std::int16_t> &vector =
+            *reinterpret_cast<std::vector<std::int16_t> *>(
+                host_cols[projection_index]);
         vector.push_back(hostOrderedValue);
         break;
       }
       case cudf::type_id::INT32: {
         const std::int32_t castedValue =
             *reinterpret_cast<const std::int32_t *>(resultValue);
-
         const std::int32_t hostOrderedValue = ntohl(castedValue);
-
-        std::vector<std::int32_t> &vector = *host_cols[projection_index];
+        std::vector<std::int32_t> &vector =
+            *reinterpret_cast<std::vector<std::int32_t> *>(
+                host_cols[projection_index]);
         vector.push_back(hostOrderedValue);
         break;
       }
       case cudf::type_id::INT64: {
         const std::int64_t castedValue =
             *reinterpret_cast<const std::int64_t *>(resultValue);
-
         const std::int64_t hostOrderedValue = ntohl(castedValue);
-
-        std::vector<std::int64_t> &vector = *host_cols[projection_index];
+        std::vector<std::int64_t> &vector =
+            *reinterpret_cast<std::vector<std::int64_t> *>(
+                host_cols[projection_index]);
         vector.push_back(hostOrderedValue);
         break;
       }
-      case cudf::type_id::UINT8: break;
-      case cudf::type_id::UINT16: break;
-      case cudf::type_id::UINT32: break;
-      case cudf::type_id::UINT64: break;
-      case cudf::type_id::FLOAT32: break;
-      case cudf::type_id::FLOAT64: break;
-      case cudf::type_id::BOOL8: break;
+      case cudf::type_id::UINT8: {
+        const std::int8_t castedValue =
+            *reinterpret_cast<const std::int8_t *>(resultValue);
+        std::vector<std::uint8_t> &vector =
+            *reinterpret_cast<std::vector<std::uint8_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(castedValue);
+        break;
+      }
+      case cudf::type_id::UINT16: {
+        const std::int16_t castedValue =
+            *reinterpret_cast<const std::int16_t *>(resultValue);
+        const std::int16_t hostOrderedValue = ntohs(castedValue);
+        std::vector<std::uint16_t> &vector =
+            *reinterpret_cast<std::vector<std::uint16_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(hostOrderedValue);
+        break;
+      }
+      case cudf::type_id::UINT32: {
+        const std::int32_t castedValue =
+            *reinterpret_cast<const std::int32_t *>(resultValue);
+        const std::int32_t hostOrderedValue = ntohl(castedValue);
+        std::vector<std::uint32_t> &vector =
+            *reinterpret_cast<std::vector<std::uint32_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(hostOrderedValue);
+        break;
+      }
+      case cudf::type_id::UINT64: {
+        const std::int64_t castedValue =
+            *reinterpret_cast<const std::int64_t *>(resultValue);
+        const std::int64_t hostOrderedValue = ntohl(castedValue);
+        std::vector<std::uint64_t> &vector =
+            *reinterpret_cast<std::vector<std::uint64_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(hostOrderedValue);
+        break;
+      }
+      case cudf::type_id::FLOAT32: {
+        const std::int32_t castedValue =
+            *reinterpret_cast<const std::int32_t *>(resultValue);
+        const std::int32_t hostOrderedValue = ntohl(castedValue);
+        const float floatCastedValue =
+            *reinterpret_cast<const float *>(hostOrderedValue);
+        std::vector<float> &vector = *reinterpret_cast<std::vector<float> *>(
+            host_cols[projection_index]);
+        vector.push_back(floatCastedValue);
+        break;
+      }
+      case cudf::type_id::FLOAT64: {
+        const std::int64_t castedValue =
+            *reinterpret_cast<const std::int64_t *>(resultValue);
+        const std::int64_t hostOrderedValue = ntohl(castedValue);
+        const double doubleCastedValue =
+            *reinterpret_cast<const double *>(hostOrderedValue);
+        std::vector<double> &vector = *reinterpret_cast<std::vector<double> *>(
+            host_cols[projection_index]);
+        vector.push_back(doubleCastedValue);
+        break;
+      }
+      case cudf::type_id::BOOL8: {
+        const std::uint8_t castedValue =
+            *reinterpret_cast<const std::uint8_t *>(resultValue);
+        std::vector<std::uint8_t> &vector =
+            *reinterpret_cast<std::vector<std::uint8_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(castedValue);
+        break;
+      }
       case cudf::type_id::STRING: {
-        std::string s{resultValue};
-        std::vector<std::string> &vector = *host_cols[projection_index];
-        vector.emplace_back(s);
+        std::vector<std::string> &vector =
+            *reinterpret_cast<std::vector<std::string> *>(
+                host_cols[projection_index]);
+        vector.emplace_back(resultValue);
         break;
       }
       default: throw std::runtime_error("Invalid cudf type id");
