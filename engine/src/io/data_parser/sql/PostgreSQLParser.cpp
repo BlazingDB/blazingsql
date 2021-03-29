@@ -314,6 +314,72 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   tableWithMetadata.tbl =
       std::make_unique<cudf::table>(std::move(cudf_columns));
 
+  for (const std::size_t projection_index : column_indices) {
+    cudf::type_id cudf_type_id = cudf_types[projection_index];
+    switch (cudf_type_id) {
+    case cudf::type_id::INT8: {
+      delete reinterpret_cast<std::vector<std::int8_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::INT16: {
+      delete reinterpret_cast<std::vector<std::int16_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::INT32: {
+      delete reinterpret_cast<std::vector<std::int32_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::INT64: {
+      delete reinterpret_cast<std::vector<std::int64_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT8: {
+      delete reinterpret_cast<std::vector<std::uint8_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT16: {
+      delete reinterpret_cast<std::vector<std::uint16_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT32: {
+      delete reinterpret_cast<std::vector<std::uint32_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT64: {
+      delete reinterpret_cast<std::vector<std::uint64_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::FLOAT32: {
+      delete reinterpret_cast<std::vector<float> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::FLOAT64: {
+      delete reinterpret_cast<std::vector<double> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::BOOL8: {
+      delete reinterpret_cast<std::vector<std::uint8_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::STRING: {
+      delete reinterpret_cast<std::vector<std::string> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    default: throw std::runtime_error("Invalid cudf type id");
+    }
+  }
   return tableWithMetadata;
 }
 

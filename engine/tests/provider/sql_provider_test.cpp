@@ -21,7 +21,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   sql.user = "myadmin";
   sql.password = "";
   sql.schema = "pagila";
-  sql.table = "actor";
+  sql.table = "pruebaint2";
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
@@ -57,7 +57,7 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   sql.table = "employees";
   //sql.table = "dept_manager";
 
-  
+
   sql.schema = "tpch";
   sql.table = "lineitem";
   //sql.table = "nation";
