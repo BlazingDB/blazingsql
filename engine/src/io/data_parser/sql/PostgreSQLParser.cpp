@@ -15,7 +15,7 @@
 namespace ral {
 namespace io {
 
-static const std::array<const char *, 8> postgresql_string_type_hints = {
+static const std::array<const char *, 6> postgresql_string_type_hints = {
     "character", "character varying", "bytea", "text", "anyarray", "name"};
 
 static inline bool postgresql_is_cudf_string(const std::string &hint) {

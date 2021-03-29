@@ -13,7 +13,7 @@
 
 struct SQLProviderTest : public BlazingUnitTest {};
 
-TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
+TEST_F(SQLProviderTest, postgresql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 5432;
@@ -45,8 +45,8 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
       {cudf::type_id::UINT64, "UINT64"},
       {cudf::type_id::FLOAT32, "FLOAT32"},
       {cudf::type_id::FLOAT64, "FLOAT64"},
-      {cudf::type_id::BOOL8, "BOOL8"},
       {cudf::type_id::DECIMAL64, "DECIMAL64"},
+      {cudf::type_id::BOOL8, "BOOL8"},
       {cudf::type_id::STRING, "STRING"},
   };
 
@@ -63,6 +63,18 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
       std::cout << static_cast<int>(schema.get_dtype(i)) << std::endl;
     }
   }
+
+  auto num_cols = schema.get_num_columns();
+
+  std::vector<int> column_indices(num_cols);
+  std::iota(column_indices.begin(), column_indices.end(), 0);
+
+  std::vector<cudf::size_type> row_groups;
+  auto table = parser.parse_batch(handle, schema, column_indices, row_groups);
+
+  std::cout << "TABLE" << std::endl
+            << " ncolumns =  " << table->num_columns() << std::endl
+            << " nrows =  " << table->num_rows() << std::endl;
 }
 
 TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
