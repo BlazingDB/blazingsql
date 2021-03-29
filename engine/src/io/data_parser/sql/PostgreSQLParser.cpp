@@ -298,6 +298,19 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     }
     case cudf::type_id::FLOAT64:
     case cudf::type_id::DECIMAL64: {
+      std::vector<double> &vector =
+          *reinterpret_cast<std::vector<double> *>(
+              host_cols[projection_index]);
+      auto data = rmm::device_buffer(vector.data(),
+                                     resultNtuples * sizeof(double));
+      auto data_type = cudf::data_type(cudf_type_id);
+      auto null_mask_buf = rmm::device_buffer{nullptr, 0};
+      auto ret = std::make_unique<cudf::column>(data_type,
+                                                resultNtuples,
+                                                data,
+                                                null_mask_buf,
+                                                cudf::UNKNOWN_NULL_COUNT);
+      cudf_columns[projection_index] = std::move(ret);
       break;
     }
     case cudf::type_id::BOOL8: {
