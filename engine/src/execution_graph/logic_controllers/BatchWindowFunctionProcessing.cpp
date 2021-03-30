@@ -155,7 +155,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             // TODO: for now just ROWS bounds works (not RANGE)
             windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
         } else {
-           // WSM TODO Error not yet supported
+           throw std::runtime_error("Window functions without partitions and without bounded windows are currently not supported");
         }
     }
 

@@ -42,7 +42,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
           
             # ------------ ROWS bounding ----------------
 
-            queryId = "TEST_50"
+            queryId = "TEST_01"
             query = """select min(n_nationkey) over
                             (
                                 order by n_name
@@ -61,11 +61,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                fileSchemaType,
-                print_result=True
+                fileSchemaType
             )
 
-            queryId = "TEST_51"
+            queryId = "TEST_02"
             query = """select min(o_orderkey) over
                             (
                                 order by o_totalprice
@@ -95,11 +94,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                fileSchemaType,
-                print_result=True
+                fileSchemaType
             )
 
-            queryId = "TEST_52"
+            queryId = "TEST_03"
             query = """with new_nation as (
                     select n.n_nationkey as n_natio1,
                         n.n_name as n_nam1,
@@ -127,11 +125,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                fileSchemaType,
-                print_result=True
+                fileSchemaType
             )
 
-            queryId = "TEST_53"
+            queryId = "TEST_04"
             query = """select max(l_partkey) over
                             (
                                 order by l_extendedprice desc, l_orderkey, l_quantity
@@ -142,8 +139,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         from lineitem
                         where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
                         and l_linestatus = 'F'
-                        -- as pyspark put the nulls at the begining and blazing to the end
-                        -- we want make sure the orders are the same
                         and l_extendedprice is not null
                         order by l_extendedprice, l_orderkey, max_keys
                         limit 50"""
@@ -159,6 +154,42 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+            )
+
+            queryId = "TEST_05"
+            query = """select  l.l_orderkey, l.l_linenumber, l.l_partkey, c.c_custkey,
+                            max(l.l_partkey) over
+                            (
+                                order by l.l_orderkey, l.l_linenumber
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_pkeys,
+                            max(c.c_custkey) over
+                            (
+                                order by  l.l_orderkey, l.l_linenumber
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_cust
+                            
+                        from lineitem as l
+                        inner join orders as o on o.o_orderkey = l.l_orderkey
+                        inner join customer as c on c.c_custkey = o.o_custkey
+                        where l.l_quantity = 1 and c.c_custkey < 10000
+                        order by l.l_orderkey, l.l_linenumber
+                        
+                        """
+
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                0,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType
             )
 
           
