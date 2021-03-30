@@ -157,16 +157,16 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_05"
-            query = """select  l.l_orderkey, l.l_linenumber, l.l_partkey, c.c_custkey,
+            query = """select  l.l_orderkey, l.l_linenumber, l.l_suppkey, l.l_partkey, c.c_custkey,
                             max(l.l_partkey) over
                             (
-                                order by l.l_orderkey, l.l_linenumber
+                                order by l.l_orderkey, l.l_linenumber, l.l_suppkey
                                 ROWS BETWEEN 6 PRECEDING
                                 AND 2 FOLLOWING
                             ) max_pkeys,
                             max(c.c_custkey) over
                             (
-                                order by  l.l_orderkey, l.l_linenumber
+                                order by  l.l_orderkey, l.l_linenumber, l.l_suppkey
                                 ROWS BETWEEN 6 PRECEDING
                                 AND 2 FOLLOWING
                             ) max_cust
@@ -175,8 +175,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         inner join orders as o on o.o_orderkey = l.l_orderkey
                         inner join customer as c on c.c_custkey = o.o_custkey
                         where l.l_quantity = 1 and c.c_custkey < 10000
-                        order by l.l_orderkey, l.l_linenumber
-                        
+                        order by l.l_orderkey, l.l_linenumber, l.l_partkey, c.c_custkey                        
                         """
 
             runTest.run_query(
@@ -189,7 +188,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                fileSchemaType
+                fileSchemaType                
             )
 
           
