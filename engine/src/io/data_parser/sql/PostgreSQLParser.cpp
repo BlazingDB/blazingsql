@@ -210,7 +210,7 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
             *reinterpret_cast<const std::int32_t *>(resultValue);
         const std::int32_t hostOrderedValue = ntohl(castedValue);
         const float floatCastedValue =
-            *reinterpret_cast<const float *>(hostOrderedValue);
+            *reinterpret_cast<const float *>(&hostOrderedValue);
         std::vector<float> &vector = *reinterpret_cast<std::vector<float> *>(
             host_cols[projection_index]);
         vector.push_back(floatCastedValue);
@@ -222,7 +222,7 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
             *reinterpret_cast<const std::int64_t *>(resultValue);
         const std::int64_t hostOrderedValue = ntohl(castedValue);
         const double doubleCastedValue =
-            *reinterpret_cast<const double *>(hostOrderedValue);
+            *reinterpret_cast<const double *>(&hostOrderedValue);
         std::vector<double> &vector = *reinterpret_cast<std::vector<double> *>(
             host_cols[projection_index]);
         vector.push_back(doubleCastedValue);
@@ -250,8 +250,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   }
 
   cudf::io::table_with_metadata tableWithMetadata;
-  std::vector<std::unique_ptr<cudf::column>> cudf_columns{
-      static_cast<std::size_t>(resultNtuples)};
+  std::vector<std::unique_ptr<cudf::column>> cudf_columns;
+  cudf_columns.resize(static_cast<std::size_t>(resultNfields));
   for (const std::size_t projection_index : column_indices) {
     cudf::type_id cudf_type_id = cudf_types[projection_index];
     switch (cudf_type_id) {
@@ -268,7 +268,7 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
       auto data = rmm::device_buffer(vector.data(),
                                      resultNtuples * sizeof(std::int32_t));
       auto data_type = cudf::data_type(cudf_type_id);
-      auto null_mask_buf = rmm::device_buffer{nullptr, 0};
+      auto null_mask_buf = rmm::device_buffer{malloc(1000), 10};
       auto ret = std::make_unique<cudf::column>(data_type,
                                                 resultNtuples,
                                                 data,
@@ -299,12 +299,11 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     case cudf::type_id::FLOAT64:
     case cudf::type_id::DECIMAL64: {
       std::vector<double> &vector =
-          *reinterpret_cast<std::vector<double> *>(
-              host_cols[projection_index]);
-      auto data = rmm::device_buffer(vector.data(),
-                                     resultNtuples * sizeof(double));
+          *reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
+      auto data =
+          rmm::device_buffer(vector.data(), resultNtuples * sizeof(double));
       auto data_type = cudf::data_type(cudf_type_id);
-      auto null_mask_buf = rmm::device_buffer{nullptr, 0};
+      auto null_mask_buf = rmm::device_buffer{malloc(1000), 10};
       auto ret = std::make_unique<cudf::column>(data_type,
                                                 resultNtuples,
                                                 data,

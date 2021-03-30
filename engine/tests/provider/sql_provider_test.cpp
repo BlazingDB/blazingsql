@@ -30,7 +30,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   ral::io::postgresql_parser parser;
   ral::io::Schema schema;
   // false so we make sure dont go to the  db and get the schema info only
-  auto handle = postgresql_provider->get_next(false);
+  auto handle = postgresql_provider->get_next(true);
 
   parser.parse_schema(handle, schema);
 
