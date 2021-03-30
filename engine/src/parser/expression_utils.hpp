@@ -219,3 +219,8 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names);
 
 std::string fill_minus_op_with_zero(std::string expression);
+
+// TODO: Cordova remove this function
+std::string convert_concat_alias_into_multiple_binarty_concat_ops2(std::string expression, std::vector<std::string> children_values);
+
+std::string convert_concat_alias_into_multiple_binarty_concat_ops(std::string expression);

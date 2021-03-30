@@ -266,3 +266,5 @@ TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success_with_cast) {
 
 	EXPECT_EQ(expression_result, expected_expression);
 }
+
+// TODO: cordova  Add tests for convert_concat_alias_into_multiple_binarty_concat_ops
