@@ -29,6 +29,22 @@ static inline bool postgresql_is_cudf_string(const std::string &hint) {
   return result != std::cend(postgresql_string_type_hints);
 }
 
+template <class T>
+static inline std::unique_ptr<cudf::column>
+build_fixed_width_cudf_col(const std::size_t total_rows,
+                           const std::vector<T> &host_col,
+                           const std::vector<cudf::bitmask_type> &null_mask,
+                           cudf::type_id cudf_type_id) {
+  const cudf::size_type size = total_rows;
+  auto data = rmm::device_buffer{host_col.data(), size * sizeof(T)};
+  auto data_type = cudf::data_type(cudf_type_id);
+  auto null_mask_buff = rmm::device_buffer{
+      null_mask.data(), null_mask.size() * sizeof(decltype(null_mask.front()))};
+  auto ret = std::make_unique<cudf::column>(
+      data_type, size, data, null_mask_buff, cudf::UNKNOWN_NULL_COUNT);
+  return ret;
+}
+
 static inline cudf::io::table_with_metadata
 read_postgresql(const std::shared_ptr<PGresult> &pgResult,
                 const std::vector<int> &column_indices,
@@ -49,8 +65,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   const std::size_t num_words =
       cudf::bitmask_allocation_size_bytes(resultNtuples) /
       sizeof(cudf::bitmask_type);
-  std::vector<std::vector<cudf::bitmask_type>> null_masks =
-      std::vector<std::vector<cudf::bitmask_type>>(host_cols.size());
+  std::vector<std::vector<cudf::bitmask_type>> null_masks;
+  null_masks.resize(host_cols.size());
   std::transform(
       column_indices.cbegin(),
       column_indices.cend(),
@@ -278,16 +294,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
       std::vector<std::int32_t> &vector =
           *reinterpret_cast<std::vector<std::int32_t> *>(
               host_cols[projection_index]);
-      auto data = rmm::device_buffer(vector.data(),
-                                     resultNtuples * sizeof(std::int32_t));
-      auto data_type = cudf::data_type(cudf_type_id);
-      auto null_mask_buf = rmm::device_buffer{malloc(1000), 10};
-      auto ret = std::make_unique<cudf::column>(data_type,
-                                                resultNtuples,
-                                                data,
-                                                null_mask_buf,
-                                                cudf::UNKNOWN_NULL_COUNT);
-      cudf_columns[projection_index] = std::move(ret);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT64: {
@@ -313,16 +321,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     case cudf::type_id::DECIMAL64: {
       std::vector<double> &vector =
           *reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
-      auto data =
-          rmm::device_buffer(vector.data(), resultNtuples * sizeof(double));
-      auto data_type = cudf::data_type(cudf_type_id);
-      auto null_mask_buf = rmm::device_buffer{malloc(1000), 10};
-      auto ret = std::make_unique<cudf::column>(data_type,
-                                                resultNtuples,
-                                                data,
-                                                null_mask_buf,
-                                                cudf::UNKNOWN_NULL_COUNT);
-      cudf_columns[projection_index] = std::move(ret);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::BOOL8: {
