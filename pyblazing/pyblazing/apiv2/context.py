@@ -1787,7 +1787,7 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    def explain(self, sql):
+    def explain(self, sql, detail=False):
         """
         Returns break down of a given query's Logical Relational Algebra plan.
 
@@ -1822,6 +1822,18 @@ class BlazingContext(object):
         self.lock.acquire()
         try:
             algebra = self.generator.getRelationalAlgebraString(sql)
+
+            if detail is True:
+                masterIndex = 0
+                ctxToken = random.randint(0, np.iinfo(np.int32).max)
+                algebra = get_json_plan(str(algebra))
+                physical_plan = cio.runGeneratePhysicalGraphCaller(
+                    masterIndex,
+                    ["self"],
+                    ctxToken,
+                    str(algebra)
+                )
+                return str(physical_plan)
 
         except SqlValidationExceptionClass as exception:
             raise Exception(exception.message())
