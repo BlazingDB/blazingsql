@@ -37,7 +37,7 @@
 - #1416 Fix full join when both tables contains nulls
 - #1423 Fix temporary directory for hive partition test
 - #1351 Fixed 'count distinct' related issues
-
+- #1425 Fix for new joins API
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
