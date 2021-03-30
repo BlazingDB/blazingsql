@@ -309,6 +309,7 @@ def get_codTest(test_name):
         "Limit": "LIMIT",
         "Where clause": "WHERE",
         "Window Function": "WINDOWFUNCTION",
+        "Window Functions With No Partition": "WINDOW_NO_PARTITION",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
         "String case": "STRINGCASE",

@@ -3,6 +3,7 @@
 ## New Features
 - #1367 OverlapAccumulator Kernel
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
+- #1426 Window Functions without partitioning 
 
 
 ## Improvements
