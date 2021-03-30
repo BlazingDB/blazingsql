@@ -472,6 +472,17 @@ cdef class PyBlazingGraph:
     cpdef get_progress(self):
         return deref(self.ptr).get_progress()
 
+cpdef runGeneratePhysicalGraphCaller(uint32_t masterIndex, worker_ids, int ctxToken, queryPy):
+    cdef string query
+    query = str.encode(queryPy)
+
+    cdef vector[string] worker_ids_c
+    for worker_id in worker_ids:
+        worker_ids_c.push_back(worker_id.encode())
+
+    physicalPlan = runGeneratePhysicalGraphPython(masterIndex, worker_ids_c, ctxToken, query)
+    return physicalPlan.decode('UTF-8')
+
 cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
     cdef string sql_c
     sql_c = sql.encode()
