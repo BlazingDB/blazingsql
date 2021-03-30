@@ -7,6 +7,7 @@
 #include <array>
 
 #include <cudf/io/types.hpp>
+#include <cudf/utilities/bit.hpp>
 #include <libpq-fe.h>
 #include <netinet/in.h>
 
@@ -45,11 +46,18 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   std::vector<void *> host_cols;
   host_cols.reserve(resultNfields);
   const int resultNtuples = PQntuples(pgResult.get());
+  const std::size_t num_words =
+      cudf::bitmask_allocation_size_bytes(resultNtuples) /
+      sizeof(cudf::bitmask_type);
+  std::vector<std::vector<cudf::bitmask_type>> null_masks =
+      std::vector<std::vector<cudf::bitmask_type>>(host_cols.size());
   std::transform(
       column_indices.cbegin(),
       column_indices.cend(),
       std::back_inserter(host_cols),
-      [&pgResult, &cudf_types, resultNtuples](const int projection_index) {
+      [&pgResult, &cudf_types, &null_masks, num_words, resultNtuples](
+          const int projection_index) {
+        null_masks[projection_index].resize(num_words, 0);
         const int fsize = PQfsize(pgResult.get(), projection_index);
         if (fsize < 0) {  // STRING, STRUCT, LIST, and similar cases
           auto *vector = new std::vector<std::string>;
@@ -125,6 +133,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     for (const std::size_t projection_index : column_indices) {
       cudf::type_id cudf_type_id = cudf_types[projection_index];
       const char *resultValue = PQgetvalue(pgResult.get(), i, projection_index);
+      const bool isNull =
+          static_cast<bool>(PQgetisnull(pgResult.get(), i, projection_index));
       switch (cudf_type_id) {
       case cudf::type_id::INT8: {
         const std::int8_t castedValue =
@@ -245,6 +255,9 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         break;
       }
       default: throw std::runtime_error("Invalid cudf type id");
+      }
+      if (isNull) {
+        cudf::set_bit_unsafe(null_masks[projection_index].data(), i);
       }
     }
   }
