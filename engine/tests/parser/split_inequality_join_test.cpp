@@ -84,6 +84,16 @@ TEST_F(SplitIneQualityJoinTest, case_6) {
   EXPECT_EQ(filter_statement, expected_filter_statement);
 }
 
+TEST_F(SplitIneQualityJoinTest, case_7) {
+  std::string join_statement = "  LogicalJoin(condition=[AND(IS NOT DISTINCT FROM($0, $3), IS NOT DISTINCT FROM($1, $4))], joinType=[inner])";
+  std::string new_join_statement, filter_statement;
+  ral::batch::split_inequality_join_into_join_and_filter(join_statement, new_join_statement, filter_statement);
+  std::string expected_new_join_statement = "LogicalJoin(condition=[AND(IS_NOT_DISTINCT_FROM($0, $3), IS_NOT_DISTINCT_FROM($1, $4))], joinType=[inner])";
+  std::string expected_filter_statement = "";
+  EXPECT_EQ(new_join_statement, expected_new_join_statement);
+  EXPECT_EQ(filter_statement, expected_filter_statement);
+}
+
 TEST_F(SplitIneQualityJoinTest, error_case1) {
 
   std::string join_statement = "  LogicalJoin(condition=[OR(=($7, $0), AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))], joinType=[inner])";

@@ -831,8 +831,8 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> co
 	: CacheMachine(context, cache_machine_name) {}
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context,
-			std::size_t concat_cache_num_bytes, bool concat_all, std::string cache_machine_name)
-	: CacheMachine(context, cache_machine_name), concat_cache_num_bytes(concat_cache_num_bytes), concat_all(concat_all) {
+			std::size_t concat_cache_num_bytes, int num_bytes_timeout, bool concat_all, std::string cache_machine_name)
+	: CacheMachine(context, cache_machine_name), concat_cache_num_bytes(concat_cache_num_bytes), num_bytes_timeout(num_bytes_timeout), concat_all(concat_all) {
 
 	}
 
@@ -844,7 +844,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	if (concat_all){
 		waitingCache->wait_until_finished();
 	} else {
-		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes);
+		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes, this->num_bytes_timeout);
 	}
 
 	size_t total_bytes = 0;
@@ -853,7 +853,11 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	std::string message_id = "";
 
 	do {
-		message_data = waitingCache->pop_or_wait();
+		if (concat_all || waitingCache->has_next_now()){
+			message_data = waitingCache->pop_or_wait();
+		} else {
+			message_data = nullptr;
+		}
 		if (message_data == nullptr){
 			break;
 		}
@@ -959,7 +963,7 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 	if (concat_all){
 		waitingCache->wait_until_finished();
 	} else {
-		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes);		
+		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes, this->num_bytes_timeout);		
 	}
 
 	size_t total_bytes = 0;
@@ -968,7 +972,11 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 	std::string message_id;
 
 	do {
-		message_data = waitingCache->pop_or_wait();
+		if (concat_all || waitingCache->has_next_now()){
+			message_data = waitingCache->pop_or_wait();
+		} else {
+			message_data = nullptr;
+		}
 		if (message_data == nullptr){
 			break;
 		}

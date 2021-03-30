@@ -280,6 +280,7 @@ def get_codTest(test_name):
         "File System Google Storage": "FSGS",
         "Hdfs FileSystem": "FSHDFS",
         "Hive FileSystem": "FSHIVE",
+        "Hive File": "FILEHIVE",
         "File System Local": "FSLOCAL",
         "File System S3": "FSS3",
         "Full outer join": "FOUTJOIN",

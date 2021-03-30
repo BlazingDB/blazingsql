@@ -16,7 +16,7 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cac
 		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, cache_machine_name, config.log_timeout, config.cache_level_override, config.is_array_access);		
 	} else if (config.type == CacheType::CONCATENATING) {
 		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, 
-			config.concat_cache_num_bytes, config.concat_all, cache_machine_name);
+			config.concat_cache_num_bytes, config.num_bytes_timeout, config.concat_all, cache_machine_name);
 	}
 	return machine;
 }

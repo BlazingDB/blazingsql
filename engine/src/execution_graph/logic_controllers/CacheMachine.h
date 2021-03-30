@@ -184,7 +184,7 @@ public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name);
 
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context,
-			std::size_t concat_cache_num_bytes, bool concat_all, std::string cache_machine_name);
+			std::size_t concat_cache_num_bytes, int num_bytes_timeout, bool concat_all, std::string cache_machine_name);
 
 	~ConcatenatingCacheMachine() = default;
 
@@ -202,6 +202,7 @@ public:
 
   private:
   	std::size_t concat_cache_num_bytes;
+	int num_bytes_timeout;
 	bool concat_all;
 
 };
