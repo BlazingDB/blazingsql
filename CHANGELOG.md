@@ -2,7 +2,7 @@
 
 ## New Features
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
-
+- #1349 Add e2e test for Hive Partitioned Data
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -12,6 +12,7 @@
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
+- #1419 Added concat cache machine timeout 
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -32,6 +33,11 @@
 - #1392 Fix substrings with nulls
 - #1398 Fix performance regression
 - #1401 Fix support for minus unary operation
+- #1415 Fixed bug where num_batches was not getting set in BindableTableScan 
+- #1413 Fix for null tests 13 and 23 of windowFunctionTest
+- #1416 Fix full join when both tables contains nulls
+- #1423 Fix temporary directory for hive partition test
+
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
@@ -58,6 +64,8 @@
 - #1347 Fixing issue when reading orc metadata from DATE dtype
 - #1338 Window Function support for LEAD and LAG statements 
 - #1362 give useful message when file extension is not recognized
+- #1361 Supporting first_value and last_value for Window Function
+
 
 ## Improvements
 - #1293 Added optional acknowledgments to message sending
