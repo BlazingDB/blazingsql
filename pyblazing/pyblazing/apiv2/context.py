@@ -1795,6 +1795,7 @@ class BlazingContext(object):
         ----------
 
         sql : string SQL query.
+        detail : bool to print physical plan
 
         Examples
         --------
@@ -1816,6 +1817,23 @@ class BlazingContext(object):
           BindableTableScan(table=[[main, taxi_2]],
                     filters=[[OR(<($12, 100), <>($3, 4))]])
 
+
+        Explain physical plan this UNION query:
+
+        >>> query = '''
+        >>>         SELECT a.*
+        >>>         FROM taxi_1 as a
+        >>>         UNION ALL
+        >>>         SELECT b.*
+        >>>         FROM taxi_2 as b
+        >>>             WHERE b.fare_amount < 100 OR b.passenger_count <> 4
+        >>>             '''
+        >>> plan = bc.explain(query, detail=True)
+        >>> print(plan) TODO DFR
+        LogicalUnion(all=[true])
+          LogicalTableScan(table=[[main, taxi_1]])
+          BindableTableScan(table=[[main, taxi_2]],
+                    filters=[[OR(<($12, 100), <>($3, 4))]])
 
         Docs: https://docs.blazingdb.com/docs/explain
         """
