@@ -4,15 +4,11 @@
  */
 
 #include "MySQLParser.h"
+#include "sqlcommon.h"
 
 #include <netinet/in.h>
 
 #include <numeric>
-#include <cudf/utilities/bit.hpp>
-#include <cudf/detail/utilities/vector_factories.hpp>
-#include <cudf/column/column_factories.hpp>
-#include <cudf/io/types.hpp>
-#include <cudf/strings/convert/convert_datetime.hpp>
 #include <arrow/io/file.h>
 
 #include "ExceptionHandling/BlazingThread.h"
@@ -22,11 +18,6 @@
 
 namespace ral {
 namespace io {
-
-struct cudf_string_col {
-  std::vector<char> chars;
-  std::vector<cudf::size_type> offsets;
-};
 
 // TODO percy this is too naive ... improve this later
 //String Data Types
@@ -73,10 +64,10 @@ bool mysql_is_cudf_string(const std::string &t) {
 cudf::type_id parse_mysql_column_type(const std::string t) {
   if (mysql_is_cudf_string(t)) return cudf::type_id::STRING;
   // test numeric data types ...
-  if (StringUtil::beginsWith(t, "BOOL") || 
+  if (StringUtil::beginsWith(t, "BOOL") ||
       StringUtil::beginsWith(t, "BOOLEAN") || (t == "TINYINT(1)")) return cudf::type_id::BOOL8;
   if (StringUtil::beginsWith(t, "TINYINT")) return cudf::type_id::INT8;
-  if (StringUtil::beginsWith(t, "INT") || 
+  if (StringUtil::beginsWith(t, "INT") ||
       StringUtil::beginsWith(t, "INTEGER")) return cudf::type_id::INT32;
   if (StringUtil::beginsWith(t, "BIGINT")) return cudf::type_id::INT64;
   if (StringUtil::beginsWith(t, "FLOAT")) return cudf::type_id::FLOAT32;
@@ -99,33 +90,6 @@ std::vector<cudf::type_id> parse_mysql_column_types(const std::vector<std::strin
     ret.push_back(parse_mysql_column_type(t));
   }
   return ret;
-}
-
-template<typename T>
-std::unique_ptr<cudf::column> build_fixed_width_cudf_col(size_t total_rows,
-                                                         std::vector<T> *host_col,
-                                                         const std::vector<cudf::bitmask_type> &null_mask,
-                                                         cudf::type_id cudf_type_id)
-{
-  const cudf::size_type size = total_rows;
-  auto data = rmm::device_buffer{host_col->data(), size * sizeof(T)};
-  auto data_type = cudf::data_type(cudf_type_id);
-  auto null_mask_buff = rmm::device_buffer{null_mask.data(), null_mask.size() * sizeof(decltype(null_mask.front()))};
-  auto ret = std::make_unique<cudf::column>(data_type,
-                                     size,
-                                     data,
-                                     null_mask_buff,
-                                     cudf::UNKNOWN_NULL_COUNT);
-  return ret;
-}
-
-std::unique_ptr<cudf::column> build_str_cudf_col(cudf_string_col *host_col,
-                                                 const std::vector<cudf::bitmask_type> &null_mask)
-{
-  auto d_chars = cudf::detail::make_device_uvector_sync(host_col->chars);
-  auto d_offsets = cudf::detail::make_device_uvector_sync(host_col->offsets);
-  auto d_bitmask = cudf::detail::make_device_uvector_sync(null_mask);
-  return cudf::make_strings_column(d_chars, d_offsets, d_bitmask);
 }
 
 cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
@@ -558,7 +522,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups) 
+	std::vector<cudf::size_type> row_groups)
 {
   // DEBUG
   //std::cout << "PARSING BATCH: " << handle.sql_handle.row_count << "\n";

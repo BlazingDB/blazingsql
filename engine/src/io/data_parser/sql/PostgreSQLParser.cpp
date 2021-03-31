@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 
 #include "PostgreSQLParser.h"
+#include "sqlcommon.h"
 
 namespace ral {
 namespace io {
@@ -27,22 +28,6 @@ static inline bool postgresql_is_cudf_string(const std::string &hint) {
                      return std::strcmp(c_hint, hint.c_str()) == 0;
                    });
   return result != std::cend(postgresql_string_type_hints);
-}
-
-template <class T>
-static inline std::unique_ptr<cudf::column>
-build_fixed_width_cudf_col(const std::size_t total_rows,
-                           const std::vector<T> &host_col,
-                           const std::vector<cudf::bitmask_type> &null_mask,
-                           cudf::type_id cudf_type_id) {
-  const cudf::size_type size = total_rows;
-  auto data = rmm::device_buffer{host_col.data(), size * sizeof(T)};
-  auto data_type = cudf::data_type(cudf_type_id);
-  auto null_mask_buff = rmm::device_buffer{
-      null_mask.data(), null_mask.size() * sizeof(decltype(null_mask.front()))};
-  auto ret = std::make_unique<cudf::column>(
-      data_type, size, data, null_mask_buff, cudf::UNKNOWN_NULL_COUNT);
-  return ret;
 }
 
 static inline cudf::io::table_with_metadata
@@ -284,64 +269,64 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     cudf::type_id cudf_type_id = cudf_types[projection_index];
     switch (cudf_type_id) {
     case cudf::type_id::INT8: {
-      std::vector<std::int8_t> &vector =
-          *reinterpret_cast<std::vector<std::int8_t> *>(
+      std::vector<std::int8_t> *vector =
+          reinterpret_cast<std::vector<std::int8_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT16: {
-      std::vector<std::int16_t> &vector =
-          *reinterpret_cast<std::vector<std::int16_t> *>(
+      std::vector<std::int16_t> *vector =
+          reinterpret_cast<std::vector<std::int16_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT32: {
-      std::vector<std::int32_t> &vector =
-          *reinterpret_cast<std::vector<std::int32_t> *>(
+      std::vector<std::int32_t> *vector =
+          reinterpret_cast<std::vector<std::int32_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT64: {
-      std::vector<std::int64_t> &vector =
-          *reinterpret_cast<std::vector<std::int64_t> *>(
+      std::vector<std::int64_t> *vector =
+          reinterpret_cast<std::vector<std::int64_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::UINT8: {
-      std::vector<std::uint8_t> &vector =
-          *reinterpret_cast<std::vector<std::uint8_t> *>(
+      std::vector<std::uint8_t> *vector =
+          reinterpret_cast<std::vector<std::uint8_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::UINT16: {
-      std::vector<std::uint16_t> &vector =
-          *reinterpret_cast<std::vector<std::uint16_t> *>(
+      std::vector<std::uint16_t> *vector =
+          reinterpret_cast<std::vector<std::uint16_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::UINT32: {
-      std::vector<std::uint32_t> &vector =
-          *reinterpret_cast<std::vector<std::uint32_t> *>(
+      std::vector<std::uint32_t> *vector =
+          reinterpret_cast<std::vector<std::uint32_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::UINT64: {
-      std::vector<std::uint64_t> &vector =
-          *reinterpret_cast<std::vector<std::uint64_t> *>(
+      std::vector<std::uint64_t> *vector =
+          reinterpret_cast<std::vector<std::uint64_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
@@ -349,31 +334,31 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
     }
     case cudf::type_id::FLOAT32:
     case cudf::type_id::DECIMAL32: {
-      std::vector<float> &vector =
-          *reinterpret_cast<std::vector<float> *>(host_cols[projection_index]);
+      std::vector<float> *vector =
+          reinterpret_cast<std::vector<float> *>(host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::FLOAT64:
     case cudf::type_id::DECIMAL64: {
-      std::vector<double> &vector =
-          *reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
+      std::vector<double> *vector =
+          reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::BOOL8: {
-      std::vector<std::uint8_t> &vector =
-          *reinterpret_cast<std::vector<std::uint8_t> *>(
+      std::vector<std::uint8_t> *vector =
+          reinterpret_cast<std::vector<std::uint8_t> *>(
               host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
           resultNtuples, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::STRING: {
-      std::vector<std::string> &vector =
-          *reinterpret_cast<std::vector<std::string> *>(
+      std::vector<std::string> *vector =
+          reinterpret_cast<std::vector<std::string> *>(
               host_cols[projection_index]);
       break;
     }
