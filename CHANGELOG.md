@@ -39,6 +39,8 @@
 - #1423 Fix temporary directory for hive partition test
 - #1351 Fixed 'count distinct' related issues
 - #1425 Fix for new joins API
+- #1400 Fix for Column aliases when exists a Join op
+
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
