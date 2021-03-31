@@ -47,9 +47,9 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
   std::vector<void *> host_cols;
   host_cols.reserve(resultNfields);
   const int resultNtuples = PQntuples(pgResult.get());
-  const std::size_t num_words =
-      cudf::bitmask_allocation_size_bytes(resultNtuples) /
-      sizeof(cudf::bitmask_type);
+  const std::size_t bitmask_allocation =
+      cudf::bitmask_allocation_size_bytes(resultNtuples);
+  const std::size_t num_words = bitmask_allocation / sizeof(cudf::bitmask_type);
   std::vector<std::vector<cudf::bitmask_type>> null_masks(resultNfields);
   std::transform(
       column_indices.cbegin(),
@@ -60,9 +60,10 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         null_masks[projection_index].resize(num_words, 0);
         const int fsize = PQfsize(pgResult.get(), projection_index);
         if (fsize < 0) {  // STRING, STRUCT, LIST, and similar cases
-          auto *vector = new std::vector<std::string>;
-          vector->reserve(resultNtuples);
-          return static_cast<void *>(vector);
+          auto *string_col = new cudf_string_col();
+          string_col->offsets.reserve(resultNtuples + 1);
+          string_col->offsets.push_back(0);
+          return static_cast<void *>(string_col);
         }
         // primitives cases
         const cudf::type_id cudf_type_id = cudf_types[projection_index];
@@ -126,7 +127,8 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         }
         case cudf::type_id::STRING: {
           auto *string_col = new cudf_string_col();
-          string_col->offsets.resize(1, 0);
+          string_col->offsets.reserve(resultNtuples + 1);
+          string_col->offsets.push_back(0);
           return static_cast<void *>(string_col);
         }
         default:

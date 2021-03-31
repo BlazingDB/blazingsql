@@ -13,14 +13,14 @@
 
 struct SQLProviderTest : public BlazingUnitTest {};
 
-TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
+TEST_F(SQLProviderTest, postgresql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 5432;
   sql.user = "myadmin";
   sql.password = "";
   sql.schema = "pagila";
-  sql.table = "pruebaint2";
+  sql.table = "prueba4";
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
