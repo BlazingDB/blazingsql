@@ -1851,7 +1851,6 @@ class BlazingContext(object):
                     ctxToken,
                     str(algebra)
                 )
-                return str(physical_plan)
 
         except SqlValidationExceptionClass as exception:
             raise Exception(exception.message())
