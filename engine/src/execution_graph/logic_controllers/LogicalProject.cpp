@@ -807,19 +807,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         parser::parse_tree tree;
         tree.build(expression);
 
-        /*
-        // TODO: Corodova remove this dead code ..
-        if (tree.root().value == "CONCAT") {
-            size_t total_children = tree.root().children.size();
-            std::vector<std::string> children_values(total_children); // get_children_values(tree);
-            for (size_t i = 0; i < total_children; ++i) {
-                children_values[i] = tree.root().children[i]->value;
-            }
-            expression = convert_concat_alias_into_multiple_binarty_concat_ops(expression, children_values);
-            tree.build(expression);
-        }
-        */
-
         // Transform the expression tree so that only nodes that can be evaluated
         // by the interpreter remain
         tree.transform_to_custom_op();
@@ -962,7 +949,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         std::string name = named_expr.substr(0, named_expr.find("=["));
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
         expression = fill_minus_op_with_zero(expression);
-        expression = convert_concat_alias_into_multiple_binarty_concat_ops(expression);
+        expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
 
         expressions[i] = expression;
         out_column_names[i] = name;

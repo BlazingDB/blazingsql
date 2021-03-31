@@ -1000,90 +1000,24 @@ std::string fill_minus_op_with_zero(std::string expression) {
 	return expression;
 }
 
-// TODO: Cordova remove this function
-// This function is useful when we want to get the right `CAST` indices
-// input: 
-//	expression: CONCAT($0, ': ', CAST($1):VARCHAR, ' - ', $2)
-//	children_values: ["$0", "': '", "CAST_VARCHAR", "' - '", "$2"]
-// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ': '), CAST($1):VARCHAR), ' - '), $2)"
-std::string convert_concat_alias_into_multiple_binarty_concat_ops2(std::string expression, std::vector<std::string> children_values) {
-
-	assert(children_values.size() > 1);
-
-	// Let's update `CAST_VARCHAR` operator values
-	for (size_t i = 0; i < children_values.size(); ++i) {
-		if (children_values[i] == "CAST_VARCHAR") {
-			std::string cast_word = "CAST";
-			std::string varchar_word = "VARCHAR";
-			int start_position = expression.find(cast_word);
-			int end_position = expression.find(varchar_word);
-			std::string cast_expression = expression.substr(start_position, end_position + varchar_word.size() - start_position);
-			expression = expression.substr(end_position + varchar_word.size(), expression.size() - (end_position + varchar_word.size()));
-			children_values[i] = cast_expression;
-		}
-	}
-
-	std::string new_expression =  "CONCAT(" + children_values[0] + ", " + children_values[1] + ")";
-
-	if (children_values.size() == 2) return new_expression;
-
-	for (size_t i = 2; i < children_values.size(); ++i) {
-		new_expression = "CONCAT(" + new_expression + ", " + children_values[i] + ")";
-	}
-	std::cout << "new_expression: " << new_expression << std::endl;
-	return new_expression;
-}
-
-// TODO: Cordova improve this function
-// The thing here is about to handle carefully the case when a literal contains a ','
-// create a new function to be more 'clean`
-// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' , ', $2)
+// input: CONCAT($0, ': ', CAST($1):VARCHAR, ' - ', $2)
 // output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' , '), $2)"
-std::string convert_concat_alias_into_multiple_binarty_concat_ops(std::string expression) {
-	//std::cout << "expression: " << expression << std::endl;
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
 	if (expression.find("CONCAT") == expression.npos) {
 		return expression;
 	}
 
-	// Let's count how many separator (`,`) there are
-	size_t total_commas = StringUtil::findAndCountAllMatches(expression, ",");
-	//std::cout << "total_commas: " << total_commas << std::endl;  // 5
+	// just to remove `CONCAT( )`
+	std::string expression_wo_concat = get_query_part(expression);
+	std::vector<std::string> expressions_to_concat = get_expressions_from_expression_list(expression_wo_concat);
 
-	assert(total_commas > 0);
+	if (expressions_to_concat.size() < 2) throw std::runtime_error("CONCAT operator must have at least two children, as CONCAT($0, $1) .");
 
+	std::string new_expression =  "CONCAT(" + expressions_to_concat[0] + ", " + expressions_to_concat[1] + ")";
 
-	std::string output_expession; // "CONCAT(" + left_expr + ", ";
-
-	std::string reduced_expr = get_query_part(expression);
-	//std::cout << "reduced_expr: " << reduced_expr << std::endl;   //     $0, ' - ', CAST($1):VARCHAR, ' - ', $2
-
-	for (size_t i = 0; i < total_commas; ++i) {
-		size_t separator_pos = reduced_expr.find(",");
-		std::cout << "separator_pos: " << separator_pos << std::endl;
-		std::string left_expr = reduced_expr.substr(0 , separator_pos);
-		std::string right_expr = reduced_expr.substr(separator_pos + 1 , reduced_expr.size() - separator_pos);
-
-		size_t total_single_quotes =  StringUtil::findAndCountAllMatches(left_expr, "'");
-		std::cout << "total_single_quotes: " << total_single_quotes << std::endl;
-		//bool is_literal = ( % 2 == 0) ? true : false;
-		if (total_single_quotes % 2 == 0 ) {
-			reduced_expr = right_expr;
-		} else {
-			// TODO: improve this case (this separator is from a literal)
-			continue;
-		}
-		std::cout << "left_expr: " << left_expr << std::endl;
-		std::cout << "right_expr: " << right_expr << std::endl;
-
-		if (i == 0) {
-			output_expession = "CONCAT(" + left_expr + "," ;
-		} else {
-			output_expession += "CONCAT(" + output_expession + left_expr + ")" ;
-		}
-
+	for (size_t i = 2; i < expressions_to_concat.size(); ++i) {
+		new_expression = "CONCAT(" + new_expression + ", " + expressions_to_concat[i] + ")";
 	}
-	std::cout << "output_expession: " << output_expession << std::endl;
-	
-	return expression;
 
+	return new_expression;
 }

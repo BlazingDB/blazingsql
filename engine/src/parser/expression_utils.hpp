@@ -220,7 +220,4 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 
 std::string fill_minus_op_with_zero(std::string expression);
 
-// TODO: Cordova remove this function
-std::string convert_concat_alias_into_multiple_binarty_concat_ops2(std::string expression, std::vector<std::string> children_values);
-
-std::string convert_concat_alias_into_multiple_binarty_concat_ops(std::string expression);
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
