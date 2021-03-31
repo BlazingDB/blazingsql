@@ -16,7 +16,7 @@ from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
-from pyblazing.apiv2.algebra import get_json_plan
+from pyblazing.apiv2.algebra import get_json_plan, format_json_plan
 
 import json
 import collections
@@ -1860,6 +1860,10 @@ class BlazingContext(object):
             raise Exception(exception.message())
         finally:
             self.lock.release()
+
+        if detail is True:
+            return format_json_plan(str(physical_plan))
+
         return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
