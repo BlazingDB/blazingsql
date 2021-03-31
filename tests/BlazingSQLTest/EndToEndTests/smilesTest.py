@@ -163,23 +163,20 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             bc.create_table('top_6WQF_conf',result_gdf)
 
             top_6WQF_conf_equiv_query = bsql_query.replace("top_6WQF", "( " + top_6WQF_equiv_query + " )")
-            #TODO re enable this test once we have the new version of dask
-            # https://github.com/dask/distributed/issues/4645
-            # https://github.com/rapidsai/cudf/issues/7773
-            #runTest.run_query(
-                #bc,
-                #spark,
-                #top_6WQF_conf_equiv_query,
-                #queryId,
-                #queryType,
-                #worder,
-                #"",
-                #acceptable_difference,
-                #use_percentage,
-                #fileSchemaType,
-                #nested_query=True,
-                #blz_result=result_gdf,
-            #)
+            runTest.run_query(
+                bc,
+                spark,
+                top_6WQF_conf_equiv_query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                nested_query=True,
+                blz_result=result_gdf,
+            )
 
 
             queryId = "TEST_07"
