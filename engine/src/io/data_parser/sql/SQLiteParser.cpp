@@ -20,14 +20,11 @@
 #include <cudf/io/parquet.hpp>
 #include <cudf_test/column_wrapper.hpp>
 
-#include <mysql/jdbc.h>
 
 namespace ral {
 namespace io {
 
 namespace cudf_io = cudf::io;
-
-
 
 // TODO percy this is too naive ... improve this later
 //TEXT types:
@@ -62,10 +59,10 @@ bool sqlite_is_cudf_string(const std::string &t) {
 cudf::type_id parse_sqlite_column_type(const std::string t) {
   if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
   // test numeric data types ...
-  if (StringUtil::beginsWith(t, "BOOL") || 
+  if (StringUtil::beginsWith(t, "BOOL") ||
       StringUtil::beginsWith(t, "BOOLEAN")) return cudf::type_id::BOOL8;
   if (StringUtil::beginsWith(t, "TINYINT")) return cudf::type_id::INT8;
-  if (StringUtil::beginsWith(t, "INT") || 
+  if (StringUtil::beginsWith(t, "INT") ||
       StringUtil::beginsWith(t, "INTEGER")) return cudf::type_id::INT32;
   if (StringUtil::beginsWith(t, "BIGINT")) return cudf::type_id::INT64;
   if (StringUtil::beginsWith(t, "FLOAT")) return cudf::type_id::FLOAT32;
@@ -111,10 +108,10 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
         case cudf::type_id::EMPTY: {
         } break;
         case cudf::type_id::INT8: {
-          
+
         } break;
         case cudf::type_id::INT16: {
-          
+
         } break;
         case cudf::type_id::INT32: {
           int32_t type = sqlite3_column_int(stmt, mysql_col);
@@ -122,16 +119,18 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
           data_size = sizeof(int32_t);
         } break;
         case cudf::type_id::INT64: {
-          
+          std::int32_t type = sqlite3_column_int64(stmt, mysql_col);
+          value = (char*)type;
+          data_size = sizeof(std::int64_t);
         } break;
         case cudf::type_id::UINT8: {
-          
+
         } break;
         case cudf::type_id::UINT16: {
-          
+
         } break;
         case cudf::type_id::UINT32: {
-          
+
         } break;
         case cudf::type_id::UINT64: {
           int64_t type = sqlite3_column_int64(stmt, mysql_col);
@@ -139,46 +138,46 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
           data_size = sizeof(int64_t);
         } break;
         case cudf::type_id::FLOAT32: {
-          
+
         } break;
         case cudf::type_id::FLOAT64: {
-          
+
         } break;
         case cudf::type_id::BOOL8: {
-          
+
         } break;
         case cudf::type_id::TIMESTAMP_DAYS: {
-          
+
         } break;
         case cudf::type_id::TIMESTAMP_SECONDS: {
-          
+
         } break;
         case cudf::type_id::TIMESTAMP_MILLISECONDS: {
-          
+
         } break;
         case cudf::type_id::TIMESTAMP_MICROSECONDS: {
-          
+
         } break;
         case cudf::type_id::TIMESTAMP_NANOSECONDS: {
-          
+
         } break;
         case cudf::type_id::DURATION_DAYS: {
-          
+
         } break;
         case cudf::type_id::DURATION_SECONDS: {
-          
+
         } break;
         case cudf::type_id::DURATION_MILLISECONDS: {
-          
+
         } break;
         case cudf::type_id::DURATION_MICROSECONDS: {
-          
+
         } break;
         case cudf::type_id::DURATION_NANOSECONDS: {
-          
+
         } break;
         case cudf::type_id::DICTIONARY32: {
-          
+
         } break;
         case cudf::type_id::STRING: {
           const unsigned char *name = sqlite3_column_text(stmt, mysql_col);
@@ -189,16 +188,16 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
           strncpy(value, tmpstr.c_str(), data_size);
         } break;
         case cudf::type_id::LIST: {
-          
+
         } break;
         case cudf::type_id::DECIMAL32: {
-          
+
         } break;
         case cudf::type_id::DECIMAL64: {
-          
+
         } break;
         case cudf::type_id::STRUCT: {
-          
+
         } break;
       }
       host_cols[col][row] = value;
@@ -215,10 +214,10 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
       case cudf::type_id::EMPTY: {
       } break;
       case cudf::type_id::INT8: {
-        
+
       } break;
       case cudf::type_id::INT16: {
-        
+
       } break;
       case cudf::type_id::INT32: {
         int32_t *cols_buff = (int32_t*)host_cols[col].data();
@@ -229,28 +228,28 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
         cudf_cols[col] = std::move(vals.release());
       } break;
       case cudf::type_id::INT64: {
-        
+
       } break;
       case cudf::type_id::UINT8: {
-        
+
       } break;
       case cudf::type_id::UINT16: {
-        
+
       } break;
       case cudf::type_id::UINT32: {
-        
+
       } break;
       case cudf::type_id::UINT64: {
-        
+
       } break;
       case cudf::type_id::FLOAT32: {
-        
+
       } break;
       case cudf::type_id::FLOAT64: {
-        
+
       } break;
       case cudf::type_id::BOOL8: {
-        
+
       } break;
       case cudf::type_id::TIMESTAMP_DAYS: {
         // TODO percy
@@ -263,34 +262,34 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
 //        cudf_cols[col] = std::move(vals.release());
       } break;
       case cudf::type_id::TIMESTAMP_SECONDS: {
-        
+
       } break;
       case cudf::type_id::TIMESTAMP_MILLISECONDS: {
-        
+
       } break;
       case cudf::type_id::TIMESTAMP_MICROSECONDS: {
-        
+
       } break;
       case cudf::type_id::TIMESTAMP_NANOSECONDS: {
-        
+
       } break;
       case cudf::type_id::DURATION_DAYS: {
-        
+
       } break;
       case cudf::type_id::DURATION_SECONDS: {
-        
+
       } break;
       case cudf::type_id::DURATION_MILLISECONDS: {
-        
+
       } break;
       case cudf::type_id::DURATION_MICROSECONDS: {
-        
+
       } break;
       case cudf::type_id::DURATION_NANOSECONDS: {
-        
+
       } break;
       case cudf::type_id::DICTIONARY32: {
-        
+
       } break;
       case cudf::type_id::STRING: {
         std::vector<std::string> cols(total_rows);
@@ -311,16 +310,16 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
         cudf_cols[col] = std::move(vals.release());
       } break;
       case cudf::type_id::LIST: {
-        
+
       } break;
       case cudf::type_id::DECIMAL32: {
-        
+
       } break;
       case cudf::type_id::DECIMAL64: {
-        
+
       } break;
       case cudf::type_id::STRUCT: {
-        
+
       } break;
     }
     //cudf::strings::
@@ -335,7 +334,7 @@ cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
   //std::vector<int32_t> dat = {5, 4, 3, 5, 8, 5, 6, 5};
   //std::vector<uint32_t> valy = {1, 1, 1, 1, 1, 1, 1, 1};
   //cudf::test::fixed_width_column_wrapper<int32_t> vals(dat.begin(), dat.end(), valy.begin());
-  
+
   ret.tbl = std::make_unique<cudf::table>(std::move(cudf_cols));
   return ret;
 }
@@ -350,7 +349,7 @@ std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups) 
+	std::vector<cudf::size_type> row_groups)
 {
   auto stmt = handle.sql_handle.sqlite_statement;
 	if(stmt == nullptr) {

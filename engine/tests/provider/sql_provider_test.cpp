@@ -13,7 +13,7 @@
 
 struct SQLProviderTest : public BlazingUnitTest {};
 
-TEST_F(SQLProviderTest, postgresql_select_all) {
+TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 5432;
