@@ -4,12 +4,13 @@ import re
 
 __all__ = ["get_json_plan", "format_json_plan"]
 
+
 def visitJson(data, result, level):
     level += 1
     isValid = True
     while isValid:
         if "expr" in data:
-            result += ('  ' * level) + data["expr"] + '\n'
+            result += ("  " * level) + data["expr"] + "\n"
         if "children" in data:
             if data["children"] != "":
                 lenData = len(data["children"])
@@ -27,6 +28,7 @@ def format_json_plan(json_plan):
     result = visitJson(data, result, -1)
 
     return result
+
 
 def get_json_plan(algebra):
     lines = algebra.split("\n")
