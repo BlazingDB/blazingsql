@@ -2,8 +2,31 @@ import collections
 import json
 import re
 
-__all__ = ["get_json_plan"]
+__all__ = ["get_json_plan", "format_json_plan"]
 
+def visitJson(data, result, level):
+    level += 1
+    isValid = True
+    while isValid:
+        if "expr" in data:
+            result += ('  ' * level) + data["expr"] + '\n'
+        if "children" in data:
+            if data["children"] != "":
+                lenData = len(data["children"])
+                for i in range(lenData):
+                    result = visitJson(data["children"][i], result, level)
+                return result
+            else:
+                return result
+
+
+def format_json_plan(json_plan):
+    data = json.loads(json_plan)
+    result = ""
+
+    result = visitJson(data, result, -1)
+
+    return result
 
 def get_json_plan(algebra):
     lines = algebra.split("\n")
