@@ -13,7 +13,7 @@ struct cudf_string_col {
 };
 
 
-std::unique_ptr<cudf::column>
+static inline std::unique_ptr<cudf::column>
 build_str_cudf_col(cudf_string_col *host_col,
                    const std::vector<cudf::bitmask_type> &null_mask) {
   auto d_chars = cudf::detail::make_device_uvector_sync(host_col->chars);
@@ -23,7 +23,7 @@ build_str_cudf_col(cudf_string_col *host_col,
 }
 
 template <typename T>
-std::unique_ptr<cudf::column>
+static inline std::unique_ptr<cudf::column>
 build_fixed_width_cudf_col(size_t total_rows,
                            std::vector<T> *host_col,
                            const std::vector<cudf::bitmask_type> &null_mask,

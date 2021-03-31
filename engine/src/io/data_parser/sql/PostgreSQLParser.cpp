@@ -124,6 +124,11 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
           vector->reserve(resultNtuples);
           return static_cast<void *>(vector);
         }
+        case cudf::type_id::STRING: {
+          auto *string_col = new cudf_string_col();
+          string_col->offsets.resize(1, 0);
+          return static_cast<void *>(string_col);
+        }
         default:
           throw std::runtime_error("Invalid allocation for cudf type id");
         }
@@ -248,10 +253,17 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
         break;
       }
       case cudf::type_id::STRING: {
-        std::vector<std::string> &vector =
-            *reinterpret_cast<std::vector<std::string> *>(
-                host_cols[projection_index]);
-        vector.emplace_back(resultValue);
+        cudf_string_col *string_col =
+            reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+        if (isNull) {
+          string_col->offsets.push_back(string_col->offsets.back());
+        } else {
+          std::string data(resultValue);
+          string_col->chars.insert(
+              string_col->chars.end(), data.cbegin(), data.cend());
+          string_col->offsets.push_back(string_col->offsets.back() +
+                                        data.length());
+        }
         break;
       }
       default: throw std::runtime_error("Invalid cudf type id");
@@ -357,9 +369,10 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
       break;
     }
     case cudf::type_id::STRING: {
-      std::vector<std::string> *vector =
-          reinterpret_cast<std::vector<std::string> *>(
-              host_cols[projection_index]);
+      cudf_string_col *string_col =
+          reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+      cudf_columns[projection_index] =
+          build_str_cudf_col(string_col, null_masks[projection_index]);
       break;
     }
     default: throw std::runtime_error("Invalid cudf type id");
@@ -430,8 +443,7 @@ read_postgresql(const std::shared_ptr<PGresult> &pgResult,
       break;
     }
     case cudf::type_id::STRING: {
-      delete reinterpret_cast<std::vector<std::string> *>(
-          host_cols[projection_index]);
+      delete reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
       break;
     }
     default: throw std::runtime_error("Invalid cudf type id");
