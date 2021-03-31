@@ -360,7 +360,6 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 	const ral::frame::BlazingTableView & table_right)
 {
 	std::unique_ptr<CudfTable> result_table;
-	std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
 	if (this->join_type == CROSS_JOIN) {
 		result_table = cudf::cross_join(
@@ -376,7 +375,6 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common,
 				equalityType);
 		} else if(this->join_type == LEFT_JOIN) {
 			//Removing nulls on right key columns before joining
@@ -390,15 +388,13 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_left.view(),
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
 				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
+				this->right_column_indices);
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common,
 				(has_nulls_left && has_nulls_right) ? cudf::null_equality::UNEQUAL : cudf::null_equality::EQUAL);
 		} else {
 			RAL_FAIL("Unsupported join operator");
