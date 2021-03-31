@@ -1846,10 +1846,7 @@ class BlazingContext(object):
                 ctxToken = random.randint(0, np.iinfo(np.int32).max)
                 algebra = get_json_plan(str(algebra))
                 physical_plan = cio.runGeneratePhysicalGraphCaller(
-                    masterIndex,
-                    ["self"],
-                    ctxToken,
-                    str(algebra)
+                    masterIndex, ["self"], ctxToken, str(algebra)
                 )
 
         except SqlValidationExceptionClass as exception:
