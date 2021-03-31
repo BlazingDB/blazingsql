@@ -81,6 +81,7 @@ enum class operator_type {
 	BLZ_TO_DATE,
 	BLZ_TO_TIMESTAMP,
 	BLZ_STR_TRIM,
+	BLZ_IS_NOT_DISTINCT_FROM,
 };
 
 

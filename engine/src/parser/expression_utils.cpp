@@ -89,6 +89,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
@@ -172,6 +173,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_NOT:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
 		return cudf::type_id::INT32;
@@ -321,6 +323,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"TRIM", operator_type::BLZ_STR_TRIM},
 		{"LEFT", operator_type::BLZ_STR_LEFT},
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
+		{"IS_NOT_DISTINCT_FROM", operator_type::BLZ_IS_NOT_DISTINCT_FROM},
 	};
 
 	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
@@ -929,6 +932,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	ret = std::regex_replace(ret, char_re, ":VARCHAR");
 
 
+	StringUtil::findAndReplaceAll(ret, "IS NOT DISTINCT FROM", "IS_NOT_DISTINCT_FROM");
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
