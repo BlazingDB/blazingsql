@@ -1004,8 +1004,8 @@ std::string fill_minus_op_with_zero(std::string expression) {
 	return expression;
 }
 
-// input: CONCAT($0, ': ', CAST($1):VARCHAR, ' - ', $2)
-// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' , '), $2)"
+// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' : ', $2)
+// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' : '), $2)"
 std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
 	if (expression.find("CONCAT") == expression.npos) {
 		return expression;
