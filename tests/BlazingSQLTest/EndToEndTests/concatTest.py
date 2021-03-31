@@ -255,7 +255,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_12"
             query = """select CONCAT(c_mktsegment, ': ', c_custkey, ' - ', c_name)
                     from customer
-                    order by c_custkey, c_mktsegment limit 50"""
+                    order by c_mktsegment, c_custkey limit 50"""
             runTest.run_query(
                 bc,
                 drill,
@@ -289,7 +289,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_14"
-            query = """select CONCAT(o.o_orderkey, c.c_name), o.o_orderstatus
+            query = """select CONCAT(case when o.o_orderkey is null then 'V1'  else 'V2' end , ' - ', c.c_name),
+                        o.o_orderstatus
                     from orders o
                     inner join customer c on o.o_custkey = c.c_custkey
                     where c.c_custkey < 10"""
