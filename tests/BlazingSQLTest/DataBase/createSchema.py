@@ -1315,13 +1315,13 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
 
             bc.create_table(table_names[i], table,
                 from_sql = from_sql,
-                sql_hostname = sql_hostname,
-                sql_port = sql_port,
-                sql_username = sql_username,
-                sql_password = sql_password,
-                sql_schema = sql_schema,
-                sql_table_filter = sql_table_filter,
-                sql_table_batch_size = sql_table_batch_size)
+                hostname = sql_hostname,
+                port = sql_port,
+                username = sql_username,
+                password = sql_password,
+                schema = sql_schema,
+                table_filter = sql_table_filter,
+                table_batch_size = sql_table_batch_size)
         else:
             bc.create_table(table_names[i], table_files)
 
