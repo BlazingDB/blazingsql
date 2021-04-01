@@ -189,7 +189,7 @@ TEST_F(ExpressionUtilsTest, by_passing_project_with_aliases) {
 	EXPECT_EQ(by_passing_project_with_aliases, true);
 	EXPECT_EQ(aliases.size(), expected_aliases.size());
 
-	for (int i = 0; i < aliases.size(); ++i) {
+	for (std::size_t i = 0; i < aliases.size(); ++i) {
 		EXPECT_EQ(aliases[i], expected_aliases[i]);
 	}
 }
