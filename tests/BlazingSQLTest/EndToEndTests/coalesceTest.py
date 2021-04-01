@@ -37,8 +37,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             use_percentage = False
             acceptable_difference = 0.01
 
-            # if fileSchemaType == DataType.PARQUET : print('Save file arrow')
-
             print("==============================")
             print(queryType)
             print("==============================")

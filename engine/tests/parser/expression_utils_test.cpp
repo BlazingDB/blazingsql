@@ -151,3 +151,118 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg_e
 	EXPECT_EQ(type_aggs_as_str.size(), 0);
 	EXPECT_EQ(agg_param_values.size(), 0);
 }
+
+TEST_F(ExpressionUtilsTest, by_passing_project) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(o_orderkey=[$0], o_custkey=[$1], o_orderstatus=[$2], o_totalprice=[$3])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = bypassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, true);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(o_orderpriority=[$5], o_custkey=[$1], o_orderstatus=[$2])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice", "o_orderdate", "o_orderpriority"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = bypassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, by_passing_project_with_aliases) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(alias_0=[$0], alias_1=[$1], alias_2=[$2], alias_3=[$3])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = bypassingProject(logical_plan, col_names);
+	std::vector<std::string> expected_aliases = {"alias_0", "alias_1", "alias_2", "alias_3"};
+
+	EXPECT_EQ(by_passing_project, true);
+	EXPECT_EQ(by_passing_project_with_aliases, true);
+	EXPECT_EQ(aliases.size(), expected_aliases.size());
+
+	for (int i = 0; i < aliases.size(); ++i) {
+		EXPECT_EQ(aliases[i], expected_aliases[i]);
+	}
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project_due_to_sum_operation) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(alias_0=[+($0, 1)], alias_1=[$1], alias_2=[$2], alias_3=[$3])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = bypassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project_empty_plan) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = bypassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project_empty_col_names) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(o_orderkey=[$0], o_custkey=[$1], o_orderstatus=[$2])";
+	std::vector<std::string> col_names;
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = bypassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_not_apply_case1) {
+	std::string expression = "-(4, $3)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+
+	EXPECT_EQ(expression_result, expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_not_apply_case2) {
+	std::string expression = "-($0, $3)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+
+	EXPECT_EQ(expression_result, expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_not_apply_case3) {
+	std::string expression = "-(-($0, $1), $0)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+
+	EXPECT_EQ(expression_result, expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success) {
+	std::string expression = "-($3)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+	std::string expected_expression = "-(0, $3)";
+
+	EXPECT_EQ(expression_result, expected_expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success_with_cast) {
+	std::string expression = "-(CAST($0):DOUBLE)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+	std::string expected_expression = "-(0, CAST($0):DOUBLE)";
+
+	EXPECT_EQ(expression_result, expected_expression);
+}

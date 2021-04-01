@@ -202,6 +202,32 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
 : kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), provider(provider), parser(parser), schema(schema) {
     this->query_graph = query_graph;
     this->filtered = is_filtered_bindable_scan(expression);
+
+    if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
+        num_batches = std::max(provider->get_num_handles(), (size_t)1);
+    } else if (parser->type() == ral::io::DataType::CSV)	{
+        auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
+        num_batches = 0;
+        size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
+        if (max_bytes_chunk_size > 0) {
+            int file_idx = 0;
+            while (provider->has_next()) {
+                auto data_handle = provider->get_next();
+                int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
+                size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
+                std::vector<int> file_row_groups(num_chunks);
+                std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
+                schema.get_rowgroups()[file_idx] = std::move(file_row_groups);
+                num_batches += num_chunks;
+                file_idx++;
+            }
+            provider->reset();
+        } else {
+            num_batches = provider->get_num_handles();
+        }
+    } else {
+        num_batches = provider->get_num_handles();
+    }
 }
 
 ral::execution::task_result BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -309,7 +335,7 @@ std::pair<bool, uint64_t> BindableTableScan::get_estimated_output_num_rows(){
     if (current_batch == 0 || num_batches == 0){
         return std::make_pair(false, 0);
     } else {
-        return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+        return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/(double)num_batches)));
     }
 }
 
@@ -344,15 +370,30 @@ kstatus Projection::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    while(cache_data != nullptr ){
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
+    RAL_EXPECTS(cache_data != nullptr, "ERROR: Projection::run() first input CacheData was nullptr");
 
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
+    // When this kernel will project all the columns (with or without aliases)
+    // we want to avoid caching and decahing for this kernel
+    bool bypassing_project, bypassing_project_with_aliases;
+    std::vector<std::string> aliases;
+    std::vector<std::string> column_names = cache_data->names();
+    std::tie(bypassing_project, bypassing_project_with_aliases, aliases) = bypassingProject(this->expression, column_names);
 
+    while(cache_data != nullptr){
+        if (bypassing_project_with_aliases) {
+            cache_data->set_names(aliases);
+            this->add_to_output_cache(std::move(cache_data));
+        } else if (bypassing_project) {
+            this->add_to_output_cache(std::move(cache_data));
+        } else {
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+        }
         cache_data = this->input_cache()->pullCacheData();
     }
 

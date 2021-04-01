@@ -46,6 +46,9 @@ import org.testng.asserts.SoftAssert;
 public class BlazingRulesTest {
 	private static SessionFactory sessionFactory = null;
 
+	// Change this value to `true` when we want to generate new reference files (for TPCH and selected queries)
+	private final boolean generate_referenced_files = false;
+
 	@BeforeMethod
 	public void
 	setUp() throws Exception {
@@ -257,12 +260,12 @@ public class BlazingRulesTest {
 		new AbstractMap.SimpleEntry<String, String>("tpch22", "select cntrycode, count(*) as numcust, sum(c_acctbal) as totacctbal from ( select substring(c_phone from 1 for 2) as cntrycode, c_acctbal from customer where substring(c_phone from 1 for 2) in ('13','31','23','29','30','18','17') and c_acctbal > ( select avg(c_acctbal) from customer where c_acctbal > 0.00 and substring (c_phone from 1 for 2) in ('13','31','23','29','30','18','17') ) and not exists ( select * from orders where o_custkey = c_custkey ) ) as custsale group by cntrycode order by cntrycode")
 	);
 
-	String reference_filename = "tpch-reference.bin";
+	String tpch_reference_filename = "tpch-reference.bin";
 
 	// Enable this unit test for updating the reference optimized plans for all TPCH queries
-	@Test(enabled = false)
+	@Test(enabled = generate_referenced_files)
 	public void
-	generateLogicalPlanTest() throws Exception {
+	generateLogicalTPCHPlanTest() throws Exception {
 
 		createTableSchemas();
 		db = repo.getDatabase(dbId);
@@ -270,7 +273,7 @@ public class BlazingRulesTest {
 		BlazingSchema schema = new BlazingSchema(db);
 		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
 
-		FileOutputStream file = new FileOutputStream(reference_filename);
+		FileOutputStream file = new FileOutputStream(tpch_reference_filename);
 		ObjectOutputStream out = new ObjectOutputStream(file);
 
 		for (Entry<String, String> entry : tpch_queries)
@@ -290,7 +293,7 @@ public class BlazingRulesTest {
 	// When enabled, this unit test compares for all TPCH queries, the current optimized logical plans versus the last reference plans
 	@Test(enabled = true)
 	public void
-	checkLogicalPlanTest() throws Exception {
+	checkLogicalTPCHPlanTest() throws Exception {
 
 		createTableSchemas();
 		db = repo.getDatabase(dbId);
@@ -298,12 +301,81 @@ public class BlazingRulesTest {
 		BlazingSchema schema = new BlazingSchema(db);
 		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
 
-		FileInputStream file = new FileInputStream(reference_filename);
+		FileInputStream file = new FileInputStream(tpch_reference_filename);
 		ObjectInputStream in = new ObjectInputStream(file);
 
 		SoftAssert softAssert = new SoftAssert();
 
 		for (Entry<String, String> entry : tpch_queries)
+		{
+			String sql = entry.getValue();
+			RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+			RelNode optimizedPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+			String logicalPlan = RelOptUtil.toString(optimizedPlan);
+            String reference = (String)in.readObject();
+
+			softAssert.assertEquals(logicalPlan, reference, "In test " + entry.getKey());
+		}
+
+		in.close();
+		file.close();
+
+		softAssert.assertAll();
+	}
+
+
+	// Selected queries we want to track (like special cases)
+	List<Entry<String, String>> selected_queries = Arrays.asList(
+		new AbstractMap.SimpleEntry<String, String>("query01", "select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1 inner join orders as o2 on o1.o_orderkey = o2.o_orderkey and o1.o_orderkey < 10000")
+	);
+
+	String selected_reference_filename = "selected-queries-reference.bin";
+
+	// Enable this unit test for updating the reference optimized plans for all selected queries
+	@Test(enabled = generate_referenced_files)
+	public void
+	generateLogicalSelectedPlanTest() throws Exception {
+
+		createTableSchemas();
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		FileOutputStream file = new FileOutputStream(selected_reference_filename);
+		ObjectOutputStream out = new ObjectOutputStream(file);
+
+		for (Entry<String, String> entry : selected_queries)
+		{
+			String sql = entry.getValue();
+			RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+			RelNode optimizedPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+			String logicalPlan = RelOptUtil.toString(optimizedPlan);
+
+			out.writeObject(logicalPlan);
+		}
+
+		out.close();
+		file.close();
+	}
+
+	// When enabled, this unit test compares for all selected queries, the current optimized logical plans versus the last reference plans
+	@Test(enabled = true)
+	public void
+	checkLogicalSelectedPlanTest() throws Exception {
+
+		createTableSchemas();
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		FileInputStream file = new FileInputStream(selected_reference_filename);
+		ObjectInputStream in = new ObjectInputStream(file);
+
+		SoftAssert softAssert = new SoftAssert();
+
+		for (Entry<String, String> entry : selected_queries)
 		{
 			String sql = entry.getValue();
 			RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);

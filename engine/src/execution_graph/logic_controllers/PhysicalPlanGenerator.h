@@ -287,12 +287,16 @@ struct tree_processor {
 			}
 		}
 		else if (is_project(expr) && is_window_function(expr) && first_windowed_call) {
-			if (!window_expression_contains_partition(expr)) {
+			if (!window_expression_contains_partition_by(expr)) {
 				throw std::runtime_error("In Window Function: PARTITION BY clause is mandatory");
 			}
 			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
 				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
 			}
+
+			if (window_expression_contains_bounds_by_range(expr)) {
+                throw std::runtime_error("In Window Function: RANGE is not currently supported");
+            }
 
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
@@ -307,7 +311,7 @@ struct tree_processor {
 			boost::property_tree::ptree window_tree;
 			window_tree.put("expr", window_expr);
 			window_tree.put_child("children", create_array_tree(sort_tree));
-			
+
 			p_tree.put("expr", expr);
 			p_tree.put_child("children", create_array_tree(window_tree));
 
@@ -378,6 +382,11 @@ struct tree_processor {
 			if (it != config_options.end()){
 				join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
 			}
+			int concatenating_cache_num_bytes_timeout = 100000; // 100ms
+			it = config_options.find("CONCATENATING_CACHE_NUM_BYTES_TIMEOUT");
+			if (it != config_options.end()){
+				concatenating_cache_num_bytes_timeout = std::stoi(config_options["CONCATENATING_CACHE_NUM_BYTES_TIMEOUT"]);
+			}
 			
 			auto child_kernel_type = child->kernel_unit->get_type_id();
 			auto parent_kernel_type = parent->kernel_unit->get_type_id();
@@ -393,7 +402,7 @@ struct tree_processor {
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
 					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = concat_all};
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, join_cache_machine_config));					
 
 				} else {
@@ -410,9 +419,9 @@ struct tree_processor {
 					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					cache_settings left_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = left_concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = left_concat_all};
 					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = right_concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = right_concat_all};
 					
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", left_cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", right_cache_machine_config));
@@ -449,7 +458,7 @@ struct tree_processor {
 					}
 					
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
+						.concat_cache_num_bytes = concat_cache_num_bytes, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = false};
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 				} else {
 					cache_settings cache_machine_config;

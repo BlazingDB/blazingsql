@@ -41,10 +41,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 
-            # TODO: FIRST_VALUE() and LAST_VALUE(): cudf aggs no supported currently
-
-            # TODO: BOUNDED/UNBOUNDED, ROW/RANGE: Calcite issue when get optimized plan
-
             # ------------------- ORDER BY ------------------------
             
             # queryId = "TEST_01"
@@ -635,14 +631,14 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             queryId = "TEST_26"
             query = """select row_number() over 
-                            (
-                                partition by c_nationkey
-                                order by c_custkey desc
-                            ) row_num,
-                            c_phone, UPPER(SUBSTRING(c_name, 1, 8))
-                        from customer
-                        where c_acctbal < 95.0
-                        order by c_custkey, row_num"""
+                        (
+                            partition by c_nationkey
+                            order by c_custkey desc, c_acctbal
+                        ) row_num,
+                        c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                    from customer
+                    where c_acctbal < 95.0
+                    order by row_num, c_acctbal"""
             runTest.run_query(
                 bc,
                 drill,
@@ -660,9 +656,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select row_number() over 
                             (
                                 partition by c_nationkey, c_mktsegment
-                                order by c_custkey desc, c_name
+                                order by c_custkey desc, c_name, c_phone
                             ) row_num,
-                            c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                        c_phone, UPPER(SUBSTRING(c_name, 1, 8))
                         from customer
                         where c_acctbal < 155.0
                         order by c_custkey, row_num desc"""
@@ -864,7 +860,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                                 partition by n_regionkey order by n_name
                             ) max_keys,
                             n_nationkey, n_name, n_regionkey
-                            from nation order by n_nationkey"""
+                        from nation order by n_nationkey"""
             runTest.run_query(
                bc,
                spark,
@@ -882,12 +878,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select sum(o_custkey) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by o_totalprice, o_custkey
                             ) sum_keys,
                             lag(o_custkey, 2) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by  o_totalprice, o_custkey
                             ) lag_keys,
                             cast(o_shippriority as double) as o_ship_double,
                             o_orderpriority
@@ -895,7 +891,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where o_orderstatus <> 'O'
                         and o_totalprice <= 6000
                         and o_orderpriority in ('2-HIGH', '1-URGENT')
-                        order by o_orderpriority"""
+                        order by o_orderpriority, o_totalprice"""
             runTest.run_query(
                 bc,
                 spark,
@@ -913,12 +909,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select sum(o_custkey) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by o_totalprice, o_custkey
                             ) sum_keys,
                             lead(o_custkey, 3) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by o_totalprice, o_custkey
                             ) lead_keys,
                             cast(o_shippriority as double) as o_ship_double,
                             o_orderpriority
@@ -971,6 +967,124 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # using the same column `c_nationkey` to partition
+            # and first_value()
+            queryId = "TEST_38"
+            query = """select first_value(c_nationkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_custkey desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 125.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # using the same column `c_nationkey` to partition
+            # and last_value()
+            queryId = "TEST_39"
+            query = """select last_value(c_nationkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_custkey desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 125.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_40"
+            query = """select 
+                            max(n.n_nationkey) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) max_keys,
+                            lead(n.n_nationkey, 2) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) lead_keys,
+                            first_value(n.n_nationkey) over
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) first_keys,
+                            last_value(n.n_nationkey) over
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) last_keys,
+                            n.n_nationkey, l.l_extendedprice, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_partkey 
+                        order by l.l_extendedprice, l_comment
+                        limit 10"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_41"
+            query = """select (o_orderkey + o_custkey) as key_priority,
+                            o_custkey + o_totalprice, 
+                            first_value(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_first_prices,
+                            o_custkey - o_totalprice + 6
+                        from orders
+                        where o_orderstatus not in ('O', 'F')
+                        and o_totalprice < 55000
+                        and o_orderpriority <> '2-HIGH'
+                        order by key_priority, o_first_prices"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # ------------ ROWS bounding ----------------
 
             queryId = "TEST_50"
@@ -999,22 +1113,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_51"
             query = """select min(o_orderkey) over
                             (
-                                partition by o_orderstatus, o_clerk
-                                order by o_orderdate
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice
                                 ROWS BETWEEN 2 PRECEDING
                                 AND 1 FOLLOWING
                             ) min_keys, 
                             max(o_orderkey) over
                             (
-                                partition by o_orderstatus, o_clerk
-                                order by o_orderdate
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice
                                 ROWS BETWEEN 2 PRECEDING
                                 AND 1 FOLLOWING
                             ) max_keys, o_orderkey, o_orderpriority
                         from orders
                         where o_orderpriority <> '2-HIGH'
                         and o_clerk = 'Clerk#000000880'
-                        order by o_orderkey
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        order by o_orderstatus, o_totalprice
                         limit 50"""
             runTest.run_query(
                 bc,
@@ -1064,8 +1180,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_53"
             query = """select max(l_partkey) over
                             (
-                                partition by l_linestatus
-                                order by l_quantity desc, l_orderkey
+                                partition by l_suppkey, l_partkey, l_linenumber
+                                order by l_extendedprice desc, l_orderkey, l_quantity
                                 ROWS BETWEEN 6 PRECEDING
                                 AND 2 FOLLOWING
                             ) max_keys,
@@ -1073,8 +1189,59 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         from lineitem
                         where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
                         and l_linestatus = 'F'
-                        order by l_orderkey, max_keys
+                        -- as pyspark put the nulls at the begining and blazing to the end
+                        -- we want make sure the orders are the same
+                        and l_extendedprice is not null
+                        order by l_extendedprice, l_orderkey, max_keys
                         limit 50"""
+
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # using diffs columns to partition and first_value()
+            queryId = "TEST_54"
+            query = """select first_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_55"
+            query = """select last_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name
+                            ) last_key,
+                            c_phone, c_nationkey, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by last_key, c_nationkey, c_phone"""  
             runTest.run_query(
                 bc,
                 spark,

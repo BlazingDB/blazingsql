@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <cudf/copying.hpp>
+#include <cudf/replace.hpp>
 #include <cudf/strings/capitalize.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
@@ -293,7 +294,18 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
-
+            std::unique_ptr<cudf::column> start_temp = nullptr;
+            std::unique_ptr<cudf::column> end_temp = nullptr;
+            if (start_column.has_nulls()) {
+              cudf::numeric_scalar<int32_t> start_zero(0);
+              start_temp = cudf::replace_nulls(start_column, start_zero);
+              start_column = start_temp->view();
+            }
+            if (end_column.has_nulls()) {
+              cudf::numeric_scalar<int32_t> end_zero(0);
+              end_temp = cudf::replace_nulls(end_column, end_zero);            
+              end_column = end_temp->view();
+            }
             computed_col = cudf::strings::slice_strings(column, start_column, end_column);
         }
         break;
@@ -940,6 +952,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
 
         std::string name = named_expr.substr(0, named_expr.find("=["));
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
+        expression = fill_minus_op_with_zero(expression);
 
         expressions[i] = expression;
         out_column_names[i] = name;

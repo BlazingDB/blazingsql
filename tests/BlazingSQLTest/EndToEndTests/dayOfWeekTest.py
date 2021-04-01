@@ -94,7 +94,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             query = """ with dayofweektable as (
                         select o_orderkey, DAYOFWEEK(o_orderdate) as num_of_week from orders
                     )
-                    select o_orderkey, num_of_week, 
+                    select o_orderkey, num_of_week,
                         case when num_of_week = 1 then 'Mon'
                         when num_of_week = 2 then 'Tue'
                         when num_of_week = 3 then 'Wed'
@@ -103,6 +103,18 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                         when num_of_week = 6 then 'Sat'
                         else 'Sun' end as day_of_week
                     from dayofweektable order by o_orderkey limit 100"""
+            query_spark = """ with dayofweektable as (
+                        select o_orderkey, DAYOFWEEK(o_orderdate) as num_of_week from orders
+                    )
+                    select o_orderkey, num_of_week,
+                        case when num_of_week = 1 then 'Mon'
+                        when num_of_week = 2 then 'Tue'
+                        when num_of_week = 3 then 'Wed'
+                        when num_of_week = 4 then 'Thu'
+                        when num_of_week = 5 then 'Fri'
+                        when num_of_week = 6 then 'Sat'
+                        else 'Sun' end as day_of_week
+                    from dayofweektable order by o_orderkey nulls last limit 100"""
             runTest.run_query(
                 bc,
                 spark,
@@ -114,6 +126,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark=query_spark,
             )
 
             queryId = "TEST_05"

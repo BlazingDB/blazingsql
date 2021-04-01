@@ -43,6 +43,12 @@ std::vector<std::string> BlazingHostTable::names() const {
     return col_names;
 }
 
+void BlazingHostTable::set_names(std::vector<std::string> names) {
+    for(size_t i = 0; i < names.size(); i++){
+        strcpy(columns_offsets[i].metadata.col_name, names[i].c_str());
+    }
+}
+
 cudf::size_type BlazingHostTable::num_rows() const {
     return columns_offsets.empty() ? 0 : columns_offsets.front().metadata.size;
 }

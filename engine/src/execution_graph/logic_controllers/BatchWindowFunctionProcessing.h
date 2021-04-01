@@ -38,12 +38,13 @@ public:
 	kstatus run() override;
 
 private:
-	// LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $1)], lag_col=[LAG($0, 5) OVER (PARTITION BY $1)], n_name=[$2])
+	// LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $1 ORDER BY $3 DESC)], lag_col=[LAG($0, 5) OVER (PARTITION BY $1)], n_name=[$2])
 	std::vector<int> column_indices_partitioned;   // column indices to be partitioned: [1]
+	std::vector<int> column_indices_ordered;   	   // column indices to be ordered: [3]
 	std::vector<int> column_indices_to_agg;        // column indices to be agg: [0, 0]
 	std::vector<int> agg_param_values;     		   // due to LAG or LEAD: [5]
-	int preceding_value;     	   // X PRECEDING
-	int following_value;     		   // Y FOLLOWING
+	int preceding_value;     	                   // X PRECEDING
+	int following_value;     		               // Y FOLLOWING
 	std::string frame_type;                        // ROWS or RANGE
 	std::vector<std::string> type_aggs_as_str;     // ["MIN", "LAG"]
 	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::LAG]

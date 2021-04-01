@@ -89,6 +89,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
@@ -172,6 +173,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_NOT:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
 		return cudf::type_id::INT32;
@@ -320,6 +322,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"TRIM", operator_type::BLZ_STR_TRIM},
 		{"LEFT", operator_type::BLZ_STR_LEFT},
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
+		{"IS_NOT_DISTINCT_FROM", operator_type::BLZ_IS_NOT_DISTINCT_FROM},
 	};
 
 	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
@@ -498,9 +501,25 @@ bool is_window_function(std::string query_part) { return (query_part.find("OVER"
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
-bool window_expression_contains_partition(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
+bool window_expression_contains_partition_by(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
 
-bool window_expression_contains_order(std::string query_part) { return (query_part.find("ORDER") != std::string::npos); }
+bool window_expression_contains_order_by(std::string query_part) { return (query_part.find("ORDER BY") != std::string::npos); }
+
+bool window_expression_contains_bounds(std::string query_part) { return (query_part.find("BETWEEN") != std::string::npos); }
+
+bool window_expression_contains_bounds_by_range(std::string query_part) { return (query_part.find("RANGE") != std::string::npos); }
+
+bool is_lag_or_lead_aggregation(std::string expression) {
+	return (expression == "LAG" || expression == "LEAD");
+}
+
+bool is_first_value_window(std::string expression) {
+	return (expression == "FIRST_VALUE");
+}
+
+bool is_last_value_window(std::string expression) {
+	return (expression == "LAST_VALUE");
+}
 
 // input: LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                       max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $0)])
@@ -909,9 +928,10 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 	static const std::regex char_re{
 		R""(:CHAR\(\d+\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, char_re, "VARCHAR");
+	ret = std::regex_replace(ret, char_re, ":VARCHAR");
 
 
+	StringUtil::findAndReplaceAll(ret, "IS NOT DISTINCT FROM", "IS_NOT_DISTINCT_FROM");
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
@@ -930,4 +950,55 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 	return ret;
+}
+
+std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names) {
+	bool by_passing_project = false, by_passing_project_with_aliases = false;
+	std::vector<std::string> aliases;
+
+	std::string combined_expression = get_query_part(logical_plan);
+	std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
+	std::vector<std::string> expressions(named_expressions.size());
+	aliases.resize(named_expressions.size());
+
+	for(size_t i = 0; i < named_expressions.size(); ++i) {
+		const std::string & named_expr = named_expressions[i];
+		aliases[i] = named_expr.substr(0, named_expr.find("=["));
+		expressions[i] = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
+	}
+
+	if (names.size() != aliases.size()) {
+		return std::make_tuple(false, false, aliases);
+	}
+	
+	for(size_t i = 0; i < expressions.size(); ++i) {
+		if (expressions[i] != "$" + std::to_string(i)) {
+			return std::make_tuple(false, false, aliases);
+		}
+	}
+
+	by_passing_project = true;
+
+	// At this step, expressions: [$0, $1, $2, $3], let's see the aliases
+	for(size_t i = 0; i < aliases.size(); ++i) {
+		if (aliases[i] != names[i]) {
+			by_passing_project_with_aliases = true;
+			break;
+		}
+	}
+
+	return std::make_tuple(by_passing_project, by_passing_project_with_aliases, aliases);
+}
+
+// input: -($3)
+// output: -(0, $3)
+std::string fill_minus_op_with_zero(std::string expression) {
+	std::size_t total_vars = StringUtil::findAndCountAllMatches(expression, "$");
+	if (expression.at(0) == '-' && total_vars == 1 && expression.find(",") == expression.npos) {
+		std::string left_expr = expression.substr(0, 2);
+		std::string right_expr = expression.substr(2, expression.size() - left_expr.size());
+		expression = left_expr + "0, " + right_expr;
+	}
+
+	return expression;
 }

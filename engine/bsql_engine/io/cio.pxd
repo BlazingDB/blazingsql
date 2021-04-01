@@ -226,7 +226,7 @@ cdef extern from "../include/engine/engine.h" nogil:
 
 cdef extern from "../include/engine/initialize.h" nogil:
     cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(uint16_t ralId, string worker_id, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size,	bool enable_logging) nogil except +raiseInitializeError
-    cdef void finalize() nogil except +raiseFinalizeError
+    cdef void finalize(vector[int] ctx_tokens) nogil except +raiseFinalizeError
     cdef size_t getFreeMemory() nogil except +raiseGetFreeMemoryError
     cdef void resetMaxMemoryUsed(int) nogil except +raiseResetMaxMemoryUsedError
     cdef size_t getMaxMemoryUsed() nogil except +raiseGetMaxMemoryUsedError
