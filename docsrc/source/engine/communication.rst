@@ -30,9 +30,17 @@ It is not always clear, particularly when leveraging hardware such as the GPU, t
 This allows both the send of receivers of messages to use fixed size pre allocated buffers for transporting information back and forth. Making sending and receiving very fast. It has the overhead of a memcpy for operations where the data on the sending side resided in a space the NIC can read from.
 
 
+Classes
+-------
+
+Message Sender
+^^^^^^^^^^^^^^
+
+The purpose of the Sender is to be polling the output message cache for messages that need to be sent off to other nodes. It takes the message to be sent gi
+
+
 Communication Protocols
 -----------------------
-
 
 
 TCP
