@@ -4,6 +4,7 @@ import tempfile
 from collections import OrderedDict
 from os import listdir
 from os.path import isdir
+from enum import IntEnum, unique
 
 import cudf
 import dask_cudf
@@ -68,11 +69,16 @@ def get_spark_schema(table, nullable):
 def init_spark_schema(spark, dir_data_lc, **kwargs):
 
     smiles_test = kwargs.get("smiles_test", False)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
         table_names=smilesTables
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
         table_names=tpchTables
 
     for name in table_names:
@@ -93,7 +99,7 @@ def init_spark_schema(spark, dir_data_lc, **kwargs):
     nullable = True
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test:
+    if bool_test and testsWithNulls != "true":
         bool_orders_df = spark.read.orc(dir_data_lc + "/bool_orders_*.psv")
         bool_orders_df.createOrReplaceTempView("bool_orders")
 
@@ -263,11 +269,16 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
     timeout = 300
 
     smiles_test = kwargs.get("smiles_test", False)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
         table_names=smilesTables
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
         table_names=tpchTables
 
     for name in table_names:
@@ -281,7 +292,7 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
         dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, 'psv')
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test:
+    if bool_test and testsWithNulls != "true":
         drill.query(
             "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": "bool_orders"}, timeout
@@ -646,7 +657,7 @@ def get_dtypes(table_name, bool_column=False):
             "date64",
             "str",
             "str",
-            "str",
+            "int32",
             "str",
         ],
         "supplier": ["int64", "str", "str", "int32", "str", "float64", "str"],
@@ -686,78 +697,6 @@ def get_dtypes(table_name, bool_column=False):
     func = switcher.get(table_name, "nothing")
     # Execute the function
     return func
-
-
-def get_dtypes_wo_string(table_name):
-    switcher = {
-        "customer": [
-            "int32",
-            "int64",
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "int64",
-            "int64",
-        ],
-        "region": ["int32", "int64", "int64"],
-        "nation": ["int32", "int64", "int32", "int64"],
-        "lineitem": [
-            "int64",
-            "int64",
-            "int64",
-            "int32",
-            "float64",
-            "float64",
-            "float64",
-            "float64",
-            "int64",
-            "int64",
-            "date64",
-            "date64",
-            "date64",
-            "int64",
-            "int64",
-            "int64",
-        ],
-        "orders": [
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "date64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-        ],
-        "supplier": [
-            "int64",
-            "int64",
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "int64"
-        ],
-        "part": [
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "float32",
-            "int64",
-        ],
-        "partsupp": ["int64", "int64", "int64", "float32", "int64"],
-    }
-
-    func = switcher.get(table_name, "nothing")
-    # Execute the function
-    return func
-
 
 def get_dtypes_pandas(table_name):
     switcher = {
@@ -808,7 +747,7 @@ def get_dtypes_pandas(table_name):
             "o_orderdatetime64": "datetime64",
             "o_orderpriority": "str",
             "o_clerk": "str",
-            "o_shippriority": "str",
+            "o_shippriority": "int64",
             "o_comment": "str",
         },
         "supplier": {
@@ -882,6 +821,7 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
 
     table_pdf = None
     dataframes = []
+
     for dataFile in listdir(files_dir):
         if isdir(files_dir + "/" + dataFile):
             continue
@@ -1255,11 +1195,15 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     tables = kwargs.get("tables", tpchTables)
     table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if tables[0] in smilesTables:
         dir_data_lc = dir_data_lc + "smiles/"
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
 
     for i, table in enumerate(tables):
         # using wildcard, note the _ after the table name
@@ -1282,10 +1226,10 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
             gdf = read_data(table, dir_data_lc, bool_column)
             bc.create_table(table_names[i], gdf)
         elif fileSchemaType == DataType.DASK_CUDF:
-            bool_column = bool_orders_index != -1
-            gdf = read_data(table, dir_data_lc, bool_column)
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
+            bool_column = bool_orders_index != -1
+            gdf = read_data(table, dir_data_lc, bool_column)
             ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
             bc.create_table(table_names[i], ds)
         # elif fileSchemaType == DataType.DASK_CUDF:
@@ -1311,3 +1255,49 @@ def create_hive_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         table = bc.create_table(table, cursor)
         # table = bc.create_table(table, cursor, file_format=fileSchemaType)
         print(table)
+
+@unique
+class HiveCreateTableType(IntEnum):
+    AUTO = 0,
+    WITH_PARTITIONS = 1
+
+def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTableType, partitions,
+                                  partitions_schema, **kwargs):
+    ext = get_extension(fileSchemaType)
+
+    if fileSchemaType not in [DataType.CSV, DataType.PARQUET, DataType.ORC]:
+        raise RuntimeError("It is not a valid file format for create table hive")
+
+    tables = kwargs.get("tables", tpchTables)
+
+    if createTableType == HiveCreateTableType.AUTO:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table, dir_partitions + table, file_format=ext, delimiter="|", dtype=dtypes,
+                                names=col_names)
+
+            else:
+                bc.create_table(table, dir_partitions + table, file_format=ext)
+
+    elif createTableType == HiveCreateTableType.WITH_PARTITIONS:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema,
+                                delimiter="|",
+                                dtype=dtypes,
+                                names=col_names)
+
+            else:
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema)

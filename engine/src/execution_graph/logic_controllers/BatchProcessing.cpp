@@ -204,6 +204,32 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
 : kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), provider(provider), parser(parser), schema(schema) {
     this->query_graph = query_graph;
     this->filtered = is_filtered_bindable_scan(expression);
+
+    if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
+        num_batches = std::max(provider->get_num_handles(), (size_t)1);
+    } else if (parser->type() == ral::io::DataType::CSV)	{
+        auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
+        num_batches = 0;
+        size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
+        if (max_bytes_chunk_size > 0) {
+            int file_idx = 0;
+            while (provider->has_next()) {
+                auto data_handle = provider->get_next();
+                int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
+                size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
+                std::vector<int> file_row_groups(num_chunks);
+                std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
+                schema.get_rowgroups()[file_idx] = std::move(file_row_groups);
+                num_batches += num_chunks;
+                file_idx++;
+            }
+            provider->reset();
+        } else {
+            num_batches = provider->get_num_handles();
+        }
+    } else {
+        num_batches = provider->get_num_handles();
+    }
 }
 
 ral::execution::task_result BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -311,7 +337,7 @@ std::pair<bool, uint64_t> BindableTableScan::get_estimated_output_num_rows(){
     if (current_batch == 0 || num_batches == 0){
         return std::make_pair(false, 0);
     } else {
-        return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+        return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/(double)num_batches)));
     }
 }
 

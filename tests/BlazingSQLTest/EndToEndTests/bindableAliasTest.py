@@ -312,6 +312,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_16"
+            query = """select o1.o_orderkey as okey1,
+                              o2.o_orderkey as okey2
+                        from orders as o1
+                        inner join orders as o2
+                        on o1.o_orderkey = o2.o_orderkey
+                        and o1.o_orderkey < 10000"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break
