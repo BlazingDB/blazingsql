@@ -10,6 +10,8 @@
 - #1333 Fixing build due to cudf update
 - #1344 Removed GPUCacheDataMetadata class 
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
+- #1430 Updating GCP to >= version
+
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
