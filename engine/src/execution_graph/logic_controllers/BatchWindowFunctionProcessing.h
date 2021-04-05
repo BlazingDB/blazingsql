@@ -77,6 +77,18 @@ const std::string FOLLOWING_REQUEST="following_request";
 const std::string PRECEDING_RESPONSE="preceding_response";
 const std::string FOLLOWING_RESPONSE="following_response";
 
+
+/**
+* The OverlapGeneratorKernel is only used for window functions that have no partition by clause and that also have bounded window frames.
+* The OverlapGeneratorKernel assumes that it will be following by OverlapAccumulatorKernel and has three output caches:
+* - "batches"
+* - "preceding_overlaps"
+* - "following_overlaps"
+*
+* Its purpose is to take its input batches and create preceding and/or following overlaps depending on the preceding and
+* following clauses of the window frames. It operates on each batch independently and does not communicate with other nodes.
+* If it cannot create a complte overlap (the overlap size is bigger than the batch), it will set the overlap's status to INCOMPLETE, which is captured by the CacheData metadata for the overlap.
+*/
 class OverlapGeneratorKernel : public kernel {
 public:
 	OverlapGeneratorKernel(std::size_t kernel_id, const std::string & queryString,
@@ -105,6 +117,27 @@ private:
 };
 
 
+/**
+* The OverlapAccumulatorKernel assumes three input caches:
+* - "batches"
+* - "preceding_overlaps"
+* - "following_overlaps"
+* It assumes the previous kernel will fill "batches" N cacheData that is sorted and the batches are in order
+* It assumes that preceding_overlaps and following_overlaps will contain N-1 cacheData that corresponds to the preceding and following overlaps copied from the batches
+* The idea is that part of batches[x] will be copied to fill preceding_overlaps[x+1] and part will be copied to fill following_overlaps[x-1]
+* The preceding_overlaps and following_overlaps will contain metadata to indicate if the overlaps are complete or incomplete (DONE_OVERLAP_STATUS or INCOMPLETE_OVERLAP_STATUS)
+* For example, preceding_overlaps[x+1] would be set to INCOMPLETE_OVERLAP_STATUS if batches[x] was not big enough to fulfill the required preceding_value which is defined by the window frame (i.e. ROWS BETWEEN X PRECEDING AND Y FOLLOWING)
+* 
+* The purpose of OverlapAccumulatorKernel is to ensure that all INCOMPLETE_OVERLAP_STATUS overlaps coming from the previous kernel are COMPLETED by copying from other batches.
+* The other purpose is to fill the overlaps of preceding_overlaps[0] and following_overlaps[N] with data that has to come from the neighboring nodes (or make a blank overlap if there is no neighbor)
+* The OverlapAccumulatorKernel will comunicate with other nodes by sending overlap_requests (PRECEDING_REQUEST, FOLLOWING_REQUEST) which when received and responded to as PRECEDING_RESPONSE and FOLLOWING_RESPONSE
+* 
+* Right before outputting, OverlapAccumulatorKernel will combine preceding_overlaps[x], batches[x] and following_overlaps[x] together to make one batch pushed to the output.
+* The following kernel, will then have in one batch with number of rows (preceding_overlaps[x]->num_rows() + batches[x]->num_rows() + following_overlaps[x]->num_rows()), which is the data necessary to procude a batches[x]->num_rows() worth out final output rows.
+* 
+* This kernel uses ConcatenatingCacheDatas a lot to try to reduce and postpone the materialization of data.
+*/
+
 class OverlapAccumulatorKernel : public distributing_kernel {
 public:
 	OverlapAccumulatorKernel(std::size_t kernel_id, const std::string & queryString,
@@ -119,6 +152,7 @@ public:
 
 	kstatus run() override;
 
+private:
 	void set_overlap_status(bool preceding, int index, std::string status);
 	std::string get_overlap_status(bool preceding, int index);
 	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status);
@@ -132,8 +166,6 @@ public:
 	void prepare_overlap_task(bool preceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size);
 	void send_request(bool preceding, int source_node_index, int target_node_index, int target_batch_index, size_t overlap_size);
 
-
-private:
 	size_t num_batches;
 	int preceding_value;     	   // X PRECEDING
 	int following_value;     		   // Y FOLLOWING
