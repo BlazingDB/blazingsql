@@ -475,7 +475,7 @@ For example, preceding_overlaps[x+1] would be set to INCOMPLETE_OVERLAP_STATUS i
 
 The purpose of OverlapAccumulatorKernel is to ensure that all INCOMPLETE_OVERLAP_STATUS overlaps coming from the previous kernel are COMPLETED by copying from other batches.
 The other purpose is to fill the overlaps of preceding_overlaps[0] and following_overlaps[N] with data that has to come from the neighboring nodes (or make a blank overlap if there is no neighbor)
-The OverlapAccumulatorKernel will comunicate with other nodes by sending overlap_requests (PRECEDING_REQUEST, FOLLOWING_REQUEST) which when received and fulfilled are returned as PRECEDING_FULFILLMENT and FOLLOWING_FULFILLMENT
+The OverlapAccumulatorKernel will comunicate with other nodes by sending overlap_requests (PRECEDING_REQUEST, FOLLOWING_REQUEST) which when received and responded to as PRECEDING_RESPONSE and FOLLOWING_RESPONSE
 
 Right before outputting, OverlapAccumulatorKernel will combine preceding_overlaps[x], batches[x] and following_overlaps[x] together to make one batch pushed to the output.
 The following kernel, will then have in one batch with number of rows (preceding_overlaps[x]->num_rows() + batches[x]->num_rows() + following_overlaps[x]->num_rows()), which is the data necessary to procude a batches[x]->num_rows() worth out final output rows.
@@ -646,7 +646,7 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
 
         } else {
                 //send to node
-            std::string message_type = preceding ? PRECEDING_FULFILLMENT : FOLLOWING_FULFILLMENT;
+            std::string message_type = preceding ? PRECEDING_RESPONSE : FOLLOWING_RESPONSE;
             ral::cache::MetadataDictionary extra_metadata;
             extra_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, message_type);
             extra_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, std::to_string(this->self_node_index));
@@ -686,24 +686,24 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
-void OverlapAccumulatorKernel::fulfillment_receiver(){
+void OverlapAccumulatorKernel::response_receiver(){
     std::vector<std::string> expected_message_ids;
     int messages_expected;
     int total_nodes = context->getTotalNodes();
     if (self_node_index == 0){
         messages_expected = 1;       
         std::string sender_node_id = context->getNode(self_node_index + 1).id();
-        expected_message_ids.push_back(FOLLOWING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
+        expected_message_ids.push_back(FOLLOWING_RESPONSE + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     } else if (self_node_index == total_nodes - 1) {
         messages_expected = 1;
         std::string sender_node_id = context->getNode(self_node_index - 1).id();
-        expected_message_ids.push_back(PRECEDING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
+        expected_message_ids.push_back(PRECEDING_RESPONSE + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     } else {
         messages_expected = 2;
         std::string sender_node_id = context->getNode(self_node_index + 1).id();
-        expected_message_ids.push_back(FOLLOWING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
+        expected_message_ids.push_back(FOLLOWING_RESPONSE + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
         sender_node_id = context->getNode(self_node_index - 1).id();
-        expected_message_ids.push_back(PRECEDING_FULFILLMENT + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
+        expected_message_ids.push_back(PRECEDING_RESPONSE + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     }
     message_receiver(expected_message_ids, messages_expected);
 }
@@ -749,16 +749,16 @@ void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expecte
             prepare_overlap_task(metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST, 
                 source_batch_index, target_node_index, target_batch_index, overlap_size);
             
-        } else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_FULFILLMENT
-                        || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_FULFILLMENT){
+        } else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_RESPONSE
+                        || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_RESPONSE){
 
             int source_node_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX));
             int target_node_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX));
             int target_batch_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX));
-            bool preceding = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_FULFILLMENT;
+            bool preceding = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_RESPONSE;
             std::string overlap_status = metadata.get_value(ral::cache::OVERLAP_STATUS);
 
-            RAL_EXPECTS(target_node_index == self_node_index, "FULFILLMENT message arrived at the wrong destination");
+            RAL_EXPECTS(target_node_index == self_node_index, "RESPONSE message arrived at the wrong destination");
             combine_overlaps(preceding, target_batch_index, std::move(message_cache_data), overlap_status);
                         
         } else {
@@ -899,11 +899,11 @@ kstatus OverlapAccumulatorKernel::run() {
         following_overlap_cache->put(num_batches - 1, std::move(empty_table));
     } 
 
-    BlazingThread fulfillment_receiver_thread, following_request_receiver_thread;
+    BlazingThread response_receiver_thread, following_request_receiver_thread;
     if (total_nodes > 1) {
-        // these need to be different threads because the data coming in from a fulfillment may be necessary to fulfill a request. If its all one thread, it could produce a deadlock
+        // these need to be different threads because the data coming in from a response may be necessary to fulfill a request. If its all one thread, it could produce a deadlock
         // similarly for separating the following_request_receiver and preceding_request_receiver
-        fulfillment_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::fulfillment_receiver, this);
+        response_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::response_receiver, this);
         following_request_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::following_request_receiver, this);
     }
     for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
@@ -956,14 +956,14 @@ kstatus OverlapAccumulatorKernel::run() {
         }
     }
 
-    // the preceding request will be fulfilled by the last batch, so we want to do all the batches before we try to fulfill it
+    // the preceding request will be responded to by the last batch, so we want to do all the batches before we try to respond to it
     preceding_request_receiver();
      
     // lets wait until the receiver threads are done. 
     // When its done, it means we have received overlap requests and have made tasks for them, and
-    // it also means we have received the fulfillments overlap requests we sent out
+    // it also means we have received the reponses to the overlap requests we sent out
     if (total_nodes > 1) {
-        fulfillment_receiver_thread.join();
+        response_receiver_thread.join();
         following_request_receiver_thread.join();
     }
 
@@ -1016,7 +1016,7 @@ first and last elements.
 /* A few words on the efficiency of this algorithm:
 
 This logic that has been implemented has the downside of waiting until all batches are available so that we know the number of batches.
-We also cant push results to the next phase until we know we have fulfilled our obligations to the neighboring nodes.
+We also cant push results to the next phase until we know we have responded to the requests from the neighboring nodes.
 This was done to dramatically simplify the logic. Additionally its not as bad of a performance penalty because the previous kernel which does an 
 order by, also needs to wait until all batches are available before it can do its merge.
 In the future, when we can have CacheData's shared between nodes, then we can revisit this logic to make it more efficient.

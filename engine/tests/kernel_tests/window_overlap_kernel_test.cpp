@@ -369,7 +369,7 @@ TEST_F(WindowOverlapTest, BasicMultiNode_FirstNode) {
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
 	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
-	std::unique_ptr<BlazingTable> expected_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
+	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin() + expected_out.size()-1);
 
     // create and start kernel
@@ -414,7 +414,7 @@ TEST_F(WindowOverlapTest, BasicMultiNode_FirstNode) {
 	precedingCacheMachine->finish();
 	followingCacheMachine->finish();
 
-	// create overlap request and fulfillment from neighbor node
+	// create overlap request and response from neighbor node
 	std::string sender_node_id = std::to_string(self_node_index + 1);
 	std::string message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + sender_node_id;
 
@@ -428,15 +428,15 @@ TEST_F(WindowOverlapTest, BasicMultiNode_FirstNode) {
     request_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, std::to_string(self_node_index));
 	input_message_cache->addToCache(std::move(empty_table), ral::batch::PRECEDING_REQUEST + message_id, true, request_metadata, true);
 
-	// create overlap fulfillment
+	// create overlap response
 	ral::cache::MetadataDictionary metadata;
-	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_FULFILLMENT);
+	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_RESPONSE);
 	metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, sender_node_id);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, batches.size() - 1);
 	metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
 	next_node_overlap->setMetadata(metadata);
-	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_FULFILLMENT + message_id, true);
+	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_RESPONSE + message_id, true);
 	
 	run_thread.join();	
 	
@@ -450,17 +450,17 @@ TEST_F(WindowOverlapTest, BasicMultiNode_FirstNode) {
 		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
 	}
 
-	// get and validate request fulfillment
+	// get and validate request response
 	std::unique_ptr<CacheData> following_request = output_message_cache->pullCacheData();
-	std::unique_ptr<CacheData> request_fulfillment = output_message_cache->pullCacheData();
-	ral::cache::MetadataDictionary request_fulfillment_metadata = request_fulfillment->getMetadata();
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_FULFILLMENT);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> request_fulfillment_table = request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_request_fulfillment_table->view(), request_fulfillment_table->view());
+	std::unique_ptr<CacheData> request_response = output_message_cache->pullCacheData();
+	ral::cache::MetadataDictionary request_response_metadata = request_response->getMetadata();
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_RESPONSE);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> request_response_table = request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_request_response_table->view(), request_response_table->view());
 }
 
 TEST_F(WindowOverlapTest, BasicMultiNode_LastNode) {
@@ -499,7 +499,7 @@ TEST_F(WindowOverlapTest, BasicMultiNode_LastNode) {
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
 	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
-	std::unique_ptr<BlazingTable> expected_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
+	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
 	expected_out.erase(expected_out.begin());
 
     // create and start kernel
@@ -544,7 +544,7 @@ TEST_F(WindowOverlapTest, BasicMultiNode_LastNode) {
 	precedingCacheMachine->finish();
 	followingCacheMachine->finish();
 
-	// create overlap request and fulfillment from neighbor node
+	// create overlap request and response from neighbor node
 	std::string sender_node_id = std::to_string(self_node_index - 1);
 	std::string message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + sender_node_id;
 
@@ -558,15 +558,15 @@ TEST_F(WindowOverlapTest, BasicMultiNode_LastNode) {
     request_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, std::to_string(self_node_index));
 	input_message_cache->addToCache(std::move(empty_table), ral::batch::FOLLOWING_REQUEST + message_id, true, request_metadata, true);
 
-	// create overlap fulfillment
+	// create overlap response
 	ral::cache::MetadataDictionary metadata;
-	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_FULFILLMENT);
+	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_RESPONSE);
 	metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, sender_node_id);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, 0);
 	metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
 	previous_node_overlap->setMetadata(metadata);
-	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_FULFILLMENT + message_id, true);
+	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_RESPONSE + message_id, true);
 	
 	run_thread.join();	
 	
@@ -580,17 +580,17 @@ TEST_F(WindowOverlapTest, BasicMultiNode_LastNode) {
 		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
 	}
 
-	// get and validate request fulfillment
+	// get and validate request response
 	std::unique_ptr<CacheData> following_request = output_message_cache->pullCacheData();
-	std::unique_ptr<CacheData> request_fulfillment = output_message_cache->pullCacheData();
-	ral::cache::MetadataDictionary request_fulfillment_metadata = request_fulfillment->getMetadata();
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_FULFILLMENT);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> request_fulfillment_table = request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_request_fulfillment_table->view(), request_fulfillment_table->view());
+	std::unique_ptr<CacheData> request_response = output_message_cache->pullCacheData();
+	ral::cache::MetadataDictionary request_response_metadata = request_response->getMetadata();
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_RESPONSE);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> request_response_table = request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_request_response_table->view(), request_response_table->view());
 }
 
 
@@ -630,8 +630,8 @@ TEST_F(WindowOverlapTest, BasicMultiNode_MiddleNode) {
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
 	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
-	std::unique_ptr<BlazingTable> expected_following_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
-	std::unique_ptr<BlazingTable> expected_preceding_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
+	std::unique_ptr<BlazingTable> expected_following_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
+	std::unique_ptr<BlazingTable> expected_preceding_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin());
 	expected_out.erase(expected_out.begin() + expected_out.size()-1);
 
@@ -677,7 +677,7 @@ TEST_F(WindowOverlapTest, BasicMultiNode_MiddleNode) {
 	precedingCacheMachine->finish();
 	followingCacheMachine->finish();
 
-	// create overlap request and fulfillment from neighbor node
+	// create overlap request and response from neighbor node
 	std::string previous_node_id = std::to_string(self_node_index - 1);
 	std::string next_node_id = std::to_string(self_node_index + 1);
 	std::string previous_node_message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + previous_node_id;
@@ -702,25 +702,25 @@ TEST_F(WindowOverlapTest, BasicMultiNode_MiddleNode) {
 	empty_table =ral::utilities::create_empty_table(expected_out[0]->toBlazingTableView());
 	input_message_cache->addToCache(std::move(empty_table), ral::batch::PRECEDING_REQUEST + next_node_message_id, true, preceding_request_metadata, true);
 
-	// create overlap fulfillment
-	ral::cache::MetadataDictionary preceding_fulfillment_metadata;
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_FULFILLMENT);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, next_node_id);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, 0);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
-	previous_node_overlap->setMetadata(preceding_fulfillment_metadata);
-	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_FULFILLMENT + previous_node_message_id, true);
+	// create overlap response
+	ral::cache::MetadataDictionary preceding_response_metadata;
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_RESPONSE);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, next_node_id);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, 0);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
+	previous_node_overlap->setMetadata(preceding_response_metadata);
+	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_RESPONSE + previous_node_message_id, true);
 
-	// create overlap fulfillment
-	ral::cache::MetadataDictionary following_fulfillment_metadata;
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_FULFILLMENT);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, previous_node_id);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, batches.size() - 1);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
-	next_node_overlap->setMetadata(following_fulfillment_metadata);
-	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_FULFILLMENT + next_node_message_id, true);
+	// create overlap response
+	ral::cache::MetadataDictionary following_response_metadata;
+	following_response_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_RESPONSE);
+	following_response_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, previous_node_id);
+	following_response_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
+	following_response_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, batches.size() - 1);
+	following_response_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
+	next_node_overlap->setMetadata(following_response_metadata);
+	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_RESPONSE + next_node_message_id, true);
 	
 	run_thread.join();	
 	
@@ -734,38 +734,37 @@ TEST_F(WindowOverlapTest, BasicMultiNode_MiddleNode) {
 		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
 	}
 
-	// get and validate request fulfillment
-	// get and validate request fulfillment
-	std::unique_ptr<CacheData> preceding_request_fulfillment, following_request_fulfillment;
-	ral::cache::MetadataDictionary preceding_request_fulfillment_metadata, following_request_fulfillment_metadata;
+	// get and validate request response
+	std::unique_ptr<CacheData> preceding_request_response, following_request_response;
+	ral::cache::MetadataDictionary preceding_request_response_metadata, following_request_response_metadata;
 
 	for (int i = 0; i < 4; i++){
 		std::unique_ptr<CacheData> request = output_message_cache->pullCacheData();
 		ral::cache::MetadataDictionary metadata = request->getMetadata();
-		if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::PRECEDING_FULFILLMENT){
-			preceding_request_fulfillment = std::move(request);
-			preceding_request_fulfillment_metadata = metadata;
-		} else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::FOLLOWING_FULFILLMENT){
-			following_request_fulfillment = std::move(request);
-			following_request_fulfillment_metadata = metadata;
+		if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::PRECEDING_RESPONSE){
+			preceding_request_response = std::move(request);
+			preceding_request_response_metadata = metadata;
+		} else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::FOLLOWING_RESPONSE){
+			following_request_response = std::move(request);
+			following_request_response_metadata = metadata;
 		}
 	}
 
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_FULFILLMENT);
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), previous_node_id);
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> preceding_request_fulfillment_table = preceding_request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_preceding_request_fulfillment_table->view(), preceding_request_fulfillment_table->view());
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_RESPONSE);
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), previous_node_id);
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> preceding_request_response_table = preceding_request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_preceding_request_response_table->view(), preceding_request_response_table->view());
 
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_FULFILLMENT);
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), next_node_id);
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> following_request_fulfillment_table = following_request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_following_request_fulfillment_table->view(), following_request_fulfillment_table->view());
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_RESPONSE);
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), next_node_id);
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> following_request_response_table = following_request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_following_request_response_table->view(), following_request_response_table->view());
 
 }
 
@@ -805,7 +804,7 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_FirstNode) {
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
 	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
-	std::unique_ptr<BlazingTable> expected_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
+	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin() + expected_out.size()-1);
 
     // create and start kernel
@@ -850,7 +849,7 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_FirstNode) {
 	precedingCacheMachine->finish();
 	followingCacheMachine->finish();
 
-	// create overlap request and fulfillment from neighbor node
+	// create overlap request and response from neighbor node
 	std::string sender_node_id = std::to_string(self_node_index + 1);
 	std::string message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + sender_node_id;
 
@@ -864,15 +863,15 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_FirstNode) {
     request_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, std::to_string(self_node_index));
 	input_message_cache->addToCache(std::move(empty_table), ral::batch::PRECEDING_REQUEST + message_id, true, request_metadata, true);
 
-	// create overlap fulfillment
+	// create overlap response
 	ral::cache::MetadataDictionary metadata;
-	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_FULFILLMENT);
+	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_RESPONSE);
 	metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, sender_node_id);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, batches.size() - 1);
 	metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
 	next_node_overlap->setMetadata(metadata);
-	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_FULFILLMENT + message_id, true);
+	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_RESPONSE + message_id, true);
 	
 	run_thread.join();	
 	
@@ -886,17 +885,17 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_FirstNode) {
 		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
 	}
 
-	// get and validate request fulfillment
+	// get and validate request response
 	std::unique_ptr<CacheData> following_request = output_message_cache->pullCacheData();
-	std::unique_ptr<CacheData> request_fulfillment = output_message_cache->pullCacheData();
-	ral::cache::MetadataDictionary request_fulfillment_metadata = request_fulfillment->getMetadata();
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_FULFILLMENT);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> request_fulfillment_table = request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_request_fulfillment_table->view(), request_fulfillment_table->view());
+	std::unique_ptr<CacheData> request_response = output_message_cache->pullCacheData();
+	ral::cache::MetadataDictionary request_response_metadata = request_response->getMetadata();
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_RESPONSE);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> request_response_table = request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_request_response_table->view(), request_response_table->view());
 }
 
 TEST_F(WindowOverlapTest, BigWindowMultiNode_LastNode) {
@@ -935,7 +934,7 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_LastNode) {
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
 	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
-	std::unique_ptr<BlazingTable> expected_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
+	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
 	expected_out.erase(expected_out.begin());
 
     // create and start kernel
@@ -980,7 +979,7 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_LastNode) {
 	precedingCacheMachine->finish();
 	followingCacheMachine->finish();
 
-	// create overlap request and fulfillment from neighbor node
+	// create overlap request and response from neighbor node
 	std::string sender_node_id = std::to_string(self_node_index - 1);
 	std::string message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + sender_node_id;
 
@@ -994,15 +993,15 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_LastNode) {
     request_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, std::to_string(self_node_index));
 	input_message_cache->addToCache(std::move(empty_table), ral::batch::FOLLOWING_REQUEST + message_id, true, request_metadata, true);
 
-	// create overlap fulfillment
+	// create overlap response
 	ral::cache::MetadataDictionary metadata;
-	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_FULFILLMENT);
+	metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_RESPONSE);
 	metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, sender_node_id);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
 	metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, 0);
 	metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
 	previous_node_overlap->setMetadata(metadata);
-	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_FULFILLMENT + message_id, true);
+	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_RESPONSE + message_id, true);
 	
 	run_thread.join();	
 	
@@ -1016,20 +1015,20 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_LastNode) {
 		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
 	}
 
-	// get and validate request fulfillment
-	std::unique_ptr<CacheData> request_fulfillment = output_message_cache->pullCacheData();
-	ral::cache::MetadataDictionary request_fulfillment_metadata = request_fulfillment->getMetadata();
-	if (request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) != ral::batch::FOLLOWING_FULFILLMENT){
-		request_fulfillment = output_message_cache->pullCacheData();
-		request_fulfillment_metadata = request_fulfillment->getMetadata();
+	// get and validate request response
+	std::unique_ptr<CacheData> request_response = output_message_cache->pullCacheData();
+	ral::cache::MetadataDictionary request_response_metadata = request_response->getMetadata();
+	if (request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) != ral::batch::FOLLOWING_RESPONSE){
+		request_response = output_message_cache->pullCacheData();
+		request_response_metadata = request_response->getMetadata();
 	}
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_FULFILLMENT);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
-	EXPECT_EQ(request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> request_fulfillment_table = request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_request_fulfillment_table->view(), request_fulfillment_table->view());
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_RESPONSE);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), sender_node_id);
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
+	EXPECT_EQ(request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> request_response_table = request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_request_response_table->view(), request_response_table->view());
 }
 
 
@@ -1070,8 +1069,8 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_MiddleNode) {
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
 	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
-	std::unique_ptr<BlazingTable> expected_following_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
-	std::unique_ptr<BlazingTable> expected_preceding_request_fulfillment_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
+	std::unique_ptr<BlazingTable> expected_following_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
+	std::unique_ptr<BlazingTable> expected_preceding_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin());
 	expected_out.erase(expected_out.begin() + expected_out.size()-1);
 
@@ -1117,7 +1116,7 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_MiddleNode) {
 	precedingCacheMachine->finish();
 	followingCacheMachine->finish();
 
-	// create overlap request and fulfillment from neighbor node
+	// create overlap request and response from neighbor node
 	std::string previous_node_id = std::to_string(self_node_index - 1);
 	std::string next_node_id = std::to_string(self_node_index + 1);
 	std::string previous_node_message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + previous_node_id;
@@ -1142,25 +1141,25 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_MiddleNode) {
 	empty_table =ral::utilities::create_empty_table(expected_out[0]->toBlazingTableView());
 	input_message_cache->addToCache(std::move(empty_table), ral::batch::PRECEDING_REQUEST + next_node_message_id, true, preceding_request_metadata, true);
 
-	// create overlap fulfillment
-	ral::cache::MetadataDictionary preceding_fulfillment_metadata;
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_FULFILLMENT);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, next_node_id);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, 0);
-	preceding_fulfillment_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
-	previous_node_overlap->setMetadata(preceding_fulfillment_metadata);
-	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_FULFILLMENT + previous_node_message_id, true);
+	// create overlap response
+	ral::cache::MetadataDictionary preceding_response_metadata;
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::PRECEDING_RESPONSE);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, next_node_id);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, 0);
+	preceding_response_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
+	previous_node_overlap->setMetadata(preceding_response_metadata);
+	input_message_cache->addCacheData(std::move(previous_node_overlap), ral::batch::PRECEDING_RESPONSE + previous_node_message_id, true);
 
-	// create overlap fulfillment
-	ral::cache::MetadataDictionary following_fulfillment_metadata;
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_FULFILLMENT);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, previous_node_id);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, batches.size() - 1);
-	following_fulfillment_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
-	next_node_overlap->setMetadata(following_fulfillment_metadata);
-	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_FULFILLMENT + next_node_message_id, true);
+	// create overlap response
+	ral::cache::MetadataDictionary following_response_metadata;
+	following_response_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, ral::batch::FOLLOWING_RESPONSE);
+	following_response_metadata.add_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX, previous_node_id);
+	following_response_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, self_node_index);
+	following_response_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, batches.size() - 1);
+	following_response_metadata.add_value(ral::cache::OVERLAP_STATUS, ral::batch::DONE_OVERLAP_STATUS);
+	next_node_overlap->setMetadata(following_response_metadata);
+	input_message_cache->addCacheData(std::move(next_node_overlap), ral::batch::FOLLOWING_RESPONSE + next_node_message_id, true);
 	
 	run_thread.join();	
 	
@@ -1176,37 +1175,37 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_MiddleNode) {
 
 	std::string self_node_message_id = std::to_string(context->getContextToken()) + "_" + std::to_string(overlap_kernel->get_id()) + "_" + std::to_string(self_node_index);
 
-	// get and validate request fulfillment
-	std::unique_ptr<CacheData> preceding_request_fulfillment, following_request_fulfillment;
-	ral::cache::MetadataDictionary preceding_request_fulfillment_metadata, following_request_fulfillment_metadata;
+	// get and validate request response
+	std::unique_ptr<CacheData> preceding_request_response, following_request_response;
+	ral::cache::MetadataDictionary preceding_request_response_metadata, following_request_response_metadata;
 
 	for (int i = 0; i < 4; i++){
 		std::unique_ptr<CacheData> request = output_message_cache->pullCacheData();
 		ral::cache::MetadataDictionary metadata = request->getMetadata();
-		if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::PRECEDING_FULFILLMENT){
-			preceding_request_fulfillment = std::move(request);
-			preceding_request_fulfillment_metadata = metadata;
-		} else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::FOLLOWING_FULFILLMENT){
-			following_request_fulfillment = std::move(request);
-			following_request_fulfillment_metadata = metadata;
+		if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::PRECEDING_RESPONSE){
+			preceding_request_response = std::move(request);
+			preceding_request_response_metadata = metadata;
+		} else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::FOLLOWING_RESPONSE){
+			following_request_response = std::move(request);
+			following_request_response_metadata = metadata;
 		}
 	}
 
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_FULFILLMENT);
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), previous_node_id);
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
-	EXPECT_EQ(preceding_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> preceding_request_fulfillment_table = preceding_request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_preceding_request_fulfillment_table->view(), preceding_request_fulfillment_table->view());
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::PRECEDING_RESPONSE);
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), previous_node_id);
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(0));
+	EXPECT_EQ(preceding_request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> preceding_request_response_table = preceding_request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_preceding_request_response_table->view(), preceding_request_response_table->view());
 
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_FULFILLMENT);
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), next_node_id);
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
-	EXPECT_EQ(following_request_fulfillment_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-	std::unique_ptr<BlazingTable> following_request_fulfillment_table = following_request_fulfillment->decache();
-	cudf::test::expect_tables_equivalent(expected_following_request_fulfillment_table->view(), following_request_fulfillment_table->view());
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE), ral::batch::FOLLOWING_RESPONSE);
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX), std::to_string(self_node_index));
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX), next_node_id);
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX), std::to_string(batches.size() - 1));
+	EXPECT_EQ(following_request_response_metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+	std::unique_ptr<BlazingTable> following_request_response_table = following_request_response->decache();
+	cudf::test::expect_tables_equivalent(expected_following_request_response_table->view(), following_request_response_table->view());
 
 }
 

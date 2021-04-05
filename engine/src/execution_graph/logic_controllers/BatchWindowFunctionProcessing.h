@@ -74,8 +74,8 @@ const std::string FOLLOWING_OVERLAP_TYPE="following";
 const std::string BOTH_OVERLAP_TYPE="both_overlaps";
 const std::string PRECEDING_REQUEST="preceding_request";
 const std::string FOLLOWING_REQUEST="following_request";
-const std::string PRECEDING_FULFILLMENT="preceding_fulfillment";
-const std::string FOLLOWING_FULFILLMENT="following_fulfillment";
+const std::string PRECEDING_RESPONSE="preceding_response";
+const std::string FOLLOWING_RESPONSE="following_response";
 
 class OverlapGeneratorKernel : public kernel {
 public:
@@ -124,7 +124,7 @@ public:
 	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status);
 	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data, std::string overlap_status);
 
-	void fulfillment_receiver();
+	void response_receiver();
 	void preceding_request_receiver();
 	void following_request_receiver();
 	void message_receiver(std::vector<std::string> expected_message_ids, int messages_expected);
