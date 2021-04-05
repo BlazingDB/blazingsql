@@ -156,5 +156,19 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
                                            "holis");
 }
 
+TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
+  ral::io::sql_info sql;
+  sql.schema = "/tmp/db.sqlite3";
+  sql.table = "prueba";
+  sql.table_filter = "";
+  sql.table_batch_size = 2000;
 
-// TODO sqlite percy
+  auto postgresql_provider =
+      std::make_shared<ral::io::sqlite_data_provider>(sql);
+
+  ral::io::postgresql_parser parser;
+  ral::io::Schema schema;
+  auto handle = postgresql_provider->get_next(true);
+
+  parser.parse_schema(handle, schema);
+}
