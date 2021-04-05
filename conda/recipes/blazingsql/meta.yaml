@@ -25,7 +25,7 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
-        - google-cloud-cpp 1.25.0
+        - google-cloud-cpp >=1.16.0
         - nlohmann_json
         - cppzmq
         - python
@@ -59,6 +59,7 @@ test:
     requires:
         - cudatoolkit {{ cuda_version }}.*
         - gtest 1.10
+        - nlohmann_json
     imports:
         - cio
 
