@@ -101,45 +101,35 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select count(distinct(o_custkey)), avg(o_totalprice),
                 (o_orderkey + o_custkey) as num from orders
                 where o_custkey < 100 group by o_custkey, o_orderkey"""
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1406
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_05"
             query = """select count(distinct(o_custkey)), max(o_totalprice),
                     min(o_totalprice), avg(o_totalprice)
                     from orders group by o_custkey"""
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1407
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    0.01,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                0.01,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_06"
             query = """select n_nationkey, count(distinct(
@@ -162,23 +152,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select count(distinct(o_orderdate)), count(distinct(o_custkey)),
                     count(distinct(o_totalprice)), sum(o_orderkey)
                     from orders group by o_custkey"""
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1408
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = 'TEST_08'
             query = """select COUNT(DISTINCT(n.n_nationkey)),
@@ -233,28 +218,24 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # Different number of rows blzSQLresult: 5 PyDrill result: 25
-            # Different number of rows blzSQLresult: 5 PySpark result: 25
-            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1326
-            # queryId = 'TEST_11'
-            # query = """select r.r_regionkey, n.n_nationkey,
-            #         COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
-            #         SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
-            #         left outer join region as r on n.n_nationkey = r.r_regionkey
-            #         GROUP BY r.r_regionkey, n.n_nationkey"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     print_result=True,
-            # )
+            queryId = 'TEST_11'
+            query = """select r.r_regionkey, n.n_nationkey,
+                    COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
+                    SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
+                    left outer join region as r on n.n_nationkey = r.r_regionkey
+                    GROUP BY r.r_regionkey, n.n_nationkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_12"
             query = """select n1.n_regionkey, n2.n_nationkey,
