@@ -12,6 +12,7 @@
 - #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
 - #1331 Added flag to enable null e2e testing
+- #1418 Adding support for docker image
 - #1419 Added concat cache machine timeout 
 - #1349 Add e2e test for Hive Partitioned Data
 
@@ -39,7 +40,7 @@
 - #1416 Fix full join when both tables contains nulls
 - #1423 Fix temporary directory for hive partition test
 - #1351 Fixed 'count distinct' related issues
-
+- #1425 Fix for new joins API
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 

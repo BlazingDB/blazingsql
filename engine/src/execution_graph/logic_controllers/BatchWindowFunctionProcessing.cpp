@@ -109,8 +109,6 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
                 std::unique_ptr<cudf::table> left_table = std::make_unique<cudf::table>(std::move(keys_grouped));
 
                 // Let's get all the necessary params for the join
-                std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
-
                 // we just want the key columns, not the values column (which is the last column)
                 std::vector<cudf::size_type> left_column_indices(left_table->num_columns() - 1);
                 std::iota(left_column_indices.begin(), left_column_indices.end(), 0);
@@ -119,11 +117,11 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
                 std::iota(right_column_indices.begin(), right_column_indices.end(), 0);
 
                 std::unique_ptr<cudf::table> join_table = cudf::inner_join(
-                                                                left_table->view(),
-                                                                partitioned_table_view,
-                                                                left_column_indices,
-                                                                right_column_indices,
-                                                                columns_in_common);
+                                                            left_table->view(),
+                                                            partitioned_table_view,
+                                                            left_column_indices,
+                                                            right_column_indices
+                                                            );
 
                 // Because the values column is unordered, we want to sort it
                 std::vector<cudf::null_order> null_orders(join_table->num_columns(), cudf::null_order::AFTER);
