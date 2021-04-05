@@ -255,7 +255,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_12"
             query = """select CONCAT(c_mktsegment, ': ', c_custkey, ' - ', c_name)
                     from customer
-                    order by c_mktsegment, c_custkey limit 50"""
+                    where c_custkey > 99 and c_custkey < 1000
+                    order by c_mktsegment, c_custkey limit 200"""
             runTest.run_query(
                 bc,
                 drill,
@@ -296,7 +297,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     where c.c_custkey < 10"""
             runTest.run_query(
                 bc,
-                drill,
+                spark,
                 query,
                 queryId,
                 queryType,
