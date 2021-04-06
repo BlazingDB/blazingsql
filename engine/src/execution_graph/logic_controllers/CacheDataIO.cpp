@@ -71,5 +71,10 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 	}
 }
 
+void CacheDataIO::set_names(const std::vector<std::string> & names) {
+	this->schema.set_names(names);
+}
+
+
 } // namespace cache
 } // namespace ral

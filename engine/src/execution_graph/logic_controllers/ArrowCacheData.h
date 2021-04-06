@@ -15,8 +15,7 @@ public:
 	* Constructor
 	* @param table The BlazingTable that is moved into the CacheData.
 	*/
-	ArrowCacheData(std::unique_ptr<arrow::Table> table, ral::io::Schema schema)
-		: CacheData(CacheDataType::ARROW, schema.get_names(), schema.get_data_types(), table->num_rows()), data{std::move(table)} {}
+	ArrowCacheData(std::unique_ptr<arrow::Table> table, ral::io::Schema schema);
 
 // 	/**
 // 	* Constructor
@@ -34,9 +33,7 @@ public:
 	* calling decache on them.
 	* @return The BlazingTable that was used to construct this CacheData.
 	*/
-	std::unique_ptr<ral::frame::BlazingTable> decache() override {
-		return std::make_unique<ral::frame::BlazingTable>(std::move(cudf::from_arrow(*data)), this->col_names);
-	}
+	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
 // 	/**
 // 	* Get the amount of GPU memory consumed by this CacheData
@@ -57,7 +54,7 @@ public:
 	/**
 	* Destructor
 	*/
-	virtual ~ArrowCacheData() {}
+	virtual ~ArrowCacheData();
 
 // 	/**
 // 	* Get a ral::frame::BlazingTableView of the underlying data.
