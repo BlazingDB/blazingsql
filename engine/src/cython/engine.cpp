@@ -120,6 +120,22 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 	}
 }
 
+std::string runGeneratePhysicalGraph(uint32_t masterIndex,
+                                     std::vector<std::string> worker_ids,
+                                     int32_t ctxToken,
+                                     std::string query) {
+    using blazingdb::manager::Context;
+    using blazingdb::transport::Node;
+
+    std::vector<Node> contextNodes;
+    for (const auto &worker_id : worker_ids) {
+        contextNodes.emplace_back(worker_id);
+    }
+    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}};
+
+    return get_physical_plan(query, queryContext);
+}
+
 std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
