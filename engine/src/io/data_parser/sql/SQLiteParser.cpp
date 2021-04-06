@@ -19,10 +19,6 @@
 
 #include "Util/StringUtil.h"
 
-#include <cudf/io/parquet.hpp>
-#include <cudf_test/column_wrapper.hpp>
-
-
 namespace ral {
 namespace io {
 
@@ -166,9 +162,13 @@ read_sqlite_v2(sqlite3_stmt *stmt,
         }
       });
 
+  std::size_t i = 0;
   while ((err = sqlite3_step(stmt)) == SQLITE_ROW) {
     for (const std::size_t projection_index : column_indices) {
       cudf::type_id cudf_type_id = cudf_types[projection_index];
+
+      const bool isNull =
+          sqlite3_column_type(stmt, projection_index) == SQLITE_NULL;
 
       switch (cudf_type_id) {
       case cudf::type_id::INT8: {
@@ -223,11 +223,156 @@ read_sqlite_v2(sqlite3_stmt *stmt,
       }
       default: throw std::runtime_error("Invalid allocation for cudf type id");
       }
+      if (isNull) {
+        cudf::set_bit_unsafe(null_masks[projection_index].data(), i);
+      }
+      i++;
     }
   }
 
   cudf::io::table_with_metadata tableWithMetadata;
+  std::vector<std::unique_ptr<cudf::column>> cudf_columns;
+  cudf_columns.resize(column_count);
+  for (const std::size_t projection_index : column_indices) {
+    cudf::type_id cudf_type_id = cudf_types[projection_index];
+    switch (cudf_type_id) {
+    case cudf::type_id::INT8: {
+      std::vector<std::int8_t> *vector =
+          reinterpret_cast<std::vector<std::int8_t> *>(
+              host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::INT16: {
+      std::vector<std::int16_t> *vector =
+          reinterpret_cast<std::vector<std::int16_t> *>(
+              host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::INT32: {
+      std::vector<std::int32_t> *vector =
+          reinterpret_cast<std::vector<std::int32_t> *>(
+              host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::INT64: {
+      std::vector<std::int64_t> *vector =
+          reinterpret_cast<std::vector<std::int64_t> *>(
+              host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::FLOAT32:
+    case cudf::type_id::DECIMAL32: {
+      std::vector<float> *vector =
+          reinterpret_cast<std::vector<float> *>(host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::FLOAT64:
+    case cudf::type_id::DECIMAL64: {
+      std::vector<double> *vector =
+          reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::BOOL8: {
+      std::vector<std::uint8_t> *vector =
+          reinterpret_cast<std::vector<std::uint8_t> *>(
+              host_cols[projection_index]);
+      cudf_columns[projection_index] = build_fixed_width_cudf_col(
+          nRows, vector, null_masks[projection_index], cudf_type_id);
+      break;
+    }
+    case cudf::type_id::STRING: {
+      cudf_string_col *string_col =
+          reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+      cudf_columns[projection_index] =
+          build_str_cudf_col(string_col, null_masks[projection_index]);
+      break;
+    }
+    default: throw std::runtime_error("Invalid allocation for cudf type id");
+    }
+  }
 
+  tableWithMetadata.tbl =
+      std::make_unique<cudf::table>(std::move(cudf_columns));
+
+  for (const std::size_t projection_index : column_indices) {
+    cudf::type_id cudf_type_id = cudf_types[projection_index];
+    switch (cudf_type_id) {
+    case cudf::type_id::INT8: {
+      delete reinterpret_cast<std::vector<std::int8_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::INT16: {
+      delete reinterpret_cast<std::vector<std::int16_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::INT32: {
+      delete reinterpret_cast<std::vector<std::int32_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::INT64: {
+      delete reinterpret_cast<std::vector<std::int64_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT8: {
+      delete reinterpret_cast<std::vector<std::uint8_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT16: {
+      delete reinterpret_cast<std::vector<std::uint16_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT32: {
+      delete reinterpret_cast<std::vector<std::uint32_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::UINT64: {
+      delete reinterpret_cast<std::vector<std::uint64_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::FLOAT32:
+    case cudf::type_id::DECIMAL32: {
+      delete reinterpret_cast<std::vector<float> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::FLOAT64:
+    case cudf::type_id::DECIMAL64: {
+      delete reinterpret_cast<std::vector<double> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::BOOL8: {
+      delete reinterpret_cast<std::vector<std::uint8_t> *>(
+          host_cols[projection_index]);
+      break;
+    }
+    case cudf::type_id::STRING: {
+      delete reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+      break;
+    }
+    default: throw std::runtime_error("Invalid cudf type id");
+    }
+  }
   return tableWithMetadata;
 }
 
@@ -375,9 +520,9 @@ read_sqlite(sqlite3_stmt *stmt, const std::vector<std::string> types) {
       uint32_t *valids_buff = (uint32_t *) host_valids[col].data();
       std::vector<int32_t> cols(cols_buff, cols_buff + total_rows);
       std::vector<uint32_t> valids(valids_buff, valids_buff + total_rows);
-      cudf::test::fixed_width_column_wrapper<int32_t> vals(
-          cols.begin(), cols.end(), valids.begin());
-      cudf_cols[col] = std::move(vals.release());
+      //cudf::test::fixed_width_column_wrapper<int32_t> vals(
+      //cols.begin(), cols.end(), valids.begin());
+      //cudf_cols[col] = std::move(vals.release());
     } break;
     case cudf::type_id::INT64: {
 
@@ -458,9 +603,9 @@ read_sqlite(sqlite3_stmt *stmt, const std::vector<std::string> types) {
       uint32_t *valids_buff = (uint32_t *) host_valids[col].data();
       std::vector<uint32_t> valids(valids_buff, valids_buff + total_rows);
 
-      cudf::test::strings_column_wrapper vals(
-          cols.begin(), cols.end(), valids.begin());
-      cudf_cols[col] = std::move(vals.release());
+      //cudf::test::strings_column_wrapper vals(
+      //cols.begin(), cols.end(), valids.begin());
+      //cudf_cols[col] = std::move(vals.release());
     } break;
     case cudf::type_id::LIST: {
 

@@ -158,17 +158,59 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
 
 TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   ral::io::sql_info sql;
-  sql.schema = "/tmp/db.sqlite3";
+  sql.schema = "/blazingsql/db.sqlite3";
   sql.table = "prueba";
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
-  auto postgresql_provider =
+  auto sqlite_provider =
       std::make_shared<ral::io::sqlite_data_provider>(sql);
 
-  ral::io::postgresql_parser parser;
+  ral::io::sqlite_parser parser;
   ral::io::Schema schema;
-  auto handle = postgresql_provider->get_next(true);
+  auto handle = sqlite_provider->get_next(true);
 
   parser.parse_schema(handle, schema);
+
+  std::unordered_map<cudf::type_id, const char *> dt2name{
+      {cudf::type_id::INT8, "INT8"},
+      {cudf::type_id::INT16, "INT16"},
+      {cudf::type_id::INT32, "INT32"},
+      {cudf::type_id::INT64, "INT64"},
+      {cudf::type_id::UINT8, "UINT8"},
+      {cudf::type_id::UINT16, "UINT16"},
+      {cudf::type_id::UINT32, "UINT32"},
+      {cudf::type_id::UINT64, "UINT64"},
+      {cudf::type_id::FLOAT32, "FLOAT32"},
+      {cudf::type_id::FLOAT64, "FLOAT64"},
+      {cudf::type_id::DECIMAL64, "DECIMAL64"},
+      {cudf::type_id::BOOL8, "BOOL8"},
+      {cudf::type_id::STRING, "STRING"},
+  };
+
+  std::cout << "SCHEMA" << std::endl
+            << "  length = " << schema.get_num_columns() << std::endl
+            << "  columns" << std::endl;
+  for (std::size_t i = 0; i < schema.get_num_columns(); i++) {
+    const std::string &name = schema.get_name(i);
+    std::cout << "    " << name << ": ";
+    try {
+      const std::string dtypename = dt2name[schema.get_dtype(i)];
+      std::cout << dtypename << std::endl;
+    } catch (std::exception &) {
+      std::cout << static_cast<int>(schema.get_dtype(i)) << std::endl;
+    }
+  }
+
+  auto num_cols = schema.get_num_columns();
+
+  std::vector<int> column_indices(num_cols);
+  std::iota(column_indices.begin(), column_indices.end(), 0);
+
+  std::vector<cudf::size_type> row_groups;
+  auto table = parser.parse_batch(handle, schema, column_indices, row_groups);
+
+  std::cout << "TABLE" << std::endl
+            << " ncolumns =  " << table->num_columns() << std::endl
+            << " nrows =  " << table->num_rows() << std::endl;
 }
