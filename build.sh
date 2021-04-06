@@ -130,6 +130,23 @@ fi
 
 ################################################################################
 
+#if buildAll || hasArg engine; then
+    echo "### Building abseil"
+    git clone https://github.com/abseil/abseil-cpp
+    cd abseil-cpp/
+    git checkout 20200225.2
+    mkdir -p build
+    cd build
+    cmake ${CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+          -DCMAKE_PREFIX_PATH=${INSTALL_PREFIX} \
+          -DCMAKE_INSTALL_LIBDIR=lib \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=ON \
+          -GNinja \
+          ..
+    ninja install
+#fi
+
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
     if hasArg disable-aws-s3; then
         echo "AWS S3 thirdparty won't be downloaded"
@@ -164,6 +181,8 @@ if hasArg update; then
 fi
 
 ################################################################################
+
+
 
 if buildAll || hasArg io; then
     disabled_aws_s3_flag=""
@@ -236,6 +255,7 @@ if buildAll || hasArg libengine; then
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi
+
 
 if buildAll || hasArg engine; then
 
