@@ -1,7 +1,7 @@
 /*
  * Copyright 2021 BlazingDB, Inc.
  *     Copyright 2021 Cristhian Alberto Gonzales Castillo
- * <cristhian@blazingdb.com>
+ * <cristhian@voltrondata.com>
  */
 
 #include <array>
@@ -34,8 +34,7 @@ static inline cudf::io::table_with_metadata
 read_postgresql(const std::shared_ptr<PGresult> &pgResult,
                 const std::vector<int> &column_indices,
                 const std::vector<cudf::type_id> &cudf_types,
-                const std::vector<std::size_t> &column_bytes,
-                std::size_t total_rows) {
+                const std::vector<std::size_t> &column_bytes) {
   const std::size_t resultNfields = PQnfields(pgResult.get());
   if (resultNfields != column_indices.size() ||
       resultNfields != column_bytes.size() ||
@@ -516,8 +515,7 @@ postgresql_parser::parse_batch(data_handle handle,
     auto tableWithMetadata = read_postgresql(pgResult,
                                              column_indices,
                                              schema.get_dtypes(),
-                                             handle.sql_handle.column_bytes,
-                                             handle.sql_handle.row_count);
+                                             handle.sql_handle.column_bytes);
     tableWithMetadata.metadata.column_names = columnNames;
 
     auto table = std::move(tableWithMetadata.tbl);
@@ -530,13 +528,12 @@ postgresql_parser::parse_batch(data_handle handle,
 
 void postgresql_parser::parse_schema(data_handle handle, Schema &schema) {
   const bool is_in_file = true;
-  std::size_t file_index = 0;
   const std::size_t columnsLength = handle.sql_handle.column_names.size();
   for (std::size_t i = 0; i < columnsLength; i++) {
     const std::string &column_type = handle.sql_handle.column_types.at(i);
     cudf::type_id type = MapPostgreSQLTypeName(column_type);
     const std::string &name = handle.sql_handle.column_names.at(i);
-    schema.add_column(name, type, file_index++, is_in_file);
+    schema.add_column(name, type, i, is_in_file);
   }
 }
 

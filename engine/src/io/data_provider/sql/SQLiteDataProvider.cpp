@@ -3,7 +3,7 @@
  *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
  */
 
-// NOTES 
+// NOTES
 /*
   The JDBC API throws three different exceptions:
 
@@ -106,7 +106,7 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 *conn,
                                             const std::string &table)
 {
   // TODO percy error handling
-  
+
   sqlite_columns_info ret;
   std::string query = "PRAGMA table_info("+table+")";
   auto A = execute_sqlite_query(conn, query);
@@ -120,7 +120,7 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 *conn,
 
     const unsigned char *type = sqlite3_column_text(stmt, 2);
     std::string col_type((char*)type);
-    
+
     size_t max_bytes = 8; // TODO percy check max scalar bytes from sqlite
     if (sqlite_is_string_col_type(col_type)) {
       //max_bytes = res->getUInt64("CHARACTER_MAXIMUM_LENGTH");
@@ -181,7 +181,9 @@ void sqlite_data_provider::reset() {
 data_handle sqlite_data_provider::get_next(bool) {
   std::string query;
 
-  query = "SELECT * FROM " + this->sql.table + " LIMIT " + std::to_string(this->batch_position) + " OFFSET " + std::to_string(this->batch_position);
+  query = "SELECT * FROM " + this->sql.table + " LIMIT " +
+          std::to_string(this->batch_position) + " OFFSET " +
+          std::to_string(this->batch_position);
   this->batch_position += this->sql.table_batch_size;
 
   std::cout << "query: " << query << "\n";
@@ -195,8 +197,8 @@ data_handle sqlite_data_provider::get_next(bool) {
   ret.sql_handle.sqlite_statement = stmt;
   // TODO percy add columns to uri.query
   ret.uri = Uri("mysql", "", this->sql.schema + "/" + this->sql.table, "", "");
-//  std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
-//  std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
+  //  std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
+  //  std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
   return ret;
 }
 
