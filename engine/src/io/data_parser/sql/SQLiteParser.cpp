@@ -82,8 +82,13 @@ read_sqlite_v2(sqlite3_stmt *stmt,
                const std::vector<int> &column_indices,
                const std::vector<cudf::type_id> &cudf_types) {
   const std::string sqlfPart{sqlite3_expanded_sql(stmt)};
+  std::string::size_type fPos = sqlfPart.find("from");
+  if (fPos == std::string::npos) {
+    fPos = sqlfPart.find("FROM");
+  }
+
   std::ostringstream oss;
-  oss << "select count(*) " << sqlfPart.substr(sqlfPart.find("from"));
+  oss << "select count(*) " << sqlfPart.substr(fPos);
   const std::string sqlnRows = oss.str();
 
   std::size_t nRows = 0;
@@ -209,16 +214,20 @@ read_sqlite_v2(sqlite3_stmt *stmt,
         break;
       }
       case cudf::type_id::STRING: {
-        const unsigned char *text = sqlite3_column_text(stmt, projection_index);
-        const std::string value{reinterpret_cast<const char *>(text)};
-
         cudf_string_col *string_col =
             reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+        if (isNull) {
+          string_col->offsets.push_back(string_col->offsets.back());
+        } else {
+          const unsigned char *text =
+              sqlite3_column_text(stmt, projection_index);
+          const std::string value{reinterpret_cast<const char *>(text)};
 
-        string_col->chars.insert(
-            string_col->chars.end(), value.cbegin(), value.cend());
-        string_col->offsets.push_back(string_col->offsets.back() +
-                                      value.length());
+          string_col->chars.insert(
+              string_col->chars.end(), value.cbegin(), value.cend());
+          string_col->offsets.push_back(string_col->offsets.back() +
+                                        value.length());
+        }
         break;
       }
       default: throw std::runtime_error("Invalid allocation for cudf type id");
