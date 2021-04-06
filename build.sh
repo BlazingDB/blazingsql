@@ -165,6 +165,24 @@ fi
 
 ################################################################################
 
+if buildAll || hasArg engine; then
+    echo "### Building abseil"
+    git clone https://github.com/abseil/abseil-cpp
+    cd abseil-cpp/
+    git checkout 20200923.3
+    mkdir -p build
+    cd build
+    cmake ${CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+          -DCMAKE_PREFIX_PATH=${INSTALL_PREFIX} \
+          -DCMAKE_INSTALL_LIBDIR=lib \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=ON \
+          -GNinja \
+          ..
+    ninja install
+fi
+
+
 if buildAll || hasArg io; then
     disabled_aws_s3_flag=""
     if hasArg disable-aws-s3; then
