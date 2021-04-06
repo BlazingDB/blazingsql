@@ -220,3 +220,5 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names);
 
 std::string fill_minus_op_with_zero(std::string expression);
+
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
