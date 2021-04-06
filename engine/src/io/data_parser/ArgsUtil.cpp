@@ -260,7 +260,7 @@ std::string getDataTypeName(DataType dataType) {
 
 sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
   // TODO percy william maybe we can move this constant as a bc.BlazingContext config opt
-  const size_t DETAULT_TABLE_BATCH_SIZE = 1000;
+  const size_t DETAULT_TABLE_BATCH_SIZE = 100000;
   // TODO(percy, cristhian): add exception for key error and const
   // TODO(percy, cristhian): for sqlite, add contionals to avoid unncessary fields
   sql_info sql;
