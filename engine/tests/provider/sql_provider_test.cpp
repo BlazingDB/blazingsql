@@ -86,7 +86,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   //  sql.schema = "bz3";
   //  //sql.table = "departments";
   // sql.table = "DATABASECHANGELOG";
-  sql.table = "new_table";
+  // sql.table = "new_table";
   // sql.table = "blazing_catalog_column_datatypes";
   //  sql.table_filter = "";
   //  sql.table_batch_size = 100;
@@ -99,8 +99,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   // sql.table = "dept_manager";
 
 
-  sql.schema = "tpch";
-  sql.table = "lineitem";
+  //sql.schema = "tpch";
+  //sql.table = "lineitem";
   // sql.table = "nation";
 
   sql.table_filter = "";
@@ -118,10 +118,10 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   parser.parse_schema(handle, schema);
 
   // std::vector<int> column_indices;
-  // std::vector<int> column_indices = {0, 6};
+  std::vector<int> column_indices = {0, 6};
   // std::vector<int> column_indices = {0, 4}; // line item id fgloat
   // std::vector<int> column_indices = {4}; // line item fgloat
-  std::vector<int> column_indices = {8};  // line item ret_flag
+  // std::vector<int> column_indices = {8};  // line item ret_flag
   // std::vector<int> column_indices = {1}; // nation 1 name
   if (column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
