@@ -4,6 +4,7 @@
  */
 
 #include "SQLiteParser.h"
+#include "sqlcommon.h"
 
 #include "utilities/CommonOperations.h"
 
@@ -171,20 +172,54 @@ read_sqlite_v2(sqlite3_stmt *stmt,
 
       switch (cudf_type_id) {
       case cudf::type_id::INT8: {
+        break;
       }
       case cudf::type_id::INT16: {
+        break;
       }
       case cudf::type_id::INT32: {
+        const std::int32_t value = sqlite3_column_int(stmt, projection_index);
+        std::vector<std::int32_t> &vector =
+            *reinterpret_cast<std::vector<std::int32_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(value);
+        break;
       }
       case cudf::type_id::INT64: {
+        const std::int64_t value = sqlite3_column_int64(stmt, projection_index);
+        std::vector<std::int64_t> &vector =
+            *reinterpret_cast<std::vector<std::int64_t> *>(
+                host_cols[projection_index]);
+        vector.push_back(value);
+        break;
       }
       case cudf::type_id::FLOAT32:
       case cudf::type_id::DECIMAL32: {
+        break;
       }
       case cudf::type_id::FLOAT64:
       case cudf::type_id::DECIMAL64: {
+        const double value = sqlite3_column_double(stmt, projection_index);
+        std::vector<double> &vector = *reinterpret_cast<std::vector<double> *>(
+            host_cols[projection_index]);
+        vector.push_back(value);
+        break;
       }
       case cudf::type_id::BOOL8: {
+        break;
+      }
+      case cudf::type_id::STRING: {
+        const unsigned char *text = sqlite3_column_text(stmt, projection_index);
+        const std::string value{reinterpret_cast<const char *>(text)};
+
+        cudf_string_col *string_col =
+            reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+
+        string_col->chars.insert(
+            string_col->chars.end(), value.cbegin(), value.cend());
+        string_col->offsets.push_back(string_col->offsets.back() +
+                                      value.length());
+        break;
       }
       default: throw std::runtime_error("Invalid allocation for cudf type id");
       }
