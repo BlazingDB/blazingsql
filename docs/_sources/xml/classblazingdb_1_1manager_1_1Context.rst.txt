@@ -1,0 +1,16 @@
+.. _exhale_class_classblazingdb_1_1manager_1_1Context:
+
+Class Context
+=============
+
+- Defined in :ref:`file_engine_src_execution_graph_Context.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: blazingdb::manager::Context
+   :members:
+   :protected-members:
+   :undoc-members:

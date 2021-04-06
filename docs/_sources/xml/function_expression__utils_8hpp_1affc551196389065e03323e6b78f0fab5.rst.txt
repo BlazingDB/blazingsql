@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5:
+
+Function is_single_node_partition
+=================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_single_node_partition(std::string)

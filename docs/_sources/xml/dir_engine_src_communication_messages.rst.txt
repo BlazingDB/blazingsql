@@ -1,0 +1,22 @@
+.. _dir_engine_src_communication_messages:
+
+
+Directory messages
+==================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication>` (``engine/src/communication``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src/communication/messages``
+
+
+Files
+-----
+
+- :ref:`file_engine_src_communication_messages_ComponentMessages.h`
+- :ref:`file_engine_src_communication_messages_GPUComponentMessage.cpp`
+- :ref:`file_engine_src_communication_messages_GPUComponentMessage.h`
+
+

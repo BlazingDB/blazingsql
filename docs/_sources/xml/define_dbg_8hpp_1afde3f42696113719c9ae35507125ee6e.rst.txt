@@ -1,0 +1,13 @@
+.. _exhale_define_dbg_8hpp_1afde3f42696113719c9ae35507125ee6e:
+
+Define debug_log
+================
+
+- Defined in :ref:`file_engine_src_transport_common_dbg.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: debug_log

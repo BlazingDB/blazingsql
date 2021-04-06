@@ -1,0 +1,13 @@
+.. _exhale_function_protocols_8cpp_1a3cd5c8efc438b5d151b8dbf1fb5a2390:
+
+Function io::read_from_socket
+=============================
+
+- Defined in :ref:`file_engine_src_communication_CommunicationInterface_protocols.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: io::read_from_socket(int, void *, size_t)

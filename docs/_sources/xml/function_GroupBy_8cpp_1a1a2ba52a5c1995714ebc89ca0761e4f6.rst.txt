@@ -1,0 +1,13 @@
+.. _exhale_function_GroupBy_8cpp_1a1a2ba52a5c1995714ebc89ca0761e4f6:
+
+Function ral::operators::get_aggregation_operation
+==================================================
+
+- Defined in :ref:`file_engine_src_operators_GroupBy.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::operators::get_aggregation_operation(std::string, bool)

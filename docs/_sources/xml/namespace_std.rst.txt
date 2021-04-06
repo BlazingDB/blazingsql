@@ -1,0 +1,20 @@
+
+.. _namespace_std:
+
+Namespace std
+=============
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_std__chrono_literals`
