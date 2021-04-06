@@ -79,8 +79,20 @@ parse_sqlite_column_types(const std::vector<std::string> types) {
   return ret;
 }
 
-cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
-                                         const std::vector<std::string> types) {
+cudf::io::table_with_metadata
+read_sqlite_v2(sqlite3_stmt *stmt, const std::vector<std::string> types) {
+  std:size_t ncols =
+
+  std::vector<void*> host_cols;
+  host_cols.reserve(12);
+
+  cudf::io::table_with_metadata tableWithMetadata;
+
+  return tableWithMetadata;
+}
+
+cudf::io::table_with_metadata
+read_sqlite(sqlite3_stmt *stmt, const std::vector<std::string> types) {
   int total_rows = 17;  // TODO percy add this logic to the provider
   cudf::io::table_with_metadata ret;
   std::vector<cudf::type_id> cudf_types = parse_sqlite_column_types(types);
@@ -363,7 +375,7 @@ sqlite_parser::parse_batch(ral::io::data_handle handle,
       col_names[column_i] = schema.get_name(column_indices[column_i]);
     }
 
-    auto result = read_mysql(stmt.get(), handle.sql_handle.column_types);
+    auto result = read_sqlite(stmt.get(), handle.sql_handle.column_types);
     result.metadata.column_names = col_names;
 
     auto result_table = std::move(result.tbl);
