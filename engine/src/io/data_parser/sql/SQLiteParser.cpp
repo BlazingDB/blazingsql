@@ -115,14 +115,81 @@ read_sqlite_v2(sqlite3_stmt *stmt,
   const std::size_t num_words = bitmask_allocation / sizeof(cudf::bitmask_type);
   std::vector<std::vector<cudf::bitmask_type>> null_masks(column_count);
 
-  std::transform(column_indices.cbegin(),
-                 column_indices.cend(),
-                 std::back_inserter(host_cols),
-                 [&null_masks, num_words](const int projection_index) {
-                   null_masks[projection_index].resize(num_words, 0);
+  std::transform(
+      column_indices.cbegin(),
+      column_indices.cend(),
+      std::back_inserter(host_cols),
+      [&cudf_types, &null_masks, num_words, nRows](const int projection_index) {
+        null_masks[projection_index].resize(num_words, 0);
+        const cudf::type_id cudf_type_id = cudf_types[projection_index];
+        switch (cudf_type_id) {
+        case cudf::type_id::INT8: {
+          auto *vector = new std::vector<std::int8_t>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::INT16: {
+          auto *vector = new std::vector<std::int16_t>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::INT32: {
+          auto *vector = new std::vector<std::int32_t>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::INT64: {
+          auto *vector = new std::vector<std::int64_t>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::FLOAT32:
+        case cudf::type_id::DECIMAL32: {
+          auto *vector = new std::vector<float>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::FLOAT64:
+        case cudf::type_id::DECIMAL64: {
+          auto *vector = new std::vector<double>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        case cudf::type_id::BOOL8: {
+          auto *vector = new std::vector<std::uint8_t>;
+          vector->reserve(nRows);
+          return static_cast<void *>(vector);
+        }
+        default:
+          throw std::runtime_error("Invalid allocation for cudf type id");
+        }
+      });
 
-                   const cudf::type_id cudf_type_id = cudf
-                 });
+  while ((err = sqlite3_step(stmt)) == SQLITE_ROW) {
+    for (const std::size_t projection_index : column_indices) {
+      cudf::type_id cudf_type_id = cudf_types[projection_index];
+
+      switch (cudf_type_id) {
+      case cudf::type_id::INT8: {
+      }
+      case cudf::type_id::INT16: {
+      }
+      case cudf::type_id::INT32: {
+      }
+      case cudf::type_id::INT64: {
+      }
+      case cudf::type_id::FLOAT32:
+      case cudf::type_id::DECIMAL32: {
+      }
+      case cudf::type_id::FLOAT64:
+      case cudf::type_id::DECIMAL64: {
+      }
+      case cudf::type_id::BOOL8: {
+      }
+      default: throw std::runtime_error("Invalid allocation for cudf type id");
+      }
+    }
+  }
 
   cudf::io::table_with_metadata tableWithMetadata;
 
