@@ -3,6 +3,7 @@ package com.blazingdb.calcite.application;
 import com.blazingdb.calcite.rules.FilterTableScanRule;
 import com.blazingdb.calcite.rules.ProjectFilterTransposeRule;
 import com.blazingdb.calcite.rules.ProjectTableScanRule;
+import com.blazingdb.calcite.rules.ProjectJoinTransposeRule;
 import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
@@ -24,7 +25,6 @@ import org.apache.calcite.rel.rules.FilterAggregateTransposeRule;
 import org.apache.calcite.rel.rules.FilterRemoveIsNotDistinctFromRule;
 import org.apache.calcite.rel.rules.FilterMergeRule;
 import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
-import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
 import org.apache.calcite.rel.rules.ReduceExpressionsRule;
@@ -213,6 +213,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectMergeRule.INSTANCE)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
+						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters

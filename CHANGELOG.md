@@ -4,6 +4,7 @@
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 - #1349 Add e2e test for Hive Partitioned Data
 - #1396 Create tables from other RDBMS
+- #1427 Support for CONCAT alias operator
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -40,6 +41,8 @@
 - #1423 Fix temporary directory for hive partition test
 - #1351 Fixed 'count distinct' related issues
 - #1425 Fix for new joins API
+- #1400 Fix for Column aliases when exists a Join op
+
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 

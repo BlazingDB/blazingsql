@@ -50,6 +50,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             print(queryType)
             print("==============================")
 
+            # Concatenating using `||` operator
+
             queryId = "TEST_01"
             query = """select c_mktsegment || ': ' || c_custkey || ' - ' ||
                     c_name from customer
@@ -235,6 +237,124 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select c.c_custkey, c.c_name || '- ' ||
                     c.c_custkey, c.c_comment from customer c
                     where c.c_custkey < 0"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Concatenating using `CONCAT` operator
+
+            queryId = "TEST_12"
+            query = """select CONCAT(c_mktsegment, ': ', c_custkey, ' - ', c_name)
+                    from customer
+                    where c_custkey > 99 and c_custkey < 1000
+                    order by c_mktsegment, c_custkey limit 200"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_13"
+            query = """select c.c_name, o.o_orderkey, o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where CONCAT('Customer#000000', c.c_custkey) like
+                    'Customer#0000001'"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_14"
+            query = """select CONCAT(case when o.o_orderkey is null then 'V1'  else 'V2' end , ' - ', c.c_name),
+                        o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 10"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_15"
+            query = """select o.o_orderkey, CONCAT(c.c_name, cast(c.c_custkey as VARCHAR)),
+                            CONCAT(c.c_name, '-', cast(c.c_custkey as VARCHAR)),
+                            o.o_orderstatus
+                        from orders o
+                        inner join customer c on o.o_custkey = c.c_custkey
+                        where c.c_custkey < 10"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_16"
+            query = """select o.o_orderkey, 
+                            CONCAT(c.c_name, '-', (c.c_custkey + 1)),
+                            o.o_orderstatus from orders o
+                        inner join customer c on o.o_custkey = c.c_custkey
+                        where c.c_custkey < 20"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+            
+            queryId = "TEST_17"
+            query = """select * from (
+                            select c.c_custkey, 
+                                CONCAT('Customer#000000', c.c_custkey) as n_name
+                            from customer c
+                            where c.c_custkey < 10
+                        ) as n where n.n_name = 'Customer#000000' ||
+                        n.c_custkey"""
             runTest.run_query(
                 bc,
                 drill,
