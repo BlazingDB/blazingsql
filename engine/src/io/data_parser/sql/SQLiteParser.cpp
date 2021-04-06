@@ -11,6 +11,7 @@
 
 #include "ExceptionHandling/BlazingThread.h"
 #include <arrow/io/file.h>
+#include <sqlite3.h>
 
 #include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
@@ -80,11 +81,48 @@ parse_sqlite_column_types(const std::vector<std::string> types) {
 }
 
 cudf::io::table_with_metadata
-read_sqlite_v2(sqlite3_stmt *stmt, const std::vector<std::string> types) {
-  std:size_t ncols =
+read_sqlite_v2(sqlite3_stmt *stmt,
+               const std::vector<int> &column_indices,
+               const std::vector<cudf::type_id> &cudf_types) {
+  const std::string sqlfPart{sqlite3_expanded_sql(stmt)};
+  std::ostringstream oss;
+  oss << "select count(*) " << sqlfPart.substr(sqlfPart.find("from"));
+  const std::string sqlnRows = oss.str();
 
-  std::vector<void*> host_cols;
-  host_cols.reserve(12);
+  std::size_t nRows = 0;
+  int err = sqlite3_exec(
+      sqlite3_db_handle(stmt),
+      sqlnRows.c_str(),
+      [](void *data, int count, char **rows, char **) -> int {
+        if (count == 1 && rows) {
+          *static_cast<std::size_t *>(data) =
+              static_cast<std::size_t>(atoi(rows[0]));
+          return 0;
+        }
+        return 1;
+      },
+      &nRows,
+      nullptr);
+  if (err != SQLITE_OK) { throw std::runtime_error("getting number of rows"); }
+
+  std::size_t column_count =
+      static_cast<std::size_t>(sqlite3_column_count(stmt));
+
+  std::vector<void *> host_cols;
+  host_cols.reserve(column_count);
+  const std::size_t bitmask_allocation =
+      cudf::bitmask_allocation_size_bytes(nRows);
+  const std::size_t num_words = bitmask_allocation / sizeof(cudf::bitmask_type);
+  std::vector<std::vector<cudf::bitmask_type>> null_masks(column_count);
+
+  std::transform(column_indices.cbegin(),
+                 column_indices.cend(),
+                 std::back_inserter(host_cols),
+                 [&null_masks, num_words](const int projection_index) {
+                   null_masks[projection_index].resize(num_words, 0);
+
+                   const cudf::type_id cudf_type_id = cudf
+                 });
 
   cudf::io::table_with_metadata tableWithMetadata;
 
@@ -375,7 +413,8 @@ sqlite_parser::parse_batch(ral::io::data_handle handle,
       col_names[column_i] = schema.get_name(column_indices[column_i]);
     }
 
-    auto result = read_sqlite(stmt.get(), handle.sql_handle.column_types);
+    auto result =
+        read_sqlite_v2(stmt.get(), column_indices, schema.get_dtypes());
     result.metadata.column_names = col_names;
 
     auto result_table = std::move(result.tbl);

@@ -243,13 +243,12 @@ else()
 endif()
 
 if(SQLITE_SUPPORT)
-    # TODO sqlite percy
-    #add_definitions(-DSQLITE_SUPPORT)
-    #set(SQLITE_DATABASE_SRC_FILES
-    #    ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
-    #    ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
-    #set(SQLITE_LIBRARY libsqlite3.so)
-    #message(STATUS "SQLite support is enabled!")
+    add_definitions(-DSQLITE_SUPPORT)
+    set(SQLITE_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
+    set(SQLITE_LIBRARY libsqlite3.so)
+    message(STATUS "SQLite support is enabled!")
 else()
     message(STATUS "SQLite support is disabled!")
 endif()
