@@ -8,6 +8,7 @@
 #include <cudf/stream_compaction.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include "execution_graph/logic_controllers/taskflow/executor.h"
+#include "execution_graph/logic_controllers/CPUCacheData.h"
 
 namespace ral {
 namespace batch {

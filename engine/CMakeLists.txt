@@ -230,6 +230,12 @@ include_directories(
 ## Target source files
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheDataIO.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheDataLocalFile.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/ConcatCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/GPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/ArrowCacheData.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp

@@ -9,6 +9,7 @@
 #include <src/utilities/DebuggingUtils.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_graph/logic_controllers/CacheDataIO.h"
 
 namespace ral {
 namespace batch {

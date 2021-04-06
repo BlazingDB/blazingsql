@@ -25,8 +25,6 @@
 #include "CacheData.h"
 #include "WaitingQueue.h"
 
-using namespace std::chrono_literals;
-
 namespace ral {
 namespace cache {
 

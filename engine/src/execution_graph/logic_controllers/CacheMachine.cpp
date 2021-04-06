@@ -1,4 +1,9 @@
 #include "CacheMachine.h"
+#include "CPUCacheData.h"
+#include "GPUCacheData.h"
+#include "ConcatCacheData.h"
+#include "CacheDataLocalFile.h"
+
 #include <sys/stat.h>
 #include <random>
 #include <utilities/CommonOperations.h>
@@ -10,7 +15,7 @@
 
 #include "Util/StringUtil.h"
 #include <src/utilities/DebuggingUtils.h>
-using namespace std::chrono_literals;
+
 namespace ral {
 namespace cache {
 
@@ -989,5 +994,5 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 	return output;
 }
 
-}  // namespace cache
+} // namespace cache
 } // namespace ral

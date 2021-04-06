@@ -3,6 +3,8 @@
 #include <src/utilities/CommonOperations.h>
 #include "taskflow/executor.h"
 #include "parser/expression_utils.hpp"
+#include "execution_graph/logic_controllers/CPUCacheData.h"
+#include "execution_graph/logic_controllers/GPUCacheData.h"
 
 namespace ral {
 namespace batch {
