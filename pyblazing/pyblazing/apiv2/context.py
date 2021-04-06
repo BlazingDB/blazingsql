@@ -22,6 +22,7 @@ from pyblazing.apiv2.sqlengines_utils import (
     SQLEngineDataTypeMap,
     UnsupportedSQLEngineError,
 )
+from pyblazing.apiv2.algebra import get_json_plan, format_json_plan
 
 import json
 import collections
@@ -1804,7 +1805,7 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    def explain(self, sql):
+    def explain(self, sql, detail=False):
         """
         Returns break down of a given query's Logical Relational Algebra plan.
 
@@ -1812,6 +1813,7 @@ class BlazingContext(object):
         ----------
 
         sql : string SQL query.
+        detail : bool to print physical plan
 
         Examples
         --------
@@ -1834,11 +1836,43 @@ class BlazingContext(object):
                     filters=[[OR(<($12, 100), <>($3, 4))]])
 
 
+        Explain physical plan this UNION query:
+
+        >>> query = '''
+        >>>         SELECT a.*
+        >>>         FROM taxi_1 as a
+        >>>         UNION ALL
+        >>>         SELECT b.*
+        >>>         FROM taxi_2 as b
+        >>>             WHERE b.fare_amount < 100 OR b.passenger_count <> 4
+        >>>             '''
+        >>> plan = bc.explain(query, detail=True)
+        >>> print(plan) TODO DFR
+        LogicalUnion(all=[true])
+          LogicalTableScan(table=[[main, taxi_1]])
+          BindableTableScan(table=[[main, taxi_2]],
+                    filters=[[OR(<($12, 100), <>($3, 4))]])
+
         Docs: https://docs.blazingdb.com/docs/explain
         """
         self.lock.acquire()
         try:
             algebra = self.generator.getRelationalAlgebraString(sql)
+
+            if detail is True:
+                masterIndex = 0
+                ctxToken = random.randint(0, np.iinfo(np.int32).max)
+                algebra = get_json_plan(str(algebra))
+
+                if self.dask_client is None:
+                    physical_plan = cio.runGeneratePhysicalGraphCaller(
+                        masterIndex, ["self"], ctxToken, str(algebra)
+                    )
+                else:
+                    dummy_nodes = [str(i) for i in range(len(self.nodes))]
+                    physical_plan = cio.runGeneratePhysicalGraphCaller(
+                        masterIndex, dummy_nodes, ctxToken, str(algebra)
+                    )
 
         except SqlValidationExceptionClass as exception:
             raise Exception(exception.message())
@@ -1848,6 +1882,10 @@ class BlazingContext(object):
             raise Exception(exception.message())
         finally:
             self.lock.release()
+
+        if detail is True:
+            return format_json_plan(str(physical_plan))
+
         return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
