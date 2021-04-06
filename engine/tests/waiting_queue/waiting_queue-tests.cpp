@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "execution_graph/logic_controllers/CacheMachine.h"  // WaitingQueue
+#include "execution_graph/logic_controllers/GPUCacheData.h"
 #include "execution_graph/logic_controllers/LogicPrimitives.h"  // BlazingTable
 #include "execution_graph/logic_controllers/BlazingColumn.h"  // BlazingColumn
 
