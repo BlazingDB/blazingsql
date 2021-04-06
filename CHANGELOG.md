@@ -3,6 +3,7 @@
 ## New Features
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 - #1349 Add e2e test for Hive Partitioned Data
+- #1427 Support for CONCAT alias operator
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
