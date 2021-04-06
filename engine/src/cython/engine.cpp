@@ -83,6 +83,8 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
       auto sql = ral::io::getSqlInfo(args_map);
       provider = std::make_shared<ral::io::mysql_data_provider>(sql);
       isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif
     } else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT

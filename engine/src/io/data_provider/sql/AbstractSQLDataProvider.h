@@ -46,8 +46,6 @@ public:
 	 */
 	void close_file_handles() override;
 
-  bool is_sql() const override { return true; }
-
   /**
 	 * Set the column indices (aka projections) that will use to select the table
 	 */
@@ -68,6 +66,12 @@ protected:
   std::vector<std::string> column_types;
   std::vector<size_t> column_bytes;
 };
+
+template<class SQLProvider>
+void set_sql_projections(data_provider *provider, const std::vector<int> &projections) {
+  auto sql_provider = static_cast<SQLProvider*>(provider);
+  sql_provider->set_column_indices(projections);
+}
 
 } /* namespace io */
 } /* namespace ral */

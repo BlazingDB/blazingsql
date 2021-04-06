@@ -123,11 +123,6 @@ public:
 	 * Get the number of data_handles that will be provided.
 	 */
 	virtual size_t get_num_handles() = 0;
-
-  /**
-	 * returns true for sql providers, else false
-	 */
-  virtual bool is_sql() const { return false; }
 };
 
 } /* namespace io */

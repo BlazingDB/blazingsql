@@ -77,7 +77,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
             << " nrows =  " << table->num_rows() << std::endl;
 }
 
-TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
+TEST_F(SQLProviderTest, mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 3306;

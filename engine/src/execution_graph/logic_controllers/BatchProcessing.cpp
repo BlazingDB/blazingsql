@@ -3,6 +3,14 @@
 #include "communication/CommunicationData.h"
 #include "ExceptionHandling/BlazingThread.h"
 #include "io/data_parser/CSVParser.h"
+
+#ifdef MYSQL_SUPPORT
+#include "io/data_provider/sql/MySQLDataProvider.h"
+#endif
+
+// TODO percy
+//#include "io/data_parser/sql/PostgreSQLParser.h"
+
 #include "parser/expression_utils.hpp"
 #include "taskflow/executor.h"
 #include <cudf/types.hpp>
@@ -13,6 +21,24 @@
 
 namespace ral {
 namespace batch {
+
+// Use get_projections and if there are no projections or expression is empty
+// then returns a filled array with the sequence of all columns (0, 1, ..., n)
+std::vector<int> get_projections_wrapper(size_t num_columns, const std::string &expression = "")
+{
+  if (expression.empty()) {
+    std::vector<int> projections(num_columns);
+    std::iota(projections.begin(), projections.end(), 0);
+    return projections;
+  }
+
+  std::vector<int> projections = get_projections(expression);
+  if(projections.size() == 0){
+      projections.resize(num_columns);
+      std::iota(projections.begin(), projections.end(), 0);
+  }
+  return projections;
+}
 
 // BEGIN BatchSequence
 
@@ -97,6 +123,12 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
         } else {
             num_batches = provider->get_num_handles();
         }
+    } else if (parser->type() == ral::io::DataType::MYSQL)	{
+#ifdef MYSQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
     } else {
         num_batches = provider->get_num_handles();
     }
@@ -123,11 +155,6 @@ kstatus TableScan::run() {
 
     std::vector<int> projections(schema.get_num_columns());
     std::iota(projections.begin(), projections.end(), 0);
-
-    if (provider->is_sql()) {
-      auto sql_provider = std::dynamic_pointer_cast<ral::io::abstractsql_data_provider>(provider);
-      sql_provider->set_column_indices(projections);
-    }
 
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
@@ -233,6 +260,12 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
         } else {
             num_batches = provider->get_num_handles();
         }
+    } else if (parser->type() == ral::io::DataType::MYSQL)	{
+#ifdef MYSQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
     } else {
         num_batches = provider->get_num_handles();
     }
@@ -266,16 +299,7 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
 kstatus BindableTableScan::run() {
     CodeTimer timer;
 
-    std::vector<int> projections = get_projections(expression);
-    if(projections.size() == 0){
-        projections.resize(schema.get_num_columns());
-        std::iota(projections.begin(), projections.end(), 0);
-    }
-
-    if (provider->is_sql()) {
-      auto sql_provider = std::dynamic_pointer_cast<ral::io::abstractsql_data_provider>(provider);
-      sql_provider->set_column_indices(projections);
-    }
+    std::vector<int> projections = get_projections_wrapper(schema.get_num_columns(), expression);
 
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
@@ -289,11 +313,6 @@ kstatus BindableTableScan::run() {
             //this will allow us to prevent from having too many open file handles by being
             //able to limit the number of file tasks
             auto handle = provider->get_next(true);
-            if (provider->is_sql()) {
-              if (handle.sql_handle.row_count == 0) {
-                break;
-              }
-            }
             auto file_schema = schema.fileSchema(file_index);
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now
