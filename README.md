@@ -201,13 +201,14 @@ User guides and public APIs documentation can be found at [here](https://docs.bl
 
 Our internal code architecture can be built using Spinx.
 ```bash
-pip install -U sphinx && pip install pydata-sphinx-theme breathe exhale recommonmark
 conda install -c conda-forge doxygen
 cd $CONDA_PREFIX
-cd blazingsql/docs
+cd blazingsql/docsrc
+pip install -r requirements.txt
+make doxygen
 make html
 ```
-The generated documentation can be viewed in a browser at `blazingsql/docs/_build/html/index.html`
+The generated documentation can be viewed in a browser at `blazingsql/docsrc/build/html/index.html`
 
 
 # Community

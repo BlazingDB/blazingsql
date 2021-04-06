@@ -5,7 +5,7 @@ Python API Reference
 ====================
 
 This page gives an overview of all public BlazingSQL Python  objects, functions and
-methods. All classes and functions exposed in ``pandas.*`` namespace are public.
+methods.
 
 .. toctree::
    :maxdepth: 3

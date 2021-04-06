@@ -7,7 +7,7 @@ from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -240,6 +240,96 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_09"
+            query = """ select o2.o_orderkey as okey2, o1.o_orderkey as okey1 from orders as o1
+                    inner join orders as o2 on o1.o_orderkey = o2.o_orderkey
+                    and o1.o_orderkey < 10000"""
+            print(bc.explain(query))
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_10"
+            query = """ select o2.o_orderkey as okey2, o1.o_orderkey as okey1 from orders as o1
+                    inner join orders as o2 on o1.o_orderkey = o2.o_orderkey
+                    and o2.o_orderkey < 10000"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_11"
+            query = """select o2.o_orderkey as okey2, o1.o_orderkey as okey1, o2.o_custkey from orders as o1
+                    inner join orders as o2 on o1.o_orderkey = o2.o_orderkey
+                    and o1.o_orderkey < o2.o_custkey
+                    """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_12"
+            query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+                    inner join orders as o2 on o1.o_orderkey = o2.o_orderkey + 6
+                    and o1.o_clerk < o2.o_clerk
+                    """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_13"
+            query = """select o1.o_orderkey as okey1, o1.o_custkey as ocust1, o1.o_orderkey - o1.o_custkey as diffy, 
+                    o2.o_orderkey as okey2, o2.o_custkey as ocust2, o2.o_orderkey + o2.o_custkey as summy from orders as o1
+                    inner join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+                    and o1.o_orderkey - o1.o_custkey < o2.o_orderkey
+                    """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
@@ -258,6 +348,7 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
@@ -274,13 +365,20 @@ if __name__ == "__main__":
         cs.init_drill_schema(drill,
                              Settings.data["TestSettings"]["dataDirectory"])
 
+        # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark,
+                             Settings.data["TestSettings"]["dataDirectory"])
+
     # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
+    main(dask_client, drill, spark, Settings.data["TestSettings"]["dataDirectory"],
          bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:

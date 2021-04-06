@@ -5,8 +5,6 @@ Caches in general refer to the CacheMachines that connect kernels and the CacheD
 
 CacheData
 ^^^^^^^^^
-:blazing_repo:`View in Github</engine/src/execution_graph/logic_controllers/CacheMachine.h#L43>`
-
 CacheData objects hold data and/or metadata. Most of the time a CacheData only holds data, and is used for the purpose of moving data through
 the execution graph. Sometimes that data needs to have some associated metadata that is used by the business logic of the algorithms. And finally,
 there are cases where metadata needs to be passed from one node to another or one kernel to another and in those cases you can have a CacheData object

@@ -34,7 +34,8 @@ author = 'BlazingDB, Inc.'
 language = "en"
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.18'
+version = '0.18'
+release = f'v{version}'
 
 
 # -- General configuration ---------------------------------------------------
@@ -47,34 +48,31 @@ extensions = ['recommonmark',
                 'sphinx.ext.todo',
                 'sphinx.ext.autodoc',
                 "sphinx.ext.autosummary",
-                # 'breathe',
-                # 'exhale'
+                'breathe',
+                'exhale'
                 ]
 
 autosummary_generate = True 
 autosummary_imported_members = False
 
 # # Setup the exhale extension
-# exhale_args = {
-#     # These arguments are required
-#     "containmentFolder":     "./xml",
-#     "rootFileName":          "library_root.rst",
-#     "rootFileTitle":         "Library API",
-#     "doxygenStripFromPath":  "..",
-#     # Suggested optional arguments
-#     "createTreeView":        True,
-#     # TIP: if using the sphinx-bootstrap-theme, you need
-#     "treeViewIsBootstrap": True,
-#     "exhaleExecutesDoxygen": True,
-#     "exhaleUseDoxyfile": True,
-    
-# }
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./xml",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    #"treeViewIsBootstrap": True
+}
 
-# # Setup the breathe extension
-# breathe_projects = {
-#     "BlazingSQL Engine": "./doxyfiles/xml"
-# }
-# breathe_default_project = "BlazingSQL Engine"
+# Setup the breathe extension
+breathe_projects = {
+    "BlazingSQL Engine": "./xml"
+}
+breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -83,7 +81,7 @@ templates_path = ['_templates']
 primary_domain = 'py'
 
 # Tell sphinx what the pygments highlight language should be.
-highlight_language = 'cpp'
+highlight_language = 'py'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -96,7 +94,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'pydata_sphinx_theme'
+html_theme = 'sphinx_book_theme'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -139,6 +137,9 @@ html_theme_options = {
 # html_theme_options = {
     
 # }
+
+extlinks = {'io': (f'https://github.com/rapidsai/cudf/tree/branch-{version}/cpp/src/%s',
+                      'cuIO ')}
 
 html_context = {
     "github_user": "blazingdb",
@@ -262,9 +263,22 @@ class AccessorCallableDocumenter(AccessorLevelDocumenter, MethodDocumenter):
     def format_name(self):
         return MethodDocumenter.format_name(self).rstrip(".__call__")
 
+def rstjinja(app, docname, source):
+    """
+    Render our pages as a jinja template for fancy templating goodness.
+    """
+    # https://www.ericholscher.com/blog/2016/jul/25/integrating-jinja-rst-sphinx/
+    # Make sure we're outputting HTML
+    if app.builder.format != "html":
+        return
+    src = source[0]
+    rendered = app.builder.templates.render_string(src, app.config.html_context)
+    source[0] = rendered
+
 def setup(app):
     app.add_js_file("js/d3.v3.min.js")
     app.connect("autodoc-skip-member", skip)
+    # app.connect("source-read", rstjinja)
     # app.connect("autodoc-process-docstring", remove_flags_docstring)
     # app.connect("autodoc-process-docstring", process_class_docstrings)
     # app.connect("autodoc-process-docstring", process_business_alias_docstrings)

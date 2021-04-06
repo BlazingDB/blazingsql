@@ -287,12 +287,16 @@ struct tree_processor {
 			}
 		}
 		else if (is_project(expr) && is_window_function(expr) && first_windowed_call) {
-			if (!window_expression_contains_partition(expr)) {
+			if (!window_expression_contains_partition_by(expr)) {
 				throw std::runtime_error("In Window Function: PARTITION BY clause is mandatory");
 			}
 			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
 				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
 			}
+
+			if (window_expression_contains_bounds_by_range(expr)) {
+                throw std::runtime_error("In Window Function: RANGE is not currently supported");
+            }
 
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
@@ -307,7 +311,7 @@ struct tree_processor {
 			boost::property_tree::ptree window_tree;
 			window_tree.put("expr", window_expr);
 			window_tree.put_child("children", create_array_tree(sort_tree));
-			
+
 			p_tree.put("expr", expr);
 			p_tree.put_child("children", create_array_tree(window_tree));
 
