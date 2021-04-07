@@ -14,7 +14,8 @@
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
-- #1419 Added concat cache machine timeout 
+- #1419 Added concat cache machine timeout
+- #1434 Added documentation for C++ and Python in Sphinx
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
