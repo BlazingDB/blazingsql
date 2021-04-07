@@ -60,8 +60,21 @@ cudf::type_id parse_sqlite_column_type(std::string t) {
       t.cbegin(), t.cend(), t.begin(), [](const std::string::value_type c) {
         return std::tolower(c);
       });
-  if (t == "int") return cudf::type_id::INT32;
-  if (t == "decimal") return cudf::type_id::FLOAT64;
+  if (t == "tinyint") { return cudf::type_id::INT8; }
+  if (t == "smallint") { return cudf::type_id::INT8; }
+  if (t == "mediumint") { return cudf::type_id::INT16; }
+  if (t == "int") { return cudf::type_id::INT32; }
+  if (t == "integer") { return cudf::type_id::INT32; }
+  if (t == "bigint") { return cudf::type_id::INT64; }
+  if (t == "unsigned big int") { return cudf::type_id::UINT64; }
+  if (t == "int2") { return cudf::type_id::INT16; }
+  if (t == "int8") { return cudf::type_id::INT64; }
+  if (t == "real") { return cudf::type_id::FLOAT32; }
+  if (t == "double") { return cudf::type_id::FLOAT64; }
+  if (t == "double precision") { return cudf::type_id::FLOAT64; }
+  if (t == "float") { return cudf::type_id::FLOAT32; }
+  if (t == "decimal") { return cudf::type_id::FLOAT64; }
+  if (t == "boolean") { return cudf::type_id::UINT8; }
 }
 
 std::vector<cudf::type_id>
