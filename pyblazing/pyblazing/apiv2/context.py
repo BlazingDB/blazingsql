@@ -3135,6 +3135,7 @@ class BlazingContext(object):
             elif (
                 query_table.fileType
                 == DataType.MYSQL
+                or query_table.fileType == DataType.SQLITE
                 # or query_table.fileType == DataType.
             ):
                 if query_table.has_metadata():
