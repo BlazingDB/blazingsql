@@ -127,13 +127,13 @@ RelConversionExceptionClass = jpype.JClass(
 
 def get_blazing_logger(is_dask):
     """
-        Returns the corresponding logger according to the input flag.
+    Returns the corresponding logger according to the input flag.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        is_dask : bool, whether the logger is called from a dask environment
-        or locally as a client.
+    is_dask : bool, whether the logger is called from a dask environment
+    or locally as a client.
     """
     if is_dask:
         return logging.getLogger(get_worker().id)
@@ -1250,45 +1250,45 @@ class BlazingContext(object):
     class has a number of methods which assist not only in creating and
     querying tables, but also in connecting remote data sources
     and understanding your ETL.
-    
+
     Parameters
     ----------
 
-    :param dask_client: ``Client`` object from ``dask.distributed``. 
-        The dask client used for 
-        communicating with other nodes. This is only necessary for running BlazingSQL with 
-        multiple nodes. 
+    :param dask_client: ``Client`` object from ``dask.distributed``.
+        The dask client used for
+        communicating with other nodes. This is only necessary for running BlazingSQL with
+        multiple nodes.
         **Default:** ``"autocheck"``
-    :param network_interface: string. 
-        Network interface used for communicating with the 
-        dask-scheduler. 
+    :param network_interface: string.
+        Network interface used for communicating with the
+        dask-scheduler.
         **Default:** ``None``. See note below.
     :param allocator: string, allowed options are ``"default"``, ``"managed"`` or ``'existing'``.
-        Where ``"managed"`` uses Unified Virtual Memory (UVM) and may use system memory 
+        Where ``"managed"`` uses Unified Virtual Memory (UVM) and may use system memory
         if GPU memory runs out, or ``"existing"`` where it assumes you have already set the
         rmm allocator and therefore does not initialize it (this is for advanced users.)
         **Default:** ``"default"``
-    :param pool: boolean. 
+    :param pool: boolean.
         If ``True``, allocate a memory pool in the beginning. This can greatly improve performance.
         **Default:** ``False``
     :param initial_pool_size: long integer.
-        Initial size of memory pool in bytes (if pool=True). If ``None``, it 
+        Initial size of memory pool in bytes (if pool=True). If ``None``, it
         will default to using half of the GPU memory.
         **Default:** ``None``
-    :param maximum_pool_size: long integer. 
+    :param maximum_pool_size: long integer.
         Maximum size of the pool.
         **Default:** ``None``
-    :param enable_logging: boolean. 
+    :param enable_logging: boolean.
         If set to ``True`` the memory allocator logging will be enabled.
         This can negatively impact performance and is aimed at advanced users.
         **Default:** ``False``
-    :param enable_progress_bar: boolean. 
+    :param enable_progress_bar: boolean.
         Set to ``True`` to display a progress bar during query executions.
         **Default:** ``False``
-    :param config_options: dictionary. 
+    :param config_options: dictionary.
         A dictionary for setting certain parameters in the engine. **Default:** ``{}``
         List of options:
-            JOIN_PARTITION_SIZE_THRESHOLD: long integer 
+            JOIN_PARTITION_SIZE_THRESHOLD: long integer
                 Num bytes to try to have the
                 partitions for each side of a join before doing the join.
                 Too small can lead to overpartitioning, too big can lead
@@ -1424,17 +1424,15 @@ class BlazingContext(object):
                 by default it will be set by whatever dask client is using (``'tcp'``, ``'ucx'``, ..).
                 **NOTE:** This parameter only works when used in the BlazingContext.
                 **Default:** ``'tcp'``
-        
 
-    .. note:: When using BlazingSQL with multiple nodes, you will need to set the 
-        correct ``network_interface`` your servers are using to communicate with the 
-        IP address of the dask-scheduler. You can see the different network interfaces 
-        and what IP addresses they serve with the bash command ``ifconfig``. The default 
+    .. note:: When using BlazingSQL with multiple nodes, you will need to set the
+        correct ``network_interface`` your servers are using to communicate with the
+        IP address of the dask-scheduler. You can see the different network interfaces
+        and what IP addresses they serve with the bash command ``ifconfig``. The default
         is set to ``'eth0'``.
 
     :return: ``BlazingContext`` object
     """
-
 
     def __init__(
         self,
@@ -2924,7 +2922,10 @@ class BlazingContext(object):
             for query_partid in query_partids:
                 futures.append(
                     self.dask_client.submit(
-                        get_element, query_partid, workers=[worker_id], pure=False,
+                        get_element,
+                        query_partid,
+                        workers=[worker_id],
+                        pure=False,
                     )
                 )
         self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
@@ -2933,7 +2934,9 @@ class BlazingContext(object):
     def _get_results_single_node(self, ctxToken):
         graph = self.graphs[ctxToken]
         self.do_progress_bar(
-            graph, self._run_progress_bar_single_node, self._wait_completed_single_node,
+            graph,
+            self._run_progress_bar_single_node,
+            self._wait_completed_single_node,
         )
         self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
         return cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=True)
@@ -2944,7 +2947,11 @@ class BlazingContext(object):
         return self._get_results_distributed(token)
 
     def sql(
-        self, query, algebra=None, config_options={}, return_token: bool = False,
+        self,
+        query,
+        algebra=None,
+        config_options={},
+        return_token: bool = False,
     ):
         """
         Query a BlazingSQL table.
