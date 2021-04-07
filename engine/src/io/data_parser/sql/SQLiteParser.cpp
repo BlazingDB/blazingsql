@@ -54,9 +54,14 @@ bool sqlite_is_cudf_string(const std::string &t) {
   return false;
 }
 
-cudf::type_id parse_sqlite_column_type(const std::string t) {
+cudf::type_id parse_sqlite_column_type(std::string t) {
   if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
+  std::transform(
+      t.cbegin(), t.cend(), t.begin(), [](const std::string::value_type c) {
+        return std::tolower(c);
+      });
   if (t == "int") return cudf::type_id::INT32;
+  if (t == "decimal") return cudf::type_id::FLOAT64;
 }
 
 std::vector<cudf::type_id>

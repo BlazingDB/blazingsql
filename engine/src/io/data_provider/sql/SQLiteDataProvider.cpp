@@ -182,8 +182,8 @@ data_handle sqlite_data_provider::get_next(bool) {
   std::string query;
 
   query = "SELECT * FROM " + this->sql.table + " LIMIT " +
-          std::to_string(this->batch_position) + " OFFSET " +
-          std::to_string(this->batch_position);
+          std::to_string(this->batch_position + this->sql.table_batch_size) +
+          " OFFSET " + std::to_string(this->batch_position);
   this->batch_position += this->sql.table_batch_size;
 
   std::cout << "query: " << query << "\n";
