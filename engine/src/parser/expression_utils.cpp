@@ -89,6 +89,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
@@ -172,6 +173,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_NOT:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
 		return cudf::type_id::INT32;
@@ -317,9 +319,11 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
 		{"||", operator_type::BLZ_STR_CONCAT},
+		{"CONCAT", operator_type::BLZ_STR_CONCAT}, // we want to handle CONCAT op in the same way as ||
 		{"TRIM", operator_type::BLZ_STR_TRIM},
 		{"LEFT", operator_type::BLZ_STR_LEFT},
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
+		{"IS_NOT_DISTINCT_FROM", operator_type::BLZ_IS_NOT_DISTINCT_FROM},
 	};
 
 	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
@@ -928,6 +932,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	ret = std::regex_replace(ret, char_re, ":VARCHAR");
 
 
+	StringUtil::findAndReplaceAll(ret, "IS NOT DISTINCT FROM", "IS_NOT_DISTINCT_FROM");
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
@@ -997,4 +1002,26 @@ std::string fill_minus_op_with_zero(std::string expression) {
 	}
 
 	return expression;
+}
+
+// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' : ', $2)
+// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' : '), $2)"
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
+	if (expression.find("CONCAT") == expression.npos) {
+		return expression;
+	}
+
+	// just to remove `CONCAT( )`
+	std::string expression_wo_concat = get_query_part(expression);
+	std::vector<std::string> expressions_to_concat = get_expressions_from_expression_list(expression_wo_concat);
+
+	if (expressions_to_concat.size() < 2) throw std::runtime_error("CONCAT operator must have at least two children, as CONCAT($0, $1) .");
+
+	std::string new_expression =  "CONCAT(" + expressions_to_concat[0] + ", " + expressions_to_concat[1] + ")";
+
+	for (size_t i = 2; i < expressions_to_concat.size(); ++i) {
+		new_expression = "CONCAT(" + new_expression + ", " + expressions_to_concat[i] + ")";
+	}
+
+	return new_expression;
 }

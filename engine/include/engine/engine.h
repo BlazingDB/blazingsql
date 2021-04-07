@@ -9,6 +9,11 @@
 #include <execution_graph/logic_controllers/taskflow/graph.h>
 #include "../../src/error.hpp"
 
+std::string runGeneratePhysicalGraph(uint32_t masterIndex,
+                                     std::vector<std::string> worker_ids,
+                                     int32_t ctxToken,
+                                     std::string query);
+
 std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,

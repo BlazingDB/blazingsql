@@ -2,7 +2,9 @@
 
 ## New Features
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
-
+- #1349 Add e2e test for Hive Partitioned Data
+- #1427 Support for CONCAT alias operator
+- #1424 Add get physical plan with explain
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -11,6 +13,8 @@
 - #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
 - #1331 Added flag to enable null e2e testing
+- #1418 Adding support for docker image
+- #1419 Added concat cache machine timeout 
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -34,6 +38,10 @@
 - #1415 Fixed bug where num_batches was not getting set in BindableTableScan 
 - #1413 Fix for null tests 13 and 23 of windowFunctionTest
 - #1416 Fix full join when both tables contains nulls
+- #1423 Fix temporary directory for hive partition test
+- #1351 Fixed 'count distinct' related issues
+- #1425 Fix for new joins API
+- #1400 Fix for Column aliases when exists a Join op
 
 
 ## Deprecated Features

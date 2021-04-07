@@ -16,7 +16,7 @@ from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
-from pyblazing.apiv2.algebra import get_json_plan
+from pyblazing.apiv2.algebra import get_json_plan, format_json_plan
 
 import json
 import collections
@@ -1195,6 +1195,7 @@ def load_config_options_from_env(user_config_options: dict):
     config_options = {}
     default_values = {
         "JOIN_PARTITION_SIZE_THRESHOLD": 400000000,
+        "CONCATENATING_CACHE_NUM_BYTES_TIMEOUT": 100,
         "MAX_JOIN_SCATTER_MEM_OVERHEAD": 500000000,
         "MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE": 8,
         "NUM_BYTES_PER_ORDER_BY_PARTITION": 400000000,
@@ -1788,7 +1789,7 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    def explain(self, sql):
+    def explain(self, sql, detail=False):
         """
         Returns break down of a given query's Logical Relational Algebra plan.
 
@@ -1796,6 +1797,7 @@ class BlazingContext(object):
         ----------
 
         sql : string SQL query.
+        detail : bool to print physical plan
 
         Examples
         --------
@@ -1818,11 +1820,43 @@ class BlazingContext(object):
                     filters=[[OR(<($12, 100), <>($3, 4))]])
 
 
+        Explain physical plan this UNION query:
+
+        >>> query = '''
+        >>>         SELECT a.*
+        >>>         FROM taxi_1 as a
+        >>>         UNION ALL
+        >>>         SELECT b.*
+        >>>         FROM taxi_2 as b
+        >>>             WHERE b.fare_amount < 100 OR b.passenger_count <> 4
+        >>>             '''
+        >>> plan = bc.explain(query, detail=True)
+        >>> print(plan) TODO DFR
+        LogicalUnion(all=[true])
+          LogicalTableScan(table=[[main, taxi_1]])
+          BindableTableScan(table=[[main, taxi_2]],
+                    filters=[[OR(<($12, 100), <>($3, 4))]])
+
         Docs: https://docs.blazingdb.com/docs/explain
         """
         self.lock.acquire()
         try:
             algebra = self.generator.getRelationalAlgebraString(sql)
+
+            if detail is True:
+                masterIndex = 0
+                ctxToken = random.randint(0, np.iinfo(np.int32).max)
+                algebra = get_json_plan(str(algebra))
+
+                if self.dask_client is None:
+                    physical_plan = cio.runGeneratePhysicalGraphCaller(
+                        masterIndex, ["self"], ctxToken, str(algebra)
+                    )
+                else:
+                    dummy_nodes = [str(i) for i in range(len(self.nodes))]
+                    physical_plan = cio.runGeneratePhysicalGraphCaller(
+                        masterIndex, dummy_nodes, ctxToken, str(algebra)
+                    )
 
         except SqlValidationExceptionClass as exception:
             raise Exception(exception.message())
@@ -1832,6 +1866,10 @@ class BlazingContext(object):
             raise Exception(exception.message())
         finally:
             self.lock.release()
+
+        if detail is True:
+            return format_json_plan(str(physical_plan))
+
         return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
@@ -2288,6 +2326,14 @@ class BlazingContext(object):
                 raise Exception(
                     "ERROR: if your input file doesn't have an extension, you have to specify the `file_format`. Or if its a directory, it needs to end in a slash"
                 )
+
+            for p_schema, type_schema in extra_columns:
+                if "names" in kwargs:
+                    found = p_schema in kwargs["names"]
+                    if found:
+                        id = kwargs["names"].index(p_schema)
+                        kwargs["names"].pop(id)
+                        kwargs["dtype"].pop(id)
 
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,

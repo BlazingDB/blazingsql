@@ -122,8 +122,20 @@ public abstract class ProjectTableScanRule extends RelOptRule {
 			projectsPushDown = selectedColumns;
 		}
 		final List<String> aliases = new ArrayList<>();
+		List<String> col_names = table.getRowType().getFieldNames();
+		int count_cols = 0;
 		for(Pair<RexNode, String> value : project.getNamedProjects()) {
-			aliases.add(value.right);
+			// We want to mantain column names when no aliases where provided
+			// If we have in the future issues with aliases we can review:
+			// PR related to this -> https://github.com/BlazingDB/blazingsql/pull/1400
+			// Issue related to this -> https://github.com/BlazingDB/blazingsql/issues/1393
+			if (value.right.length() > 1 && value.right.substring(0,2).equals("$f") && count_cols < projectsPushDown.size() ) {
+				aliases.add(col_names.get(projectsPushDown.get(count_cols)));
+			}
+			else {
+				aliases.add(value.right);
+			}
+			count_cols++;
 		}
 		BindableTableScan newScan =
 			BindableTableScan.create(scan.getCluster(), scan.getTable(), filtersPushDown, projectsPushDown, aliases);

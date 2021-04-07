@@ -245,11 +245,15 @@ public:
 	* batch.
 	* @param num_bytes The number of bytes that we will wait to exist in the
 	* WaitingQueue unless the WaitingQueue has already had finished() called.
+	* @param num_bytes_timeout A timeout in ms where if there is data and the timeout 
+	* expires, then it will return, even if not the requested num_bytes is available.
+	* If its set to -1, then it disables this timeout
 	*/
-	void wait_until_num_bytes(size_t num_bytes) {
+	void wait_until_num_bytes(size_t num_bytes, int num_bytes_timeout = -1) {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, num_bytes, this] {
+		int cond_var_timeout = (num_bytes_timeout > -1 && num_bytes_timeout < timeout) ? num_bytes_timeout : timeout;
+		while(!condition_variable_.wait_for(lock, cond_var_timeout*1ms, [&blazing_timer, num_bytes, num_bytes_timeout, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				size_t total_bytes = 0;
 				if (!done_waiting) {					
@@ -257,6 +261,9 @@ public:
 						total_bytes += message->get_data().sizeInBytes();
 					}
 					done_waiting = total_bytes > num_bytes;
+				}
+				if (!done_waiting && total_bytes > 0 && num_bytes_timeout > -1) {
+					done_waiting = blazing_timer.elapsed_time() > num_bytes_timeout;
 				}
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
                     std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
