@@ -75,6 +75,9 @@ cudf::type_id parse_sqlite_column_type(std::string t) {
   if (t == "float") { return cudf::type_id::FLOAT32; }
   if (t == "decimal") { return cudf::type_id::FLOAT64; }
   if (t == "boolean") { return cudf::type_id::UINT8; }
+  if (t == "date") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+  if (t == "datetime") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+
 }
 
 std::vector<cudf::type_id>
