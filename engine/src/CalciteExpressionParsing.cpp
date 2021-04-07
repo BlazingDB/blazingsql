@@ -136,7 +136,10 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	}
 	if(type.id() == cudf::type_id::TIMESTAMP_SECONDS || type.id() == cudf::type_id::TIMESTAMP_MILLISECONDS
 		|| type.id() == cudf::type_id::TIMESTAMP_MICROSECONDS || type.id() == cudf::type_id::TIMESTAMP_NANOSECONDS) {
-		if (scalar_string.find(":") != std::string::npos){
+		if (scalar_string.find(":") != std::string::npos && scalar_string.find("-") != std::string::npos && scalar_string.find(".") != std::string::npos){
+			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S.%f");
+		}
+		else if (scalar_string.find(":") != std::string::npos && scalar_string.find("-") != std::string::npos){
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 		} else {
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");

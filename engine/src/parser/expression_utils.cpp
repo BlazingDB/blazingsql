@@ -1,6 +1,8 @@
 #include <map>
 #include <regex>
 #include <cassert>
+#include <chrono>
+#include <ctime>
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "expression_utils.hpp"
@@ -1024,4 +1026,50 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 	}
 
 	return new_expression;
+}
+
+std::string get_current_date_or_timestamp(std::string expression) {
+	// We want `CURRENT_TIME` holds the same dtype as `CURRENT_TIMESTAMP`
+	if (expression.find("CURRENT_TIME") != expression.npos) {
+		expression = StringUtil::replace(expression, "CURRENT_TIME", "CURRENT_TIMESTAMP");
+	}
+
+	std::size_t date_pos = expression.find("CURRENT_DATE");
+	std::size_t time_pos = expression.find("CURRENT_TIMESTAMP");
+
+	if (date_pos == expression.npos && time_pos == expression.npos) {
+		return expression;
+	}
+
+	using std::chrono::system_clock;
+	system_clock::time_point tp = system_clock::now();
+ 
+    time_t raw_time = system_clock::to_time_t(tp);
+
+    struct tm  *timeinfo  = std::localtime(&raw_time);
+ 
+    char buf[24] = {0};
+
+    strftime(buf, 24, "%Y-%m-%d %H:%M:%S", timeinfo);
+
+	std::string date_time_str = std::string(buf);
+
+	std::string str_to_replace = "CURRENT_DATE";
+
+	// We want milliseconds also
+	if (time_pos != expression.npos) {
+		str_to_replace = "CURRENT_TIMESTAMP";
+
+		// We need to be obtain milliseconds (tm can only be up to seconds)
+		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
+	
+		std::string milliseconds_str =  std::to_string(ms.count() % 1000);
+	
+		if (milliseconds_str.length() < 3) {
+			milliseconds_str = std::string(3 - milliseconds_str.length(), '0') + milliseconds_str;
+		}
+		date_time_str += "." + milliseconds_str;
+	}
+
+	return StringUtil::replace(expression, str_to_replace, date_time_str);
 }

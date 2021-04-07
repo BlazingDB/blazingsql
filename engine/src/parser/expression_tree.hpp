@@ -254,6 +254,7 @@ public:
     constexpr static char BOOLEAN_REGEX_STR[] = R"(true|false)";
     constexpr static char NUMBER_REGEX_STR[] = R"([-+]?\d*\.?\d+([eE][-+]?\d+)?)";
     constexpr static char TIMESTAMP_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2})?)";
+    constexpr static char TIMESTAMP_MS_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]?\d{2}:\d{2}:\d{2}.\d{3}))";
     constexpr static char STRING_REGEX_STR[] = R"((["'])(?:(?!\1|\\).|\\.)*?\1)";
 
     enum class token_type
@@ -267,6 +268,7 @@ public:
         Boolean,
         Number,
         Timestamp,
+        Timestamp_ms,
         String,
         Identifier,
         EOF_
@@ -294,6 +296,7 @@ private:
     std::regex boolean_regex{"^" + std::string(lexer::BOOLEAN_REGEX_STR)};
     std::regex number_regex{"^" + std::string(lexer::NUMBER_REGEX_STR)};
     std::regex timestamp_regex{"^" + std::string(lexer::TIMESTAMP_REGEX_STR)};
+    std::regex timestamp_ms_regex{"^" + std::string(lexer::TIMESTAMP_MS_REGEX_STR)};
     std::regex string_regex{"^" + std::string(lexer::STRING_REGEX_STR)};
 };
 

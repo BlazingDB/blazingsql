@@ -11,6 +11,7 @@ constexpr char lexer::NULL_REGEX_STR[];
 constexpr char lexer::BOOLEAN_REGEX_STR[];
 constexpr char lexer::NUMBER_REGEX_STR[];
 constexpr char lexer::TIMESTAMP_REGEX_STR[];
+constexpr char lexer::TIMESTAMP_MS_REGEX_STR[];
 constexpr char lexer::STRING_REGEX_STR[];
 
 lexer::lexer(const std::string & str)
@@ -72,6 +73,12 @@ lexer::token lexer::next_token() {
     advance(match.length());
     assert(pos_ <= text_.length());
     return {lexer::token_type::Boolean, match.str()};
+  }
+
+  if (std::regex_search(remainder, match, timestamp_ms_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Timestamp_ms, match.str()};
   }
 
   if (std::regex_search(remainder, match, timestamp_regex)) {
@@ -198,6 +205,7 @@ std::unique_ptr<node> expr_parser::literal() {
       || accept(lexer::token_type::Boolean)
       || accept(lexer::token_type::Number)
       || accept(lexer::token_type::Timestamp)
+      || accept(lexer::token_type::Timestamp_ms)
       || accept(lexer::token_type::String))
   {
     cudf::data_type type;
@@ -235,9 +243,12 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
         return cudf::data_type{cudf::type_id::INT32};
       }      
     }
-  } else if(token.type == lexer::token_type::Timestamp) {
+  } else if (token.type == lexer::token_type::Timestamp_ms) {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+  }
+   else if(token.type == lexer::token_type::Timestamp) {
     const std::string & token_value = token.value;
-    return token_value.find_first_of(" T") != std::string::npos
+    return token_value.find_first_of("T") != std::string::npos
             ? cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}
             : cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
   } else { // token.type == lexer::token_type::String

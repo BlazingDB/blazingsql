@@ -185,6 +185,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # TODO: Add CURRENT_TIMESTAMP, CURRENT_DATE, CURRENT_TIME tests without validations
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break
