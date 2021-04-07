@@ -248,9 +248,11 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
   }
    else if(token.type == lexer::token_type::Timestamp) {
     const std::string & token_value = token.value;
-    return token_value.find_first_of("T") != std::string::npos
-            ? cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}
-            : cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
+    if (token_value.find(":") != std::string::npos && token_value.find("-") != std::string::npos){
+			return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
+		} else {
+			return cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
+		}
   } else { // token.type == lexer::token_type::String
     return cudf::data_type{cudf::type_id::STRING};
   }
