@@ -4,6 +4,7 @@
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 - #1349 Add e2e test for Hive Partitioned Data
 - #1427 Support for CONCAT alias operator
+- #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
