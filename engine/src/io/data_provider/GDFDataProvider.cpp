@@ -8,7 +8,6 @@
  */
 
 #include "GDFDataProvider.h"
-#include "Config/BlazingContext.h"
 #include "arrow/status.h"
 #include <blazingdb/io/FileSystem/Uri.h>
 #include <blazingdb/io/Util/StringUtil.h>

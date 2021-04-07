@@ -111,7 +111,7 @@ public:
 	// this function does not change the order of the caches
 	virtual size_t downgradeCacheData();
 
-    bool has_data_in_index_now(size_t index);
+	bool has_data_in_index_now(size_t index);
 
 protected:
 	static std::size_t cache_count;
@@ -127,11 +127,11 @@ protected:
 	bool something_added;
 	std::shared_ptr<Context> ctx;
 	const std::size_t cache_id;
-	int cache_level_override;
 	std::string cache_machine_name;
+	int cache_level_override;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
-    bool is_array_access;
-    int global_index;
+	bool is_array_access;
+	int global_index;
 };
 
 /**
@@ -162,9 +162,9 @@ public:
 protected:
 	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
 	std::shared_ptr<Context> ctx;
-	std::shared_ptr<spdlog::logger> cache_events_logger;
 	bool something_added;
 	const std::size_t cache_id;
+	std::shared_ptr<spdlog::logger> cache_events_logger;
 };
 
 /**

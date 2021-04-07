@@ -1,22 +1,12 @@
 #include <algorithm>
 #include <limits.h>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
-//#include <cudf.h>
-#include <cudf/table/table_view.hpp>
 #include <iomanip>
 #include <map>
-#include <regex>
 
 #include <blazingdb/io/Util/StringUtil.h>
-#include "error.hpp"
 
 #include "CalciteExpressionParsing.h"
-#include "cudf/binaryop.hpp"
 #include <cudf/scalar/scalar_factories.hpp>
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"

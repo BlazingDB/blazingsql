@@ -1,6 +1,5 @@
 #include "BufferProvider.h"
 
-#include <iostream>
 #include <mutex>
 #include <cstring>
 #include <cuda.h>
@@ -9,8 +8,6 @@
 #include <ucs/type/status.h>
 
 #include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace ral{
@@ -143,7 +140,7 @@ void allocation_pool::grow() {
   try{
     allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
     this->allocations[last_index]->total_number_of_chunks = num_new_buffers;
-    for (int buffer_index = 0; buffer_index < num_new_buffers; buffer_index++) {
+    for (std::size_t buffer_index = 0; buffer_index < num_new_buffers; buffer_index++) {
        auto buffer = std::make_unique<blazing_allocation_chunk>();
       buffer->size = this->buffer_size;
       buffer->data = allocations[last_index]->data + buffer_index * this->buffer_size;
@@ -213,7 +210,7 @@ std::size_t allocation_pool::size_buffers() { return this->buffer_size; }
 
 
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
-std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx,
+std::size_t /*size_buffers_pinned*/, std::size_t /*num_buffers_pinned*/, bool map_ucx,
     ucp_context_h context) {
 
   if (buffer_providers::get_host_buffer_provider() == nullptr || buffer_providers::get_host_buffer_provider()->get_total_buffers() == 0) { // not initialized

@@ -8,7 +8,7 @@
 #include <cudf/detail/utilities/vector_factories.hpp>
 #include <numeric>
 
-std::basic_string<char> get_typed_vector_str_content(cudf::type_id dtype, std::vector<std::string> & vector) {
+std::basic_string<char> get_typed_vector_str_content(cudf::type_id /*dtype*/, std::vector<std::string> & vector) {
 	std::basic_string<char> output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(char));
 	return output;
 }
@@ -113,13 +113,11 @@ void set_min_max(
 		double min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<double>::min();
 		double max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<double>::max();
 		// here we want to reinterpret cast minmax_metadata_table to be double so that we can just use this same vector as if they were double
-		size_t current_row_index = minmax_metadata_table.size() - 1;
 		double* casted_metadata_min = reinterpret_cast<double*>(&(minmax_metadata_table[col_index]));
 		double* casted_metadata_max = reinterpret_cast<double*>(&(minmax_metadata_table[col_index + 1]));
 		casted_metadata_min[0] = min;
 		casted_metadata_max[0] = max;
 	} else if (statistic.type() == cudf::io::statistics_type::BUCKET) {
-		auto type_stat = statistic.type_specific_stats<cudf::io::bucket_statistics>();
 		auto min = std::numeric_limits<bool>::min();
 		auto max = std::numeric_limits<bool>::max();
 		minmax_metadata_table[col_index] = min;

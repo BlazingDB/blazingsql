@@ -1,11 +1,9 @@
 #include "BatchProcessing.h"
 #include "CodeTimer.h"
-#include "communication/CommunicationData.h"
 #include "ExceptionHandling/BlazingThread.h"
 #include "io/data_parser/CSVParser.h"
 #include "parser/expression_utils.hpp"
 #include "taskflow/executor.h"
-#include <cudf/types.hpp>
 #include <src/utilities/DebuggingUtils.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"

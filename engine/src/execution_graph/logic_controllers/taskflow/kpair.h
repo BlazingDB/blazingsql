@@ -17,7 +17,7 @@ enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
 /// used in create_cache_machine and create_cache_machine functions.
 struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
-	int num_partitions = 1;
+	std::size_t num_partitions = 1;
 	std::shared_ptr<Context> context;
 	std::size_t concat_cache_num_bytes = 400000000;  ///< Applicable only for concatenating caches
 	int num_bytes_timeout = 100;  ///< Applicable only for concatenating caches

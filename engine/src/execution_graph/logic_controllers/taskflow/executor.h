@@ -110,7 +110,6 @@ private:
 	executor(int num_threads, double processing_memory_limit_threshold);
 	ctpl::thread_pool<BlazingThread> pool;
 	std::vector<cudaStream_t> streams; //one stream per thread
-	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
 	int shutdown = 0;
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
@@ -128,6 +127,7 @@ private:
 	std::queue<std::exception_ptr> exception_holder; /**< Stores exceptions thrown on task threads. */
 
 	BlazingMemoryResource* resource;
+	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
 	std::size_t processing_memory_limit;
 	std::atomic<int> active_tasks_counter;
 	std::mutex memory_safety_mutex;

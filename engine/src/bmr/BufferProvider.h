@@ -71,7 +71,7 @@ protected:
 
 class host_allocator : public base_allocator {
 public:
-    host_allocator(bool use_ucx) {}
+    host_allocator(bool /*use_ucx*/) {}
 protected:
     void do_allocate(void ** ptr, std::size_t size);
     void do_deallocate(void * ptr);
@@ -125,9 +125,9 @@ private:
 
   bool use_ucx;
 
-  std::size_t buffer_size;
-
   std::size_t num_buffers;
+
+  std::size_t buffer_size;
 
   int buffer_counter;
 

@@ -148,7 +148,7 @@ void ucp_progress_manager::add_recv_request(char * request, std::function<void()
 }
 
 
-void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t status){
+void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t /*status*/){
     // if(status == UCS_OK){
     //     delete request;
     //     callback();
@@ -332,7 +332,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 }
 #define ACK_BUFFER_SIZE 40
 void ucx_buffer_transport::receive_acknowledge(){
-    for(int i = 0; i < transmitted_acknowledgements.size(); i++){
+    for(std::size_t i = 0; i < transmitted_acknowledgements.size(); i++){
         char * request = new char[_request_size];
         std::vector<char> data_buffer(sizeof(int));
         char * data = new char[ACK_BUFFER_SIZE];

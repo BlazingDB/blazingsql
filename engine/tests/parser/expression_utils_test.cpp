@@ -134,7 +134,7 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) 
 	EXPECT_EQ(type_aggs_as_str.size(), type_aggs_expect.size());
 	EXPECT_EQ(agg_param_values.size(), agg_param_expect.size());
 
-	for (int i = 0; i < column_indices_to_agg.size(); ++i) {
+	for (std::size_t i = 0; i < column_indices_to_agg.size(); ++i) {
 		EXPECT_EQ(column_indices_to_agg[i], column_indices_expect[i]);
 		EXPECT_EQ(type_aggs_as_str[i], type_aggs_expect[i]);
 	}
@@ -189,7 +189,7 @@ TEST_F(ExpressionUtilsTest, by_passing_project_with_aliases) {
 	EXPECT_EQ(by_passing_project_with_aliases, true);
 	EXPECT_EQ(aliases.size(), expected_aliases.size());
 
-	for (int i = 0; i < aliases.size(); ++i) {
+	for (std::size_t i = 0; i < aliases.size(); ++i) {
 		EXPECT_EQ(aliases[i], expected_aliases[i]);
 	}
 }

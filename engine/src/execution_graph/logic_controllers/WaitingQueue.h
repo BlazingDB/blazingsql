@@ -458,13 +458,13 @@ private:
 	std::mutex mutex_; /**< This mutex is used for making access to the
 											WaitingQueue thread-safe. */
 	std::deque<message_ptr> message_queue_; /**< */
-	std::atomic<bool> finished; /**< Indicates if this WaitingQueue is finished. */
 	std::condition_variable condition_variable_; /**< Used to notify waiting
 																								functions*/
 	int processed = 0; /**< Count of messages added to the WaitingQueue. */
 
-	int timeout; /**< timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. */
 	std::string queue_name;
+	std::atomic<bool> finished; /**< Indicates if this WaitingQueue is finished. */
+	int timeout; /**< timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. */
 	bool log_timeout; /**< Whether or not to log when a timeout accurred. */
 };
 

@@ -1,7 +1,6 @@
 #include "utils.hpp"
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <regex>
 
 #include "parser/expression_utils.hpp"

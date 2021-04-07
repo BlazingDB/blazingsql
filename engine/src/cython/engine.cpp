@@ -14,9 +14,7 @@
 
 #include <numeric>
 #include <map>
-#include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
-#include "CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
 
@@ -159,8 +157,6 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
     using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
 
-	auto& communicationData = ral::communication::CommunicationData::getInstance();
-
     std::vector<Node> contextNodes;
     for (const auto &worker_id : worker_ids) {
         contextNodes.emplace_back(worker_id);
@@ -173,7 +169,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	return graph;
 }
 
-void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
+void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t /*ctx_token*/) {
 	start_execute_graph(graph);
 }
 

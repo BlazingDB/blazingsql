@@ -48,7 +48,7 @@ public:
 		ucp_worker_h origin_node,
 		int ral_id,
 		comm::blazing_protocol protocol,
-    	bool require_acknowledge);
+		bool require_acknowledge);
 
 	std::shared_ptr<ral::cache::CacheMachine> get_output_cache(){
 		return output_cache;
@@ -61,6 +61,7 @@ public:
 private:
 	static message_sender * instance;
 
+	bool require_acknowledge;
 	ctpl::thread_pool<BlazingThread> pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;
 	std::map<std::string, node> node_address_map;
@@ -69,7 +70,6 @@ private:
 	size_t request_size;
 	int ral_id;
 	bool polling_started{false};
-	bool require_acknowledge;
 };
 
 }  // namespace comm

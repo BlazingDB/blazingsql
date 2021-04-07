@@ -2,14 +2,12 @@
 #include "metadata/parquet_metadata.h"
 
 #include "ParquetParser.h"
-#include "utilities/CommonOperations.h"
 
 #include <numeric>
 
 #include <arrow/io/file.h>
 #include "ExceptionHandling/BlazingThread.h"
 
-#include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
 
 #include <cudf/io/parquet.hpp>

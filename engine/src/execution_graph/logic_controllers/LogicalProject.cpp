@@ -48,15 +48,19 @@ std::string like_expression_to_regex_str(const std::string & like_exp) {
 
 cudf::strings::strip_type map_trim_flag_to_strip_type(const std::string & trim_flag)
 {
-    if (trim_flag == "BOTH")
-        return cudf::strings::strip_type::BOTH;
-    else if (trim_flag == "LEADING")
-        return cudf::strings::strip_type::LEFT;
-    else if (trim_flag == "TRAILING")
-        return cudf::strings::strip_type::RIGHT;
-    else
+    std::map<std::string, cudf::strings::strip_type> map_trim_flag = {
+            {"BOTH", cudf::strings::strip_type::BOTH},
+            {"LEADING", cudf::strings::strip_type::LEFT},
+            {"TRAILING", cudf::strings::strip_type::RIGHT}
+    };
+
+    std::map<std::string, cudf::strings::strip_type>::iterator map_it = map_trim_flag.find(trim_flag);
+
+    if (map_it == map_trim_flag.end()){
         // Should not reach here
         assert(false);
+    }
+    return map_it->second;
 }
 
 struct cast_to_str_functor {

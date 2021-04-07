@@ -77,6 +77,6 @@ private:
 	bool started_;
 	bool paused_;
 	Clock::time_point start_point_;
-	Clock::time_point end_point_;
 	Clock::duration accumulated_;
+	Clock::time_point end_point_;
 };
