@@ -64,7 +64,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == ral::io::DataType::CSV) {
 			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
-	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
+			parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
 
 		std::shared_ptr<ral::io::data_provider> provider;

@@ -563,6 +563,9 @@ cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_sc
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews
 
+      if table.fileType == 6: # if arrow Table
+        currentTableSchemaCpp.arrow_table =  pyarrow_unwrap_table(table.arrow_table)
+
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
 
