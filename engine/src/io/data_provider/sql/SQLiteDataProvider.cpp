@@ -59,17 +59,16 @@ std::shared_ptr<sqlite3_stmt> execute_sqlite_query(sqlite3 *conn,
   return ret;
 }
 
-sqlite_table_info get_sqlite_table_info(sqlite3 *conn,
-                                        const std::string &table) {
+sqlite_table_info get_sqlite_table_info(sqlite3 *db, const std::string &table) {
   sqlite_table_info ret;
-
   const std::string sql{"select count(*) from " + table};
   int err = sqlite3_exec(
-      conn,
+      db,
       sql.c_str(),
       [](void *data, int count, char **rows, char **) -> int {
         if (count == 1 && rows) {
           sqlite_table_info &ret = *static_cast<sqlite_table_info *>(data);
+          ret.partitions.push_back("default");  // check for partitions api
           ret.rows = static_cast<std::size_t>(atoi(rows[0]));
           return 0;
         }
@@ -184,7 +183,7 @@ data_handle sqlite_data_provider::get_next(bool) {
 
   std::cout << "query: " << query << "\n";
   auto stmt = execute_sqlite_query(this->sqlite_connection, query);
-  //this->current_row_count += res->
+  current_row_count += batch_position;
   data_handle ret;
   ret.sql_handle.table = this->sql.table;
   ret.sql_handle.column_names = this->column_names;
