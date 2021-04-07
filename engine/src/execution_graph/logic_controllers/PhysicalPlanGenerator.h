@@ -345,6 +345,18 @@ struct tree_processor {
 		return str;
 	}
 
+	std::string transform_physical_plan(std::string json){
+        std::istringstream input(json);
+        boost::property_tree::ptree p_tree;
+        boost::property_tree::read_json(input, p_tree);
+
+        transform_json_tree(p_tree);
+
+        std::ostringstream output;
+        boost::property_tree::write_json(output, p_tree);
+        return output.str();
+	}
+
 	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> build_batch_graph(std::string json) {
 		auto query_graph = std::make_shared<ral::cache::graph>();
 		std::size_t max_kernel_id = 0;
