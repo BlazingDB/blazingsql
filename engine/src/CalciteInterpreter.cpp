@@ -4,6 +4,25 @@
 
 using namespace fmt::literals;
 
+std::string get_physical_plan(std::string logicalPlan, Context &queryContext) {
+    try {
+        ral::batch::tree_processor tree(ral::batch::node(), queryContext.clone(), {}, {}, {}, {}, true);
+        return tree.transform_physical_plan(logicalPlan);
+
+    } catch (const std::exception &e) {
+        std::shared_ptr<spdlog::logger> batchLogger = spdlog::get("batch_logger");
+        if (batchLogger) {
+            batchLogger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                               "query_id"_a = queryContext.getContextToken(),
+                               "step"_a = queryContext.getQueryStep(),
+                               "substep"_a = queryContext.getQuerySubstep(),
+                               "info"_a = "In generate_graph. What: {}"_format(e.what()),
+                               "duration"_a = "");
+        }
+        throw;
+    }
+}
+
 std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
@@ -18,7 +37,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 
 	try {
 		assert(input_loaders.size() == table_names.size());
-		 
+
 		auto tree = std::make_shared<ral::batch::tree_processor>(
 			ral::batch::node(),
 			queryContext.clone(),
@@ -27,7 +46,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			table_names,
 			table_scans,
 			true);
-			
+
 		auto query_graph_and_max_kernel_id = tree->build_batch_graph(logicalPlan);
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);

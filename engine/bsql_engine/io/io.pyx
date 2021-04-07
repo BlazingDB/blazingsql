@@ -149,6 +149,9 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
 cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except *:
     return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp, config_options,sql)
 
+cdef string runGeneratePhysicalGraphPython(uint32_t masterIndex, vector[string] worker_ids, int ctxToken, string query) except *:
+    return cio.runGeneratePhysicalGraph(masterIndex, worker_ids, ctxToken, query)
+
 cdef unique_ptr[cio.PartitionedResultSet] startExecuteGraphPython(shared_ptr[cio.graph] graph, int ctx_token) except *:
     with nogil:
       cio.startExecuteGraph(graph,ctx_token)
@@ -468,6 +471,17 @@ cdef class PyBlazingGraph:
 
     cpdef get_progress(self):
         return deref(self.ptr).get_progress()
+
+cpdef runGeneratePhysicalGraphCaller(uint32_t masterIndex, worker_ids, int ctxToken, queryPy):
+    cdef string query
+    query = str.encode(queryPy)
+
+    cdef vector[string] worker_ids_c
+    for worker_id in worker_ids:
+        worker_ids_c.push_back(worker_id.encode())
+
+    physicalPlan = runGeneratePhysicalGraphPython(masterIndex, worker_ids_c, ctxToken, query)
+    return physicalPlan.decode('UTF-8')
 
 cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
     cdef string sql_c
