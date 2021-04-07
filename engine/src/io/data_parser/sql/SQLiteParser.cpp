@@ -56,18 +56,7 @@ bool sqlite_is_cudf_string(const std::string &t) {
 
 cudf::type_id parse_sqlite_column_type(const std::string t) {
   if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
-  // test numeric data types ...
-  if (StringUtil::beginsWith(t, "BOOL") || StringUtil::beginsWith(t, "BOOLEAN"))
-    return cudf::type_id::BOOL8;
-  if (StringUtil::beginsWith(t, "TINYINT")) return cudf::type_id::INT8;
-  if (StringUtil::beginsWith(t, "INT") || StringUtil::beginsWith(t, "INTEGER"))
-    return cudf::type_id::INT32;
-  if (StringUtil::beginsWith(t, "BIGINT")) return cudf::type_id::INT64;
-  if (StringUtil::beginsWith(t, "FLOAT")) return cudf::type_id::FLOAT32;
-  if (StringUtil::beginsWith(t, "DOUBLE")) return cudf::type_id::FLOAT64;
-  // test date/datetime data types ...
-  if (StringUtil::beginsWith(t, "DATE")) return cudf::type_id::TIMESTAMP_DAYS;
-  // TODO percy ...
+  if (t == "int") return cudf::type_id::INT32;
 }
 
 std::vector<cudf::type_id>
@@ -83,9 +72,7 @@ read_sqlite_v2(sqlite3_stmt *stmt,
                const std::vector<cudf::type_id> &cudf_types) {
   const std::string sqlfPart{sqlite3_expanded_sql(stmt)};
   std::string::size_type fPos = sqlfPart.find("from");
-  if (fPos == std::string::npos) {
-    fPos = sqlfPart.find("FROM");
-  }
+  if (fPos == std::string::npos) { fPos = sqlfPart.find("FROM"); }
 
   std::ostringstream oss;
   oss << "select count(*) " << sqlfPart.substr(fPos);
