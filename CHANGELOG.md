@@ -14,7 +14,7 @@
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
 - #1419 Added concat cache machine timeout 
-- #1430 Updating GCP to >= version
+- #1444 Updating GCP to >= version
 
 
 ## Bug Fixes
