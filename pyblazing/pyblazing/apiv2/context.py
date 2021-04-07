@@ -2922,10 +2922,7 @@ class BlazingContext(object):
             for query_partid in query_partids:
                 futures.append(
                     self.dask_client.submit(
-                        get_element,
-                        query_partid,
-                        workers=[worker_id],
-                        pure=False,
+                        get_element, query_partid, workers=[worker_id], pure=False,
                     )
                 )
         self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
@@ -2934,9 +2931,7 @@ class BlazingContext(object):
     def _get_results_single_node(self, ctxToken):
         graph = self.graphs[ctxToken]
         self.do_progress_bar(
-            graph,
-            self._run_progress_bar_single_node,
-            self._wait_completed_single_node,
+            graph, self._run_progress_bar_single_node, self._wait_completed_single_node,
         )
         self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
         return cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=True)
@@ -2947,11 +2942,7 @@ class BlazingContext(object):
         return self._get_results_distributed(token)
 
     def sql(
-        self,
-        query,
-        algebra=None,
-        config_options={},
-        return_token: bool = False,
+        self, query, algebra=None, config_options={}, return_token: bool = False,
     ):
         """
         Query a BlazingSQL table.
