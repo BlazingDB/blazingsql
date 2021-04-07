@@ -132,9 +132,12 @@ fi
 
 #if buildAll || hasArg engine; then
     echo "### Building abseil"
+    abseil_cpp_version=$(conda list | grep abseil-cpp|tail -n 1|awk '{print $2}')
+    echo "abseil_cpp_version for google cpp sdk 3rdparty is: $abseil_cpp_version"
     git clone https://github.com/abseil/abseil-cpp
     cd abseil-cpp/
-    git checkout 20200225.2
+    #git checkout 20200225.2
+    git checkout $abseil_cpp_version
     mkdir -p build
     cd build
     cmake ${CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
