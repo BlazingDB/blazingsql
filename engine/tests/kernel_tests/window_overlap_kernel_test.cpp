@@ -183,7 +183,7 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 		if (preceding_value > batch_tables[i]->num_rows()){
 			cudf_table = std::make_unique<CudfTable>(batch_tables[i]->view());
 		} else {
-			size_t split_value = preceding_value < batch_tables[i]->num_rows() ? batch_tables[i]->num_rows() - preceding_value : 0;
+            cudf::size_type split_value = preceding_value < batch_tables[i]->num_rows() ? batch_tables[i]->num_rows() - preceding_value : 0;
 			std::vector<cudf::size_type> presceding_split_index = {split_value};
 			auto preceding_split_views = cudf::split(batch_tables[i]->view(), presceding_split_index);
 			cudf_table = std::make_unique<CudfTable>(preceding_split_views[1]);
@@ -269,20 +269,20 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_accumulator_output(
 	std::vector<std::unique_ptr<BlazingTable>> out_batches;
 	for (std::size_t i = 0; i < batch_sizes.size(); i++){
 		if (i == 0){
-			size_t split_value = split_indexes[i] + following_value > full_data_cudf_view.num_rows() ? full_data_cudf_view.num_rows() : split_indexes[i] + following_value;
+            cudf::size_type split_value = split_indexes[i] + following_value > full_data_cudf_view.num_rows() ? full_data_cudf_view.num_rows() : split_indexes[i] + following_value;
 			std::vector<cudf::size_type> out_split_index = {split_value};
 			auto out_split_views = cudf::split(full_data_cudf_view, out_split_index);
 			auto cudf_table = std::make_unique<CudfTable>(out_split_views[0]);
 			out_batches.push_back(std::make_unique<BlazingTable>(std::move(cudf_table), names));
 		} else if (i == batch_sizes.size() - 1){
-			size_t split_value = full_data_cudf_view.num_rows() - batch_sizes[batch_sizes.size() - 1] - preceding_value > 0 ? full_data_cudf_view.num_rows() - batch_sizes[batch_sizes.size() - 1] - preceding_value : 0;
+            cudf::size_type split_value = full_data_cudf_view.num_rows() - batch_sizes[batch_sizes.size() - 1] - preceding_value > 0 ? full_data_cudf_view.num_rows() - batch_sizes[batch_sizes.size() - 1] - preceding_value : 0;
 			std::vector<cudf::size_type> out_split_index = {split_value};
 			auto out_split_views = cudf::split(full_data_cudf_view, out_split_index);
 			auto cudf_table = std::make_unique<CudfTable>(out_split_views[1]);
 			out_batches.push_back(std::make_unique<BlazingTable>(std::move(cudf_table), names));
 		} else {
-			size_t split_value1 = split_indexes[i - 1] - preceding_value > 0 ? split_indexes[i - 1] - preceding_value : 0;
-			size_t split_value2 = split_indexes[i] + following_value > full_data_cudf_view.num_rows() ? full_data_cudf_view.num_rows() : split_indexes[i] + following_value;
+            cudf::size_type split_value1 = split_indexes[i - 1] - preceding_value > 0 ? split_indexes[i - 1] - preceding_value : 0;
+            cudf::size_type split_value2 = split_indexes[i] + following_value > full_data_cudf_view.num_rows() ? full_data_cudf_view.num_rows() : split_indexes[i] + following_value;
 			std::vector<cudf::size_type> out_split_index = {split_value1, split_value2};
 			auto out_split_views = cudf::split(full_data_cudf_view, out_split_index);
 			auto cudf_table = std::make_unique<CudfTable>(out_split_views[1]);
@@ -293,7 +293,7 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_accumulator_output(
 }
 
 std::vector<std::unique_ptr<BlazingTable>> make_expected_generator_output(
-        CudfTableView full_data_cudf_view, int preceding_value, int following_value, std::vector<cudf::size_type> batch_sizes, std::vector<std::string> names){
+        CudfTableView full_data_cudf_view, std::vector<cudf::size_type> batch_sizes, std::vector<std::string> names){
 
     std::vector<cudf::size_type> split_indexes = batch_sizes;
     std::partial_sum(split_indexes.begin(), split_indexes.end(), split_indexes.begin());
@@ -319,7 +319,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -411,7 +411,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_FirstNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -545,7 +545,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_LastNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -680,7 +680,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -858,7 +858,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_FirstNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -993,7 +993,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_LastNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -1133,7 +1133,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -1315,7 +1315,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
 	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
 	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
 	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -1408,7 +1408,7 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
     auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
     auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
     cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
@@ -1426,8 +1426,6 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
     std::vector<std::unique_ptr<BlazingTable>> expected_batch_out = make_expected_generator_output(full_data_cudf_view,
-                                                                                                   preceding_value,
-                                                                                                   following_value,
                                                                                                    batch_sizes, names);
 
     // create and start kernel
@@ -1505,7 +1503,7 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
     auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
     auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
 
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
     cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
