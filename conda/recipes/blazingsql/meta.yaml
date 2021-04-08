@@ -25,6 +25,7 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
+        - abseil-cpp
         - google-cloud-cpp >=1.16.0
         - nlohmann_json
         - cppzmq
