@@ -44,7 +44,22 @@ struct WindowOverlapAccumulatorTest : public ::testing::Test {
 	}
 };
 
+struct WindowOverlapGeneratorTest : public ::testing::Test {
+    virtual void SetUp() override {
+        BlazingRMMInitialize();
+        float host_memory_quota=0.75; //default value
+        blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+        ral::memory::set_allocation_pools(4000000, 10,
+                                          4000000, 10, false, {});
+        int executor_threads = 10;
+        ral::execution::executor::init_executor(executor_threads, 0.8);
+    }
 
+    virtual void TearDown() override {
+        ral::memory::empty_pools();
+        BlazingRMMFinalize();
+    }
+};
 
 // Just creates a Context
 std::shared_ptr<Context> make_context(int num_nodes) {
