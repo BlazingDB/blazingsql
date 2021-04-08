@@ -292,6 +292,24 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_accumulator_output(
 	return std::move(out_batches);
 }
 
+std::vector<std::unique_ptr<BlazingTable>> make_expected_generator_output(
+        CudfTableView full_data_cudf_view, int preceding_value, int following_value, std::vector<cudf::size_type> batch_sizes, std::vector<std::string> names){
+
+    std::vector<cudf::size_type> split_indexes = batch_sizes;
+    std::partial_sum(split_indexes.begin(), split_indexes.end(), split_indexes.begin());
+    split_indexes.erase(split_indexes.begin() + split_indexes.size() - 1);
+
+    auto split_views = cudf::split(full_data_cudf_view, split_indexes);
+    std::vector<std::unique_ptr<BlazingTable>> batch_tables;
+
+    for (int i = 0; i < split_views.size(); i++){
+        auto cudf_table = std::make_unique<CudfTable>(split_views[i]);
+        auto blz_table = std::make_unique<BlazingTable>(std::move(cudf_table), names);
+        batch_tables.push_back(std::move(blz_table));
+    }
+    return batch_tables;
+}
+
 TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 
 	size_t size = 100000;
@@ -1411,7 +1429,10 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
     std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
-    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+    std::vector<std::unique_ptr<BlazingTable>> expected_batch_out = make_expected_generator_output(full_data_cudf_view,
+                                                                                                   preceding_value,
+                                                                                                   following_value,
+                                                                                                   batch_sizes, names);
 
     // create and start kernel
     // Context
@@ -1449,8 +1470,14 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     run_thread.join();
 
     // get and validate output
-    auto batches_pulled = outputCacheMachine->pull_all_cache_data();
-    EXPECT_EQ(batches_pulled.size(), expected_out.size());
+    auto batches_preceding_pulled = precedingCacheMachine->pull_all_cache_data();
+    auto batches_pulled           = batchesCacheMachine->pull_all_cache_data();
+    auto batches_following_pulled = followingCacheMachine->pull_all_cache_data();
+
+    EXPECT_EQ(batches_preceding_pulled.size(), preceding_overlaps.size());
+    EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
+    EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
+
     for (int i = 0; i < batches_pulled.size(); i++) {
         auto table_out = batches_pulled[i]->decache();
 //         ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
