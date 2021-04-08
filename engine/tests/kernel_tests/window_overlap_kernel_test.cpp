@@ -61,6 +61,23 @@ struct WindowOverlapGeneratorTest : public ::testing::Test {
     }
 };
 
+struct WindowOverlapTest : public ::testing::Test {
+    virtual void SetUp() override {
+        BlazingRMMInitialize();
+        float host_memory_quota=0.75; //default value
+        blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+        ral::memory::set_allocation_pools(4000000, 10,
+                                          4000000, 10, false, {});
+        int executor_threads = 10;
+        ral::execution::executor::init_executor(executor_threads, 0.8);
+    }
+
+    virtual void TearDown() override {
+        ral::memory::empty_pools();
+        BlazingRMMFinalize();
+    }
+};
+
 // Just creates a Context
 std::shared_ptr<Context> make_context(int num_nodes) {
 	std::vector<Node> nodes(num_nodes);
@@ -1612,5 +1629,139 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
 
         auto table_out_batches = batches_pulled[i]->decache();
         cudf::test::expect_tables_equivalent(expected_batch_out[i]->view(), table_out_batches->view());
+    }
+}
+
+TEST_F(WindowOverlapTest, BasicSingleNode) {
+
+    size_t size = 100000;
+
+    // Define full dataset
+    auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
+    auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+    auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
+
+    cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+
+    CudfTableView full_data_cudf_view ({col0, col1, col2});
+
+    int preceding_value = 50;
+    int following_value = 10;
+    std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
+
+    // define how its broken up into batches and overlaps
+    std::vector<std::string> names({"A", "B", "C"});
+    std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
+    // TODO cambiar eso
+    std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+
+    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
+
+    // create and start kernel
+    // Context
+    std::shared_ptr<Context> context = make_context(1);
+
+    auto & communicationData = ral::communication::CommunicationData::getInstance();
+    communicationData.initialize("0", "/tmp");
+
+    // overlap Generator kernel
+    std::shared_ptr<kernel> overlap_generator_kernel;
+    std::shared_ptr<ral::cache::CacheMachine> input_generator_cache, output_generator_cache;
+    std::tie(overlap_generator_kernel, input_generator_cache, output_generator_cache) = make_overlap_Generator_kernel(
+            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
+
+    // overlap Accumulator kernel
+    std::shared_ptr<kernel> overlap_accumulator_kernel;
+    std::shared_ptr<ral::cache::CacheMachine> input_accumulator_cache, output_accumulator_cache;
+    std::tie(overlap_accumulator_kernel, input_accumulator_cache, output_accumulator_cache) = make_overlap_Accumulator_kernel(
+            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
+
+    // register cache machines with the kernel
+    std::shared_ptr<CacheMachine>   batchesCacheMachineGenerator,
+                                    precedingCacheMachineGenerator,
+                                    followingCacheMachineGenerator,
+                                    inputCacheMachineGenerator;
+    std::tie(batchesCacheMachineGenerator,
+             precedingCacheMachineGenerator,
+             followingCacheMachineGenerator,
+             inputCacheMachineGenerator) = register_kernel_overlap_generator_with_cache_machines(
+                                                                                            overlap_generator_kernel,
+                                                                                            context);
+
+    // register cache machines with the kernel
+    std::shared_ptr<CacheMachine>   batchesCacheMachineAccumulator,
+                                    precedingCacheMachineAccumulator,
+                                    followingCacheMachineAccumulator,
+                                    outputCacheMachineAccumulator;
+    std::tie(batchesCacheMachineAccumulator,
+             precedingCacheMachineAccumulator,
+             followingCacheMachineAccumulator,
+             outputCacheMachineAccumulator) = register_kernel_overlap_accumulator_with_cache_machines(
+                                                                                            overlap_accumulator_kernel,
+                                                                                            context);
+
+
+    // run function in overlap generator
+    std::thread run_thread_generator = std::thread([overlap_generator_kernel](){
+        kstatus process = overlap_generator_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // add data into the Generator CacheMachines
+    for (std::size_t i = 0; i < batches.size(); i++) {
+        inputCacheMachineGenerator->addCacheData(std::move(batches[i]));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    inputCacheMachineGenerator->finish();
+
+    run_thread_generator.join();
+
+    auto batches_preceding_pulled = precedingCacheMachineGenerator->pull_all_cache_data();
+    auto batches_pulled           = batchesCacheMachineGenerator->pull_all_cache_data();
+    auto batches_following_pulled = followingCacheMachineGenerator->pull_all_cache_data();
+
+
+    // run function in overlap accumulator
+    std::thread run_thread_accumulator = std::thread([overlap_accumulator_kernel](){
+        kstatus process = overlap_accumulator_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // add data into the Accumulator CacheMachines
+    for (std::size_t i = 0; i < batches_pulled.size(); i++) {
+        batchesCacheMachineAccumulator->addCacheData(std::move(batches_pulled[i]));
+        if (i != 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            precedingCacheMachineAccumulator->addCacheData(std::move(batches_preceding_pulled[i - 1]));
+        }
+        if (i != batches_pulled.size() - 1) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            followingCacheMachineAccumulator->addCacheData(std::move(batches_following_pulled[i]));
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    batchesCacheMachineAccumulator->finish();
+    precedingCacheMachineAccumulator->finish();
+    followingCacheMachineAccumulator->finish();
+
+    run_thread_accumulator.join();
+
+    // get and validate output
+    auto last_batches_pulled = outputCacheMachineAccumulator->pull_all_cache_data();
+    EXPECT_EQ(last_batches_pulled.size(), expected_out.size());
+
+    for (std::size_t i = 0; i < last_batches_pulled.size(); i++) {
+        auto table_out = last_batches_pulled[i]->decache();
+        cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
     }
 }
