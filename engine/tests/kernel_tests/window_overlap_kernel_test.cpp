@@ -170,7 +170,7 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 	std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
 	std::vector<std::unique_ptr<BlazingTable>> batch_tables;
 	// make batches
-	for (int i = 0; i < split_views.size(); i++){
+	for (std::size_t i = 0; i < split_views.size(); i++){
 		auto cudf_table = std::make_unique<CudfTable>(split_views[i]);
 		auto blz_table = std::make_unique<BlazingTable>(std::move(cudf_table), names);
 		// ral::utilities::print_blazing_table_view(blz_table->toBlazingTableView(), "batch" + std::to_string(i));
@@ -178,7 +178,7 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 	}
 	// make preceding overlaps
 	// preceding_overlaps[n] goes with batch[n+1]
-	for (int i = 0; i < split_views.size() - 1; i++){
+	for (std::size_t i = 0; i < split_views.size() - 1; i++){
 		std::unique_ptr<CudfTable> cudf_table;
 		if (preceding_value > batch_tables[i]->num_rows()){
 			cudf_table = std::make_unique<CudfTable>(batch_tables[i]->view());
@@ -197,7 +197,7 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 	}
 	// make following overlaps
 	// following_overlaps[n] goes with batch[n] but there is no following_overlaps[batch.size()-1]
-	for (int i = 1; i < split_views.size(); i++){
+	for (std::size_t i = 1; i < split_views.size(); i++){
 		std::unique_ptr<CudfTable> cudf_table;
 		if (following_value > batch_tables[i]->num_rows()){
 			cudf_table = std::make_unique<CudfTable>(batch_tables[i]->view());
@@ -214,7 +214,7 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 		following_overlaps.push_back(std::make_unique<ral::cache::GPUCacheData>(std::move(blz_table),metadata));
 	}
 	// package the batches as CacheDatas
-	for (int i = 0; i < split_views.size(); i++){
+	for (std::size_t i = 0; i < split_views.size(); i++){
 		batches.push_back(std::make_unique<ral::cache::GPUCacheData>(std::move(batch_tables[i])));
 	}
 
@@ -267,7 +267,7 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_accumulator_output(
 	split_indexes.erase(split_indexes.begin() + split_indexes.size() - 1);
 
 	std::vector<std::unique_ptr<BlazingTable>> out_batches;
-	for (int i = 0; i < batch_sizes.size(); i++){
+	for (std::size_t i = 0; i < batch_sizes.size(); i++){
 		if (i == 0){
 			size_t split_value = split_indexes[i] + following_value > full_data_cudf_view.num_rows() ? full_data_cudf_view.num_rows() : split_indexes[i] + following_value;
 			std::vector<cudf::size_type> out_split_index = {split_value};
@@ -302,7 +302,7 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_generator_output(
     auto split_views = cudf::split(full_data_cudf_view, split_indexes);
     std::vector<std::unique_ptr<BlazingTable>> batch_tables;
 
-    for (int i = 0; i < split_views.size(); i++){
+    for (std::size_t i = 0; i < split_views.size(); i++){
         auto cudf_table = std::make_unique<CudfTable>(split_views[i]);
         auto blz_table = std::make_unique<BlazingTable>(std::move(cudf_table), names);
         batch_tables.push_back(std::move(blz_table));
@@ -371,7 +371,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -392,7 +392,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -469,7 +469,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_FirstNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -514,7 +514,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_FirstNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -603,7 +603,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_LastNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -648,7 +648,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_LastNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -740,7 +740,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -806,7 +806,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -817,7 +817,7 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 	std::unique_ptr<CacheData> preceding_request_response, following_request_response;
 	ral::cache::MetadataDictionary preceding_request_response_metadata, following_request_response_metadata;
 
-	for (int i = 0; i < 4; i++){
+	for (std::size_t i = 0; i < 4; i++){
 		std::unique_ptr<CacheData> request = output_message_cache->pullCacheData();
 		ral::cache::MetadataDictionary metadata = request->getMetadata();
 		if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::PRECEDING_RESPONSE){
@@ -917,7 +917,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_FirstNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -962,7 +962,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_FirstNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -1052,7 +1052,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_LastNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -1097,7 +1097,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_LastNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -1194,7 +1194,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -1260,7 +1260,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -1273,7 +1273,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 	std::unique_ptr<CacheData> preceding_request_response, following_request_response;
 	ral::cache::MetadataDictionary preceding_request_response_metadata, following_request_response_metadata;
 
-	for (int i = 0; i < 4; i++){
+	for (std::size_t i = 0; i < 4; i++){
 		std::unique_ptr<CacheData> request = output_message_cache->pullCacheData();
 		ral::cache::MetadataDictionary metadata = request->getMetadata();
 		if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == ral::batch::PRECEDING_RESPONSE){
@@ -1371,7 +1371,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	// add data into the CacheMachines
-	for (int i = 0; i < batches.size(); i++) {
+	for (std::size_t i = 0; i < batches.size(); i++) {
 		batchesCacheMachine->addCacheData(std::move(batches[i]));
 		if (i != 0) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -1392,7 +1392,7 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 	// get and validate output
 	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
-	for (int i = 0; i < batches_pulled.size(); i++) {
+	for (std::size_t i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
 		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
 		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
@@ -1457,7 +1457,7 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // add data into the CacheMachines
-    for (int i = 0; i < batches.size(); i++) {
+    for (std::size_t i = 0; i < batches.size(); i++) {
         inputCacheMachine->addCacheData(std::move(batches[i]));
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -1474,7 +1474,7 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
     EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
 
-    for (int i = 0; i < batches_pulled.size(); i++) {
+    for (std::size_t i = 0; i < batches_pulled.size(); i++) {
         if (i < batches_preceding_pulled.size()) {
             auto table_out_preceding    = batches_preceding_pulled[i]->decache();
             auto expected_out_preceding = preceding_overlaps[i]->decache();
@@ -1561,7 +1561,7 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // add data into the CacheMachines
-    for (int i = 0; i < batches.size(); i++) {
+    for (std::size_t i = 0; i < batches.size(); i++) {
         batchesCacheMachine->addCacheData(std::move(batches[i]));
         if (i != 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -1582,7 +1582,7 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     // get and validate output
     auto batches_pulled = outputCacheMachine->pull_all_cache_data();
     EXPECT_EQ(batches_pulled.size(), expected_out.size());
-    for (int i = 0; i < batches_pulled.size(); i++) {
+    for (std::size_t i = 0; i < batches_pulled.size(); i++) {
         auto table_out = batches_pulled[i]->decache();
         // ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
         // ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
