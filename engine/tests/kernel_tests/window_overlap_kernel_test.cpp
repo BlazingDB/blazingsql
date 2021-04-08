@@ -1421,19 +1421,19 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     communicationData.initialize("0", "/tmp");
 
     // overlap kernel
-    std::shared_ptr<kernel> overlap_kernel;
+    std::shared_ptr<kernel> overlap_generator_kernel;
     std::shared_ptr<ral::cache::CacheMachine> input_cache, output_cache;
-    std::tie(overlap_kernel, input_cache, output_cache) = make_overlap_Accumulator_kernel(
+    std::tie(overlap_generator_kernel, input_cache, output_cache) = make_overlap_Generator_kernel(
             "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
 
     // register cache machines with the kernel
-    std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-    std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
-            overlap_kernel, context);
+    std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, inputCacheMachine;
+    std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, inputCacheMachine) = register_kernel_overlap_generator_with_cache_machines(
+            overlap_generator_kernel, context);
 
     // run function
-    std::thread run_thread = std::thread([overlap_kernel](){
-        kstatus process = overlap_kernel->run();
+    std::thread run_thread = std::thread([overlap_generator_kernel](){
+        kstatus process = overlap_generator_kernel->run();
         EXPECT_EQ(kstatus::proceed, process);
     });
 
@@ -1441,20 +1441,10 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
 
     // add data into the CacheMachines
     for (int i = 0; i < batches.size(); i++) {
-        batchesCacheMachine->addCacheData(std::move(batches[i]));
-        if (i != 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            precedingCacheMachine->addCacheData(std::move(preceding_overlaps[i - 1]));
-        }
-        if (i != batches.size() - 1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            followingCacheMachine->addCacheData(std::move(following_overlaps[i]));
-        }
+        inputCacheMachine->addCacheData(std::move(batches[i]));
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    batchesCacheMachine->finish();
-    precedingCacheMachine->finish();
-    followingCacheMachine->finish();
+    inputCacheMachine->finish();
 
     run_thread.join();
 
