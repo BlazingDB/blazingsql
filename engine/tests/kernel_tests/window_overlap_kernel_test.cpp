@@ -259,7 +259,7 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 	return std::make_tuple(std::move(preceding_overlaps),std::move(batches),std::move(following_overlaps),std::move(previous_node_overlap),std::move(next_node_overlap)); 
 }
 
-std::vector<std::unique_ptr<BlazingTable>> make_expected_output(
+std::vector<std::unique_ptr<BlazingTable>> make_expected_accumulator_output(
 		CudfTableView full_data_cudf_view, int preceding_value, int following_value, std::vector<cudf::size_type> batch_sizes, std::vector<std::string> names){
 	
 	std::vector<cudf::size_type> split_indexes = batch_sizes;
@@ -321,7 +321,10 @@ TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 	std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
 	std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 
     // create and start kernel
 	// Context
@@ -414,7 +417,10 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_FirstNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin() + expected_out.size()-1);
 
@@ -545,7 +551,10 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_LastNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
 	expected_out.erase(expected_out.begin());
 
@@ -677,7 +686,10 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	std::unique_ptr<BlazingTable> expected_following_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
 	std::unique_ptr<BlazingTable> expected_preceding_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin());
@@ -852,7 +864,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_FirstNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin() + expected_out.size()-1);
 
@@ -984,7 +999,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_LastNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	std::unique_ptr<BlazingTable> expected_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
 	expected_out.erase(expected_out.begin());
 
@@ -1121,7 +1139,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names, total_nodes, self_node_index);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	std::unique_ptr<BlazingTable> expected_following_request_response_table = ral::utilities::getLimitedRows(expected_out[0]->toBlazingTableView(), following_value, false);
 	std::unique_ptr<BlazingTable> expected_preceding_request_response_table = ral::utilities::getLimitedRows(expected_out.back()->toBlazingTableView(), preceding_value, true);
 	expected_out.erase(expected_out.begin());
@@ -1299,7 +1320,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 	std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(
 			full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
-	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 	
     // create and start kernel
 	// Context
