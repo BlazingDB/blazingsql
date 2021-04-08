@@ -1403,7 +1403,6 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
 
     size_t size = 100000;
-    // size_t size = 55;
 
     // Define full dataset
     auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
@@ -1420,9 +1419,6 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     int preceding_value = 50;
     int following_value = 10;
     std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
-    // int preceding_value = 5;
-    // int following_value = 1;
-    // std::vector<cudf::size_type> batch_sizes = {20, 10, 25}; // need to sum up to size
 
     // define how its broken up into batches and overlaps
     std::vector<std::string> names({"A", "B", "C"});
@@ -1479,16 +1475,22 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
 
     for (int i = 0; i < batches_pulled.size(); i++) {
-        auto table_out_preceding = batches_preceding_pulled[i]->decache();
-        auto table_out_batches   = batches_pulled[i]->decache();
-        auto table_out_following = batches_following_pulled[i]->decache();
+        if (i < batches_preceding_pulled.size()) {
+            auto table_out_preceding    = batches_preceding_pulled[i]->decache();
+            auto expected_out_preceding = preceding_overlaps[i]->decache();
 
-        auto expected_out_preceding = preceding_overlaps[i]->decache();
-        auto expected_out_following = following_overlaps[i]->decache();
+            cudf::test::expect_tables_equivalent(expected_out_preceding->view(), table_out_preceding->view());
+        }
 
-        cudf::test::expect_tables_equivalent(expected_out_preceding->view(), table_out_preceding->view());
-        cudf::test::expect_tables_equivalent(expected_batch_out[i]->view(),  table_out_batches->view());
-        cudf::test::expect_tables_equivalent(expected_out_following->view(), table_out_following->view());
+        if (i < batches_following_pulled.size()) {
+            auto table_out_following    = batches_following_pulled[i]->decache();
+            auto expected_out_following = following_overlaps[i]->decache();
+
+            cudf::test::expect_tables_equivalent(expected_out_following->view(), table_out_following->view());
+        }
+
+        auto table_out_batches = batches_pulled[i]->decache();
+        cudf::test::expect_tables_equivalent(expected_batch_out[i]->view(), table_out_batches->view());
     }
 }
 
@@ -1526,7 +1528,10 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(
             full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
-    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
 
     // create and start kernel
     // Context
@@ -1536,20 +1541,20 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
     // overlap kernel
-    std::shared_ptr<kernel> overlap_kernel;
+    std::shared_ptr<kernel> overlap_generator_kernel;
     std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-    std::tie(overlap_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
+    std::tie(overlap_generator_kernel, input_message_cache, output_message_cache) = make_overlap_Generator_kernel(
             "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
             " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
 
     // register cache machines with the kernel
     std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-    std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
-            overlap_kernel, context);
+    std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_generator_with_cache_machines(
+            overlap_generator_kernel, context);
 
     // run function
-    std::thread run_thread = std::thread([overlap_kernel](){
-        kstatus process = overlap_kernel->run();
+    std::thread run_thread = std::thread([overlap_generator_kernel](){
+        kstatus process = overlap_generator_kernel->run();
         EXPECT_EQ(kstatus::proceed, process);
     });
 
