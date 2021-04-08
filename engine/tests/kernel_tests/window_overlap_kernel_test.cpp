@@ -1479,10 +1479,16 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
 
     for (int i = 0; i < batches_pulled.size(); i++) {
-        auto table_out = batches_pulled[i]->decache();
-//         ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
-//         ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
-        cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
+        auto table_out_preceding = batches_preceding_pulled[i]->decache();
+        auto table_out_batches   = batches_pulled[i]->decache();
+        auto table_out_following = batches_following_pulled[i]->decache();
+
+        auto expected_out_preceding = preceding_overlaps[i]->decache();
+        auto expected_out_following = following_overlaps[i]->decache();
+
+        cudf::test::expect_tables_equivalent(expected_out_preceding->view(), table_out_preceding->view());
+        cudf::test::expect_tables_equivalent(expected_batch_out[i]->view(),  table_out_batches->view());
+        cudf::test::expect_tables_equivalent(expected_out_following->view(), table_out_following->view());
     }
 }
 
