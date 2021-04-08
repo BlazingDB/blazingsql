@@ -1069,6 +1069,8 @@ std::string get_current_date_or_timestamp(std::string expression) {
 			milliseconds_str = std::string(3 - milliseconds_str.length(), '0') + milliseconds_str;
 		}
 		date_time_str += "." + milliseconds_str;
+	} else {
+		date_time_str = date_time_str.substr(0, 10);
 	}
 
 	return StringUtil::replace(expression, str_to_replace, date_time_str);
