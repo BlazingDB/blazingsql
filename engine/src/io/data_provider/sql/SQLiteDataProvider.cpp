@@ -135,8 +135,9 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 *conn,
   return ret;
 }
 
-sqlite_data_provider::sqlite_data_provider(const sql_info &sql)
-    : abstractsql_data_provider(sql), sqlite_connection(nullptr),
+sqlite_data_provider::sqlite_data_provider(const sql_info &sql, size_t total_number_of_nodes,
+                                           size_t self_node_idx)
+    : abstractsql_data_provider(sql, total_number_of_nodes, self_node_idx), sqlite_connection(nullptr),
       batch_position(0), current_row_count(0) {
   sqlite3 *conn = nullptr;
   int rc = sqlite3_open(sql.schema.c_str(), &conn);
@@ -164,7 +165,7 @@ sqlite_data_provider::~sqlite_data_provider() {
 }
 
 std::shared_ptr<data_provider> sqlite_data_provider::clone() {
-  return std::make_shared<sqlite_data_provider>(this->sql);
+  return std::make_shared<sqlite_data_provider>(this->sql, this->total_number_of_nodes, this->self_node_idx);
 }
 
 bool sqlite_data_provider::has_next() {

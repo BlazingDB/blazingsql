@@ -38,7 +38,9 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 	const std::vector<std::vector<std::string>> & tableSchemaCppArgValues,
 	const std::vector<std::vector<std::string>> & filesAll,
 	const std::vector<int> & fileTypes,
-	const std::vector<std::vector<std::map<std::string, std::string>>> & uri_values){
+	const std::vector<std::vector<std::map<std::string, std::string>>> & uri_values,
+  size_t total_number_of_nodes,
+  size_t self_node_idx){
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -81,7 +83,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #ifdef MYSQL_SUPPORT
       parser = std::make_shared<ral::io::mysql_parser>();
       auto sql = ral::io::getSqlInfo(args_map);
-      provider = std::make_shared<ral::io::mysql_data_provider>(sql);
+      provider = std::make_shared<ral::io::mysql_data_provider>(sql, total_number_of_nodes, self_node_idx);
       isSqlProvider = true;
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
@@ -90,7 +92,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #ifdef SQLITE_SUPPORT
   		parser = std::make_shared<ral::io::sqlite_parser>();
       auto sql = ral::io::getSqlInfo(args_map);
-      provider = std::make_shared<ral::io::sqlite_data_provider>(sql);
+      provider = std::make_shared<ral::io::sqlite_data_provider>(sql, total_number_of_nodes, self_node_idx);
       isSqlProvider = true;
 #endif
     }
@@ -178,23 +180,26 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::string query,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
-	std::string sql) {
+	std::string sql)
+{
+  using blazingdb::manager::Context;
+  using blazingdb::transport::Node;
+  
+  auto& communicationData = ral::communication::CommunicationData::getInstance();
 
+  std::vector<Node> contextNodes;
+  for (const auto &worker_id : worker_ids) {
+    contextNodes.emplace_back(worker_id);
+  }
+	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
+  auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+  int self_node_idx = queryContext.getNodeIndex(self_node);
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
-		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
+		tableSchemaCppArgValues, filesAll, fileTypes, uri_values, contextNodes.size(), self_node_idx);
 
-    using blazingdb::manager::Context;
-	using blazingdb::transport::Node;
 
-	auto& communicationData = ral::communication::CommunicationData::getInstance();
-
-    std::vector<Node> contextNodes;
-    for (const auto &worker_id : worker_ids) {
-        contextNodes.emplace_back(worker_id);
-    }
-	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
 
   	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 

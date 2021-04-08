@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
  */
 
 #ifndef MYSQLDATAPROVIDER_H_
@@ -20,7 +19,9 @@ namespace io {
  */
 class mysql_data_provider : public abstractsql_data_provider {
 public:
-	mysql_data_provider(const sql_info &sql);
+	mysql_data_provider(const sql_info &sql,
+                      size_t total_number_of_nodes,
+                      size_t self_node_idx);
 
   virtual ~mysql_data_provider();
 

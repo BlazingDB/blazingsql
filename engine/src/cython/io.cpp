@@ -70,14 +70,14 @@ TableSchema parseSchema(std::vector<std::string> files,
 #ifdef MYSQL_SUPPORT
 		parser = std::make_shared<ral::io::mysql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
-    provider = std::make_shared<ral::io::mysql_data_provider>(sql);
+    provider = std::make_shared<ral::io::mysql_data_provider>(sql, 0, 0);
 #endif
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
     parser = std::make_shared<ral::io::sqlite_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
-    provider = std::make_shared<ral::io::sqlite_data_provider>(sql);
+    provider = std::make_shared<ral::io::sqlite_data_provider>(sql, 0, 0);
     isSqlProvider = true;
 #endif
   }

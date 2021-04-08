@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
  */
 
 // NOTES 
@@ -181,8 +180,11 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
   return ret;
 }
 
-mysql_data_provider::mysql_data_provider(const sql_info &sql)
-	: abstractsql_data_provider(sql)
+mysql_data_provider::mysql_data_provider(
+    const sql_info &sql,
+    size_t total_number_of_nodes,
+    size_t self_node_idx)
+	: abstractsql_data_provider(sql, total_number_of_nodes, self_node_idx)
   , mysql_connection(nullptr), estimated_table_row_count(0)
   , batch_position(0), table_fetch_completed(false)
 {
@@ -207,7 +209,7 @@ mysql_data_provider::~mysql_data_provider() {
 }
 
 std::shared_ptr<data_provider> mysql_data_provider::clone() {
-  return std::make_shared<mysql_data_provider>(sql);
+  return std::make_shared<mysql_data_provider>(sql, this->total_number_of_nodes, this->self_node_idx);
 }
 
 bool mysql_data_provider::has_next() {
@@ -231,10 +233,12 @@ data_handle mysql_data_provider::get_next(bool open_file) {
 
   std::string select_from = this->build_select_from();
   std::string where = this->sql.table_filter.empty()? "" : " where ";
-  std::string query = select_from + where + this->sql.table_filter + this->build_limit_offset(this->batch_position);
+  
+  size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * this->batch_position + this->self_node_idx);
+  std::string query = select_from + where + this->sql.table_filter + this->build_limit_offset(offset);
   // DEBUG
   //std::cout << "MYSQL QUERY: " << query << "\n";
-  this->batch_position += this->sql.table_batch_size;
+  ++this->batch_position;
   auto res = execute_mysql_query(this->mysql_connection.get(), query);
 
   if (res->rowsCount() == 0) {
