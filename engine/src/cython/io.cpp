@@ -75,12 +75,10 @@ TableSchema parseSchema(std::vector<std::string> files,
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
-//		parser = std::make_shared<ral::io::sqlite_parser>();
-//    auto sql = ral::io::getSqlInfo(args_map);
-//    provider = std::make_shared<ral::io::sqlite_data_provider>(sql.schema,
-//                                                               sql.table,
-//                                                               sql.table_filter,                                                          sql.table_batch_size);
-//    isSqlProvider = true;
+    parser = std::make_shared<ral::io::sqlite_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::sqlite_data_provider>(sql);
+    isSqlProvider = true;
 #endif
   }
 

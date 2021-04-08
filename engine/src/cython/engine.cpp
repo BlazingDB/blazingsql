@@ -63,7 +63,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 
     bool isSqlProvider = false;
     std::shared_ptr<ral::io::data_provider> provider;
-    
+
 		std::shared_ptr<ral::io::data_parser> parser;
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
@@ -88,12 +88,10 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #endif
     } else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
-  //		parser = std::make_shared<ral::io::sqlite_parser>();
-  //    auto sql = ral::io::getSqlInfo(args_map);
-  //    provider = std::make_shared<ral::io::sqlite_data_provider>(sql.schema,
-  //                                                               sql.table,
-  //                                                               sql.table_filter,                                                          sql.table_batch_size);
-  //    isSqlProvider = true;
+  		parser = std::make_shared<ral::io::sqlite_parser>();
+      auto sql = ral::io::getSqlInfo(args_map);
+      provider = std::make_shared<ral::io::sqlite_data_provider>(sql);
+      isSqlProvider = true;
 #endif
     }
 
@@ -233,7 +231,7 @@ std::unique_ptr<PartitionedResultSet> getExecuteGraphResult(std::shared_ptr<ral:
 }
 /*
 std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
-	
+
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names) {
@@ -330,7 +328,7 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 
 /*
 std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
-	
+
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,

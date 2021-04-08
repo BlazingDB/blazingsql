@@ -54,20 +54,30 @@ bool sqlite_is_cudf_string(const std::string &t) {
   return false;
 }
 
-cudf::type_id parse_sqlite_column_type(const std::string t) {
+cudf::type_id parse_sqlite_column_type(std::string t) {
   if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
-  // test numeric data types ...
-  if (StringUtil::beginsWith(t, "BOOL") || StringUtil::beginsWith(t, "BOOLEAN"))
-    return cudf::type_id::BOOL8;
-  if (StringUtil::beginsWith(t, "TINYINT")) return cudf::type_id::INT8;
-  if (StringUtil::beginsWith(t, "INT") || StringUtil::beginsWith(t, "INTEGER"))
-    return cudf::type_id::INT32;
-  if (StringUtil::beginsWith(t, "BIGINT")) return cudf::type_id::INT64;
-  if (StringUtil::beginsWith(t, "FLOAT")) return cudf::type_id::FLOAT32;
-  if (StringUtil::beginsWith(t, "DOUBLE")) return cudf::type_id::FLOAT64;
-  // test date/datetime data types ...
-  if (StringUtil::beginsWith(t, "DATE")) return cudf::type_id::TIMESTAMP_DAYS;
-  // TODO percy ...
+  std::transform(
+      t.cbegin(), t.cend(), t.begin(), [](const std::string::value_type c) {
+        return std::tolower(c);
+      });
+  if (t == "tinyint") { return cudf::type_id::INT8; }
+  if (t == "smallint") { return cudf::type_id::INT8; }
+  if (t == "mediumint") { return cudf::type_id::INT16; }
+  if (t == "int") { return cudf::type_id::INT32; }
+  if (t == "integer") { return cudf::type_id::INT32; }
+  if (t == "bigint") { return cudf::type_id::INT64; }
+  if (t == "unsigned big int") { return cudf::type_id::UINT64; }
+  if (t == "int2") { return cudf::type_id::INT16; }
+  if (t == "int8") { return cudf::type_id::INT64; }
+  if (t == "real") { return cudf::type_id::FLOAT32; }
+  if (t == "double") { return cudf::type_id::FLOAT64; }
+  if (t == "double precision") { return cudf::type_id::FLOAT64; }
+  if (t == "float") { return cudf::type_id::FLOAT32; }
+  if (t == "decimal") { return cudf::type_id::FLOAT64; }
+  if (t == "boolean") { return cudf::type_id::UINT8; }
+  if (t == "date") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+  if (t == "datetime") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+
 }
 
 std::vector<cudf::type_id>
@@ -83,9 +93,7 @@ read_sqlite_v2(sqlite3_stmt *stmt,
                const std::vector<cudf::type_id> &cudf_types) {
   const std::string sqlfPart{sqlite3_expanded_sql(stmt)};
   std::string::size_type fPos = sqlfPart.find("from");
-  if (fPos == std::string::npos) {
-    fPos = sqlfPart.find("FROM");
-  }
+  if (fPos == std::string::npos) { fPos = sqlfPart.find("FROM"); }
 
   std::ostringstream oss;
   oss << "select count(*) " << sqlfPart.substr(fPos);
