@@ -1614,26 +1614,3 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
         cudf::test::expect_tables_equivalent(expected_batch_out[i]->view(), table_out_batches->view());
     }
 }
-
-// FERNANDO TODO
-
-// create two unit tests for OverlapGeneratorKernel
-// Both can be single node, since this kernel never communicates with other nodes
-// One will have batch sizes and a window size that will generate complete overlaps (imitate BasicSingleNode)
-// the other test will have some batches that are too small and will generate some incomplete overlaps  (imitate BigWindowSingleNode)
-
-/* Some things to consider when making these tests and the kernels:
-OverlapGeneratorKernel has one input and three outputs:
-* - "batches"
-* - "preceding_overlaps"
-* - "following_overlaps"
-you will want to validate the metadata for preceding_overlaps, following_overlaps
-all you need to validate is if its complete or incomplete
-ral::cache::OVERLAP_STATUS, DONE_OVERLAP_STATUS  or ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS
-
-std::unique_ptr<CacheData> output_batch = output_cache->pullCacheData();
-ral::cache::MetadataDictionary metadata = output_batch->getMetadata();
-EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
-
-remember that break_up_full_data will produce the input batches and the output preceding_overlaps, batches, following_overlaps for you
- */
