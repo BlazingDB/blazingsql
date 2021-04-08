@@ -89,7 +89,7 @@ std::tuple<std::shared_ptr<kernel>, std::shared_ptr<ral::cache::CacheMachine>, s
 }
 
 // Creates two CacheMachines and register them with the `project_kernel`
-std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_with_cache_machines(
+std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_overlap_accumulator_with_cache_machines(
 	std::shared_ptr<kernel> overlap_kernel,
 	std::shared_ptr<Context> context) {
 	std::shared_ptr<CacheMachine>  batchesCacheMachine = std::make_shared<CacheMachine>(context, "batches");
@@ -308,7 +308,8 @@ TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -402,7 +403,8 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_FirstNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -532,7 +534,8 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_LastNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -665,7 +668,8 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -838,7 +842,8 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_FirstNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -969,7 +974,8 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_LastNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -1107,7 +1113,8 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
@@ -1280,7 +1287,8 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
+            overlap_kernel, context);
 
 	// run function
 	std::thread run_thread = std::thread([overlap_kernel](){
