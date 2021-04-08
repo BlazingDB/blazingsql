@@ -1494,10 +1494,7 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
 
 TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
 
-    int self_node_index = 0;
-    int total_nodes = 1;
     size_t size = 14600;
-    // size_t size = 55;
 
     // Define full dataset
     auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
@@ -1515,28 +1512,22 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     int preceding_value = 1500;
     int following_value = 3000;
     std::vector<cudf::size_type> batch_sizes = {5500, 1100, 1200, 1300, 5500}; // need to sum up to size
-    // int preceding_value = 5;
-    // int following_value = 1;
-    // std::vector<cudf::size_type> batch_sizes = {20, 10, 25}; // need to sum up to size
 
     // define how its broken up into batches and overlaps
     std::vector<std::string> names({"A", "B", "C"});
-    // std::vector<std::string> names({"A"});
     std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
     std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(
             full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
-    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
-                                                                                               preceding_value,
-                                                                                               following_value,
-                                                                                               batch_sizes, names);
+    std::vector<std::unique_ptr<BlazingTable>> expected_batch_out = make_expected_generator_output(full_data_cudf_view,
+                                                                                                   batch_sizes, names);
 
     // create and start kernel
     // Context
-    std::shared_ptr<Context> context = make_context(total_nodes);
+    std::shared_ptr<Context> context = make_context(1);
 
     auto & communicationData = ral::communication::CommunicationData::getInstance();
-    communicationData.initialize(std::to_string(self_node_index), "/tmp");
+    communicationData.initialize("0", "/tmp");
 
     // overlap kernel
     std::shared_ptr<kernel> overlap_generator_kernel;
@@ -1546,8 +1537,8 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
             " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
 
     // register cache machines with the kernel
-    std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
-    std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_generator_with_cache_machines(
+    std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, inputCacheMachine;
+    std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, inputCacheMachine) = register_kernel_overlap_generator_with_cache_machines(
             overlap_generator_kernel, context);
 
     // run function
@@ -1560,31 +1551,39 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
 
     // add data into the CacheMachines
     for (std::size_t i = 0; i < batches.size(); i++) {
-        batchesCacheMachine->addCacheData(std::move(batches[i]));
-        if (i != 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            precedingCacheMachine->addCacheData(std::move(preceding_overlaps[i - 1]));
-        }
-        if (i != batches.size() - 1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            followingCacheMachine->addCacheData(std::move(following_overlaps[i]));
-        }
+        inputCacheMachine->addCacheData(std::move(batches[i]));
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    batchesCacheMachine->finish();
-    precedingCacheMachine->finish();
-    followingCacheMachine->finish();
+    inputCacheMachine->finish();
 
     run_thread.join();
 
     // get and validate output
-    auto batches_pulled = outputCacheMachine->pull_all_cache_data();
-    EXPECT_EQ(batches_pulled.size(), expected_out.size());
+    auto batches_preceding_pulled = precedingCacheMachine->pull_all_cache_data();
+    auto batches_pulled           = batchesCacheMachine->pull_all_cache_data();
+    auto batches_following_pulled = followingCacheMachine->pull_all_cache_data();
+
+    EXPECT_EQ(batches_preceding_pulled.size(), preceding_overlaps.size());
+    EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
+    EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
+
     for (std::size_t i = 0; i < batches_pulled.size(); i++) {
-        auto table_out = batches_pulled[i]->decache();
-        // ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
-        // ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
-        cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
+        if (i < batches_preceding_pulled.size()) {
+            auto table_out_preceding    = batches_preceding_pulled[i]->decache();
+            auto expected_out_preceding = preceding_overlaps[i]->decache();
+
+            cudf::test::expect_tables_equivalent(expected_out_preceding->view(), table_out_preceding->view());
+        }
+
+        if (i < batches_following_pulled.size()) {
+            auto table_out_following    = batches_following_pulled[i]->decache();
+            auto expected_out_following = following_overlaps[i]->decache();
+
+            cudf::test::expect_tables_equivalent(expected_out_following->view(), table_out_following->view());
+        }
+
+        auto table_out_batches = batches_pulled[i]->decache();
+        cudf::test::expect_tables_equivalent(expected_batch_out[i]->view(), table_out_batches->view());
     }
 }
 
