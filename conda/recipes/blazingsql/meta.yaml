@@ -43,6 +43,7 @@ requirements:
     run:
         - python
         - nlohmann_json
+        - abseil-cpp
         - openjdk >=8.0
         - jpype1
         - netifaces
@@ -61,6 +62,7 @@ test:
         - cudatoolkit {{ cuda_version }}.*
         - gtest 1.10
         - nlohmann_json
+        - abseil-cpp
     imports:
         - cio
 

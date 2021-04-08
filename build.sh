@@ -148,6 +148,13 @@ fi
           -GNinja \
           ..
     ninja install
+    #if [[ $CONDA_BUILD -eq 1 ]]; then
+    #    cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
+    #fi
+    echo ">>>>>>>>>>>> INDEX_PREFIX:"$INDEX_PREFIX
+    ls -la $INDEX_PREFIX
+    echo "pwd: "$PWD
+    echo "### Finish abseil"
 #fi
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
