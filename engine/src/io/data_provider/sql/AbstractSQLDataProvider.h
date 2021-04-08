@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
  */
 
 #ifndef ABSTRACTSQLDATAPROVIDER_H_
@@ -30,14 +29,14 @@ struct sql_info {
  */
 class abstractsql_data_provider : public data_provider {
 public:
-  abstractsql_data_provider(const sql_info &sql);
+  abstractsql_data_provider(const sql_info &sql,
+    size_t total_number_of_nodes,
+    size_t self_node_idx);
 
   virtual ~abstractsql_data_provider();
 
   /**
-	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
-	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
-	 * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
+	 * Get batch_count batches from the sql database using while has_next() and next()
 	 */
 	std::vector<data_handle> get_some(std::size_t batch_count, bool = true) override;
 
@@ -65,6 +64,8 @@ protected:
   std::vector<std::string> column_names;
   std::vector<std::string> column_types;
   std::vector<size_t> column_bytes;
+  size_t total_number_of_nodes;
+  size_t self_node_idx;
 };
 
 template<class SQLProvider>

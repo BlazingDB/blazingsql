@@ -54,13 +54,13 @@ struct sql_datasource {
   std::vector<size_t> column_bytes;
   size_t row_count;
 #ifdef MYSQL_SUPPORT
-  std::shared_ptr<sql::ResultSet> mysql_resultset;
+  std::shared_ptr<sql::ResultSet> mysql_resultset = nullptr;
 #endif
 #ifdef SQLITE_SUPPORT
-  std::shared_ptr<sqlite3_stmt> sqlite_statement;
+  std::shared_ptr<sqlite3_stmt> sqlite_statement = nullptr;
 #endif
 #ifdef POSTGRESQL_SUPPORT
-  std::shared_ptr<PGresult> postgresql_result;
+  std::shared_ptr<PGresult> postgresql_result = nullptr;
 #endif
   // TODO percy c.gonzales add other backends here
 };

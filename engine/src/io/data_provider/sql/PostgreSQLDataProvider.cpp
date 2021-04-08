@@ -84,8 +84,10 @@ TableInfo ExecuteTableInfo(PGconn *connection, const sql_info &sql) {
 
 }  // namespace
 
-postgresql_data_provider::postgresql_data_provider(const sql_info &sql)
-    : abstractsql_data_provider(sql), table_fetch_completed{false},
+postgresql_data_provider::postgresql_data_provider(const sql_info &sql,
+                                                   size_t total_number_of_nodes,
+                                                   size_t self_node_idx)
+    : abstractsql_data_provider(sql, total_number_of_nodes, self_node_idx), table_fetch_completed{false},
       batch_position{0}, estimated_table_row_count{0} {
   connection = PQconnectdb(MakePostgreSQLConnectionString(sql).c_str());
 
@@ -110,7 +112,7 @@ postgresql_data_provider::~postgresql_data_provider() { PQfinish(connection); }
 
 std::shared_ptr<data_provider> postgresql_data_provider::clone() {
   return std::static_pointer_cast<data_provider>(
-      std::make_shared<postgresql_data_provider>(sql));
+      std::make_shared<postgresql_data_provider>(sql, this->total_number_of_nodes, this->self_node_idx));
 }
 
 bool postgresql_data_provider::has_next() {

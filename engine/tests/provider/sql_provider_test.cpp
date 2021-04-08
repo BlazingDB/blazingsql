@@ -25,7 +25,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   sql.table_batch_size = 2000;
 
   auto postgresql_provider =
-      std::make_shared<ral::io::postgresql_data_provider>(sql);
+      std::make_shared<ral::io::postgresql_data_provider>(sql, 1, 0);
 
   ral::io::postgresql_parser parser;
   ral::io::Schema schema;
@@ -106,7 +106,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
-  auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql);
+  auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
 
   int rows = mysql_provider->get_num_handles();
 
@@ -164,7 +164,7 @@ TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   sql.table_batch_size = 2000;
 
   auto sqlite_provider =
-      std::make_shared<ral::io::sqlite_data_provider>(sql);
+      std::make_shared<ral::io::sqlite_data_provider>(sql, 1, 0);
 
   ral::io::sqlite_parser parser;
   ral::io::Schema schema;

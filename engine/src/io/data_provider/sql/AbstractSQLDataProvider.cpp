@@ -8,8 +8,11 @@
 namespace ral {
 namespace io {
 
-abstractsql_data_provider::abstractsql_data_provider(const sql_info &sql)
-	: data_provider(), sql(sql) {}
+abstractsql_data_provider::abstractsql_data_provider(
+    const sql_info &sql,
+    size_t total_number_of_nodes,
+    size_t self_node_idx)
+	: data_provider(), sql(sql), total_number_of_nodes(total_number_of_nodes), self_node_idx(self_node_idx) {}
 
 abstractsql_data_provider::~abstractsql_data_provider() {
 	this->close_file_handles(); 
