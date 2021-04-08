@@ -35,9 +35,7 @@ public:
   virtual ~abstractsql_data_provider();
 
   /**
-	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
-	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
-	 * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
+	 * Get batch_count batches from the sql database using while has_next() and next()
 	 */
 	std::vector<data_handle> get_some(std::size_t batch_count, bool = true) override;
 
