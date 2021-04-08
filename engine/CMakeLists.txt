@@ -262,6 +262,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/ArrowDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp

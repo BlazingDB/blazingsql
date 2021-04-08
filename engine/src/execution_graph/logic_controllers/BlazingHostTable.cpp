@@ -77,15 +77,10 @@ const std::vector<ColumnTransport> &BlazingHostTable::get_columns_offsets() cons
     return columns_offsets;
 }
 
-
-
 std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
-
-
     std::vector<rmm::device_buffer> gpu_raw_buffers(chunked_column_infos.size());
-	
-	try{
-        
+
+    try{
         int buffer_index = 0;
         for(auto & chunked_column_info : chunked_column_infos){
             gpu_raw_buffers[buffer_index].resize(chunked_column_info.use_size);
@@ -99,18 +94,18 @@ std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
             }
             buffer_index++;
         }
-    	cudaStreamSynchronize(0);
-	}catch(std::exception & e){
-		auto logger = spdlog::get("batch_logger");
+        cudaStreamSynchronize(0);
+    }catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in BlazingHostTable::get_gpu_table(). What: {}"_format(e.what()));
         }
-		throw;
-	}
+        throw;
+    }
 
     return std::move(comm::deserialize_from_gpu_raw_buffers(columns_offsets,
-									  gpu_raw_buffers));
+                                    gpu_raw_buffers));
 }
 
 std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers() const {

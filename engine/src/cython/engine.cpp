@@ -8,6 +8,7 @@
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_provider/GDFDataProvider.h"
+#include "../io/data_provider/ArrowDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
@@ -64,7 +65,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == ral::io::DataType::CSV) {
 			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
-			parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
+			parser = std::make_shared<ral::io::arrow_parser>();
 		}
 
 		std::shared_ptr<ral::io::data_provider> provider;
@@ -75,8 +76,10 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		}
 
 		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
-			// is gdf
 			provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
+		} else if (fileType == ral::io::DataType::ARROW) {
+			std::vector<std::shared_ptr<arrow::Table>> arrow_tables={tableSchema.arrow_table};
+			provider = std::make_shared<ral::io::arrow_data_provider>(arrow_tables, uri_values[i]);
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
 			provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);

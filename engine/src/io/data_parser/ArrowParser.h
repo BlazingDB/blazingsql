@@ -17,7 +17,7 @@ namespace io {
 
 class arrow_parser : public data_parser {
 public:
-	arrow_parser( std::shared_ptr< arrow::Table > table);
+	arrow_parser();
 
 	virtual ~arrow_parser();
 
@@ -27,7 +27,7 @@ public:
 	DataType type() const override { return DataType::ARROW; }
 
 private:
-	std::shared_ptr< arrow::Table > table;
+	//std::shared_ptr< arrow::Table > table;
 };
 
 } /* namespace io */

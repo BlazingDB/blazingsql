@@ -8,6 +8,15 @@
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
+#include "execution_graph/logic_controllers/CacheDataIO.h"
+#include "execution_graph/logic_controllers/ArrowCacheData.h"
+
+#include "io/data_parser/CSVParser.h"
+#include "io/data_parser/JSONParser.h"
+#include "io/data_parser/OrcParser.h"
+#include "io/data_parser/ParquetParser.h"
+#include "io/data_parser/ArrowParser.h"
+
 namespace ral {
 namespace batch {
 
@@ -345,6 +354,20 @@ protected:
 	frame_type output; /**< Vector of tables with the final output. */
 	std::atomic<bool> done;
 };
+
+template<typename T1, typename T2, typename ...Params>
+std::unique_ptr<ral::cache::CacheData> CacheDataDispatcher(T1 handle, T2 parser, Params&&... params) {
+	if constexpr (
+			std::is_same<T2, ral::io::parquet_parser>::value or
+			std::is_same<T2, ral::io::orc_parser>::value or
+			std::is_same<T2, ral::io::json_parser>::value or
+			std::is_same<T2, ral::io::csv_parser>::value
+		)
+		return std::make_unique<ral::cache::CacheDataIO>(handle, parser, std::forward<Params>(params)...);
+
+	if constexpr (std::is_same<T2, ral::cache::ArrowCacheData>::value)
+		return std::make_unique<ral::cache::ArrowCacheData>(handle, parser, std::forward<Params>(params)...);
+	}
 
 } // namespace batch
 } // namespace ral

@@ -12,12 +12,14 @@
 namespace ral {
 namespace io {
 
-arrow_parser::arrow_parser(std::shared_ptr< arrow::Table > table):  table(table) {
-	// TODO Auto-generated constructor stub
+// arrow_parser::arrow_parser(std::shared_ptr<arrow::Table> table):  table(table) {
+// 	// TODO Auto-generated constructor stub
 
-	std::cout<<"the total num rows is "<<table->num_rows()<<std::endl;
-	// WSM TODO table_schema news to be newed up and copy in the properties
-}
+// 	std::cout<<"the total num rows is "<<table->num_rows()<<std::endl;
+// 	// WSM TODO table_schema news to be newed up and copy in the properties
+// }
+
+arrow_parser::arrow_parser() {}
 
 arrow_parser::~arrow_parser() {}
 
