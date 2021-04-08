@@ -1472,6 +1472,16 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
     EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
     EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
 
+    for (const auto &batch : batches_preceding_pulled){
+        ral::cache::MetadataDictionary metadata = batch->getMetadata();
+        EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+    }
+
+    for (const auto &batch : batches_following_pulled){
+        ral::cache::MetadataDictionary metadata = batch->getMetadata();
+        EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+    }
+
     for (std::size_t i = 0; i < batches_pulled.size(); i++) {
         if (i < batches_preceding_pulled.size()) {
             auto table_out_preceding    = batches_preceding_pulled[i]->decache();
@@ -1566,6 +1576,24 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
     EXPECT_EQ(batches_preceding_pulled.size(), preceding_overlaps.size());
     EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
     EXPECT_EQ(batches_following_pulled.size(), following_overlaps.size());
+
+    for (std::size_t i = 0; i < batches_preceding_pulled.size(); ++i) {
+        ral::cache::MetadataDictionary metadata = batches_preceding_pulled[i]->getMetadata();
+        if (i == 0) {
+            EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+        } else {
+            EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::INCOMPLETE_OVERLAP_STATUS);
+        }
+    }
+
+    for (std::size_t i = 0; i < batches_following_pulled.size(); ++i) {
+        ral::cache::MetadataDictionary metadata = batches_following_pulled[i]->getMetadata();
+        if (i == batches_following_pulled.size() - 1) {
+            EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::DONE_OVERLAP_STATUS);
+        } else {
+            EXPECT_EQ(metadata.get_value(ral::cache::OVERLAP_STATUS), ral::batch::INCOMPLETE_OVERLAP_STATUS);
+        }
+    }
 
     for (std::size_t i = 0; i < batches_pulled.size(); i++) {
         if (i < batches_preceding_pulled.size()) {
