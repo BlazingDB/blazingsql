@@ -43,7 +43,9 @@ requirements:
     run:
         - python
         - nlohmann_json
+        - aws-sdk-cpp
         - abseil-cpp
+        - google-cloud-cpp >=1.16.0
         - openjdk >=8.0
         - jpype1
         - netifaces
@@ -62,7 +64,9 @@ test:
         - cudatoolkit {{ cuda_version }}.*
         - gtest 1.10
         - nlohmann_json
+        - aws-sdk-cpp
         - abseil-cpp
+        - google-cloud-cpp >=1.16.0
     imports:
         - cio
 
