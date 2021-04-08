@@ -131,30 +131,30 @@ fi
 ################################################################################
 
 #if buildAll || hasArg engine; then
-    echo "### Building abseil"
-    abseil_cpp_version=$(conda list | grep abseil-cpp|tail -n 1|awk '{print $2}')
-    echo "abseil_cpp_version for google cpp sdk 3rdparty is: $abseil_cpp_version"
-    git clone https://github.com/abseil/abseil-cpp
-    cd abseil-cpp/
+    #echo "### Building abseil"
+    #abseil_cpp_version=$(conda list | grep abseil-cpp|tail -n 1|awk '{print $2}')
+    #echo "abseil_cpp_version for google cpp sdk 3rdparty is: $abseil_cpp_version"
+    #git clone https://github.com/abseil/abseil-cpp
+    #cd abseil-cpp/
     #git checkout 20200225.2
-    git checkout $abseil_cpp_version
-    mkdir -p build
-    cd build
-    cmake ${CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DCMAKE_PREFIX_PATH=${INSTALL_PREFIX} \
-          -DCMAKE_INSTALL_LIBDIR=lib \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_SHARED_LIBS=ON \
-          -GNinja \
-          ..
-    ninja install
+    #git checkout $abseil_cpp_version
+    #mkdir -p build
+    #cd build
+    #cmake ${CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+    #      -DCMAKE_PREFIX_PATH=${INSTALL_PREFIX} \
+    #      -DCMAKE_INSTALL_LIBDIR=lib \
+    #      -DCMAKE_BUILD_TYPE=Release \
+    #      -DBUILD_SHARED_LIBS=ON \
+    #      -GNinja \
+    #      ..
+    #ninja install
     #if [[ $CONDA_BUILD -eq 1 ]]; then
     #    cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     #fi
-    echo ">>>>>>>>>>>> INDEX_PREFIX:"$INDEX_PREFIX
-    ls -la $INDEX_PREFIX
-    echo "pwd: "$PWD
-    echo "### Finish abseil"
+    #echo ">>>>>>>>>>>> INDEX_PREFIX:"$INDEX_PREFIX
+    #ls -la $INDEX_PREFIX
+    #echo "pwd: "$PWD
+    #echo "### Finish abseil"
 #fi
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
