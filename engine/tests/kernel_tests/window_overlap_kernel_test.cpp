@@ -33,7 +33,7 @@ struct WindowOverlapAccumulatorTest : public ::testing::Test {
 		float host_memory_quota=0.75; //default value
 		blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 		ral::memory::set_allocation_pools(4000000, 10,
-										4000000, 10, false,nullptr);
+										4000000, 10, false, {});
 		int executor_threads = 10;
 		ral::execution::executor::init_executor(executor_threads, 0.8);
 	}
