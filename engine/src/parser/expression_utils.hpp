@@ -212,6 +212,8 @@ std::string extract_table_name(std::string query_part);
 // if the flag trim is true, leading and trailing spaces are removed
 std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
 
+std::string remove_is_not_false_condition(std::string expression);
+
 std::string replace_calcite_regex(const std::string & expression);
 
 //Returns the column names according to the corresponding algebra expression

@@ -294,6 +294,91 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             #         runTest.run_query(bc, drill, query, queryId, queryType,
             #            0, '', min_aceptable_diff, True)
 
+            queryId = "TEST_18"
+            query = """select o_orderkey, o_confirmed from bool_orders
+                        where o_confirmed IS TRUE
+                        order by o_orderkey limit 15"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_19"
+            query = """select o_orderkey, o_confirmed from bool_orders
+                        where o_confirmed IS FALSE
+                        order by o_orderkey limit 15"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_20"
+            query = """select o_orderkey, o_confirmed from bool_orders
+                        where o_confirmed IS NOT TRUE
+                        order by o_orderkey limit 15"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_21"
+            query = """select o_orderkey, o_confirmed from bool_orders
+                        where o_confirmed IS NOT FALSE
+                        order by o_orderkey limit 15"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_22"
+            query = """select o_orderkey, o_confirmed from bool_orders
+                        where o_confirmed IS NOT FALSE and o_confirmed IS FALSE
+                        order by o_orderkey limit 15"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

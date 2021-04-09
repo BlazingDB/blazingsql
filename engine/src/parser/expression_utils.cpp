@@ -909,6 +909,25 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 	return expressions;
 }
 
+// input: AND(IS NOT FALSE($1), NOT($1))
+// output: AND($1, NOT($1))
+std::string remove_is_not_false_condition(std::string expression) {
+
+	std::string expr_to_remove = "IS NOT FALSE(";
+	size_t start_pos = expression.find(expr_to_remove);
+
+	if (start_pos == expression.npos) {
+		return expression;
+	}
+
+	std::vector<std::string> split_parts = StringUtil::split(expression, expr_to_remove);
+
+	// Let's remove the first ')` from the second splited part
+	size_t first_clos_parent_pos = split_parts[1].find(")");
+	split_parts[1] = split_parts[1].erase(first_clos_parent_pos, 1);
+
+	return split_parts[0] + split_parts[1];
+}
 
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
@@ -950,6 +969,8 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
+
+	ret = remove_is_not_false_condition(ret);
 	return ret;
 }
 

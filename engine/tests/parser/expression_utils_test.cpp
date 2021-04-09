@@ -320,3 +320,29 @@ TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
 
 	EXPECT_EQ(out_expression, expected_str);
 }
+
+TEST_F(ExpressionUtilsTest, not_contains_is_not_false_condition)
+{
+	std::string expression = "IS NOT TRUE($1)";
+	std::string out_expression = remove_is_not_false_condition(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, contains_is_not_false_simple_condition)
+{
+	std::string expression = "IS NOT FALSE($1)";
+	std::string out_expression = remove_is_not_false_condition(expression);
+	std::string expected_str = "$1";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, contains_is_not_false_complex_condition)
+{
+	std::string expression = "AND(IS NOT FALSE($1), NOT($1))";
+	std::string out_expression = remove_is_not_false_condition(expression);
+	std::string expected_str = "AND($1, NOT($1))";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
