@@ -3119,11 +3119,9 @@ class BlazingContext(object):
                     return ctxToken
             except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
-                print(">>>>>>>> ", e)
-                result = cudf.DataFrame()
+                raise e
             except cio.RunGenerateGraphError as e:
-                print(">>>>>>>> ", e)
-                result = cudf.DataFrame()
+                raise e
             except Exception as e:
                 raise e
         else:
