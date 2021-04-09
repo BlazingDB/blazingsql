@@ -51,6 +51,7 @@ void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std
 	std::cout<<"Table: "<<table_name<<std::endl;
 	std::cout<<"\t"<<"Num Rows: "<<table_view.num_rows()<<std::endl;
 	std::cout<<"\t"<<"Num Columns: "<<table_view.num_columns()<<std::endl;
+	assert(table_view.num_columns() == table_view.names().size());
 	for(int col_idx=0; col_idx<table_view.num_columns(); col_idx++){
 		std::string col_string;
 		if (table_view.num_rows() > 0){
@@ -71,6 +72,7 @@ std::string blazing_table_view_schema_to_string(ral::frame::BlazingTableView tab
 	ostream <<"Table: "<<table_name<<std::endl;
 	ostream<<"\t"<<"Num Rows: "<<table_view.num_rows()<<std::endl;
 	ostream<<"\t"<<"Num Columns: "<<table_view.num_columns()<<std::endl;
+	assert(table_view.num_columns() == table_view.names().size());
 	for(int col_idx=0; col_idx<table_view.num_columns(); col_idx++){
 		ostream<<"\t"<<table_view.names().at(col_idx)<<" ("<<"type: "<<type_string(table_view.column(col_idx).type())<<")"<<std::endl;
 	}

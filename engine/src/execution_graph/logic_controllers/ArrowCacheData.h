@@ -1,6 +1,5 @@
 #include "CacheData.h"
 #include <arrow/table.h>
-#include <cudf/interop.hpp>
 
 namespace ral {
 namespace cache {
