@@ -1633,7 +1633,7 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
 }
 
 std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>>
-run_overlap_generator_kernel(std::shared_ptr<Context> context, std::vector<std::unique_ptr<CacheData>>& inputCacheData, const std::string& project_plan){
+run_overlap_generator_kernel(const std::string& project_plan, std::shared_ptr<Context> context, std::vector<std::unique_ptr<CacheData>>& inputCacheData){
 
     // overlap Generator kernel
     std::shared_ptr<kernel> overlap_generator_kernel;
@@ -1672,6 +1672,62 @@ run_overlap_generator_kernel(std::shared_ptr<Context> context, std::vector<std::
     return {precedingCacheMachineGenerator->pull_all_cache_data(),
             batchesCacheMachineGenerator->pull_all_cache_data(),
             followingCacheMachineGenerator->pull_all_cache_data()};
+}
+
+std::vector<std::unique_ptr<CacheData>>
+run_overlap_accumulator_kernel(const std::string& project_plan,
+                               std::shared_ptr<Context> context,
+                               std::vector<std::unique_ptr<CacheData>>& batchesCacheData,
+                               std::vector<std::unique_ptr<CacheData>>& batchesPrecedingCacheData,
+                               std::vector<std::unique_ptr<CacheData>>& batchesFollowingCacheData){
+
+    // overlap Accumulator kernel
+    std::shared_ptr<kernel> overlap_accumulator_kernel;
+    std::shared_ptr<ral::cache::CacheMachine> input_accumulator_cache, output_accumulator_cache;
+    std::tie(overlap_accumulator_kernel, input_accumulator_cache, output_accumulator_cache) = make_overlap_Accumulator_kernel(
+                                                                                                             project_plan, context);
+
+    // register cache machines with the kernel
+    std::shared_ptr<CacheMachine>   batchesCacheMachineAccumulator,
+                                    precedingCacheMachineAccumulator,
+                                    followingCacheMachineAccumulator,
+                                    outputCacheMachineAccumulator;
+    std::tie(batchesCacheMachineAccumulator,
+             precedingCacheMachineAccumulator,
+             followingCacheMachineAccumulator,
+             outputCacheMachineAccumulator) = register_kernel_overlap_accumulator_with_cache_machines(
+                                                                                                    overlap_accumulator_kernel,
+                                                                                                    context);
+
+    // run function in overlap accumulator
+    std::thread run_thread_accumulator = std::thread([overlap_accumulator_kernel](){
+        kstatus process = overlap_accumulator_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // add data into the Accumulator CacheMachines
+    for (std::size_t i = 0; i < batchesCacheData.size(); i++) {
+        batchesCacheMachineAccumulator->addCacheData(std::move(batchesCacheData[i]));
+        if (i != 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            precedingCacheMachineAccumulator->addCacheData(std::move(batchesPrecedingCacheData[i - 1]));
+        }
+        if (i != batchesCacheData.size() - 1) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            followingCacheMachineAccumulator->addCacheData(std::move(batchesFollowingCacheData[i]));
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    batchesCacheMachineAccumulator->finish();
+    precedingCacheMachineAccumulator->finish();
+    followingCacheMachineAccumulator->finish();
+
+    run_thread_accumulator.join();
+
+    // get and validate output
+    return outputCacheMachineAccumulator->pull_all_cache_data();
 }
 
 TEST_F(WindowOverlapTest, BasicSingleNode) {
@@ -1717,65 +1773,21 @@ TEST_F(WindowOverlapTest, BasicSingleNode) {
                                             batches_pulled,
                                             batches_following_pulled;
 
+    std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
+
     std::tie(batches_preceding_pulled,
              batches_pulled,
              batches_following_pulled)
-                = run_overlap_generator_kernel(context,
-                                               inputCacheData,
-                                                 "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])");
+            = run_overlap_generator_kernel(project_plan,
+                                           context,
+                                           inputCacheData);
 
+    std::vector<std::unique_ptr<CacheData>> last_batches_pulled = run_overlap_accumulator_kernel(project_plan,
+                                                                                                 context,
+                                                                                                 batches_pulled,
+                                                                                                 batches_preceding_pulled,
+                                                                                                 batches_following_pulled);
 
-
-
-    // overlap Accumulator kernel
-    std::shared_ptr<kernel> overlap_accumulator_kernel;
-    std::shared_ptr<ral::cache::CacheMachine> input_accumulator_cache, output_accumulator_cache;
-    std::tie(overlap_accumulator_kernel, input_accumulator_cache, output_accumulator_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
-
-
-
-    // register cache machines with the kernel
-    std::shared_ptr<CacheMachine>   batchesCacheMachineAccumulator,
-                                    precedingCacheMachineAccumulator,
-                                    followingCacheMachineAccumulator,
-                                    outputCacheMachineAccumulator;
-    std::tie(batchesCacheMachineAccumulator,
-             precedingCacheMachineAccumulator,
-             followingCacheMachineAccumulator,
-             outputCacheMachineAccumulator) = register_kernel_overlap_accumulator_with_cache_machines(
-                                                                                            overlap_accumulator_kernel,
-                                                                                            context);
-
-    // run function in overlap accumulator
-    std::thread run_thread_accumulator = std::thread([overlap_accumulator_kernel](){
-        kstatus process = overlap_accumulator_kernel->run();
-        EXPECT_EQ(kstatus::proceed, process);
-    });
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-    // add data into the Accumulator CacheMachines
-    for (std::size_t i = 0; i < batches_pulled.size(); i++) {
-        batchesCacheMachineAccumulator->addCacheData(std::move(batches_pulled[i]));
-        if (i != 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            precedingCacheMachineAccumulator->addCacheData(std::move(batches_preceding_pulled[i - 1]));
-        }
-        if (i != batches_pulled.size() - 1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            followingCacheMachineAccumulator->addCacheData(std::move(batches_following_pulled[i]));
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-    batchesCacheMachineAccumulator->finish();
-    precedingCacheMachineAccumulator->finish();
-    followingCacheMachineAccumulator->finish();
-
-    run_thread_accumulator.join();
-
-    // get and validate output
-    auto last_batches_pulled = outputCacheMachineAccumulator->pull_all_cache_data();
     EXPECT_EQ(last_batches_pulled.size(), expected_out.size());
 
     for (std::size_t i = 0; i < last_batches_pulled.size(); i++) {
