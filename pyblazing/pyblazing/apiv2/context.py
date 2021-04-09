@@ -16,7 +16,6 @@ from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
-from pyblazing.apiv2.algebra import get_json_plan
 from pyblazing.apiv2.sqlengines_utils import (
     SQLEngineDataTypeMap,
     UnsupportedSQLEngineError,
