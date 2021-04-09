@@ -13,22 +13,21 @@ namespace io {
 
 class sqlite_parser : public data_parser {
 public:
-  sqlite_parser();
+	sqlite_parser();
 
-  virtual ~sqlite_parser();
+	virtual ~sqlite_parser();
 
-  std::unique_ptr<frame::BlazingTable>
-  parse_batch(data_handle handle,
-              const Schema &schema,
-              std::vector<int> column_indices,
-              std::vector<cudf::size_type> row_groups) override;
+	std::unique_ptr<frame::BlazingTable> parse_batch(data_handle handle,
+		const Schema & schema,
+		std::vector<int> column_indices,
+		std::vector<cudf::size_type> row_groups) override;
 
-  void parse_schema(data_handle handle, Schema &schema) override;
+	void parse_schema(data_handle handle, Schema & schema) override;
 
-  std::unique_ptr<frame::BlazingTable>
-  get_metadata(std::vector<data_handle> handles, int offset) override;
+	std::unique_ptr<frame::BlazingTable> get_metadata(
+		std::vector<data_handle> handles, int offset) override;
 
-  DataType type() const override { return DataType::PARQUET; }
+	DataType type() const override { return DataType::PARQUET; }
 };
 
 } /* namespace io */

@@ -84,7 +84,7 @@ void print_batch(const ral::io::data_handle &handle,
                  const std::vector<int> &column_indices) {
   std::vector<cudf::size_type> row_groups;
   std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
-  static int i = 0; 
+  static int i = 0;
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis"+std::to_string(++i));
 }
 
@@ -157,7 +157,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
     std::cout << "\trows: " << rows << "\n";
     handle = mysql_provider->get_next();
     auto res = handle.sql_handle.mysql_resultset;
-  
+
     bool has_next = mysql_provider->has_next();
     std::cout << "\tNEXT?: " << (has_next ? "TRUE" : "FALSE") << "\n";
     print_batch(handle, schema, parser, column_indices);
