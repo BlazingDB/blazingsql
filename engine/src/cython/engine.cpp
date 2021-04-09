@@ -78,7 +78,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
 			provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
 		} else if (fileType == ral::io::DataType::ARROW) {
-			std::vector<std::shared_ptr<arrow::Table>> arrow_tables={tableSchema.arrow_table};
+			std::vector<std::shared_ptr<arrow::Table>> arrow_tables = {tableSchema.arrow_table};
 			provider = std::make_shared<ral::io::arrow_data_provider>(arrow_tables, uri_values[i]);
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)

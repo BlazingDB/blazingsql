@@ -15,7 +15,7 @@ public:
 	* Constructor
 	* @param table The BlazingTable that is moved into the CacheData.
 	*/
-	ArrowCacheData(std::unique_ptr<arrow::Table> table, ral::io::Schema schema);
+	ArrowCacheData(std::shared_ptr<arrow::Table> table, ral::io::Schema schema);
 
 // 	/**
 // 	* Constructor
@@ -35,21 +35,19 @@ public:
 	*/
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
-// 	/**
-// 	* Get the amount of GPU memory consumed by this CacheData
-// 	* Having this function allows us to have one api for seeing the consumption
-// 	* of all the CacheData objects that are currently in Caches.
-// 	* @return The number of bytes the BlazingTable consumes.
-// 	*/
-// 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
+	/**
+	* Get the amount of GPU memory consumed by this CacheData
+	* Having this function allows us to have one api for seeing the consumption
+	* of all the CacheData objects that are currently in Caches.
+	* @return The number of bytes the BlazingTable consumes.
+	*/
+	size_t sizeInBytes() const override;
 
-// 	/**
-// 	* Set the names of the columns of a BlazingTable.
-// 	* @param names a vector of the column names.
-// 	*/
-// 	void set_names(const std::vector<std::string> & names) override {
-// 		data->setNames(names);
-// 	}
+	/**
+	* Set the names of the columns of a BlazingTable.
+	* @param names a vector of the column names.
+	*/
+	void set_names(const std::vector<std::string> & names) override;
 
 	/**
 	* Destructor
@@ -68,8 +66,10 @@ public:
 // 	void set_data(std::unique_ptr<ral::frame::BlazingTable> table ){
 // 		this->data = std::move(table);
 // 	}
+
 protected:
-	std::unique_ptr<arrow::Table> data; /**< Stores the data to be returned in decache */
+	std::vector<std::string> col_names; /**< The names of the columns */
+	std::shared_ptr<arrow::Table> data; /**< Stores the data to be returned in decache */
 };
 
 } // namespace cache
