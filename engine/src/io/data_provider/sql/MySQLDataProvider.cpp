@@ -217,7 +217,7 @@ bool mysql_data_provider::has_next() {
 }
 
 void mysql_data_provider::reset() {
-  this->table_fetch_completed = true;
+  this->table_fetch_completed = false;
   this->batch_position = 0;
 }
 
@@ -237,7 +237,7 @@ data_handle mysql_data_provider::get_next(bool open_file) {
   size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * this->batch_position + this->self_node_idx);
   std::string query = select_from + where + this->sql.table_filter + this->build_limit_offset(offset);
   // DEBUG
-  std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MYSQL QUERY:\n\n" << query << "\n\n\n";
+  //std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MYSQL QUERY:\n\n" << query << "\n\n\n";
   ++this->batch_position;
   auto res = execute_mysql_query(this->mysql_connection.get(), query);
 

@@ -262,7 +262,7 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
         }
     } else if (parser->type() == ral::io::DataType::MYSQL)	{
 #ifdef MYSQL_SUPPORT
-      ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+      ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif

@@ -77,6 +77,17 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
             << " nrows =  " << table->num_rows() << std::endl;
 }
 
+
+void print_batch(const ral::io::data_handle &handle,
+                 const ral::io::Schema &schema,
+                 ral::io::mysql_parser &parser,
+                 const std::vector<int> &column_indices) {
+  std::vector<cudf::size_type> row_groups;
+  std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
+  static int i = 0; 
+  ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis"+std::to_string(++i));
+}
+
 TEST_F(SQLProviderTest, mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
@@ -99,12 +110,13 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   // sql.table = "dept_manager";
 
 
-  //sql.schema = "tpch";
+  sql.schema = "tpch";
   //sql.table = "lineitem";
-  // sql.table = "nation";
+  sql.table = "nation";
 
   sql.table_filter = "";
   sql.table_batch_size = 2000;
+  sql.table_batch_size = 2;
 
   auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
 
@@ -117,8 +129,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
                                         // db and get the schema info only
   parser.parse_schema(handle, schema);
 
-  // std::vector<int> column_indices;
-  std::vector<int> column_indices = {0, 6};
+  std::vector<int> column_indices;
+  //std::vector<int> column_indices = {0, 6};
   // std::vector<int> column_indices = {0, 4}; // line item id fgloat
   // std::vector<int> column_indices = {4}; // line item fgloat
   // std::vector<int> column_indices = {8};  // line item ret_flag
@@ -130,14 +142,6 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   }
   mysql_provider->set_column_indices(column_indices);
 
-  std::cout << "\trows: " << rows << "\n";
-  handle = mysql_provider->get_next();
-  auto res = handle.sql_handle.mysql_resultset;
-
-  bool has_next = mysql_provider->has_next();
-  std::cout << "\tNEXT?: " << (has_next ? "TRUE" : "FALSE") << "\n";
-
-
   std::cout << "\tTABLE\n";
   auto cols = schema.get_names();
   std::cout << "total cols: " << cols.size() << "\n";
@@ -148,12 +152,22 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 
   std::cout << "\n\nCUDFFFFFFFFFFFFFFFFFFFFFF\n";
 
-  std::vector<cudf::size_type> row_groups;
-
-  std::unique_ptr<ral::frame::BlazingTable> bztbl =
-      parser.parse_batch(handle, schema, column_indices, row_groups);
-  ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(),
-                                           "holis");
+  bool only_once = false;
+  if (only_once) {
+    std::cout << "\trows: " << rows << "\n";
+    handle = mysql_provider->get_next();
+    auto res = handle.sql_handle.mysql_resultset;
+  
+    bool has_next = mysql_provider->has_next();
+    std::cout << "\tNEXT?: " << (has_next ? "TRUE" : "FALSE") << "\n";
+    print_batch(handle, schema, parser, column_indices);
+  } else {
+    mysql_provider->reset();
+    while (mysql_provider->has_next()) {
+      handle = mysql_provider->get_next();
+      print_batch(handle, schema, parser, column_indices);
+    }
+  }
 }
 
 TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
