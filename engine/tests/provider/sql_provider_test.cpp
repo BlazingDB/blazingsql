@@ -53,13 +53,13 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   std::cout << "SCHEMA" << std::endl
             << "  length = " << schema.get_num_columns() << std::endl
             << "  columns" << std::endl;
-  for (std::size_t i = 0; i < schema.get_num_columns(); i++) {
-    const std::string &name = schema.get_name(i);
+  for(std::size_t i = 0; i < schema.get_num_columns(); i++) {
+    const std::string & name = schema.get_name(i);
     std::cout << "    " << name << ": ";
     try {
       const std::string dtypename = dt2name[schema.get_dtype(i)];
       std::cout << dtypename << std::endl;
-    } catch (std::exception &) {
+    } catch(std::exception &) {
       std::cout << static_cast<int>(schema.get_dtype(i)) << std::endl;
     }
   }
@@ -78,14 +78,16 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
 }
 
 
-void print_batch(const ral::io::data_handle &handle,
-                 const ral::io::Schema &schema,
-                 ral::io::mysql_parser &parser,
-                 const std::vector<int> &column_indices) {
+void print_batch(const ral::io::data_handle & handle,
+    const ral::io::Schema & schema,
+    ral::io::mysql_parser & parser,
+    const std::vector<int> & column_indices) {
   std::vector<cudf::size_type> row_groups;
-  std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
+  std::unique_ptr<ral::frame::BlazingTable> bztbl =
+      parser.parse_batch(handle, schema, column_indices, row_groups);
   static int i = 0;
-  ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis"+std::to_string(++i));
+  ral::utilities::print_blazing_table_view(
+      bztbl->toBlazingTableView(), "holis" + std::to_string(++i));
 }
 
 TEST_F(SQLProviderTest, mysql_select_all) {
@@ -111,31 +113,32 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 
 
   sql.schema = "tpch";
-  //sql.table = "lineitem";
+  // sql.table = "lineitem";
   sql.table = "nation";
 
   sql.table_filter = "";
   sql.table_batch_size = 2000;
   sql.table_batch_size = 2;
 
-  auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
+  auto mysql_provider =
+      std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
 
   int rows = mysql_provider->get_num_handles();
 
   ral::io::mysql_parser parser;
   ral::io::Schema schema;
   auto handle =
-      mysql_provider->get_next(false);  // false so we make sure dont go to the
-                                        // db and get the schema info only
+      mysql_provider->get_next(false);  // false so we make sure dont go to
+                                        // the db and get the schema info only
   parser.parse_schema(handle, schema);
 
   std::vector<int> column_indices;
-  //std::vector<int> column_indices = {0, 6};
+  // std::vector<int> column_indices = {0, 6};
   // std::vector<int> column_indices = {0, 4}; // line item id fgloat
   // std::vector<int> column_indices = {4}; // line item fgloat
   // std::vector<int> column_indices = {8};  // line item ret_flag
   // std::vector<int> column_indices = {1}; // nation 1 name
-  if (column_indices.empty()) {
+  if(column_indices.empty()) {
     size_t num_cols = schema.get_num_columns();
     column_indices.resize(num_cols);
     std::iota(column_indices.begin(), column_indices.end(), 0);
@@ -145,7 +148,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   std::cout << "\tTABLE\n";
   auto cols = schema.get_names();
   std::cout << "total cols: " << cols.size() << "\n";
-  for (int i = 0; i < cols.size(); ++i) {
+  for(int i = 0; i < cols.size(); ++i) {
     std::cout << "\ncol: " << schema.get_name(i) << "\n";
     std::cout << "\ntyp: " << (int32_t) schema.get_dtype(i) << "\n";
   }
@@ -153,7 +156,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   std::cout << "\n\nCUDFFFFFFFFFFFFFFFFFFFFFF\n";
 
   bool only_once = false;
-  if (only_once) {
+  if(only_once) {
     std::cout << "\trows: " << rows << "\n";
     handle = mysql_provider->get_next();
     auto res = handle.sql_handle.mysql_resultset;
@@ -163,7 +166,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
     print_batch(handle, schema, parser, column_indices);
   } else {
     mysql_provider->reset();
-    while (mysql_provider->has_next()) {
+    while(mysql_provider->has_next()) {
       handle = mysql_provider->get_next();
       print_batch(handle, schema, parser, column_indices);
     }
@@ -173,7 +176,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   ral::io::sql_info sql;
   sql.schema = "/blazingsql/db.sqlite3";
-  sql.table = "prueba";
+  sql.table = "prueba2";
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
@@ -205,13 +208,13 @@ TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   std::cout << "SCHEMA" << std::endl
             << "  length = " << schema.get_num_columns() << std::endl
             << "  columns" << std::endl;
-  for (std::size_t i = 0; i < schema.get_num_columns(); i++) {
-    const std::string &name = schema.get_name(i);
+  for(std::size_t i = 0; i < schema.get_num_columns(); i++) {
+    const std::string & name = schema.get_name(i);
     std::cout << "    " << name << ": ";
     try {
       const std::string dtypename = dt2name[schema.get_dtype(i)];
       std::cout << dtypename << std::endl;
-    } catch (std::exception &) {
+    } catch(std::exception &) {
       std::cout << static_cast<int>(schema.get_dtype(i)) << std::endl;
     }
   }
@@ -227,4 +230,10 @@ TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   std::cout << "TABLE" << std::endl
             << " ncolumns =  " << table->num_columns() << std::endl
             << " nrows =  " << table->num_rows() << std::endl;
+
+  auto tv = table->toBlazingTableView();
+
+  for(cudf::size_type i = 0; i < static_cast<cudf::size_type>(num_cols); i++) {
+    cudf::test::print(tv.column(i));
+  }
 }
