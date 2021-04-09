@@ -1756,3 +1756,70 @@ TEST_F(WindowOverlapTest, BasicSingleNode) {
         cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
     }
 }
+
+TEST_F(WindowOverlapTest, BigWindowSingleNode) {
+
+    size_t size = 14600;
+
+    // Define full dataset
+    auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
+    auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+    auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
+
+    cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+
+    CudfTableView full_data_cudf_view ({col0, col1, col2});
+    // CudfTableView full_data_cudf_view ({col0});
+
+    int preceding_value = 1500;
+    int following_value = 3000;
+    std::vector<cudf::size_type> batch_sizes = {5500, 1100, 1200, 1300, 5500}; // need to sum up to size
+
+    // define how its broken up into batches and overlaps
+    std::vector<std::string> names({"A", "B", "C"});
+    std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
+    std::vector<std::unique_ptr<CacheData>>& inputCacheData = batches;
+
+    std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+
+    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
+
+    // create and start kernel
+    // Context
+    std::shared_ptr<Context> context = make_context(1);
+
+    auto & communicationData = ral::communication::CommunicationData::getInstance();
+    communicationData.initialize("0", "/tmp");
+
+    std::vector<std::unique_ptr<CacheData>> batches_preceding_pulled,
+            batches_pulled,
+            batches_following_pulled;
+
+    std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 1500 PRECEDING AND 3000 FOLLOWING)])";
+
+    std::tie(batches_preceding_pulled,
+             batches_pulled,
+             batches_following_pulled)
+            = run_overlap_generator_kernel(project_plan,
+                                           context,
+                                           inputCacheData);
+
+    std::vector<std::unique_ptr<CacheData>> last_batches_pulled = run_overlap_accumulator_kernel(project_plan,
+                                                                                                 context,
+                                                                                                 batches_pulled,
+                                                                                                 batches_preceding_pulled,
+                                                                                                 batches_following_pulled);
+
+    EXPECT_EQ(last_batches_pulled.size(), expected_out.size());
+
+    for (std::size_t i = 0; i < last_batches_pulled.size(); i++) {
+        auto table_out = last_batches_pulled[i]->decache();
+        cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
+    }
+}
