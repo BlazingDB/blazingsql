@@ -7,6 +7,8 @@ import com.blazingdb.calcite.catalog.domain.CatalogColumnImpl;
 import com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl;
 import com.blazingdb.calcite.catalog.domain.CatalogTableImpl;
 import com.blazingdb.calcite.catalog.repository.DatabaseRepository;
+import com.blazingdb.calcite.optimizer.converter.*;
+import com.blazingdb.calcite.optimizer.cost.DefaultRelMetadataProvider;
 import com.blazingdb.calcite.schema.BlazingSchema;
 
 import org.apache.calcite.plan.RelOptRule;
@@ -22,6 +24,7 @@ import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectTableScanRule;
 import org.apache.calcite.schema.Table;
 
+import org.apache.calcite.sql.SqlExplainLevel;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.testng.annotations.AfterMethod;
@@ -229,6 +232,51 @@ public class BlazingRulesTest {
 				System.out.println(RelOptUtil.toString(optimizedPlan) + "\n");
 			}
 		}
+	}
+
+	@Test()
+	public void
+	generateSQLTestCBO() throws Exception {
+		createTableSchemas();
+
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+
+		checkTable(schema, "customer");
+		checkTable(schema, "orders");
+
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		System.out.println("<*****************************************************************************>");
+
+		String sql =
+//				"select c_custkey from `customer` inner join `orders` on c_custkey = o_custkey where c_custkey < 1000";
+//				"select * from `customer`";
+				"select c.c_custkey as customer_id, c.c_name as customer_name, n.n_name as nation_name, c.c_phone as customer_phone from customer c"
+				+ " join nation n on c.c_nationkey=n.n_nationkey ";
+
+		RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+		System.out.println("non optimized\n");
+		System.out.println(RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		List<RelOptRule> listRelOptRuleOpt = new ArrayList<RelOptRule>();
+		listRelOptRuleOpt.add(CSVTableScanConverter.INSTANCE);
+		listRelOptRuleOpt.add(CSVFilterConverter.INSTANCE);
+		listRelOptRuleOpt.add(CSVProjectConverter.INSTANCE);
+		listRelOptRuleOpt.add(CSVNewProjectConverter.INSTANCE);
+		algebraGen.setRules(listRelOptRuleOpt);
+
+		RelNode optimizedPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+		System.out.println("optimized\n");
+		System.out.println(RelOptUtil.toString(optimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		List<RelOptRule> listRelOptRuleOptCBO = new ArrayList<RelOptRule>();
+		listRelOptRuleOptCBO.add(CSVNewProjectRule.INSTANCE);
+
+		RelNode optimizedPlanCBO = algebraGen.getOptimizedRelationalAlgebraCOB(optimizedPlan, listRelOptRuleOptCBO);
+		System.out.println("cbo optimized\n");
+		System.out.println(RelOptUtil.toString(optimizedPlanCBO, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
 	}
 
 	//TPCH queries

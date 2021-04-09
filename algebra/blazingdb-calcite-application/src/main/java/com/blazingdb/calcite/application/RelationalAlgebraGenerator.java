@@ -1,23 +1,31 @@
 package com.blazingdb.calcite.application;
 
+import com.blazingdb.calcite.optimizer.cost.DefaultRelMetadataProvider;
 import com.blazingdb.calcite.rules.FilterTableScanRule;
 import com.blazingdb.calcite.rules.ProjectFilterTransposeRule;
 import com.blazingdb.calcite.rules.ProjectTableScanRule;
 import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
+import com.google.common.collect.Lists;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.plan.ConventionTraitDef;
+import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
+import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.metadata.CachingRelMetadataProvider;
+import org.apache.calcite.rel.metadata.ChainedRelMetadataProvider;
+import org.apache.calcite.rel.metadata.RelMetadataProvider;
 import org.apache.calcite.rel.rules.FilterJoinRule;
 import org.apache.calcite.rel.rules.AggregateExpandDistinctAggregatesRule;
 import org.apache.calcite.rel.rules.FilterAggregateTransposeRule;
@@ -29,6 +37,8 @@ import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
 import org.apache.calcite.rel.rules.ReduceExpressionsRule;
 import org.apache.calcite.rel.rules.ProjectToWindowRule;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
@@ -38,6 +48,7 @@ import org.apache.calcite.sql.fun.SqlLibrary;
 import org.apache.calcite.sql.fun.SqlLibraryOperatorTableFactory;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.sql.util.ChainedSqlOperatorTable;
 import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.Frameworks;
@@ -178,6 +189,24 @@ public class RelationalAlgebraGenerator {
 	}
 
 	public RelNode
+	getOptimizedRelationalAlgebraCOB(RelNode rel, List<RelOptRule> rules) throws RelConversionException {
+		VolcanoPlanner planner = (VolcanoPlanner) rel.getCluster().getPlanner();
+		planner.clear();
+		planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
+
+		for (RelOptRule r : rules)
+			planner.addRule(r);
+
+		final RelDataTypeFactory typeFactory =
+				new SqlTypeFactoryImpl(org.apache.calcite.rel.type.RelDataTypeSystem.DEFAULT);
+		RelOptCluster cluster = RelOptCluster.create(planner, new RexBuilder(typeFactory));
+
+		cluster.getPlanner().setRoot(rel);
+		RelNode result = planner.chooseDelegate().findBestExp();
+		return result;
+	}
+
+	public RelNode
 	getOptimizedRelationalAlgebra(RelNode nonOptimizedPlan) throws RelConversionException {
 		if(rules == null) {
 			// TODO: this is a temporal workaround due to the issue with ProjectToWindowRule
@@ -192,7 +221,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectMergeRule.INSTANCE)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  //.addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
-						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
+//						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
 						  //.addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
@@ -213,7 +242,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectMergeRule.INSTANCE)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
-						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
+//						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
 						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
@@ -235,6 +264,17 @@ public class RelationalAlgebraGenerator {
 
 		final HepPlanner hepPlanner = new HepPlanner(program, config.getContext());
 		nonOptimizedPlan.getCluster().getPlanner().setExecutor(new RexExecutorImpl(null));
+
+		List<RelMetadataProvider> list = Lists.newArrayList();
+		DefaultRelMetadataProvider defaultRelMetadataProvider = new DefaultRelMetadataProvider();
+		defaultRelMetadataProvider.getMetadataProvider();
+		list.add(defaultRelMetadataProvider.getMetadataProvider());
+
+		hepPlanner.registerMetadataProviders(list);
+		RelMetadataProvider chainedProvider = ChainedRelMetadataProvider.of(list);
+		nonOptimizedPlan.getCluster().setMetadataProvider(
+				new CachingRelMetadataProvider(chainedProvider, hepPlanner));
+
 		hepPlanner.setRoot(nonOptimizedPlan);
 
 		planner.close();
