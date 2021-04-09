@@ -2515,12 +2515,7 @@ class BlazingContext(object):
 
             kwargs["table"] = input[0]
             parsedSchema, _ = self._parseSchema(
-                input,
-                sqlEngineName,
-                kwargs,
-                extra_columns,
-                False,
-                False
+                input, sqlEngineName, kwargs, extra_columns, False, False
             )
 
             # TODO: merge parsed schema info about columns and types into tables
@@ -2636,7 +2631,11 @@ class BlazingContext(object):
                     pure=False,
                 )
                 parsed_schema = connection.result()
-                if len(parsed_schema["files"]) == 0 and file_format_hint not in ["mysql", "postgresql", "sqlite"]:
+                if len(parsed_schema["files"]) == 0 and file_format_hint not in [
+                    "mysql",
+                    "postgresql",
+                    "sqlite",
+                ]:
                     raise Exception(
                         "ERROR: The file pattern specified did not match any files"
                     )
@@ -3138,8 +3137,7 @@ class BlazingContext(object):
                     currentTableNodes.append(query_table)
 
             elif (
-                query_table.fileType
-                == DataType.MYSQL
+                query_table.fileType == DataType.MYSQL
                 or query_table.fileType == DataType.SQLITE
                 # or query_table.fileType == DataType.
             ):
