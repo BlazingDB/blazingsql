@@ -18,7 +18,6 @@ from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
 from pyblazing.apiv2.algebra import get_json_plan
 from pyblazing.apiv2.sqlengines_utils import (
-    GetSQLEngineArgs,
     SQLEngineDataTypeMap,
     UnsupportedSQLEngineError,
 )
