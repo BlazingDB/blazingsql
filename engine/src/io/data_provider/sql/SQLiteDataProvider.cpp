@@ -85,15 +85,15 @@ sqlite_table_info get_sqlite_table_info(
 // TODO percy avoid code duplication
 bool sqlite_is_string_col_type(const std::string & t) {
   std::vector<std::string> mysql_string_types_hints = {
-      "CHARACTER",
-      "VARCHAR",
-      "VARYING CHARACTER",
-      "NCHAR",
-      "NATIVE CHARACTER",
-      "NVARCHAR",
-      "TEXT",
-      "CLOB",
-      "STRING"  // TODO percy ???
+      "character",
+      "varchar",
+      "varying character",
+      "nchar",
+      "native character",
+      "nvarchar",
+      "text",
+      "clob",
+      "string"  // TODO percy ???
   };
 
   for(auto hint : mysql_string_types_hints) {
@@ -120,6 +120,11 @@ sqlite_columns_info get_sqlite_columns_info(
 
     const unsigned char * type = sqlite3_column_text(stmt, 2);
     std::string col_type((char *) type);
+
+    std::transform(col_type.cbegin(),
+        col_type.cend(),
+        col_type.begin(),
+        [](const std::string::value_type c) { return std::tolower(c); });
 
     size_t max_bytes = 8;  // TODO percy check max scalar bytes from sqlite
     if(sqlite_is_string_col_type(col_type)) {
@@ -196,7 +201,7 @@ data_handle sqlite_data_provider::get_next(bool) {
   ret.sql_handle.column_bytes = this->column_bytes;
   ret.sql_handle.sqlite_statement = stmt;
   // TODO percy add columns to uri.query
-  ret.uri = Uri("mysql", "", this->sql.schema + "/" + this->sql.table, "", "");
+  ret.uri = Uri("sqlite", "", this->sql.schema + "/" + this->sql.table, "", "");
   //  std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
   //  std::cout << "get_next current_row_count: " << this->current_row_count
   //  << "\n";
