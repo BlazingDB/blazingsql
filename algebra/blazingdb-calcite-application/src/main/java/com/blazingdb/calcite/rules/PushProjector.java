@@ -520,6 +520,115 @@ public class PushProjector {
 			.build();
 	}
 
+	// Function similar than `createProjectRefsAndExprs`
+	// but consider the aliases before transpose with a Join
+	// If in the future we have issues related to the aliases (when transposing a Project with a Join)
+	// we can review this function
+	// PR related to this -> https://github.com/BlazingDB/blazingsql/pull/1400
+	// Issue related to this -> https://github.com/BlazingDB/blazingsql/issues/1393
+	/**
+   * Creates a projection based on the inputs specified in a bitmap and the
+   * expressions that need to be preserved. The expressions are appended after
+   * the input references.
+   *
+   * @param projChild child that the projection will be created on top of
+   * @param adjust    if true, need to create new projection expressions;
+   *                  otherwise, the existing ones are reused
+   * @param rightSide if true, creating a projection for the right hand side
+   *                  of a join
+   * @param origProj Project, to get the aliases before transpose with a Join
+   * @return created projection
+   */
+  	public Project createProjectRefsAndExprsCustomized(RelNode projChild, boolean adjust, boolean rightSide, Project origProj) {
+    List<RexNode> preserveExprs;
+    int nInputRefs;
+    int offset;
+
+    if (rightSide) {
+		preserveExprs = rightPreserveExprs;
+		nInputRefs = nRightProject;
+		offset = nSysFields + nFields;
+    } else {
+		preserveExprs = childPreserveExprs;
+		nInputRefs = nProject;
+		offset = nSysFields;
+    }
+    int refIdx = offset - 1;
+    List<Pair<RexNode, String>> newProjects = new ArrayList<>();
+	List<String> originalNames = projChild.getRowType().getFieldNames();
+    List<RelDataTypeField> destFields = projChild.getRowType().getFieldList();
+	List<String> fieldNames = origProj.getRowType().getFieldNames();
+
+	// creating map of aliases and column refs
+	HashMap<Integer, String> fieldsMap = new HashMap<Integer, String>();
+
+	int total_projected_columns = fieldNames.size();
+	int left_total_columns = total_projected_columns - nInputRefs;
+	if (left_total_columns < 0) {
+		left_total_columns = 0;
+	}
+	for (int i = 0; i < nInputRefs; i++) {
+		if (i < total_projected_columns) {
+			if (!rightSide) {
+				fieldsMap.put(origProj.getChildExps().get(i).hashCode(), fieldNames.get(i));
+			} else {
+				fieldsMap.put(origProj.getChildExps().get(left_total_columns + i).hashCode(), fieldNames.get(left_total_columns + i));
+			}
+		}
+	}
+
+    // add on the input references
+    for (int i = 0; i < nInputRefs; i++) {
+      refIdx = projRefs.nextSetBit(refIdx + 1);
+      assert refIdx >= 0;
+      final RelDataTypeField destField = destFields.get(refIdx - offset);
+		if (!rightSide) {
+			String leftName = fieldsMap.get(refIdx - offset);
+			if (leftName == null) {
+				leftName = originalNames.get(refIdx - offset);
+			}
+			newProjects.add(Pair.of(rexBuilder.makeInputRef(destField.getType(), refIdx - offset),  leftName));
+		} else {
+			String rightName = fieldsMap.get(refIdx);
+			if (rightName == null) {
+				rightName = originalNames.get(refIdx - offset);
+			}
+			newProjects.add(Pair.of(rexBuilder.makeInputRef(destField.getType(), refIdx - offset),  rightName));
+		}
+    }
+	
+    // add on the expressions that need to be preserved, converting the
+    // arguments to reference the projected columns (if necessary)
+    int[] adjustments = {};
+    if ((preserveExprs.size() > 0) && adjust) {
+		adjustments = new int[childFields.size()];
+		for (int idx = offset; idx < childFields.size(); idx++) {
+			adjustments[idx] = -offset;
+		}
+    }
+
+    for (RexNode projExpr : preserveExprs) {
+		RexNode newExpr;
+		if (adjust) {
+			newExpr =
+				projExpr.accept(
+					new RelOptUtil.RexInputConverter(
+						rexBuilder,
+						childFields,
+						destFields,
+						adjustments));
+		} else {
+			newExpr = projExpr;
+		}
+		newProjects.add(Pair.of(newExpr, ((RexCall) projExpr).getOperator().getName()));
+    }
+
+    return (Project) relBuilder.push(projChild)
+        .projectNamed(Pair.left(newProjects), Pair.right(newProjects), true)
+        .build();
+  }
+
+
 	/**
 	 * Determines how much each input reference needs to be adjusted as a result
 	 * of projection
