@@ -29,6 +29,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         libabsl_raw_logging_internal.so
         libabsl_spinlock_wait.so
         libabsl_bad_variant_access.so
+        libabsl_civil_time.so
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES

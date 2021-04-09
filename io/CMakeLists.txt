@@ -177,6 +177,7 @@ target_link_libraries(
     libabsl_raw_logging_internal.so
     libabsl_spinlock_wait.so
     libabsl_bad_variant_access.so
+    libabsl_civil_time.so
 )
 
 # Install target and headers
