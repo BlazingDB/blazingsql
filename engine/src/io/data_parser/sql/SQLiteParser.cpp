@@ -397,7 +397,7 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
   return tableWithMetadata;
 }
 
-sqlite_parser::sqlite_parser() {}
+sqlite_parser::sqlite_parser() : abstractsql_parser(DataType::SQLITE) {}
 
 sqlite_parser::~sqlite_parser() {}
 
@@ -447,43 +447,83 @@ void parse_schema(data_handle handle, Schema & schema) {
 }
 
 std::uint8_t sqlite_parser::parse_cudf_int8(
-  void *, std::size_t, std::size_t, std::vector<std::int8_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::int8_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::int8_t value =
+    static_cast<std::int8_t>(sqlite3_column_int(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_int16(
-  void *, std::size_t, std::size_t, std::vector<std::int16_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::int16_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::int16_t value =
+    static_cast<std::int16_t>(sqlite3_column_int(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_int32(
-  void *, std::size_t, std::size_t, std::vector<std::int32_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::int32_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::int32_t value =
+    static_cast<std::int32_t>(sqlite3_column_int(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_int64(
-  void *, std::size_t, std::size_t, std::vector<std::int64_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::int64_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::int64_t value =
+    static_cast<std::int64_t>(sqlite3_column_int64(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_uint8(
-  void *, std::size_t, std::size_t, std::vector<std::uint8_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::uint8_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::uint8_t value =
+    static_cast<std::uint8_t>(sqlite3_column_int(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_uint16(
-  void *, std::size_t, std::size_t, std::vector<std::uint16_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::uint16_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::uint16_t value =
+    static_cast<std::uint16_t>(sqlite3_column_int(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_uint32(
-  void *, std::size_t, std::size_t, std::vector<std::uint32_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::uint32_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::uint32_t value =
+    static_cast<std::uint32_t>(sqlite3_column_int(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_uint64(
-  void *, std::size_t, std::size_t, std::vector<std::uint64_t> *) {
-  return 0;
+  void * src, std::size_t col, std::size_t row, std::vector<std::uint64_t> * v) {
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  const std::uint64_t value =
+    static_cast<std::uint64_t>(sqlite3_column_int64(stmt, col));
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t sqlite_parser::parse_cudf_float32(
