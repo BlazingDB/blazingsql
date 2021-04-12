@@ -607,16 +607,16 @@ std::uint8_t sqlite_parser::parse_cudf_timestamp_nanoseconds(
 std::uint8_t sqlite_parser::parse_cudf_string(
   void * src, std::size_t col, std::size_t row, cudf_string_col * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
-  if(isNull) {
+  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) {
     v->offsets.push_back(v->offsets.back());
+    return 0;
   } else {
-    const unsigned char * text = sqlite3_column_text(stmt, projection_index);
+    const unsigned char * text = sqlite3_column_text(stmt, col);
     const std::string value{reinterpret_cast<const char *>(text)};
     v->chars.insert(v->chars.end(), value.cbegin(), value.cend());
     v->offsets.push_back(v->offsets.back() + value.length());
+    return 1;
   }
-  return 1;
 }
 
 } /* namespace io */
