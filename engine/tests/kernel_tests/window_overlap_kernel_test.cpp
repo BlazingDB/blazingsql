@@ -1916,9 +1916,14 @@ TEST_F(WindowOverlapTest, BasicSingleNode2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     inputCacheMachine->finish();
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
     batchesCacheMachine->finish();
     precedingCacheMachine->finish();
     followingCacheMachine->finish();
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
     outputCacheMachine->finish();
 
     run_thread_generator.join();
