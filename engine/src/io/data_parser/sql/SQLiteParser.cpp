@@ -36,15 +36,15 @@ namespace cudf_io = cudf::io;
 // - CLOB
 bool sqlite_is_cudf_string(const std::string & t) {
   std::vector<std::string> mysql_string_types_hints = {
-      "character",
-      "varchar",
-      "varying character",
-      "nchar",
-      "native character",
-      "nvarchar",
-      "text",
-      "clob",
-      "string"  // TODO percy ???
+    "character",
+    "varchar",
+    "varying character",
+    "nchar",
+    "native character",
+    "nvarchar",
+    "text",
+    "clob",
+    "string"  // TODO percy ???
   };
 
   for(auto hint : mysql_string_types_hints) {
@@ -56,9 +56,9 @@ bool sqlite_is_cudf_string(const std::string & t) {
 
 cudf::type_id parse_sqlite_column_type(std::string t) {
   std::transform(
-      t.cbegin(), t.cend(), t.begin(), [](const std::string::value_type c) {
-        return std::tolower(c);
-      });
+    t.cbegin(), t.cend(), t.begin(), [](const std::string::value_type c) {
+      return std::tolower(c);
+    });
   if(sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
   if(t == "tinyint") { return cudf::type_id::INT8; }
   if(t == "smallint") { return cudf::type_id::INT8; }
@@ -80,7 +80,7 @@ cudf::type_id parse_sqlite_column_type(std::string t) {
 }
 
 std::vector<cudf::type_id> parse_sqlite_column_types(
-    const std::vector<std::string> types) {
+  const std::vector<std::string> types) {
   std::vector<cudf::type_id> ret;
   for(auto t : types) {
     ret.push_back(parse_sqlite_column_type(t));
@@ -89,8 +89,8 @@ std::vector<cudf::type_id> parse_sqlite_column_types(
 }
 
 cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
-    const std::vector<int> & column_indices,
-    const std::vector<cudf::type_id> & cudf_types) {
+  const std::vector<int> & column_indices,
+  const std::vector<cudf::type_id> & cudf_types) {
   const std::string sqlfPart{sqlite3_expanded_sql(stmt)};
   std::string::size_type fPos = sqlfPart.find("from");
   if(fPos == std::string::npos) { fPos = sqlfPart.find("FROM"); }
@@ -101,84 +101,83 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
 
   std::size_t nRows = 0;
   int err = sqlite3_exec(
-      sqlite3_db_handle(stmt),
-      sqlnRows.c_str(),
-      [](void * data, int count, char ** rows, char **) -> int {
-        if(count == 1 && rows) {
-          *static_cast<std::size_t *>(data) =
-              static_cast<std::size_t>(atoi(rows[0]));
-          return 0;
-        }
-        return 1;
-      },
-      &nRows,
-      nullptr);
+    sqlite3_db_handle(stmt),
+    sqlnRows.c_str(),
+    [](void * data, int count, char ** rows, char **) -> int {
+      if(count == 1 && rows) {
+        *static_cast<std::size_t *>(data) =
+          static_cast<std::size_t>(atoi(rows[0]));
+        return 0;
+      }
+      return 1;
+    },
+    &nRows,
+    nullptr);
   if(err != SQLITE_OK) { throw std::runtime_error("getting number of rows"); }
 
   std::size_t column_count =
-      static_cast<std::size_t>(sqlite3_column_count(stmt));
+    static_cast<std::size_t>(sqlite3_column_count(stmt));
 
   std::vector<void *> host_cols;
   host_cols.reserve(column_count);
   const std::size_t bitmask_allocation =
-      cudf::bitmask_allocation_size_bytes(nRows);
+    cudf::bitmask_allocation_size_bytes(nRows);
   const std::size_t num_words = bitmask_allocation / sizeof(cudf::bitmask_type);
   std::vector<std::vector<cudf::bitmask_type>> null_masks(column_count);
 
   std::transform(column_indices.cbegin(),
-      column_indices.cend(),
-      std::back_inserter(host_cols),
-      [&cudf_types, &null_masks, num_words, nRows](const int projection_index) {
-        null_masks[projection_index].resize(num_words, 0);
-        const cudf::type_id cudf_type_id = cudf_types[projection_index];
-        switch(cudf_type_id) {
-        case cudf::type_id::INT8: {
-          auto * vector = new std::vector<std::int8_t>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::INT16: {
-          auto * vector = new std::vector<std::int16_t>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::INT32: {
-          auto * vector = new std::vector<std::int32_t>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::INT64: {
-          auto * vector = new std::vector<std::int64_t>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::FLOAT32:
-        case cudf::type_id::DECIMAL32: {
-          auto * vector = new std::vector<float>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::FLOAT64:
-        case cudf::type_id::DECIMAL64: {
-          auto * vector = new std::vector<double>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::BOOL8: {
-          auto * vector = new std::vector<std::uint8_t>;
-          vector->reserve(nRows);
-          return static_cast<void *>(vector);
-        }
-        case cudf::type_id::STRING: {
-          auto * string_col = new cudf_string_col();
-          string_col->offsets.reserve(nRows + 1);
-          string_col->offsets.push_back(0);
-          return static_cast<void *>(string_col);
-        }
-        default:
-          throw std::runtime_error("Invalid allocation for cudf type id");
-        }
-      });
+    column_indices.cend(),
+    std::back_inserter(host_cols),
+    [&cudf_types, &null_masks, num_words, nRows](const int projection_index) {
+      null_masks[projection_index].resize(num_words, 0);
+      const cudf::type_id cudf_type_id = cudf_types[projection_index];
+      switch(cudf_type_id) {
+      case cudf::type_id::INT8: {
+        auto * vector = new std::vector<std::int8_t>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::INT16: {
+        auto * vector = new std::vector<std::int16_t>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::INT32: {
+        auto * vector = new std::vector<std::int32_t>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::INT64: {
+        auto * vector = new std::vector<std::int64_t>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::FLOAT32:
+      case cudf::type_id::DECIMAL32: {
+        auto * vector = new std::vector<float>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::FLOAT64:
+      case cudf::type_id::DECIMAL64: {
+        auto * vector = new std::vector<double>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::BOOL8: {
+        auto * vector = new std::vector<std::uint8_t>;
+        vector->reserve(nRows);
+        return static_cast<void *>(vector);
+      }
+      case cudf::type_id::STRING: {
+        auto * string_col = new cudf_string_col();
+        string_col->offsets.reserve(nRows + 1);
+        string_col->offsets.push_back(0);
+        return static_cast<void *>(string_col);
+      }
+      default: throw std::runtime_error("Invalid allocation for cudf type id");
+      }
+    });
 
   std::size_t i = 0;
   while((err = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -186,7 +185,7 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
       cudf::type_id cudf_type_id = cudf_types[projection_index];
 
       const bool isNull =
-          sqlite3_column_type(stmt, projection_index) == SQLITE_NULL;
+        sqlite3_column_type(stmt, projection_index) == SQLITE_NULL;
 
       switch(cudf_type_id) {
       case cudf::type_id::INT8: {
@@ -198,16 +197,16 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
       case cudf::type_id::INT32: {
         const std::int32_t value = sqlite3_column_int(stmt, projection_index);
         std::vector<std::int32_t> & vector =
-            *reinterpret_cast<std::vector<std::int32_t> *>(
-                host_cols[projection_index]);
+          *reinterpret_cast<std::vector<std::int32_t> *>(
+            host_cols[projection_index]);
         vector.push_back(value);
         break;
       }
       case cudf::type_id::INT64: {
         const std::int64_t value = sqlite3_column_int64(stmt, projection_index);
         std::vector<std::int64_t> & vector =
-            *reinterpret_cast<std::vector<std::int64_t> *>(
-                host_cols[projection_index]);
+          *reinterpret_cast<std::vector<std::int64_t> *>(
+            host_cols[projection_index]);
         vector.push_back(value);
         break;
       }
@@ -218,8 +217,8 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
       case cudf::type_id::FLOAT64:
       case cudf::type_id::DECIMAL64: {
         const double value = sqlite3_column_double(stmt, projection_index);
-        std::vector<double> & vector = *reinterpret_cast<std::vector<double> *>(
-            host_cols[projection_index]);
+        std::vector<double> & vector =
+          *reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
         vector.push_back(value);
         break;
       }
@@ -228,18 +227,18 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
       }
       case cudf::type_id::STRING: {
         cudf_string_col * string_col =
-            reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+          reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
         if(isNull) {
           string_col->offsets.push_back(string_col->offsets.back());
         } else {
           const unsigned char * text =
-              sqlite3_column_text(stmt, projection_index);
+            sqlite3_column_text(stmt, projection_index);
           const std::string value{reinterpret_cast<const char *>(text)};
 
           string_col->chars.insert(
-              string_col->chars.end(), value.cbegin(), value.cend());
+            string_col->chars.end(), value.cbegin(), value.cend());
           string_col->offsets.push_back(
-              string_col->offsets.back() + value.length());
+            string_col->offsets.back() + value.length());
         }
         break;
       }
@@ -260,65 +259,65 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
     switch(cudf_type_id) {
     case cudf::type_id::INT8: {
       std::vector<std::int8_t> * vector =
-          reinterpret_cast<std::vector<std::int8_t> *>(
-              host_cols[projection_index]);
+        reinterpret_cast<std::vector<std::int8_t> *>(
+          host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT16: {
       std::vector<std::int16_t> * vector =
-          reinterpret_cast<std::vector<std::int16_t> *>(
-              host_cols[projection_index]);
+        reinterpret_cast<std::vector<std::int16_t> *>(
+          host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT32: {
       std::vector<std::int32_t> * vector =
-          reinterpret_cast<std::vector<std::int32_t> *>(
-              host_cols[projection_index]);
+        reinterpret_cast<std::vector<std::int32_t> *>(
+          host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::INT64: {
       std::vector<std::int64_t> * vector =
-          reinterpret_cast<std::vector<std::int64_t> *>(
-              host_cols[projection_index]);
+        reinterpret_cast<std::vector<std::int64_t> *>(
+          host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::FLOAT32:
     case cudf::type_id::DECIMAL32: {
       std::vector<float> * vector =
-          reinterpret_cast<std::vector<float> *>(host_cols[projection_index]);
+        reinterpret_cast<std::vector<float> *>(host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::FLOAT64:
     case cudf::type_id::DECIMAL64: {
       std::vector<double> * vector =
-          reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
+        reinterpret_cast<std::vector<double> *>(host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::BOOL8: {
       std::vector<std::uint8_t> * vector =
-          reinterpret_cast<std::vector<std::uint8_t> *>(
-              host_cols[projection_index]);
+        reinterpret_cast<std::vector<std::uint8_t> *>(
+          host_cols[projection_index]);
       cudf_columns[projection_index] = build_fixed_width_cudf_col(
-          nRows, vector, null_masks[projection_index], cudf_type_id);
+        nRows, vector, null_masks[projection_index], cudf_type_id);
       break;
     }
     case cudf::type_id::STRING: {
       cudf_string_col * string_col =
-          reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
+        reinterpret_cast<cudf_string_col *>(host_cols[projection_index]);
       cudf_columns[projection_index] =
-          build_str_cudf_col(string_col, null_masks[projection_index]);
+        build_str_cudf_col(string_col, null_masks[projection_index]);
       break;
     }
     default: throw std::runtime_error("Invalid allocation for cudf type id");
@@ -326,66 +325,66 @@ cudf::io::table_with_metadata read_sqlite_v2(sqlite3_stmt * stmt,
   }
 
   tableWithMetadata.tbl =
-      std::make_unique<cudf::table>(std::move(cudf_columns));
+    std::make_unique<cudf::table>(std::move(cudf_columns));
 
   for(const std::size_t projection_index : column_indices) {
     cudf::type_id cudf_type_id = cudf_types[projection_index];
     switch(cudf_type_id) {
     case cudf::type_id::INT8: {
       delete reinterpret_cast<std::vector<std::int8_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::INT16: {
       delete reinterpret_cast<std::vector<std::int16_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::INT32: {
       delete reinterpret_cast<std::vector<std::int32_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::INT64: {
       delete reinterpret_cast<std::vector<std::int64_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::UINT8: {
       delete reinterpret_cast<std::vector<std::uint8_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::UINT16: {
       delete reinterpret_cast<std::vector<std::uint16_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::UINT32: {
       delete reinterpret_cast<std::vector<std::uint32_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::UINT64: {
       delete reinterpret_cast<std::vector<std::uint64_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::FLOAT32:
     case cudf::type_id::DECIMAL32: {
       delete reinterpret_cast<std::vector<float> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::FLOAT64:
     case cudf::type_id::DECIMAL64: {
       delete reinterpret_cast<std::vector<double> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::BOOL8: {
       delete reinterpret_cast<std::vector<std::uint8_t> *>(
-          host_cols[projection_index]);
+        host_cols[projection_index]);
       break;
     }
     case cudf::type_id::STRING: {
@@ -402,11 +401,11 @@ sqlite_parser::sqlite_parser() {}
 
 sqlite_parser::~sqlite_parser() {}
 
-std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
-    ral::io::data_handle handle,
-    const Schema & schema,
-    std::vector<int> column_indices,
-    std::vector<cudf::size_type> row_groups) {
+std::unique_ptr<ral::frame::BlazingTable> parse_batch(
+  ral::io::data_handle handle,
+  const Schema & schema,
+  std::vector<int> column_indices,
+  std::vector<cudf::size_type> row_groups) {
   auto stmt = handle.sql_handle.sqlite_statement;
   if(stmt == nullptr) { return schema.makeEmptyBlazingTable(column_indices); }
 
@@ -432,12 +431,12 @@ std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
     }
 
     return std::make_unique<ral::frame::BlazingTable>(
-        std::move(result_table), result.metadata.column_names);
+      std::move(result_table), result.metadata.column_names);
   }
   return nullptr;
 }
 
-void sqlite_parser::parse_schema(data_handle handle, Schema & schema) {
+void parse_schema(data_handle handle, Schema & schema) {
   const bool is_in_file = true;
   for(int i = 0; i < handle.sql_handle.column_names.size(); i++) {
     const std::string & column_type = handle.sql_handle.column_types.at(i);
@@ -447,34 +446,89 @@ void sqlite_parser::parse_schema(data_handle handle, Schema & schema) {
   }
 }
 
-std::unique_ptr<frame::BlazingTable> sqlite_parser::get_metadata(
-    std::vector<data_handle> handles, int offset) {
-  //	std::vector<size_t> num_row_groups(files.size());
-  //	BlazingThread threads[files.size()];
-  //	std::vector<std::unique_ptr<parquet::ParquetFileReader>>
-  // parquet_readers(files.size()); 	for(size_t file_index = 0; file_index <
-  // files.size(); file_index++) { 		threads[file_index] =
-  // BlazingThread([&, file_index]() { 		  parquet_readers[file_index] =
-  //			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
-  //		  std::shared_ptr<parquet::FileMetaData> file_metadata =
-  // parquet_readers[file_index]->metadata(); num_row_groups[file_index] =
-  // file_metadata->num_row_groups();
-  //		});
-  //	}
+std::uint8_t sqlite_parser::parse_cudf_int8(
+  void *, std::size_t, std::size_t, std::vector<std::int8_t> *) {
+  return 0;
+}
 
-  //	for(size_t file_index = 0; file_index < files.size(); file_index++) {
-  //		threads[file_index].join();
-  //	}
+std::uint8_t sqlite_parser::parse_cudf_int16(
+  void *, std::size_t, std::size_t, std::vector<std::int16_t> *) {
+  return 0;
+}
 
-  //	size_t total_num_row_groups =
-  //		std::accumulate(num_row_groups.begin(), num_row_groups.end(),
-  // size_t(0));
+std::uint8_t sqlite_parser::parse_cudf_int32(
+  void *, std::size_t, std::size_t, std::vector<std::int32_t> *) {
+  return 0;
+}
 
-  //	auto minmax_metadata_table = get_minmax_metadata(parquet_readers,
-  // total_num_row_groups, offset); 	for (auto &reader : parquet_readers) {
-  //		reader->Close();
-  //	}
-  //	return minmax_metadata_table;
+std::uint8_t sqlite_parser::parse_cudf_int64(
+  void *, std::size_t, std::size_t, std::vector<std::int64_t> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_uint8(
+  void *, std::size_t, std::size_t, std::vector<std::uint8_t> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_uint16(
+  void *, std::size_t, std::size_t, std::vector<std::uint16_t> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_uint32(
+  void *, std::size_t, std::size_t, std::vector<std::uint32_t> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_uint64(
+  void *, std::size_t, std::size_t, std::vector<std::uint64_t> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_float32(
+  void *, std::size_t, std::size_t, std::vector<float> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_float64(
+  void *, std::size_t, std::size_t, std::vector<double> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_bool8(
+  void *, std::size_t, std::size_t, std::vector<std::int8_t> *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_timestamp_days(
+  void *, std::size_t, std::size_t, cudf_string_col *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_timestamp_seconds(
+  void *, std::size_t, std::size_t, cudf_string_col *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_timestamp_milliseconds(
+  void *, std::size_t, std::size_t, cudf_string_col *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_timestamp_microseconds(
+  void *, std::size_t, std::size_t, cudf_string_col *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_timestamp_nanoseconds(
+  void *, std::size_t, std::size_t, cudf_string_col *) {
+  return 0;
+}
+
+std::uint8_t sqlite_parser::parse_cudf_string(
+  void *, std::size_t, std::size_t, cudf_string_col *) {
+  return 0;
 }
 
 } /* namespace io */
