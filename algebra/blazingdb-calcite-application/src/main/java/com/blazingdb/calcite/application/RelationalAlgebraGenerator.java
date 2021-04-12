@@ -277,7 +277,7 @@ public class RelationalAlgebraGenerator {
 
 		hepPlanner.setRoot(nonOptimizedPlan);
 
-		planner.close();
+//		planner.close();
 
 		return hepPlanner.findBestExp();
 	}

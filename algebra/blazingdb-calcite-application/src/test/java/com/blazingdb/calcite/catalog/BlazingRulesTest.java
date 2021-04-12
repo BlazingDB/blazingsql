@@ -253,8 +253,9 @@ public class BlazingRulesTest {
 		String sql =
 //				"select c_custkey from `customer` inner join `orders` on c_custkey = o_custkey where c_custkey < 1000";
 //				"select * from `customer`";
-				"select c.c_custkey as customer_id, c.c_name as customer_name, n.n_name as nation_name, c.c_phone as customer_phone from customer c"
-				+ " join nation n on c.c_nationkey=n.n_nationkey ";
+				"select c_custkey, c_name from customer where c_name='hello'";
+//				"select c.c_custkey as customer_id, c.c_name as customer_name, n.n_name as nation_name, c.c_phone as customer_phone from customer c"
+//				+ " join nation n on c.c_nationkey=n.n_nationkey ";
 
 		RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
 		System.out.println("non optimized\n");
