@@ -15,7 +15,7 @@ build:
     string: cuda_{{ cuda_version }}_py{{ py_version }}_{{ GIT_DESCRIBE_HASH }}_{{ GIT_DESCRIBE_NUMBER }}
     script_env:
       - VERSION_SUFFIX
-      - PARALLEL_LEVEL    
+      - PARALLEL_LEVEL
       - CUDA_VERSION
       - CUDACXX
 
@@ -26,6 +26,8 @@ requirements:
         - gtest 1.10
         - aws-sdk-cpp
         - google-cloud-cpp 1.16.0
+        - mysql-connector-cpp 8.0.23
+        - libpq 13
         - cppzmq
         - python
         - setuptools
@@ -44,6 +46,7 @@ requirements:
         - jpype1
         - netifaces
         - pyhive
+        - sqlite 3
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
@@ -64,4 +67,4 @@ about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
     license_family: Apache
-    summary: GPU-powered distributed SQL engine in Python 
+    summary: GPU-powered distributed SQL engine in Python
