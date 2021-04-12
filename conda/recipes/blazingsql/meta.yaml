@@ -25,8 +25,8 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
-        - abseil-cpp
-        - google-cloud-cpp >=1.16.0
+        - google-cloud-cpp 1.25.0
+        - abseil-cpp 20210324.0
         - nlohmann_json
         - cppzmq
         - python
@@ -44,8 +44,8 @@ requirements:
         - python
         - nlohmann_json
         - aws-sdk-cpp
-        - abseil-cpp
-        - google-cloud-cpp >=1.16.0
+        - google-cloud-cpp 1.25.0
+        - abseil-cpp 20210324.0
         - openjdk >=8.0
         - jpype1
         - netifaces
@@ -65,8 +65,8 @@ test:
         - gtest 1.10
         - nlohmann_json
         - aws-sdk-cpp
-        - abseil-cpp
-        - google-cloud-cpp >=1.16.0
+        - google-cloud-cpp 1.25.0
+        - abseil-cpp 20210324.0
     imports:
         - cio
 
