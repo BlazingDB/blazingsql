@@ -277,6 +277,54 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = 'TEST_14'
+            query = """select CAST('1997-05-02' as date) my_date
+                    from orders  where o_orderkey < 85 limit 12"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # NOTE: spark returns a null column for the second column
+            queryId = 'TEST_15'
+            query = """select r_regionkey, CAST('1997/05/02' as date) my_date from region"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = 'TEST_16'
+            query = """select CAST('1997-05-02 04:12:18' as TIMESTAMP) my_date,
+                        n_nationkey + 2 from nation"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break
