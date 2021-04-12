@@ -401,6 +401,25 @@ sqlite_parser::sqlite_parser() : abstractsql_parser(DataType::SQLITE) {}
 
 sqlite_parser::~sqlite_parser() {}
 
+void sqlite_parser::read_sql_loop(void * src,
+  const std::vector<cudf::type_id> & cudf_types,
+  const std::vector<int> & column_indices,
+  std::vector<void *> & host_cols,
+  std::vector<std::vector<cudf::bitmask_type>> & null_masks) {
+  int rowCounter = 0;
+  sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+  while(sqlite3_step(stmt) == SQLITE_ROW) {
+    parse_sql(
+      src, column_indices, cudf_types, rowCounter, host_cols, null_masks);
+    ++rowCounter;
+  }
+}
+
+cudf::type_id sqlite_parser::get_cudf_type_id(
+  const std::string & sql_column_type) {
+  return parse_sqlite_column_type(sql_column_type);
+}
+
 std::unique_ptr<ral::frame::BlazingTable> parse_batch(
   ral::io::data_handle handle,
   const Schema & schema,
