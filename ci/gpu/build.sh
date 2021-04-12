@@ -61,7 +61,7 @@ gpuci_logger "Install RAPIDS dependencies"
 gpuci_conda_retry install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu python=$PYTHON_VER cudatoolkit=$CUDA_REL
 
 gpuci_logger "Install E2E test dependencies"
-pip install openpyxl pymysql gitpython pynvml gspread oauth2client
+pip install pytest openpyxl pymysql gitpython pynvml gspread oauth2client
 echo "BlazingSQL end to end tests dependencies installed"
 
 gpuci_logger "Check versions"
