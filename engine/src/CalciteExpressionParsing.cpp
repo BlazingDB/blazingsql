@@ -179,7 +179,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type.id() == cudf::type_id::TIMESTAMP_MILLISECONDS || type.id() == cudf::type_id::TIMESTAMP_MICROSECONDS
 		 || type.id() == cudf::type_id::TIMESTAMP_NANOSECONDS) {
 		if (is_timestamp_with_decimals(cleaned_scalar_string)) {
-			str_to_timestamp_scalar_with_decimal_format(cleaned_scalar_string, type);
+			return str_to_timestamp_scalar_with_decimal_format(cleaned_scalar_string, type);
 		} else if (is_timestamp(cleaned_scalar_string)) {
 			return str_to_timestamp_scalar_with_second_format(cleaned_scalar_string, type);
 		} else {
