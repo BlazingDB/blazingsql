@@ -940,16 +940,14 @@ std::string get_current_date_or_timestamp(std::string expression, blazingdb::man
 	}
 
 	std::size_t date_pos = expression.find("CURRENT_DATE");
-	std::size_t time_pos = expression.find("CURRENT_TIMESTAMP");
+	std::size_t timestamp_pos = expression.find("CURRENT_TIMESTAMP");
 
-	if (date_pos == expression.npos && time_pos == expression.npos) {
+	if (date_pos == expression.npos && timestamp_pos == expression.npos) {
 		return expression;
 	}
 
-    std::map<std::string, std::string> config_options = context->getConfigOptions();
-
     // CURRENT_TIMESTAMP will return a `ms` format
-	std::string	timestamp_str = config_options["CURRENT_TIMESTAMP"].substr(0, 23);
+	std::string	timestamp_str = context->getCurrentTimestamp().substr(0, 23);
     std::string str_to_replace = "CURRENT_TIMESTAMP";
 
 	// In case CURRENT_DATE we want only the date value

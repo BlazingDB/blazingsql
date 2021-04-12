@@ -296,6 +296,7 @@ def generateGraphs(
     algebra,
     config_options,
     sql,
+    current_timestamp,
 ):
 
     worker = get_worker()
@@ -327,6 +328,7 @@ def generateGraphs(
             algebra,
             config_options,
             sql,
+            current_timestamp,
         )
         graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
@@ -1230,7 +1232,6 @@ def load_config_options_from_env(user_config_options: dict):
         "TRANSPORT_POOL_NUM_BUFFERS": 1000,
         "PROTOCOL": "AUTO",
         "REQUIRE_ACKNOWLEDGE": False,
-        "CURRENT_TIMESTAMP": "",
     }
 
     # key: option_name, value: default_value
@@ -1424,9 +1425,6 @@ class BlazingContext(object):
                     It should use what the user set. If the user does not explicitly set it,
                     by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).
                     NOTE: This parameter only works when used in the BlazingContext.
-            CURRENT_TIMESTAMP: A string representing the current timestamp in order to get the same
-                    timestamp value for a distributed cluster.
-                    default: ''
 
         Examples
         --------
@@ -3040,8 +3038,7 @@ class BlazingContext(object):
         table_names = []
 
         # Make sure the timestamp value be unique for all the nodes
-        current_timestamp = str(datetime.now())
-        self.config_options["CURRENT_TIMESTAMP".encode()] = current_timestamp.encode()
+        current_timestamp = str(datetime.now()).encode()
 
         if len(config_options) == 0:
             query_config_options = self.config_options
@@ -3124,6 +3121,7 @@ class BlazingContext(object):
                     algebra,
                     query_config_options,
                     query,
+                    current_timestamp,
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
                 self.graphs[ctxToken] = graph
@@ -3161,6 +3159,7 @@ class BlazingContext(object):
                         algebra,
                         query_config_options,
                         query,
+                        current_timestamp,
                         workers=[worker],
                         pure=False,
                     )

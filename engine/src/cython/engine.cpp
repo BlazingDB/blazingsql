@@ -131,7 +131,7 @@ std::string runGeneratePhysicalGraph(uint32_t masterIndex,
     for (const auto &worker_id : worker_ids) {
         contextNodes.emplace_back(worker_id);
     }
-    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}};
+    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}, ""};
 
     return get_physical_plan(query, queryContext);
 }
@@ -149,7 +149,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::string query,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
-	std::string sql) {
+	std::string sql,
+	std::string current_timestamp) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -165,7 +166,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
     for (const auto &worker_id : worker_ids) {
         contextNodes.emplace_back(worker_id);
     }
-	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
+	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options, current_timestamp};
 
   	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 
