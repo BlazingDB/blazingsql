@@ -1827,3 +1827,110 @@ TEST_F(WindowOverlapTest, BigWindowSingleNode) {
         cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
     }
 }
+
+TEST_F(WindowOverlapTest, BasicSingleNode2) {
+
+    size_t size = 100000;
+
+    // Define full dataset
+    auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
+    auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+    auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
+
+    cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+
+    CudfTableView full_data_cudf_view ({col0, col1, col2});
+
+    int preceding_value = 50;
+    int following_value = 10;
+    std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
+
+    // define how its broken up into batches and overlaps
+    std::vector<std::string> names({"A", "B", "C"});
+    std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
+    std::vector<std::unique_ptr<CacheData>>& inputCacheData = batches;
+
+    std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+
+    std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
+
+    // create and start kernel
+    // Context
+    std::shared_ptr<Context> context = make_context(1);
+
+    auto & communicationData = ral::communication::CommunicationData::getInstance();
+    communicationData.initialize("0", "/tmp");
+
+    std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
+
+    // overlap Generator kernel
+    std::shared_ptr<kernel> overlap_generator_kernel;
+    std::shared_ptr<ral::cache::CacheMachine> input_generator_cache, output_generator_cache;
+    std::tie(overlap_generator_kernel, input_generator_cache, output_generator_cache) = make_overlap_Generator_kernel(project_plan, context);
+
+    std::shared_ptr<kernel> overlap_accumulator_kernel;
+    std::shared_ptr<ral::cache::CacheMachine> input_accumulator_cache, output_accumulator_cache;
+    std::tie(overlap_accumulator_kernel, input_accumulator_cache, output_accumulator_cache) = make_overlap_Accumulator_kernel(project_plan, context);
+
+
+    std::shared_ptr<CacheMachine> batchesCacheMachine   = std::make_shared<CacheMachine>(context, "batches");
+    std::shared_ptr<CacheMachine> precedingCacheMachine = std::make_shared<CacheMachine>(context, "preceding_overlaps");
+    std::shared_ptr<CacheMachine> followingCacheMachine = std::make_shared<CacheMachine>(context, "following_overlaps");
+    std::shared_ptr<CacheMachine> inputCacheMachine     = std::make_shared<CacheMachine>(context, "1");
+    std::shared_ptr<CacheMachine> outputCacheMachine    = std::make_shared<CacheMachine>(context, "1");
+
+    overlap_generator_kernel->input_.register_cache("1", inputCacheMachine);
+    overlap_generator_kernel->output_.register_cache("batches", batchesCacheMachine);
+    overlap_generator_kernel->output_.register_cache("preceding_overlaps", precedingCacheMachine);
+    overlap_generator_kernel->output_.register_cache("following_overlaps", followingCacheMachine);
+
+    overlap_accumulator_kernel->input_.register_cache("batches", batchesCacheMachine);
+    overlap_accumulator_kernel->input_.register_cache("preceding_overlaps", precedingCacheMachine);
+    overlap_accumulator_kernel->input_.register_cache("following_overlaps", followingCacheMachine);
+    overlap_accumulator_kernel->output_.register_cache("1", outputCacheMachine);
+
+
+    // run function in overlap generator
+    std::thread run_thread_generator = std::thread([overlap_generator_kernel]() {
+        kstatus process = overlap_generator_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    // run function in overlap accumulator
+    std::thread run_thread_accumulator = std::thread([overlap_accumulator_kernel](){
+        kstatus process = overlap_accumulator_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // add data into the Generator CacheMachines
+    for (std::size_t i = 0; i < inputCacheData.size(); i++) {
+        inputCacheMachine->addCacheData(std::move(inputCacheData[i]));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    inputCacheMachine->finish();
+    batchesCacheMachine->finish();
+    precedingCacheMachine->finish();
+    followingCacheMachine->finish();
+    outputCacheMachine->finish();
+
+    run_thread_generator.join();
+    run_thread_accumulator.join();
+
+    // get and validate output
+    auto last_batches_pulled = outputCacheMachine->pull_all_cache_data();
+
+    EXPECT_EQ(last_batches_pulled.size(), expected_out.size());
+
+    for (std::size_t i = 0; i < last_batches_pulled.size(); i++) {
+        auto table_out = last_batches_pulled[i]->decache();
+        cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
+    }
+}
