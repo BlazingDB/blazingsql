@@ -51,7 +51,7 @@ gpuci_logger "Installing BlazingSQL dev environment"
 # NOTE: needing to manually install spdlog here because v1.8 is causing issues https://github.com/gabime/spdlog/issues/1662
 
 gpuci_logger "Install Dependencies"
-gpuci_conda_retry install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp>=1.16 abseil-cpp=20200225.2 ninja nlohmann_json
+gpuci_conda_retry install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp>=1.25.0 abseil-cpp=20210324.0 ninja nlohmann_json
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
 gpuci_conda_retry install --yes cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
