@@ -4,6 +4,9 @@
 - #1367 OverlapAccumulator Kernel
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 - #1426 Window Functions without partitioning 
+- #1349 Add e2e test for Hive Partitioned Data
+- #1427 Support for CONCAT alias operator
+- #1424 Add get physical plan with explain
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -15,6 +18,7 @@
 - #1418 Adding support for docker image
 - #1419 Added concat cache machine timeout 
 - #1349 Add e2e test for Hive Partitioned Data
+- #1447 Improve getting estimated output num rows
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -41,6 +45,8 @@
 - #1423 Fix temporary directory for hive partition test
 - #1351 Fixed 'count distinct' related issues
 - #1425 Fix for new joins API
+- #1400 Fix for Column aliases when exists a Join op
+
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 

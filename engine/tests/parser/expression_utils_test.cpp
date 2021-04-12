@@ -266,3 +266,57 @@ TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success_with_cast) {
 
 	EXPECT_EQ(expression_result, expected_expression);
 }
+
+TEST_F(ExpressionUtilsTest, concat_operator_with_empty_expressions)
+{
+	try {
+		std::string expression = "CONCAT()";
+		std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+
+		FAIL();
+	} catch(const std::exception& e) {
+		SUCCEED();
+	}
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_wo_literals_expressions)
+{
+	std::string expression = "CONCAT($0, $1)";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_with_one_literal_expressions)
+{
+	std::string expression = "CONCAT($0, '-ab25')";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_with_multiple_literal_expressions)
+{
+	std::string expression = "CONCAT(' - ', $1, ' : ')";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "CONCAT(CONCAT(' - ', $1), ' : ')";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_using_cast_op)
+{
+	std::string expression = "CONCAT($0, ': ', CAST($1):VARCHAR, ' - ', $2)";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "CONCAT(CONCAT(CONCAT(CONCAT($0, ': '), CAST($1):VARCHAR), ' - '), $2)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
+{
+	std::string expression = "CONCAT($0, ' , ', $2)";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "CONCAT(CONCAT($0, ' , '), $2)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
