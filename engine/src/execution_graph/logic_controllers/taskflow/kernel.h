@@ -241,6 +241,8 @@ protected:
 	std::mutex kernel_mutex;
 	std::condition_variable kernel_cv;
 	std::atomic<std::size_t> total_input_bytes_processed;
+	std::atomic<std::size_t> total_input_rows_processed;
+	
 
 public:
 	std::string expression; /**< Stores the logical expression being processed. */
@@ -258,7 +260,6 @@ public:
 
 	std::shared_ptr<spdlog::logger> logger;
 };
-
 
 }  // namespace cache
 }  // namespace ral

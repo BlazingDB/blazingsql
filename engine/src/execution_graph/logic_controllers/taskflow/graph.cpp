@@ -155,7 +155,7 @@ namespace cache {
 		std::set<Edge> source_edges = get_reverse_neighbours(id);
 		if (source_edges.size() == 1){
 			target_kernel = get_node((*(source_edges.begin())).source);
-			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
+			// get_estimated_output_num_rows would just call get_estimated_input_rows_to_kernel for simple in/out kernels
 			// or do something more complicated for other kernels
 			return target_kernel->get_estimated_output_num_rows();
 		} else {
