@@ -5,7 +5,7 @@
 
 
 ## Improvements
-
+- #1464 Better Support for unsigned types
 
 
 ## Bug Fixes
