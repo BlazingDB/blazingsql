@@ -49,7 +49,7 @@
 - #1425 Fix for new joins API
 - #1400 Fix for Column aliases when exists a Join op
 - #1456 Raising exceptions on Python side for RAL
-- #1465 SQL providers: update README.md
+- #1466 SQL providers: update README.md
 
 
 ## Deprecated Features
