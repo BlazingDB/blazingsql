@@ -35,6 +35,9 @@ enum class operator_type {
 	BLZ_SECOND,
 	BLZ_IS_NULL,
 	BLZ_IS_NOT_NULL,
+	BLZ_IS_TRUE,
+	BLZ_IS_NOT_TRUE,  // matter when nulls
+	BLZ_IS_NOT_FALSE, // matters when null
 	BLZ_CAST_TINYINT,
 	BLZ_CAST_SMALLINT,
 	BLZ_CAST_INTEGER,
@@ -211,8 +214,6 @@ std::string extract_table_name(std::string query_part);
 // takes a comma delimited list of expressions and splits it into separate expressions
 // if the flag trim is true, leading and trailing spaces are removed
 std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
-
-std::string remove_is_not_false_condition(std::string expression);
 
 std::string replace_calcite_regex(const std::string & expression);
 

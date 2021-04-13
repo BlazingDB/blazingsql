@@ -21,6 +21,7 @@ bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_ABS:
 	case operator_type::BLZ_FLOOR:
 	case operator_type::BLZ_CEIL:
@@ -42,6 +43,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_SECOND:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_CAST_TINYINT:
 	case operator_type::BLZ_CAST_SMALLINT:
 	case operator_type::BLZ_CAST_INTEGER:
@@ -171,8 +174,11 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_ABS:
 		return input_left_type;
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -257,7 +263,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
-		{"IS NOT TRUE", operator_type::BLZ_NOT},
+		{"IS NOT TRUE", operator_type::BLZ_IS_NOT_TRUE},
+		{"IS NOT FALSE", operator_type::BLZ_IS_NOT_FALSE},
+		{"IS TRUE", operator_type::BLZ_IS_TRUE},
 		{"SIN", operator_type::BLZ_SIN},
 		{"ASIN", operator_type::BLZ_ASIN},
 		{"COS", operator_type::BLZ_COS},
@@ -909,26 +917,6 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 	return expressions;
 }
 
-// input: AND(IS NOT FALSE($1), NOT($1))
-// output: AND($1, NOT($1))
-std::string remove_is_not_false_condition(std::string expression) {
-
-	std::string expr_to_remove = "IS NOT FALSE(";
-	size_t start_pos = expression.find(expr_to_remove);
-
-	if (start_pos == expression.npos) {
-		return expression;
-	}
-
-	std::vector<std::string> split_parts = StringUtil::split(expression, expr_to_remove);
-
-	// Let's remove the first ')` from the second splited part
-	size_t first_clos_parent_pos = split_parts[1].find(")");
-	split_parts[1] = split_parts[1].erase(first_clos_parent_pos, 1);
-
-	return split_parts[0] + split_parts[1];
-}
-
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
 
@@ -970,7 +958,6 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 
-	ret = remove_is_not_false_condition(ret);
 	return ret;
 }
 
