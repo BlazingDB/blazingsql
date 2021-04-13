@@ -71,7 +71,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_02"
             query = """select o_custkey, o_confirmed from bool_orders
-                    where o_confirmed is null limit 30"""
+                    where o_confirmed is null order by o_custkey limit 30"""
             runTest.run_query(
                 bc,
                 drill,
@@ -366,6 +366,68 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select o_orderkey, o_confirmed from bool_orders
                         where o_confirmed IS NOT FALSE and o_confirmed IS FALSE
                         order by o_orderkey limit 15"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_23"
+            query = """select count(*) from bool_orders where o_confirmed IS TRUE"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_24"
+            query = """select count(*) from bool_orders where o_confirmed IS FALSE"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # counts both `False` and nulls
+            queryId = "TEST_25"
+            query = """select count(*) from bool_orders where o_confirmed IS NOT TRUE"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                min_aceptable_diff,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # counts both `True` and nulls
+            queryId = "TEST_26"
+            query = """select count(*) from bool_orders where o_confirmed IS NOT FALSE"""
             runTest.run_query(
                 bc,
                 drill,
