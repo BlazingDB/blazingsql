@@ -17,6 +17,11 @@
 #include "../io/data_provider/sql/MySQLDataProvider.h"
 #endif
 
+#ifdef POSTGRESQL_SUPPORT
+#include "../io/data_parser/sql/PostgreSQLParser.h"
+#include "../io/data_provider/sql/PostgreSQLDataProvider.h"
+#endif
+
 #ifdef SQLITE_SUPPORT
 #include "../io/data_parser/sql/SQLiteParser.h"
 #include "../io/data_provider/sql/SQLiteDataProvider.h"
@@ -71,6 +76,13 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::mysql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::mysql_data_provider>(sql, 0, 0);
+#endif
+    isSqlProvider = true;
+  } else if(fileType == ral::io::DataType::POSTGRESQL) {
+#ifdef POSTGRESQL_SUPPORT
+		parser = std::make_shared<ral::io::postgresql_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, 0, 0);
 #endif
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::SQLITE) {
