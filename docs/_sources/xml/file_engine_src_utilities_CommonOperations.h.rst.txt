@@ -1,0 +1,98 @@
+
+.. _file_engine_src_utilities_CommonOperations.h:
+
+File CommonOperations.h
+=======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_utilities>` (``engine/src/utilities``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/utilities/CommonOperations.h``)
+--------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/column/column_factories.hpp``
+
+- ``execution_graph/logic_controllers/LogicPrimitives.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+- ``string``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_cython_io.cpp`
+
+- :ref:`file_engine_src_distribution_primitives.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.cpp`
+
+- :ref:`file_engine_src_io_data_parser_metadata_common_metadata.cpp`
+
+- :ref:`file_engine_src_io_data_parser_metadata_orc_metadata.cpp`
+
+- :ref:`file_engine_src_io_data_parser_metadata_parquet_metadata.cpp`
+
+- :ref:`file_engine_src_io_data_parser_ParquetParser.cpp`
+
+- :ref:`file_engine_src_io_DataLoader.cpp`
+
+- :ref:`file_engine_src_operators_GroupBy.cpp`
+
+- :ref:`file_engine_src_operators_OrderBy.cpp`
+
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+
+- :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__utilities`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_CommonOperations_8h_1a99f694b7d74f1626bb7f610a2c6e9451`
+
+- :ref:`exhale_function_CommonOperations_8h_1af088e3a8310407797f3d5d48d07258da`
+

@@ -130,6 +130,8 @@ const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
 const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
 const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
+const std::string LOGICAL_GENERATE_OVERLAPS_TEXT = "LogicalGenerateOverlaps";
+const std::string LOGICAL_ACCUMULATE_OVERLAPS_TEXT = "LogicalAccumulateOverlaps";
 const std::string LOGICAL_COMPUTE_WINDOW_TEXT = "LogicalComputeWindow";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
@@ -159,6 +161,8 @@ bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
 bool is_window_function(std::string query_part);
+bool is_generate_overlaps(std::string query_part);
+bool is_accumulate_overlaps(std::string query_part);
 bool is_window_compute(std::string query_part);
 
 bool window_expression_contains_partition_by(std::string query_part);
@@ -220,3 +224,5 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names);
 
 std::string fill_minus_op_with_zero(std::string expression);
+
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);

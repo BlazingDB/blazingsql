@@ -18,7 +18,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean update thirdparty io libengine engine pyblazing algebra disable-aws-s3 disable-google-gs -t -v -g -n -h"
+VALIDARGS="clean update thirdparty io libengine engine pyblazing algebra disable-aws-s3 disable-google-gs disable-mysql disable-sqlite disable-postgresql -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean                - remove all existing build artifacts and configuration (start
                           over) Use 'clean thirdparty' to delete thirdparty folder
@@ -31,6 +31,9 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
    algebra              - build the algebra Python package
    disable-aws-s3       - flag to disable AWS S3 support for libengine
    disable-google-gs    - flag to disable Google Cloud Storage support for libengine
+   disable-mysql        - flag to enable MySQL support for libengine
+   disable-sqlite       - flag to enable SQLite support for libengine
+   disable-postgresql   - flag to enable PostgreSQL support for libengine
    -t                   - skip tests
    -v                   - verbose build mode
    -g                   - build for debug
@@ -240,6 +243,24 @@ if buildAll || hasArg libengine; then
         echo "Google Cloud Storage support disabled for libengine"
     fi
 
+    disable_mysql_flag=""
+    if hasArg disable-mysql; then
+        disable_mysql_flag="-DMYSQL_SUPPORT=OFF"
+        echo "MySQL database support disabled for engine"
+    fi
+
+    disable_sqlite_flag=""
+    if hasArg disable-sqlite; then
+        disable_sqlite_flag="-DSQLITE_SUPPORT=OFF"
+        echo "SQLite database support disabled for engine"
+    fi
+
+    disable_postgresql_flag=""
+    if hasArg disable-postgresql; then
+        disable_postgresql_flag="-DPOSTGRESQL_SUPPORT=OFF"
+        echo "PostgreSQL database support disabled for engine"
+    fi
+
     echo "Building libengine"
     mkdir -p ${LIBENGINE_BUILD_DIR}
     cd ${LIBENGINE_BUILD_DIR}
@@ -250,7 +271,10 @@ if buildAll || hasArg libengine; then
           -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           $disabled_aws_s3_flag \
-          $disabled_google_gs_flag ..
+          $disabled_google_gs_flag \
+          $disable_mysql_flag \
+          $disable_sqlite_flag \
+          $disable_postgresql_flag ..
 
     echo "Building libengine: make step"
     if [[ ${TESTS} == "ON" ]]; then
@@ -270,7 +294,6 @@ fi
 
 
 if buildAll || hasArg engine; then
-
     echo "Building engine (cython wrapper)"
     cd ${ENGINE_BUILD_DIR}
     rm -f ./bsql_engine/io/io.h

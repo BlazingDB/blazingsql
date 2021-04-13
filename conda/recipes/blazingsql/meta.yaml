@@ -15,7 +15,7 @@ build:
     string: cuda_{{ cuda_version }}_py{{ py_version }}_{{ GIT_DESCRIBE_HASH }}_{{ GIT_DESCRIBE_NUMBER }}
     script_env:
       - VERSION_SUFFIX
-      - PARALLEL_LEVEL    
+      - PARALLEL_LEVEL
       - CUDA_VERSION
       - CUDACXX
 
@@ -26,8 +26,9 @@ requirements:
         - gtest 1.10
         - aws-sdk-cpp
         - google-cloud-cpp 1.25.0
-        - abseil-cpp 20210324.0
-        - nlohmann_json
+        - mysql-connector-cpp 8.0.23
+        - libpq 13
+        - nlohmann_json 
         - cppzmq
         - python
         - setuptools
@@ -45,11 +46,11 @@ requirements:
         - nlohmann_json
         - aws-sdk-cpp
         - google-cloud-cpp 1.25.0
-        - abseil-cpp 20210324.0
         - openjdk >=8.0
         - jpype1
         - netifaces
         - pyhive
+        - sqlite 3
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
@@ -66,7 +67,6 @@ test:
         - nlohmann_json
         - aws-sdk-cpp
         - google-cloud-cpp 1.25.0
-        - abseil-cpp 20210324.0
     imports:
         - cio
 

@@ -103,20 +103,20 @@ TEST_F(ExpressionUtilsTest, getting_frame_type_from_over_clause) {
 
 TEST_F(ExpressionUtilsTest, gettings_bounds_from_window_expression) {
 	int preceding_value, following_value;
-	int expected_presceding = -1;
+	int expected_preceding = -1;
 	int expected_following = 0;
 	std::string query_part_1 = "LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)])";
 	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_1);
 
-	EXPECT_EQ(preceding_value, expected_presceding);
+	EXPECT_EQ(preceding_value, expected_preceding);
 	EXPECT_EQ(following_value, expected_following);
 	
-	int expected_presceding2 = 1;
+	int expected_preceding2 = 1;
 	int expected_following2 = 2;
 	std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING)]";
 	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
 
-	EXPECT_EQ(preceding_value, expected_presceding2);
+	EXPECT_EQ(preceding_value, expected_preceding2);
 	EXPECT_EQ(following_value, expected_following2);	
 }
 
@@ -265,4 +265,58 @@ TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success_with_cast) {
 	std::string expected_expression = "-(0, CAST($0):DOUBLE)";
 
 	EXPECT_EQ(expression_result, expected_expression);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_with_empty_expressions)
+{
+	try {
+		std::string expression = "CONCAT()";
+		std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+
+		FAIL();
+	} catch(const std::exception& e) {
+		SUCCEED();
+	}
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_wo_literals_expressions)
+{
+	std::string expression = "CONCAT($0, $1)";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_with_one_literal_expressions)
+{
+	std::string expression = "CONCAT($0, '-ab25')";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_with_multiple_literal_expressions)
+{
+	std::string expression = "CONCAT(' - ', $1, ' : ')";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "CONCAT(CONCAT(' - ', $1), ' : ')";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_using_cast_op)
+{
+	std::string expression = "CONCAT($0, ': ', CAST($1):VARCHAR, ' - ', $2)";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "CONCAT(CONCAT(CONCAT(CONCAT($0, ': '), CAST($1):VARCHAR), ' - '), $2)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
+{
+	std::string expression = "CONCAT($0, ' , ', $2)";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "CONCAT(CONCAT($0, ' , '), $2)";
+
+	EXPECT_EQ(out_expression, expected_str);
 }

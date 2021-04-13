@@ -319,6 +319,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
 		{"||", operator_type::BLZ_STR_CONCAT},
+		{"CONCAT", operator_type::BLZ_STR_CONCAT}, // we want to handle CONCAT op in the same way as ||
 		{"TRIM", operator_type::BLZ_STR_TRIM},
 		{"LEFT", operator_type::BLZ_STR_LEFT},
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
@@ -499,6 +500,10 @@ bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICA
 
 bool is_window_function(std::string query_part) { return (query_part.find("OVER") != std::string::npos); }
 
+bool is_generate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_GENERATE_OVERLAPS_TEXT) != std::string::npos); }
+
+bool is_accumulate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_ACCUMULATE_OVERLAPS_TEXT) != std::string::npos); }
+
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
 bool window_expression_contains_partition_by(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
@@ -645,6 +650,9 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 	int preceding_value, following_value;
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+	if (over_clause.length() == 0){
+		over_clause = get_first_over_expression_from_logical_plan(logical_plan, "ORDER BY");
+	}
 
 	// the default behavior when not bounds are passed is
 	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
@@ -1001,4 +1009,26 @@ std::string fill_minus_op_with_zero(std::string expression) {
 	}
 
 	return expression;
+}
+
+// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' : ', $2)
+// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' : '), $2)"
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
+	if (expression.find("CONCAT") == expression.npos) {
+		return expression;
+	}
+
+	// just to remove `CONCAT( )`
+	std::string expression_wo_concat = get_query_part(expression);
+	std::vector<std::string> expressions_to_concat = get_expressions_from_expression_list(expression_wo_concat);
+
+	if (expressions_to_concat.size() < 2) throw std::runtime_error("CONCAT operator must have at least two children, as CONCAT($0, $1) .");
+
+	std::string new_expression =  "CONCAT(" + expressions_to_concat[0] + ", " + expressions_to_concat[1] + ")";
+
+	for (size_t i = 2; i < expressions_to_concat.size(); ++i) {
+		new_expression = "CONCAT(" + new_expression + ", " + expressions_to_concat[i] + ")";
+	}
+
+	return new_expression;
 }

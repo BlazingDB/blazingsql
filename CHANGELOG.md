@@ -1,8 +1,13 @@
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
+- #1367 OverlapAccumulator Kernel
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
+- #1426 Window Functions without partitioning 
 - #1349 Add e2e test for Hive Partitioned Data
+- #1396 Create tables from other RDBMS
+- #1427 Support for CONCAT alias operator
+- #1424 Add get physical plan with explain
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -13,9 +18,11 @@
 - #1430 Updating GCP to >= version
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
+- #1434 Added documentation for C++ and Python in Sphinx
 - #1419 Added concat cache machine timeout 
 - #1444 Updating GCP to >= version
-
+- #1349 Add e2e test for Hive Partitioned Data
+- #1447 Improve getting estimated output num rows
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -43,7 +50,7 @@
 - #1351 Fixed 'count distinct' related issues
 - #1425 Fix for new joins API
 - #1400 Fix for Column aliases when exists a Join op
-
+- #1456 Raising exceptions on Python side for RAL
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
