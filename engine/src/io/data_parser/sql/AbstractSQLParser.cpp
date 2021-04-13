@@ -34,7 +34,7 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 {
   void *src = nullptr;
 
-  if(type() == DataType::MYSQL) {
+  if (type() == DataType::MYSQL) {
 #if defined(MYSQL_SUPPORT)
     src = handle.sql_handle.mysql_resultset.get();
 #else
@@ -43,7 +43,7 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 #endif
   }
 
-  if(type() == DataType::POSTGRESQL) {
+  if (type() == DataType::POSTGRESQL) {
 #if defined(POSTGRESQL_SUPPORT)
     src = handle.sql_handle.postgresql_result.get();
 #else
@@ -52,7 +52,7 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 #endif
   }
 
-  if(type() == DataType::SQLITE) {
+  if (type() == DataType::SQLITE) {
 #if defined(SQLITE_SUPPORT)
     src = handle.sql_handle.sqlite_statement.get();
 #else
@@ -61,7 +61,8 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 #endif
   }
 
-  return this->parse_raw_batch(src, schema, column_indices, row_groups, handle.sql_handle.row_count);
+  return this->parse_raw_batch(
+    src, schema, column_indices, row_groups, handle.sql_handle.row_count);
 }
 
 void abstractsql_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {

@@ -199,6 +199,7 @@ data_handle sqlite_data_provider::get_next(bool) {
   ret.sql_handle.column_names = this->column_names;
   ret.sql_handle.column_types = this->column_types;
   ret.sql_handle.column_bytes = this->column_bytes;
+  ret.sql_handle.row_count = row_count;
   ret.sql_handle.sqlite_statement = stmt;
   // TODO percy add columns to uri.query
   ret.uri = Uri("sqlite", "", this->sql.schema + "/" + this->sql.table, "", "");

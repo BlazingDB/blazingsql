@@ -47,8 +47,8 @@ bool sqlite_is_cudf_string(const std::string & t) {
     "string"  // TODO percy ???
   };
 
-  for(auto hint : mysql_string_types_hints) {
-    if(StringUtil::beginsWith(t, hint)) return true;
+  for (auto hint : mysql_string_types_hints) {
+    if (StringUtil::beginsWith(t, hint)) return true;
   }
 
   return false;
@@ -59,29 +59,29 @@ cudf::type_id parse_sqlite_column_type(std::string t) {
     t.cbegin(), t.cend(), t.begin(), [](const std::string::value_type c) {
       return std::tolower(c);
     });
-  if(sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
-  if(t == "tinyint") { return cudf::type_id::INT8; }
-  if(t == "smallint") { return cudf::type_id::INT8; }
-  if(t == "mediumint") { return cudf::type_id::INT16; }
-  if(t == "int") { return cudf::type_id::INT32; }
-  if(t == "integer") { return cudf::type_id::INT32; }
-  if(t == "bigint") { return cudf::type_id::INT64; }
-  if(t == "unsigned big int") { return cudf::type_id::UINT64; }
-  if(t == "int2") { return cudf::type_id::INT16; }
-  if(t == "int8") { return cudf::type_id::INT64; }
-  if(t == "real") { return cudf::type_id::FLOAT32; }
-  if(t == "double") { return cudf::type_id::FLOAT64; }
-  if(t == "double precision") { return cudf::type_id::FLOAT64; }
-  if(t == "float") { return cudf::type_id::FLOAT32; }
-  if(t == "decimal") { return cudf::type_id::FLOAT64; }
-  if(t == "boolean") { return cudf::type_id::UINT8; }
-  if(t == "date") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
-  if(t == "datetime") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+  if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
+  if (t == "tinyint") { return cudf::type_id::INT8; }
+  if (t == "smallint") { return cudf::type_id::INT8; }
+  if (t == "mediumint") { return cudf::type_id::INT16; }
+  if (t == "int") { return cudf::type_id::INT32; }
+  if (t == "integer") { return cudf::type_id::INT32; }
+  if (t == "bigint") { return cudf::type_id::INT64; }
+  if (t == "unsigned big int") { return cudf::type_id::UINT64; }
+  if (t == "int2") { return cudf::type_id::INT16; }
+  if (t == "int8") { return cudf::type_id::INT64; }
+  if (t == "real") { return cudf::type_id::FLOAT32; }
+  if (t == "double") { return cudf::type_id::FLOAT64; }
+  if (t == "double precision") { return cudf::type_id::FLOAT64; }
+  if (t == "float") { return cudf::type_id::FLOAT32; }
+  if (t == "decimal") { return cudf::type_id::FLOAT64; }
+  if (t == "boolean") { return cudf::type_id::UINT8; }
+  if (t == "date") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+  if (t == "datetime") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
 }
 
-sqlite_parser::sqlite_parser() : abstractsql_parser(DataType::SQLITE) {}
+sqlite_parser::sqlite_parser() : abstractsql_parser{DataType::SQLITE} {}
 
-sqlite_parser::~sqlite_parser() {}
+sqlite_parser::~sqlite_parser() = default;
 
 void sqlite_parser::read_sql_loop(void * src,
   const std::vector<cudf::type_id> & cudf_types,
@@ -90,7 +90,7 @@ void sqlite_parser::read_sql_loop(void * src,
   std::vector<std::vector<cudf::bitmask_type>> & null_masks) {
   int rowCounter = 0;
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  while(sqlite3_step(stmt) == SQLITE_ROW) {
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
     parse_sql(
       src, column_indices, cudf_types, rowCounter, host_cols, null_masks);
     ++rowCounter;
@@ -105,7 +105,7 @@ cudf::type_id sqlite_parser::get_cudf_type_id(
 std::uint8_t sqlite_parser::parse_cudf_int8(
   void * src, std::size_t col, std::size_t row, std::vector<std::int8_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::int8_t value =
     static_cast<std::int8_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -115,7 +115,7 @@ std::uint8_t sqlite_parser::parse_cudf_int8(
 std::uint8_t sqlite_parser::parse_cudf_int16(
   void * src, std::size_t col, std::size_t row, std::vector<std::int16_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::int16_t value =
     static_cast<std::int16_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -125,7 +125,7 @@ std::uint8_t sqlite_parser::parse_cudf_int16(
 std::uint8_t sqlite_parser::parse_cudf_int32(
   void * src, std::size_t col, std::size_t row, std::vector<std::int32_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::int32_t value =
     static_cast<std::int32_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -135,7 +135,7 @@ std::uint8_t sqlite_parser::parse_cudf_int32(
 std::uint8_t sqlite_parser::parse_cudf_int64(
   void * src, std::size_t col, std::size_t row, std::vector<std::int64_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::int64_t value =
     static_cast<std::int64_t>(sqlite3_column_int64(stmt, col));
   v->at(row) = value;
@@ -145,7 +145,7 @@ std::uint8_t sqlite_parser::parse_cudf_int64(
 std::uint8_t sqlite_parser::parse_cudf_uint8(
   void * src, std::size_t col, std::size_t row, std::vector<std::uint8_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::uint8_t value =
     static_cast<std::uint8_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -157,7 +157,7 @@ std::uint8_t sqlite_parser::parse_cudf_uint16(void * src,
   std::size_t row,
   std::vector<std::uint16_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::uint16_t value =
     static_cast<std::uint16_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -169,7 +169,7 @@ std::uint8_t sqlite_parser::parse_cudf_uint32(void * src,
   std::size_t row,
   std::vector<std::uint32_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::uint32_t value =
     static_cast<std::uint32_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -181,7 +181,7 @@ std::uint8_t sqlite_parser::parse_cudf_uint64(void * src,
   std::size_t row,
   std::vector<std::uint64_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::uint64_t value =
     static_cast<std::uint64_t>(sqlite3_column_int64(stmt, col));
   v->at(row) = value;
@@ -191,7 +191,7 @@ std::uint8_t sqlite_parser::parse_cudf_uint64(void * src,
 std::uint8_t sqlite_parser::parse_cudf_float32(
   void * src, std::size_t col, std::size_t row, std::vector<float> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const float value = static_cast<float>(sqlite3_column_double(stmt, col));
   v->at(row) = value;
   return 1;
@@ -200,7 +200,7 @@ std::uint8_t sqlite_parser::parse_cudf_float32(
 std::uint8_t sqlite_parser::parse_cudf_float64(
   void * src, std::size_t col, std::size_t row, std::vector<double> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const double value = sqlite3_column_double(stmt, col);
   v->at(row) = value;
   return 1;
@@ -209,7 +209,7 @@ std::uint8_t sqlite_parser::parse_cudf_float64(
 std::uint8_t sqlite_parser::parse_cudf_bool8(
   void * src, std::size_t col, std::size_t row, std::vector<std::int8_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) { return 0; }
   const std::int8_t value =
     static_cast<std::int8_t>(sqlite3_column_int(stmt, col));
   v->at(row) = value;
@@ -244,7 +244,7 @@ std::uint8_t sqlite_parser::parse_cudf_timestamp_nanoseconds(
 std::uint8_t sqlite_parser::parse_cudf_string(
   void * src, std::size_t col, std::size_t row, cudf_string_col * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
-  if(sqlite3_column_type(stmt, col) == SQLITE_NULL) {
+  if (sqlite3_column_type(stmt, col) == SQLITE_NULL) {
     v->offsets.push_back(v->offsets.back());
     return 0;
   } else {
