@@ -66,6 +66,7 @@ from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
 from EndToEndTests import windowNoPartitionTest
 from EndToEndTests import concurrentTest
+from EndToEndTests import tablesFromSQL
 from EndToEndTests import hiveFileTest
 from pynvml import nvmlInit
 from Runner import runTest
@@ -301,6 +302,11 @@ def main():
     if testsWithNulls != "true":
         if runAllTests or ("concurrentTest" in targetTestGroups):
             concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if testsWithNulls == "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("tablesFromSQL" in targetTestGroups):
+                tablesFromSQL.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

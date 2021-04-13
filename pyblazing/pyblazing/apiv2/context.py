@@ -16,6 +16,10 @@ from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
+from pyblazing.apiv2.sqlengines_utils import (
+    SQLEngineDataTypeMap,
+    UnsupportedSQLEngineError,
+)
 from pyblazing.apiv2.algebra import get_json_plan, format_json_plan
 
 import json
@@ -912,6 +916,15 @@ def kwargs_validation(kwargs, bc_api_str):
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
             "get_metadata",
+            # SQL Engines arguments
+            "from_sql",
+            "hostname",
+            "port",
+            "username",
+            "password",
+            "schema",
+            "table_filter",
+            "table_batch_size",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -1113,7 +1126,10 @@ class BlazingTable(object):
         nodeFilesList = []
         if self.files is None:
             for i in range(0, numSlices):
-                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
+                bt = BlazingTable(self.name, self.input, self.fileType, args=self.args)
+                bt.column_names = self.column_names
+                bt.column_types = self.column_types
+                nodeFilesList.append(bt)
             return nodeFilesList
         remaining = len(self.files)
         startIndex = 0
@@ -2291,7 +2307,7 @@ class BlazingContext(object):
                 )
             else:
                 table = BlazingTable(table_name, input, DataType.CUDF)
-        elif isinstance(input, list):
+        elif isinstance(input, list) and "from_sql" not in kwargs:
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
@@ -2487,6 +2503,30 @@ class BlazingContext(object):
                 table_name, input, DataType.DASK_CUDF, client=self.dask_client
             )
 
+        if "from_sql" in kwargs:
+            sqlEngineName = kwargs["from_sql"]
+
+            try:
+                sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
+            except KeyError as error:
+                raise UnsupportedSQLEngineError(sqlEngineName) from error
+
+            kwargs["table"] = input[0]
+            parsedSchema, _ = self._parseSchema(
+                input, sqlEngineName, kwargs, extra_columns, False, False
+            )
+
+            # TODO: merge parsed schema info about columns and types into tables
+            table = BlazingTable(
+                table_name,
+                input,
+                sqlEngineDataType,
+                args=kwargs,
+                client=self.dask_client,
+            )
+            table.column_names = parsedSchema["names"]
+            table.column_types = parsedSchema["types"]
+
         if table is not None:
             self.add_remove_table(table_name, True, table)
 
@@ -2589,7 +2629,11 @@ class BlazingContext(object):
                     pure=False,
                 )
                 parsed_schema = connection.result()
-                if len(parsed_schema["files"]) == 0:
+                if len(parsed_schema["files"]) == 0 and file_format_hint not in [
+                    "mysql",
+                    "postgresql",
+                    "sqlite",
+                ]:
                     raise Exception(
                         "ERROR: The file pattern specified did not match any files"
                     )
@@ -3090,6 +3134,27 @@ class BlazingContext(object):
                         query_table.input = [query_table.input]
                     currentTableNodes.append(query_table)
 
+            elif (
+                query_table.fileType == DataType.MYSQL
+                or query_table.fileType == DataType.SQLITE
+                # or query_table.fileType == DataType.
+            ):
+                if query_table.has_metadata():
+                    currentTableNodes = self._optimize_skip_data_getSlices(
+                        query_table, table_scans[table_idx]
+                    )
+                else:
+                    # If all files are accessible by all nodes,
+                    # it is better to distribute them in the old way
+                    # otherwise, each node is responsible for the files
+                    # it has access to.
+                    if query_table.local_files is False:
+                        currentTableNodes = query_table.getSlices(len(self.nodes))
+                    else:
+                        currentTableNodes = query_table.getSlicesByWorker(
+                            len(self.nodes)
+                        )
+
             for j, nodeList in enumerate(nodeTableList):
                 nodeList.append(currentTableNodes[j])
 
@@ -3119,11 +3184,9 @@ class BlazingContext(object):
                     return ctxToken
             except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
-                print(">>>>>>>> ", e)
-                result = cudf.DataFrame()
+                raise e
             except cio.RunGenerateGraphError as e:
-                print(">>>>>>>> ", e)
-                result = cudf.DataFrame()
+                raise e
             except Exception as e:
                 raise e
         else:

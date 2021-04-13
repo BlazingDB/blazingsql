@@ -5,6 +5,7 @@
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 - #1426 Window Functions without partitioning 
 - #1349 Add e2e test for Hive Partitioned Data
+- #1396 Create tables from other RDBMS
 - #1427 Support for CONCAT alias operator
 - #1424 Add get physical plan with explain
 
@@ -46,7 +47,7 @@
 - #1351 Fixed 'count distinct' related issues
 - #1425 Fix for new joins API
 - #1400 Fix for Column aliases when exists a Join op
-
+- #1456 Raising exceptions on Python side for RAL
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 

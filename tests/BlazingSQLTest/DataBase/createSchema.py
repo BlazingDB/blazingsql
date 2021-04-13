@@ -4,6 +4,7 @@ import tempfile
 from collections import OrderedDict
 from os import listdir
 from os.path import isdir
+import glob
 from enum import IntEnum, unique
 
 import cudf
@@ -16,6 +17,14 @@ from pyhive import hive
 
 from Configuration import Settings as Settings
 from DemoTest.chronometer import Chronometer
+
+
+SQLEngineStringDataTypeMap = {
+    DataType.MYSQL: "mysql",
+    DataType.SQLITE: "sqlite",
+    DataType.POSTGRESQL: "postgresql",
+    # TODO percy c.gonzales support for more db engines
+}
 
 # ************** READ TPCH DATA AND CREATE TABLES ON DRILL ****************
 
@@ -34,6 +43,49 @@ extraTables = ["bool_orders"]
 tableNames = tpchTables + extraTables
 
 smilesTables = ["docked", "dcoids", "smiles", "split"]
+
+
+class sql_connection:
+    def __init__(self, **kwargs):
+        hostname = kwargs.get("hostname", "")
+        port = kwargs.get("port", 0)
+        username = kwargs.get("username", "")
+        password = kwargs.get("password", "")
+        schema = kwargs.get("schema", "")
+
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.password = password
+        self.schema = schema
+
+
+def get_sql_connection(fileSchemaType: DataType):
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+    if not sql_schema: return None
+
+    ret = sql_connection(hostname = sql_hostname,
+                         port = sql_port,
+                         username = sql_username,
+                         password = sql_password,
+                         schema = sql_schema)
+    return ret
 
 
 def getFiles_to_tmp(tpch_dir, n_files, ext):
@@ -1182,8 +1234,10 @@ def get_extension(fileSchemaType):
         DataType.JSON: "json",
         DataType.ORC: "orc",
         DataType.DASK_CUDF: "dask_cudf",
+        DataType.MYSQL: "mysql",
+        DataType.POSTGRESQL: "postgresql",
+        DataType.SQLITE: "sqlite",
     }
-
     return switcher.get(fileSchemaType)
 
 
@@ -1195,6 +1249,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     tables = kwargs.get("tables", tpchTables)
     table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
+
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if tables[0] in smilesTables:
@@ -1239,6 +1294,34 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         #     dask_df = dask_cudf.read_parquet(table_files)
         #     dask_df = bc.unify_partitions(dask_df)
         #     t = bc.create_table(table, dask_df)
+        elif fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
+            sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
+            sql_table_batch_size_map = kwargs.get("sql_table_batch_size_map", {})
+            sql = kwargs.get("sql_connection", None)
+
+            from_sql = SQLEngineStringDataTypeMap[fileSchemaType]
+            sql_hostname = sql.hostname
+            sql_port = sql.port
+            sql_username = sql.username
+            sql_password = sql.password
+            sql_schema = sql.schema
+            sql_table_filter = ""
+            sql_table_batch_size = 1000
+
+            if table in sql_table_filter_map:
+                sql_table_filter = sql_table_filter_map[table]
+            if table in sql_table_batch_size_map:
+                sql_table_batch_size = sql_table_batch_size_map[table]
+
+            bc.create_table(table_names[i], table,
+                from_sql = from_sql,
+                hostname = sql_hostname,
+                port = sql_port,
+                username = sql_username,
+                password = sql_password,
+                schema = sql_schema,
+                table_filter = sql_table_filter,
+                table_batch_size = sql_table_batch_size)
         else:
             bc.create_table(table_names[i], table_files)
 
