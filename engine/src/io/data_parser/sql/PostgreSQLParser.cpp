@@ -547,11 +547,22 @@ cudf::type_id postgresql_parser::get_cudf_type_id(
 
 std::uint8_t postgresql_parser::parse_cudf_int8(
   void * src, std::size_t col, std::size_t row, std::vector<std::int8_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::int8_t value = *reinterpret_cast<const std::int8_t *>(value);
+  v->at(row) = value;
   return 1;
 }
 
 std::uint8_t postgresql_parser::parse_cudf_int16(
   void * src, std::size_t col, std::size_t row, std::vector<std::int16_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::int16_t value =
+    ntohs(*reinterpret_cast<const std::int16_t *>(value));
+  v->at(row) = value;
   return 1;
 }
 

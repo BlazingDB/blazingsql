@@ -70,7 +70,7 @@ bc.sql('SELECT passenger_count, trip_distance FROM taxi LIMIT 2')
 ## Documentation
 You can find our full documentation at [docs.blazingdb.com](https://docs.blazingdb.com/docs).
 
-# Prerequisites 
+# Prerequisites
 * [Anaconda or Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) installed
 * OS Support
   * Ubuntu 16.04/18.04 LTS
@@ -96,7 +96,7 @@ Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda install -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.1
-``` 
+```
 
 ## Nightly Version
 ```bash
@@ -129,6 +129,13 @@ conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
 conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
 conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
+```
+
+Additionally to support table creation from other RDBMS, install MySQL and PostgreSQL libraries:
+
+```bash
+conda install --yes -c conda-forge mysql-connector-cpp
+conda install --yes -c conda-forge libpq
 ```
 
 ### Build
@@ -164,6 +171,13 @@ conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
 conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.19 dask-cudf=0.19 cudf=0.19 ucx-py=0.19 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
 conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
+```
+
+Additionally to support table creation from other RDBMS, install MySQL and PostgreSQL libraries:
+
+```bash
+conda install --yes -c conda-forge mysql-connector-cpp
+conda install --yes -c conda-forge libpq
 ```
 
 ### Build
