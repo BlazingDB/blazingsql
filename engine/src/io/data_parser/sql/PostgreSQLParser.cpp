@@ -550,7 +550,7 @@ std::uint8_t postgresql_parser::parse_cudf_int8(
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
-  const std::int8_t value = *reinterpret_cast<const std::int8_t *>(value);
+  const std::int8_t value = *reinterpret_cast<const std::int8_t *>(result);
   v->at(row) = value;
   return 1;
 }
@@ -561,23 +561,39 @@ std::uint8_t postgresql_parser::parse_cudf_int16(
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
   const std::int16_t value =
-    ntohs(*reinterpret_cast<const std::int16_t *>(value));
+    ntohs(*reinterpret_cast<const std::int16_t *>(result));
   v->at(row) = value;
   return 1;
 }
 
 std::uint8_t postgresql_parser::parse_cudf_int32(
   void * src, std::size_t col, std::size_t row, std::vector<std::int32_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::int32_t value =
+    ntohl(*reinterpret_cast<const std::int32_t *>(result));
+  v->at(row) = value;
   return 1;
 }
 
 std::uint8_t postgresql_parser::parse_cudf_int64(
   void * src, std::size_t col, std::size_t row, std::vector<std::int64_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::int64_t value = *reinterpret_cast<const std::int64_t *>(result);
+  v->at(row) = value;
   return 1;
 }
 
 std::uint8_t postgresql_parser::parse_cudf_uint8(
   void * src, std::size_t col, std::size_t row, std::vector<std::uint8_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::uint8_t value = *reinterpret_cast<const std::uint8_t *>(result);
+  v->at(row) = value;
   return 1;
 }
 
@@ -585,6 +601,12 @@ std::uint8_t postgresql_parser::parse_cudf_uint16(void * src,
   std::size_t col,
   std::size_t row,
   std::vector<std::uint16_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::uint16_t value =
+    ntohs(*reinterpret_cast<const std::uint16_t *>(result));
+  v->at(row) = value;
   return 1;
 }
 
@@ -592,6 +614,12 @@ std::uint8_t postgresql_parser::parse_cudf_uint32(void * src,
   std::size_t col,
   std::size_t row,
   std::vector<std::uint32_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::uint32_t value =
+    ntohl(*reinterpret_cast<const std::uint32_t *>(result));
+  v->at(row) = value;
   return 1;
 }
 
@@ -599,18 +627,37 @@ std::uint8_t postgresql_parser::parse_cudf_uint64(void * src,
   std::size_t col,
   std::size_t row,
   std::vector<std::uint64_t> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const std::uint64_t value = *reinterpret_cast<const std::uint64_t *>(result);
+  v->at(row) = value;
   return 1;
 }
 
 std::uint8_t postgresql_parser::parse_cudf_float32(
-  void * src, std::size_t col, std::size_t row, std::vector<float> * v) {}
+  void * src, std::size_t col, std::size_t row, std::vector<float> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const float value = *reinterpret_cast<const float *>(result);
+  v->at(row) = value;
+  return 1;
+}
 
 std::uint8_t postgresql_parser::parse_cudf_float64(
-  void * src, std::size_t col, std::size_t row, std::vector<double> * v) {}
+  void * src, std::size_t col, std::size_t row, std::vector<double> * v) {
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const char * result = PQgetvalue(pgResult, row, col);
+  const double value = *reinterpret_cast<const double *>(result);
+  v->at(row) = value;
+  return 1;
+}
 
 std::uint8_t postgresql_parser::parse_cudf_bool8(
   void * src, std::size_t col, std::size_t row, std::vector<std::int8_t> * v) {
-  return 1;
+  return parse_cudf_int8(src, col, row, v);
 }
 
 std::uint8_t postgresql_parser::parse_cudf_timestamp_days(
@@ -640,7 +687,17 @@ std::uint8_t postgresql_parser::parse_cudf_timestamp_nanoseconds(
 
 std::uint8_t postgresql_parser::parse_cudf_string(
   void * src, std::size_t col, std::size_t row, cudf_string_col * v) {
-  return 1;
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) {
+    v->offsets.push_back(v->offsets.back());
+    return 0;
+  } else {
+    const char * result = PQgetvalue(pgResult, row, col);
+    const std::string data(result);
+    v->chars.insert(v->chars.end(), data.cbegin(), data.cend());
+    v->offsets.push_back(v->offsets.back() + data.length());
+    return 1;
+  }
 }
 
 
