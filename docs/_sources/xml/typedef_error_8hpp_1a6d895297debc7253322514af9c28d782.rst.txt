@@ -1,0 +1,13 @@
+.. _exhale_typedef_error_8hpp_1a6d895297debc7253322514af9c28d782:
+
+Typedef error_code_t
+====================
+
+- Defined in :ref:`file_engine_src_error.hpp`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: error_code_t

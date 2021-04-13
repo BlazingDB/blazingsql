@@ -106,6 +106,8 @@ public:
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
     void receive_acknowledge();
+
+    static std::atomic<int> atomic_message_id;
 	
 private:
 

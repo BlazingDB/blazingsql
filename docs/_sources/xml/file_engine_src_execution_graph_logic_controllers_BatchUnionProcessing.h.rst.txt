@@ -1,0 +1,58 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.h:
+
+File BatchUnionProcessing.h
+===========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BatchUnionProcessing.h``)
+------------------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``BatchProcessing.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.h`)
+
+- ``LogicPrimitives.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__batch`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1batch_1_1UnionKernel`
+
