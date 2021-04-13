@@ -1,3 +1,17 @@
+# BlazingSQL 0.20.0 (Date TBS)
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+
+
+
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
@@ -16,6 +30,7 @@
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
 - #1419 Added concat cache machine timeout 
+- #1447 Improve getting estimated output num rows
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
