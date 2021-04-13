@@ -1,0 +1,81 @@
+
+.. _file_engine_src_communication_CommunicationInterface_bufferTransport.hpp:
+
+File bufferTransport.hpp
+========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication_CommunicationInterface>` (``engine/src/communication/CommunicationInterface``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/communication/CommunicationInterface/bufferTransport.hpp``)
+------------------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``blazingdb/io/Util/StringUtil.h``
+
+- ``exception``
+
+- ``execution_graph/logic_controllers/CacheMachine.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`)
+
+- ``map``
+
+- ``node.hpp`` (:ref:`file_engine_src_communication_CommunicationInterface_node.hpp`)
+
+- ``transport/ColumnTransport.h`` (:ref:`file_engine_src_transport_ColumnTransport.h`)
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.cpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_comm`
+
+- :ref:`namespace_comm__detail`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classcomm_1_1buffer__transport`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_bufferTransport_8hpp_1a3a6dfbc4fa670cc4cccf7a722dc16185`
+
+- :ref:`exhale_function_bufferTransport_8hpp_1a20bc35320f8caba006ffd1c7ddef056f`
+
+- :ref:`exhale_function_bufferTransport_8hpp_1ae91d1a57d61a289594eaffef6d1a7575`
+
+- :ref:`exhale_function_bufferTransport_8hpp_1ab26ede7aa2c808e59a4011644fa8df23`
+

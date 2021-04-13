@@ -123,7 +123,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
 
       metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
         
-      output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+      output_cache->addToCache(std::move(table),"",true,metadata, true);
       std::cout<<"output_cache->addToCache "<<i<<std::endl;
     }));
   }

@@ -149,15 +149,19 @@ TYPED_TEST(ProjectionTest, OneBatchFullWithoutDelay) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine without delay
 	std::vector<int> delays_in_ms {0};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(batch));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -193,15 +197,19 @@ TYPED_TEST(ProjectionTest, OneBatchOneRowWithoutDelay) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine without delay
 	std::vector<int> delays_in_ms {0};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(batch));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();
 
 	outputCacheMachine->finish();
 
@@ -232,15 +240,19 @@ TYPED_TEST(ProjectionTest, OneBatchEmptyWithoutDelay) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine without delay
 	std::vector<int> delays_in_ms {0};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(batch_empty));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();
 
 	outputCacheMachine->finish();
 
@@ -284,6 +296,12 @@ TYPED_TEST(ProjectionTest, TwoBatchsFullsWithoutDelay) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine without delays
 	std::vector<int> delays_in_ms {0, 0};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
@@ -291,9 +309,7 @@ TYPED_TEST(ProjectionTest, TwoBatchsFullsWithoutDelay) {
 	batches.push_back(std::move(batch_2));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -336,16 +352,20 @@ TYPED_TEST(ProjectionTest, TwoBatchsFirstFullSecondEmptyWithoutDelays) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine without delays
 	std::vector<int> delays_in_ms {0, 0};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(batch_full));
 	batches.push_back(std::move(batch_empty)); // will not be added to the inputCacheMachine
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
-
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -381,15 +401,19 @@ TYPED_TEST(ProjectionTest, OneBatchFullWithDelay) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine with just one delay
 	std::vector<int> delays_in_ms {100};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(batch));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -420,15 +444,19 @@ TYPED_TEST(ProjectionTest, OneBatchEmptyWithDelay) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add empty data to the inputCacheMachine with delay
 	std::vector<int> delays_in_ms {30};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(batch_empty));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -474,6 +502,12 @@ TYPED_TEST(ProjectionTest, TwoBatchsFullWithDelays) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add data to the inputCacheMachine without delays
 	std::vector<int> delays_in_ms {30, 60};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
@@ -481,9 +515,7 @@ TYPED_TEST(ProjectionTest, TwoBatchsFullWithDelays) {
 	batches.push_back(std::move(batch_2));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -518,6 +550,12 @@ TYPED_TEST(ProjectionTest, TwoBatchsEmptyWithDelays) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add empty data to the inputCacheMachine with delay
 	std::vector<int> delays_in_ms {10, 35};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
@@ -525,9 +563,7 @@ TYPED_TEST(ProjectionTest, TwoBatchsEmptyWithDelays) {
 	batches.push_back(std::move(batch_empty_2)); // will not be added to the inputCacheMachine
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 
@@ -569,6 +605,12 @@ TYPED_TEST(ProjectionTest, TwoBatchsFirstEmptySecondFullWithDelays) {
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
+	// run function
+	std::thread run_thread = std::thread([project_kernel](){
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
 	// Add empty data to the inputCacheMachine with delay
 	std::vector<int> delays_in_ms {15, 25};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
@@ -576,9 +618,7 @@ TYPED_TEST(ProjectionTest, TwoBatchsFirstEmptySecondFullWithDelays) {
 	batches.push_back(std::move(batch_full));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
-	// main function
-	kstatus process = project_kernel->run();
-	EXPECT_EQ(kstatus::proceed, process);
+	run_thread.join();	
 
 	outputCacheMachine->finish();
 

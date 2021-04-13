@@ -1,0 +1,13 @@
+.. _exhale_function_dbg_8hpp_1a829df0c4b81fd3769d3712023397964e:
+
+Template Function dbg_macro::type_name
+======================================
+
+- Defined in :ref:`file_engine_src_transport_common_dbg.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: dbg_macro::type_name()

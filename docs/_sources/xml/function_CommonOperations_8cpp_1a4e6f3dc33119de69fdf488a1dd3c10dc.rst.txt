@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8cpp_1a4e6f3dc33119de69fdf488a1dd3c10dc:
+
+Function ral::utilities::get_common_type
+========================================
+
+- Defined in :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::get_common_type(cudf::data_type, cudf::data_type, bool)

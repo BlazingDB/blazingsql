@@ -23,6 +23,12 @@ DataType inferDataType(std::string file_format_hint) {
 		return DataType::CSV;
 	if(file_format_hint == "txt")
 		return DataType::CSV;
+	if(file_format_hint == "mysql")
+		return DataType::MYSQL;
+	if(file_format_hint == "postgresql")
+		return DataType::POSTGRESQL;
+	if(file_format_hint == "sqlite")
+		return DataType::SQLITE;
 	// NOTE if you need more options the user can pass file_format in the create table
 
 	return DataType::UNDEFINED;
@@ -30,7 +36,8 @@ DataType inferDataType(std::string file_format_hint) {
 
 DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
 	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
-		data_type_hint == DataType::ORC) {
+		data_type_hint == DataType::ORC || data_type_hint == DataType::MYSQL ||
+    data_type_hint == DataType::POSTGRESQL || data_type_hint == DataType::SQLITE) {
 		return data_type_hint;
 	}
 
@@ -242,10 +249,52 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::JSON: return "json"; break;
 	case DataType::CUDF: return "cudf"; break;
 	case DataType::DASK_CUDF: return "dask_cudf"; break;
+	case DataType::MYSQL: return "mysql"; break;
+	case DataType::POSTGRESQL: return "postgresql"; break;
+	case DataType::SQLITE: return "sqlite"; break;
 	default: break;
 	}
 
 	return "undefined";
+}
+
+sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
+  // TODO percy william maybe we can move this constant as a bc.BlazingContext config opt
+  const size_t DETAULT_TABLE_BATCH_SIZE = 100000;
+  // TODO(percy, cristhian): add exception for key error and const
+  // TODO(percy, cristhian): for sqlite, add contionals to avoid unncessary fields
+  sql_info sql;
+  if (args_map.find("hostname") != args_map.end()) {
+    sql.host = args_map.at("hostname");
+  }
+  if (args_map.find("port") != args_map.end()) {
+    sql.port = static_cast<std::size_t>(std::atoll(args_map["port"].data()));
+  }
+  if (args_map.find("username") != args_map.end()) {
+    sql.user = args_map.at("username");
+  }
+  if (args_map.find("password") != args_map.end()) {
+    sql.password = args_map.at("password");
+  }
+  if (args_map.find("schema") != args_map.end()) {
+    sql.schema = args_map.at("schema");
+  }
+  if (args_map.find("table") != args_map.end()) {
+    sql.table = args_map.at("table");
+  }
+  if (args_map.find("table_filter") != args_map.end()) {
+    sql.table_filter = args_map.at("table_filter");
+  }
+  if (args_map.find("table_batch_size") != args_map.end()) {
+    if (args_map.at("table_batch_size").empty()) {
+      sql.table_batch_size = DETAULT_TABLE_BATCH_SIZE;
+    } else {
+      sql.table_batch_size = static_cast<std::size_t>(std::atoll(args_map.at("table_batch_size").data())); 
+    }
+  } else {
+    sql.table_batch_size = DETAULT_TABLE_BATCH_SIZE;
+  }
+  return sql;
 }
 
 } /* namespace io */
