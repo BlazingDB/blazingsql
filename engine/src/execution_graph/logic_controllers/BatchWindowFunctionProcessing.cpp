@@ -42,6 +42,12 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
 
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
     // if the window function has no partitioning but does have order by and a bounded window, then we need to remove the overlaps that are present in the data
     if (column_indices_partitioned.size() == 0 && column_indices_ordered.size() > 0 && this->preceding_value > 0 && this->following_value > 0){
         this->remove_overlap = true;
@@ -176,12 +182,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
 
         std::vector<std::string> input_names = input->names();
         
-        // fill all the Kind aggregations
-        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
-            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
-            this->aggs_wind_func.push_back(aggr_kind_i);
-        }
-
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
         int agg_param_count = 0;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {

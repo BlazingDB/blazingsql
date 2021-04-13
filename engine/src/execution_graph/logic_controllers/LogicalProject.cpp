@@ -787,11 +787,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    // Let's clean all the expressions that contains Window functions (if exists)
-    // as they should be updated with new indices
-    std::vector<std::string> new_expressions = clean_window_function_expressions(expressions, table.num_columns());
-
-    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(new_expressions.size());
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(expressions.size());
 
     std::vector<bool> column_used(table.num_columns(), false);
     std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
@@ -800,8 +796,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
 
     function_evaluator_transformer evaluator{table};
-    for(size_t i = 0; i < new_expressions.size(); i++){
-        std::string expression = replace_calcite_regex(new_expressions[i]);
+    for(size_t i = 0; i < expressions.size(); i++){
+        std::string expression = replace_calcite_regex(expressions[i]);
         expression = expand_if_logical_op(expression);
 
         parser::parse_tree tree;
@@ -904,9 +900,9 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         out_columns.clear();
         computed_columns.clear();
 
-        size_t const half_size = new_expressions.size() / 2;
-        std::vector<std::string> split_lo(new_expressions.begin(), new_expressions.begin() + half_size);
-        std::vector<std::string> split_hi(new_expressions.begin() + half_size, new_expressions.end());
+        size_t const half_size = expressions.size() / 2;
+        std::vector<std::string> split_lo(expressions.begin(), expressions.begin() + half_size);
+        std::vector<std::string> split_hi(expressions.begin() + half_size, expressions.end());
         auto out_cols_lo = evaluate_expressions(table, split_lo);
         auto out_cols_hi = evaluate_expressions(table, split_hi);
 
@@ -954,6 +950,10 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         expressions[i] = expression;
         out_column_names[i] = name;
     }
+
+    // Let's clean all the expressions that contains Window functions (if exists)
+    // as they should be updated with new indices
+    expressions = clean_window_function_expressions(expressions, blazing_table_in->num_columns());
 
     return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(blazing_table_in->view(), expressions), out_column_names);
 }
