@@ -1,5 +1,6 @@
 # BlazingSQL 0.20.0 (Date TBS)
 
+
 ## New Features
 
 
