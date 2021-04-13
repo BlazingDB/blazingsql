@@ -131,13 +131,13 @@ RelConversionExceptionClass = jpype.JClass(
 
 def get_blazing_logger(is_dask):
     """
-        Returns the corresponding logger according to the input flag.
+    Returns the corresponding logger according to the input flag.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        is_dask : bool, whether the logger is called from a dask environment
-        or locally as a client.
+    is_dask : bool, whether the logger is called from a dask environment
+    or locally as a client.
     """
     if is_dask:
         return logging.getLogger(get_worker().id)
@@ -1267,7 +1267,187 @@ class BlazingContext(object):
     querying tables, but also in connecting remote data sources
     and understanding your ETL.
 
-    Docs: https://docs.blazingdb.com/docs/blazingcontext
+    Parameters
+    ----------
+
+    :param dask_client: ``Client`` object from ``dask.distributed``.
+        The dask client used for
+        communicating with other nodes. This is only necessary for running BlazingSQL with
+        multiple nodes.
+        **Default:** ``"autocheck"``
+    :param network_interface: string.
+        Network interface used for communicating with the
+        dask-scheduler.
+        **Default:** ``None``. See note below.
+    :param allocator: string, allowed options are ``"default"``, ``"managed"`` or ``'existing'``.
+        Where ``"managed"`` uses Unified Virtual Memory (UVM) and may use system memory
+        if GPU memory runs out, or ``"existing"`` where it assumes you have already set the
+        rmm allocator and therefore does not initialize it (this is for advanced users.)
+        **Default:** ``"default"``
+    :param pool: boolean.
+        If ``True``, allocate a memory pool in the beginning. This can greatly improve performance.
+        **Default:** ``False``
+    :param initial_pool_size: long integer.
+        Initial size of memory pool in bytes (if pool=True). If ``None``, it
+        will default to using half of the GPU memory.
+        **Default:** ``None``
+    :param maximum_pool_size: long integer.
+        Maximum size of the pool.
+        **Default:** ``None``
+    :param enable_logging: boolean.
+        If set to ``True`` the memory allocator logging will be enabled.
+        This can negatively impact performance and is aimed at advanced users.
+        **Default:** ``False``
+    :param enable_progress_bar: boolean.
+        Set to ``True`` to display a progress bar during query executions.
+        **Default:** ``False``
+    :param config_options: dictionary.
+        A dictionary for setting certain parameters in the engine. **Default:** ``{}``
+        List of options:
+            JOIN_PARTITION_SIZE_THRESHOLD: long integer
+                Num bytes to try to have the
+                partitions for each side of a join before doing the join.
+                Too small can lead to overpartitioning, too big can lead
+                to OOM errors.
+                **Default:** ``400000000``
+            MAX_JOIN_SCATTER_MEM_OVERHEAD: long integer
+                The bigger this value, the more
+                likely one of the tables of join will be scattered to all
+                the nodes, instead of doing a standard hash based
+                partitioning shuffle. Value is in bytes.
+                **Default:** ``500000000``
+            MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: integer
+                The maximum number of
+                partitions that will be made for an order by.
+                Increse this number if running into OOM issues when
+                doing order bys with large amounts of data.
+                **Default:** ``8``
+            NUM_BYTES_PER_ORDER_BY_PARTITION: long integer
+                The max number size in bytes
+                for each order by partition. Note that,
+                ``MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE`` will be enforced over
+                this parameter.
+                **Default:** ``400000000``
+            MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE: long integer
+                The max size in bytes to
+                concatenate the batches read from the scan kernels
+                **Default:** ``400000000``
+            MAX_ORDER_BY_SAMPLES_PER_NODE: integer
+                The max number order by samples
+                to capture per node
+                **Default:** ``10000``
+            BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD: float
+                The percent
+                (as a decimal) of total GPU memory that the memory
+                that the task executor will be allowed to consume.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``0.9``
+            BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD: float
+                The percent
+                (as a decimal) of total GPU memory that the memory
+                resource will consider to be full
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``0.6``
+            BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD: float
+                The percent
+                (as a decimal) of total host memory that the memory
+                resource will consider to be full. In the presence of
+                several GPUs per server, this resource will be shared
+                among all of them in equal parts.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``0.75``
+            BLAZING_LOGGING_DIRECTORY: string
+                A folder path to place all logging
+                files. The path can be relative or absolute.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``'blazing_log'``
+            BLAZING_CACHE_DIRECTORY: string
+                A folder path to place all orc files
+                when start caching on Disk. The path can be relative
+                or absolute.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``'/tmp/'``
+            BLAZING_LOCAL_LOGGING_DIRECTORY: string
+                A folder path to place the
+                client logging file on a dask environment. The path can
+                be relative or absolute.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``'blazing_log'``
+            MEMORY_MONITOR_PERIOD: integer
+                How often the memory monitor checks memory
+                consumption. The value is in milliseconds.
+                **Default:** ``50``  (milliseconds)
+            MAX_KERNEL_RUN_THREADS: integer
+                The number of threads available to run
+                kernels simultaneously.
+                **Default:** ``16``
+            EXECUTOR_THREADS: integer
+                The number of threads available to run executor
+                tasks simultaneously.
+                **Default:** ``10``
+            MAX_SEND_MESSAGE_THREADS: integer
+                The number of threads available to send
+                outgoing messages.
+                **Default:** ``20``
+            LOGGING_LEVEL: string
+                Set the level (as string) to register into the logs
+                for the current tool of logging. Log levels have order of priority:
+                ``{trace, debug, info, warn, err, critical, off}``. Using ``'trace'`` will
+                registers all info.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``'trace'``
+            LOGGING_FLUSH_LEVEL: string
+                Set the level (as string) of the flush for
+                the current tool of logging. Log levels have order of priority:
+                ``{trace, debug, info, warn, err, critical, off}``
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``'warn'``
+            ENABLE_GENERAL_ENGINE_LOGS: boolean
+                Enables ``'batch_logger'`` logger
+                **Default:** ``True``
+            ENABLE_COMMS_LOGS: boolean
+                Enables ``'output_comms'`` and ``'input_comms'`` logger
+                **Default:** ``False``
+            ENABLE_TASK_LOGS: boolean
+                Enables ``'task_logger'`` logger
+                **Default:** ``False``
+            ENABLE_OTHER_ENGINE_LOGS: boolean
+                Enables ``'queries_logger'``, ``'kernels_logger'``,
+                ``'kernels_edges_logger'``, ``'cache_events_logger'`` loggers
+                **Default:** ``False``
+            LOGGING_MAX_SIZE_PER_FILE: string
+                Set the max size in bytes for the log files.
+                **NOTE:** This parameter only works when used in the
+                BlazingContext
+                **Default:** ``1GB``
+            TRANSPORT_BUFFER_BYTE_SIZE: string
+                The size in bytes about the pinned buffer memory
+                **Default:** ``1MBs``
+            TRANSPORT_POOL_NUM_BUFFERS: integer
+                The number of buffers in the punned buffer memory pool.
+                **Default:** ``1000`` (buffers)
+            PROTOCOL: string
+                The protocol to use with the current BlazingContext.
+                It should use what the user set. If the user does not explicitly set it,
+                by default it will be set by whatever dask client is using (``'tcp'``, ``'ucx'``, ..).
+                **NOTE:** This parameter only works when used in the BlazingContext.
+                **Default:** ``'tcp'``
+
+    .. note:: When using BlazingSQL with multiple nodes, you will need to set the
+        correct ``network_interface`` your servers are using to communicate with the
+        IP address of the dask-scheduler. You can see the different network interfaces
+        and what IP addresses they serve with the bash command ``ifconfig``. The default
+        is set to ``'eth0'``.
+
+    :return: ``BlazingContext`` object
     """
 
     def __init__(
@@ -1282,186 +1462,6 @@ class BlazingContext(object):
         enable_progress_bar=False,
         config_options={},
     ):
-        """
-        Create a BlazingSQL API instance.
-
-        Parameters
-        -------------------
-
-        dask_client (optional) : dask.distributed.Client instance.
-                    only necessary for distributed query execution.
-                    Set to None if you explicitly dont want it to
-                    connect to any Dask client running, which it will by
-                    default.
-        network_interface (optional) : for communicating with the
-                    dask-scheduler. see note below.
-        allocator (optional) :  "managed" or "default" or "existing", where
-                    "managed" uses Unified Virtual Memory (UVM) and
-                    may use system memory if GPU memory runs out, "default"
-                    uses the default Cuda allocation and "existing" assumes
-                    rmm allocator is already set and does not initialize it.
-                    "managed" is the BlazingSQL default, since it provides
-                    the most robustness against OOM errors.
-        pool (optional) : if True, BlazingContext will self-allocate a GPU
-                    memory pool. can greatly improve performance.
-        initial_pool_size (optional) : initial size of memory pool in bytes
-                    (if pool=True).
-                    if None, and pool=True, defaults to 1/2 GPU memory.
-         maximum_pool_size (optional) :  size, in bytes, that the pool can
-                    grow to (if pool=True).
-                    if None, and pool=True, defaults to all the GPU memory.
-        enable_logging (optional) : If set to True the memory allocator
-                    logging will be enabled, but can negatively impact
-                    performance. Memory allocator logs will be placed
-                    in the same directory and BSQL logs.
-        config_options (optional) : this is a dictionary for setting certain
-                    parameters in the engine. These parameters will be used
-                    for all queries except if overriden by setting these
-                    parameters when running the query itself.
-                    The possible parameters are:
-
-            JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the
-                    partitions for each side of a join before doing the join.
-                    Too small can lead to overpartitioning, too big can lead
-                    to OOM errors.
-                    default: 400000000
-            CONCATENATING_CACHE_NUM_BYTES_TIMEOUT : Time in ms to wait to try to
-                    have the bytes desired in a ConcatenatingCacheMachine.
-                    default: 100 (100 ms)
-            MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more
-                    likely one of the tables of join will be scattered to all
-                    the nodes, instead of doing a standard hash based
-                    partitioning shuffle. Value is in bytes.
-                    default: 500000000
-            MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of
-                    partitions that will be made for an order by.
-                    Increse this number if running into OOM issues when
-                    doing order bys with large amounts of data.
-                    default: 8
-            NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes
-                    for each order by partition. Note that,
-                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over
-                    this parameter.
-                    default: 400000000
-            MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to
-                    concatenate the batches read from the scan kernels
-                    default: 400000000
-            MAX_ORDER_BY_SAMPLES_PER_NODE : The max number order by samples
-                    to capture per node
-                    default: 10000
-            BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD : The percent
-                    (as a decimal) of total GPU memory that the memory
-                    that the task executor will be allowed to consume.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 0.9
-            BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD : The percent
-                    (as a decimal) of total GPU memory that the memory
-                    resource will consider to be full
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 0.6
-            BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD : The percent
-                    (as a decimal) of total host memory that the memory
-                    resource will consider to be full. In the presence of
-                    several GPUs per server, this resource will be shared
-                    among all of them in equal parts.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 0.75
-            BLAZING_LOGGING_DIRECTORY : A folder path to place all logging
-                    files. The path can be relative or absolute.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 'blazing_log'
-            BLAZING_CACHE_DIRECTORY : A folder path to place all orc files
-                    when start caching on Disk. The path can be relative
-                    or absolute.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: '/tmp/'
-            BLAZING_LOCAL_LOGGING_DIRECTORY : A folder path to place the
-                    client logging file on a dask environment. The path can
-                    be relative or absolute.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 'blazing_log'
-            MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
-                    consumption. The value is in milliseconds.
-                    default: 50  (milliseconds)
-            MAX_KERNEL_RUN_THREADS : The number of threads available to run
-                    kernels simultaneously.
-                    default: 16
-            EXECUTOR_THREADS : The number of threads available to run executor
-                    tasks simultaneously.
-                    default: 10
-            MAX_SEND_MESSAGE_THREADS : The number of threads available to send
-                    outgoing messages.
-                    default: 20
-            LOGGING_LEVEL : Set the level (as string) to register into the logs
-                    for the current tool of logging. Log levels have order of priority:
-                    {trace, debug, info, warn, err, critical, off}. Using 'trace' will
-                    registers all info.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 'trace'
-            LOGGING_FLUSH_LEVEL : Set the level (as string) of the flush for
-                    the current tool of logging. Log levels have order of priority:
-                    {trace, debug, info, warn, err, critical, off}
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 'warn'
-            ENABLE_GENERAL_ENGINE_LOGS: Enables 'batch_logger' logger
-                    default: True
-            ENABLE_COMMS_LOGS: Enables 'output_comms' and 'input_comms' logger
-                    default: False
-            ENABLE_TASK_LOGS: Enables 'task_logger' logger
-                    default: False
-            ENABLE_OTHER_ENGINE_LOGS: Enables 'queries_logger', 'kernels_logger',
-                    'kernels_edges_logger', 'cache_events_logger' loggers
-                    default: False
-            LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
-                    NOTE: This parameter only works when used in the
-                    BlazingContext
-                    default: 1 GB
-            TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 1 MBs
-            TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
-                    default: 1000 buffers
-            PROTOCOL: The protocol to use with the current BlazingContext.
-                    It should use what the user set. If the user does not explicitly set it,
-                    by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).
-                    NOTE: This parameter only works when used in the BlazingContext.
-
-        Examples
-        --------
-
-        Initialize BlazingContext (single-GPU):
-
-        >>> from blazingsql import BlazingContext
-        >>> bc = BlazingContext()
-        BlazingContext ready
-
-
-        For distributed (multi-GPU) query execution:
-
-        >>> from blazingsql import BlazingContext
-        >>> from dask_cuda import LocalCUDACluster
-        >>> from dask.distributed import Client
-
-        >>> cluster = LocalCUDACluster()
-        >>> client = Client(cluster)
-        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
-        BlazingContext ready
-
-
-        Note: When using BlazingSQL with multiple nodes, you will need to set
-        the correct network_interface your servers are using to communicate
-        with the IP address of the dask-scheduler. You can see the different
-        network interfaces and what IP addresses they serve with the bash
-        command ifconfig. The default is set to 'eth0'.
-        """
-
         self.lock = Lock()
         self.finalizeCaller = cio.finalizeCaller
         self.nodes = []

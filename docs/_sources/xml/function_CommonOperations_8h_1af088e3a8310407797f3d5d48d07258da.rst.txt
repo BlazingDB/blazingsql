@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8h_1af088e3a8310407797f3d5d48d07258da:
+
+Template Function ral::utilities::vector_to_column
+==================================================
+
+- Defined in :ref:`file_engine_src_utilities_CommonOperations.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::vector_to_column(std::vector<T>, cudf::data_type)

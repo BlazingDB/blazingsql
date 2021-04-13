@@ -1,0 +1,72 @@
+
+.. _file_engine_src_io_data_parser_ArgsUtil.h:
+
+File ArgsUtil.h
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_parser>` (``engine/src/io/data_parser``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_parser/ArgsUtil.h``)
+-----------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/io/csv.hpp``
+
+- ``cudf/io/datasource.hpp``
+
+- ``cudf/io/json.hpp``
+
+- ``cudf/io/orc.hpp``
+
+- ``io/io.h``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_cython_engine.cpp`
+
+- :ref:`file_engine_src_cython_io.cpp`
+
+- :ref:`file_engine_src_io_data_parser_ArgsUtil.cpp`
+
+- :ref:`file_engine_src_io_data_parser_CSVParser.cpp`
+
+- :ref:`file_engine_src_io_data_parser_JSONParser.cpp`
+
+- :ref:`file_engine_src_io_data_parser_OrcParser.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856`
+

@@ -1,0 +1,16 @@
+.. _exhale_class_classcomm_1_1node:
+
+Class node
+==========
+
+- Defined in :ref:`file_engine_src_communication_CommunicationInterface_node.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: comm::node
+   :members:
+   :protected-members:
+   :undoc-members:
