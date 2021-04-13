@@ -126,41 +126,12 @@ if hasArg clean; then
 
     if hasArg thirdparty; then
         rm -rf ${REPODIR}/thirdparty/aws-cpp/
-        rm -rf ${REPODIR}/thirdparty/abseil-cpp/
     fi
 
     exit 0
 fi
 
 ################################################################################
-
-#if buildAll || hasArg engine; then
-
-    # echo "### Building abseil"
-    # #abseil_cpp_version=$(conda list | grep abseil-cpp|tail -n 1|awk '{print $2}')
-    # abseil_cpp_version="lts_2020_09_23"
-    # #abseil_cpp_version="20200923.3"
-    # echo "abseil_cpp_version for google cpp sdk 3rdparty is: $abseil_cpp_version"
-    # git clone -b $abseil_cpp_version --depth=1 https://github.com/abseil/abseil-cpp ${REPODIR}/thirdparty/abseil-cpp/
-    # cd ${REPODIR}/thirdparty/abseil-cpp/
-    # mkdir -p build
-    # cd build
-    # cmake ${CMAKE_ARGS} -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-    #       -DCMAKE_PREFIX_PATH=${INSTALL_PREFIX} \
-    #       -DCMAKE_INSTALL_LIBDIR=lib \
-    #       -DCMAKE_BUILD_TYPE=Release \
-    #       -DBUILD_SHARED_LIBS=ON \
-    #       -GNinja \
-    #       ..
-    # ninja install
-    # #if [[ $CONDA_BUILD -eq 1 ]]; then
-    # #    cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
-    # #fi
-    # echo ">>>>>>>>>>>> INSTALL_PREFIX:"$INSTALL_PREFIX
-    # ls -la $INSTALL_PREFIX
-    # echo "pwd: "$PWD
-    # echo "### Finish abseil"
-#fi
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
     if hasArg disable-aws-s3; then
