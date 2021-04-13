@@ -8,8 +8,13 @@
 #include "io/data_provider/sql/MySQLDataProvider.h"
 #endif
 
-// TODO percy
-//#include "io/data_parser/sql/PostgreSQLParser.h"
+#ifdef POSTGRESQL_SUPPORT
+#include "io/data_provider/sql/PostgreSQLDataProvider.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include "io/data_provider/sql/SQLiteDataProvider.h"
+#endif
 
 #include "parser/expression_utils.hpp"
 #include "taskflow/executor.h"
@@ -128,6 +133,18 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
       ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::POSTGRESQL)	{
+#ifdef POSTGRESQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::postgresql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::SQLITE)	{
+#ifdef SQLITE_SUPPORT
+      ral::io::set_sql_projections<ral::io::sqlite_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     } else {
         num_batches = provider->get_num_handles();
@@ -265,6 +282,18 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
       ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::POSTGRESQL)	{
+#ifdef POSTGRESQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::postgresql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::SQLITE)	{
+#ifdef SQLITE_SUPPORT
+      ral::io::set_sql_projections<ral::io::sqlite_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     } else {
         num_batches = provider->get_num_handles();

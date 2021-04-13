@@ -20,7 +20,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   sql.user = "myadmin";
   sql.password = "";
   sql.schema = "pagila";
-  sql.table = "prueba4";
+  sql.table = "prueba5";
   sql.table_filter = "";
   sql.table_batch_size = 2000;
 
@@ -67,7 +67,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
   auto num_cols = schema.get_num_columns();
 
   std::vector<int> column_indices(num_cols);
-  std::iota(column_indices.begin(), column_indices.end(), 0);
+    std::iota(column_indices.begin(), column_indices.end(), 0);
 
   std::vector<cudf::size_type> row_groups;
   auto table = parser.parse_batch(handle, schema, column_indices, row_groups);
@@ -90,7 +90,7 @@ void print_batch(const ral::io::data_handle & handle,
       bztbl->toBlazingTableView(), "holis" + std::to_string(++i));
 }
 
-TEST_F(SQLProviderTest, mysql_select_all) {
+TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 3306;

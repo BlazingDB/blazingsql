@@ -76,6 +76,8 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::mysql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::mysql_data_provider>(sql, 0, 0);
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::POSTGRESQL) {
@@ -83,6 +85,8 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::postgresql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::postgresql_data_provider>(sql, 0, 0);
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
 #endif
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::SQLITE) {
@@ -91,6 +95,8 @@ TableSchema parseSchema(std::vector<std::string> files,
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::sqlite_data_provider>(sql, 0, 0);
     isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
   }
 
