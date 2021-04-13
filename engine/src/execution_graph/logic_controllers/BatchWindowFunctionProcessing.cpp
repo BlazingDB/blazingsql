@@ -42,6 +42,12 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
 
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
     // if the window function has no partitioning but does have order by and a bounded window, then we need to remove the overlaps that are present in the data
     if (column_indices_partitioned.size() == 0 && column_indices_ordered.size() > 0 && this->preceding_value > 0 && this->following_value > 0){
         this->remove_overlap = true;
@@ -176,12 +182,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
 
         std::vector<std::string> input_names = input->names();
         
-        // fill all the Kind aggregations
-        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
-            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
-            this->aggs_wind_func.push_back(aggr_kind_i);
-        }
-
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
         int agg_param_count = 0;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
@@ -1016,6 +1016,12 @@ ComputeWindowKernelUnbounded::ComputeWindowKernelUnbounded(std::size_t kernel_id
     std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
 
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
     // if the window function has no partitioning but does have order by and a bounded window, then we need to remove the overlaps that are present in the data
     if (column_indices_partitioned.size() == 0 && column_indices_ordered.size() > 0 && this->preceding_value > 0 && this->following_value > 0){
         this->remove_overlap = true;
@@ -1153,12 +1159,6 @@ ral::execution::task_result ComputeWindowKernelUnbounded::do_process(std::vector
 
         std::vector<std::string> input_names = input->names();
         
-        // fill all the Kind aggregations
-        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
-            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
-            this->aggs_wind_func.push_back(aggr_kind_i);
-        }
-
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
         int agg_param_count = 0;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
@@ -1176,12 +1176,14 @@ ral::execution::task_result ComputeWindowKernelUnbounded::do_process(std::vector
         size_t num_input_cols = input_cudf_columns.size();
         std::vector<std::string> output_names;
         std::vector< std::unique_ptr<CudfColumn> > output_columns;
+        std::vector<int> window_func_col_indices;
 
         for (size_t col_i = 0; col_i < total_output_columns; ++col_i) {
             // appending wf columns
             if (col_i >= num_input_cols) {
                 output_columns.push_back(std::move(new_wf_cols[col_i - num_input_cols]));
                 output_names.push_back("");
+                window_func_col_indices.push_back(col_i);
             } else {
                 output_columns.push_back(std::move(input_cudf_columns[col_i]));
                 output_names.push_back(input_names[col_i]);
@@ -1215,7 +1217,40 @@ ral::execution::task_result ComputeWindowKernelUnbounded::do_process(std::vector
         
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
 
-        // WSM TODO get partial_aggregation from windowed_table
+        // // get partial_aggregations from windowed_table
+        // if (this->aggs_wind_func == AggregateKind::RANK){
+        //     // TODO throw error. not yet implemented
+        //     // partial_aggregation = last rank value of batch + number of elements with that rank value - 1
+        // } else if (this->aggs_wind_func == AggregateKind::DENSE_RANK){
+        //     // TODO throw error. not yet implemented
+        //     // partial_aggregation = last dense rank value of batch
+        // } else {
+            auto windowed_table_cudf_view = windowed_table->view();
+            std::vector<cudf::column_view> window_agg_columns;
+            std::vector<std::string> window_agg_column_names;
+            for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {            
+                window_agg_columns.push_back(windowed_table_cudf_view.column(window_func_col_indices[col_i]));
+                window_agg_column_names.push_back(windowed_table->names()[window_func_col_indices[col_i]]);
+            }
+            cudf::table_view window_agg_table_view(window_agg_columns);
+            cudf::table_view partial_aggregations_table_view;
+            if (window_agg_table_view.num_rows() > 2){
+                if (preceding is unbounded) {
+                    // want to get last value
+                    std::vector<cudf::table_view> split_window_view = cudf::split(window_agg_table_view, {window_agg_table_view.num_rows() - 2});
+                    partial_aggregations_table_view = split_window_view[1];
+                } else if (following is unbounded) {
+                    // want to get first value
+                    std::vector<cudf::table_view> split_window_view = cudf::split(window_agg_table_view, {1});
+                    partial_aggregations_table_view = split_window_view[0];
+                } else {
+                    // error one of the two should be unbounded otherwise we should not be in this kernel
+                }
+            } else {
+                partial_aggregations_table_view = window_agg_table_view;
+            }
+            
+        // }
         
         output->addToCache(std::move(windowed_table));
     }catch(const rmm::bad_alloc& e){
