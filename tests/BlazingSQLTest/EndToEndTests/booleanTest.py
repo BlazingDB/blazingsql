@@ -54,8 +54,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             #
             # Run Queries ---------------------------------------------------
             queryId = "TEST_01"
-            query = """select * from bool_orders
-                    order by o_orderkey, o_custkey limit 300"""
+            query = """select o_orderkey, o_custkey, o_totalprice, o_confirmed from bool_orders
+                    order by o_orderkey, o_totalprice limit 300"""
             runTest.run_query(
                 bc,
                 drill,
@@ -122,7 +122,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_05"
             query = """select o_custkey, 0.95 * o_totalprice, o_confirmed
-                    from bool_orders where o_confirmed is null"""
+                    from bool_orders where o_confirmed is null
+                    order by o_totalprice limit 400"""
             runTest.run_query(
                 bc,
                 drill,
@@ -409,7 +410,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # counts both `False` and nulls
+            # considers both `False` and nulls
             queryId = "TEST_25"
             query = """select count(*) from bool_orders where o_confirmed IS NOT TRUE"""
             runTest.run_query(
@@ -425,7 +426,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # counts both `True` and nulls
+            # considers both `True` and nulls
             queryId = "TEST_26"
             query = """select count(*) from bool_orders where o_confirmed IS NOT FALSE"""
             runTest.run_query(
