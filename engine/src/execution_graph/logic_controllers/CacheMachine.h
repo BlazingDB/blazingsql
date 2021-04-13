@@ -51,13 +51,15 @@ public:
 
 	virtual void put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table);
 
+	virtual void put(size_t index, std::unique_ptr<ral::cache::CacheData> cacheData);
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
 
 	virtual std::unique_ptr<ral::cache::CacheData> get_or_wait_CacheData(size_t index);
 
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false, bool use_pinned = false );
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool use_pinned = false );
 
 	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "", bool always_add = false);
 
@@ -89,7 +91,13 @@ public:
 
 	bool has_messages_now(std::vector<std::string> messages);
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+	std::unique_ptr<ral::cache::CacheData> pullAnyCacheData(const std::vector<std::string> & messages);
+
+	std::size_t get_num_batches(){
+		return cache_count;
+	}
+
+  virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
 

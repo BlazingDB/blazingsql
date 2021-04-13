@@ -1,7 +1,9 @@
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
+- #1367 OverlapAccumulator Kernel
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
+- #1426 Window Functions without partitioning 
 - #1349 Add e2e test for Hive Partitioned Data
 - #1396 Create tables from other RDBMS
 - #1427 Support for CONCAT alias operator
@@ -17,6 +19,7 @@
 - #1418 Adding support for docker image
 - #1434 Added documentation for C++ and Python in Sphinx
 - #1419 Added concat cache machine timeout 
+- #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
 
 ## Bug Fixes

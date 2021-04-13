@@ -12,6 +12,7 @@
 #include <cudf/utilities/traits.hpp>
 
 #include "utilities/CommonOperations.h"
+#include "operators/OrderBy.h"
 
 #include "error.hpp"
 #include "utilities/ctpl_stl.h"
@@ -89,20 +90,8 @@ std::vector<NodeColumnView> partitionData(Context * context,
 		sortOrderTypes.assign(searchColIndices.size(), cudf::order::ASCENDING);
 	}
 
-	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
+	std::vector<CudfTableView> partitioned_data = ral::operators::partition_table(pivots, table, sortOrderTypes, searchColIndices);
 
-	CudfTableView columns_to_search = table.view().select(searchColIndices);
-
-	std::unique_ptr<cudf::column> pivot_indexes = cudf::upper_bound(columns_to_search,
-                                    pivots.view(),
-                                    sortOrderTypes,
-                                    null_orders);
-	
-	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
-	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
-
-	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
 	std::vector<Node> all_nodes = context->getAllNodes();
 
 	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
