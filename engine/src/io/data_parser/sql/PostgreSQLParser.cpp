@@ -489,7 +489,7 @@ static inline cudf::type_id parse_postgresql_column_type(
   throw std::runtime_error("PostgreSQL type hint not found: " + columnTypeName);
 }
 
-std::unique_ptr<frame::BlazingTable> postgresql_parser::parse_batch(
+std::unique_ptr<frame::BlazingTable> parse_batch(
   data_handle handle,
   const Schema & schema,
   std::vector<int> column_indices,
