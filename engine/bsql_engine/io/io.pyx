@@ -295,7 +295,7 @@ cdef class PyBlazingCache:
             cache_data = blaz_move(deref(self.c_cache).pullCacheData())
         cdef MetadataDictionary metadata = deref(cache_data).getMetadata()
         cdef unique_ptr[BlazingTable] table = deref(cache_data).decache()
-        
+
         metadata_temp = metadata.get_values()
         metadata_py = {}
         for key_val in metadata_temp:
@@ -466,7 +466,7 @@ cdef class PyBlazingGraph:
 
     cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
         deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
-    
+
     cpdef query_is_complete(self):
         return deref(self.ptr).query_is_complete()
 

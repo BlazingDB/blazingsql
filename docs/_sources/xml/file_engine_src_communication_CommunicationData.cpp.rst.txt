@@ -1,0 +1,41 @@
+
+.. _file_engine_src_communication_CommunicationData.cpp:
+
+File CommunicationData.cpp
+==========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication>` (``engine/src/communication``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/communication/CommunicationData.cpp``)
+---------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``CommunicationData.h`` (:ref:`file_engine_src_communication_CommunicationData.h`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__communication`
+

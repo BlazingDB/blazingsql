@@ -1,0 +1,32 @@
+
+.. _file_engine_src_communication_factory_MessageFactory.h:
+
+File MessageFactory.h
+=====================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication_factory>` (``engine/src/communication/factory``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/communication/factory/MessageFactory.h``)
+------------------------------------------------------------------
+
+
+
+
+
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_distribution_primitives.h`
+
+
+

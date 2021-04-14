@@ -201,13 +201,14 @@ User guides and public APIs documentation can be found at [here](https://docs.bl
 
 Our internal code architecture can be built using Spinx.
 ```bash
-pip install recommonmark exhale
 conda install -c conda-forge doxygen
 cd $CONDA_PREFIX
-cd blazingsql/docs
+cd blazingsql/docsrc
+pip install -r requirements.txt
+make doxygen
 make html
 ```
-The generated documentation can be viewed in a browser at `blazingsql/docs/_build/html/index.html`
+The generated documentation can be viewed in a browser at `blazingsql/docsrc/build/html/index.html`
 
 
 # Community
@@ -230,4 +231,4 @@ The RAPIDS suite of open source software libraries aim to enable execution of en
 
 ## Apache Arrow on GPU
 
-The GPU version of [Apache Arrow](https://arrow.apache.org/) is a common API that enables efficient interchange of tabular data between processes running on the GPU. End-to-end computation on the GPU avoids unnecessary copying and converting of data off the GPU, reducing compute time and cost for high-performance analytics common in artificial intelligence workloads. As the name implies, cuDF uses the Apache Arrow columnar data format on the GPU. Currently, a subset of the features in Apache Arrow are supported.
+The GPU version of [Apache Arrow](https://arrow.apache.org/) is a common API that enables efficient interchange of tabular data between processes running on the GPU. End-to-end computation on the GPU avoids unnecessary copying and converting of data off the GPU, reducing compute time and cost for high-performance analytics common in artificial intelligence workloads. As the name implies, cuDF uses the Apache Arrow columnar data format on the GPU. Currently, a subset of the features in Apache Arrow are supported. 

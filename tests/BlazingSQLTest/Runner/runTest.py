@@ -310,12 +310,14 @@ def get_codTest(test_name):
         "Limit": "LIMIT",
         "Where clause": "WHERE",
         "Window Function": "WINDOWFUNCTION",
+        "Window Functions With No Partition": "WINDOW_NO_PARTITION",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
         "String case": "STRINGCASE",
         "Message Validation": "MESSAGEVAL",
         "Json tests": "JSON",
         "Concurrent": "CONCUR",
+        "TablesFromSQL": "TABFROMSQL",
     }
 
     return switcher.get(test_name)
@@ -1322,6 +1324,14 @@ def get_blazingsql_query(db_name, query):
 def get_drill_query(query):
     new_query = query
     for table_name in get_table_occurrences(query):
+        # for concurrent test and tables from sql tests
+        enum_list = list(map(lambda c: c.name, DataType))
+        a = ["_"+e for e in enum_list]
+        a.remove("_UNDEFINED")
+        for dtyp in a:
+            new_query = new_query.replace(str(dtyp), "")
+
+        # patch the tables
         new_query = replace_all(
             new_query, {table_name: " dfs.tmp.`%(table)s` " % {"table": table_name}}
         )
@@ -1399,7 +1409,7 @@ def run_query(
 
     data_type = cs.get_extension(input_type)
 
-    if Settings.execution_mode != "Generator":
+    if Settings.execution_mode != "generator":
         print(
             "\n=============== New query: "
             + str(queryId)

@@ -24,6 +24,11 @@ public:
 		const std::string & authority,
 		const Path & path,
 		bool strict = false);  // convenience ctor, will use Uri(scheme, auth, Path, strict)
+  Uri(const std::string &scheme,
+      const std::string &authority,
+      const std::string &path,
+      const std::string &query,
+      const std::string &fragment);  // will not perform any validation, creates a generic URI
 	Uri(const Uri & other);
 	Uri(Uri && other);
 	~Uri();
@@ -59,6 +64,8 @@ private:
 	std::string scheme;
 	std::string authority;
 	Path path;
+  std::string query;
+  std::string fragment;
 	bool valid;
 };
 

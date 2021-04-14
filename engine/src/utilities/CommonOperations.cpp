@@ -110,6 +110,28 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
 }
 
+std::unique_ptr<BlazingTable> getLimitedRows(const BlazingTableView& table, cudf::size_type num_rows, bool front){
+	
+	if (num_rows == 0) {
+		return  create_empty_table(table);
+	} else if (num_rows < table.num_rows()) {
+		std::unique_ptr<cudf::table> cudf_table;
+		if (front){
+			std::vector<cudf::size_type> splits = {num_rows};
+			std::vector<cudf::table_view> split_table = cudf::split(table.view(), splits);					
+			cudf_table = std::make_unique<cudf::table>(split_table[0]);
+		} else { // back
+			std::vector<cudf::size_type> splits = {table.num_rows() - num_rows};
+			std::vector<cudf::table_view> split_table = cudf::split(table.view(), splits);					
+			cudf_table = std::make_unique<cudf::table>(split_table[1]);			
+		}
+		return std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), table.names());
+		
+	} else {
+		return std::make_unique<ral::frame::BlazingTable>(table.view(), table.names());
+	}
+}
+
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names,
 	const std::vector<cudf::data_type> &dtypes, std::vector<size_t> column_indices) {
 

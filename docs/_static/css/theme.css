@@ -1,0 +1,77 @@
+:root {
+  /*****************************************************************************
+  * Font size
+  **/
+  --font-size-base: 15px; /* base font size - applied at body / html level */
+
+  /* heading font sizes */
+  --font-size-h1: 36px;
+  --font-size-h2: 32px;
+  --font-size-h3: 26px;
+  --font-size-h4: 21px;
+  --font-size-h5: 18px;
+  --font-size-h6: 16px;
+
+  /* smaller then heading font sizes*/
+  --font-size-milli: 12px;
+
+  /*****************************************************************************
+  * Font family
+  **/
+  --font-family-base: 'Lato', sans-serif;
+  --font-family-heading: 'Open Sans', sans-serif;
+
+  /*****************************************************************************
+  * Color
+  * 
+  * Colors are defined in rgb string way, "red, green, blue"
+  **/
+  --color-primary: 19, 6, 84;
+  --color-success: 40, 167, 69;
+  --color-info: 23, 162, 184;
+  --color-warning: 255, 193, 7;
+  --color-danger: 220, 53, 69;
+  --color-text-base: 51, 51, 51;
+  --color-h1: var(--color-primary);
+  --color-h2: var(--color-primary);
+  --color-h3: var(--color-text-base);
+  --color-h4: var(--color-text-base);
+  --color-h5: var(--color-text-base);
+  --color-h6: var(--color-text-base);
+  --color-paragraph: var(--color-text-base);
+  --color-link: 0, 91, 129;
+  --color-link-hover: 227, 46, 0;
+  --color-headerlink: 198, 15, 15;
+  --color-headerlink-hover: 255, 255, 255;
+  --color-preformatted-text: 34, 34, 34;
+  --color-preformatted-background: 250, 250, 250;
+
+  --color-active-navigation: 19, 6, 84;
+  --color-navbar-link: 77, 77, 77;
+  --color-navbar-link-hover: var(--color-active-navigation);
+  --color-navbar-link-active: var(--color-active-navigation);
+  --color-sidebar-link: 77, 77, 77;
+  --color-sidebar-link-hover: var(--color-active-navigation);
+  --color-sidebar-link-active: var(--color-active-navigation);
+  --color-toc-link: 119, 117, 122;
+  --color-toc-link-hover: var(--color-active-navigation);
+  --color-toc-link-active: var(--color-active-navigation);
+
+  --color-admonition-primary: var(--color-primary);
+  --color-admonition-success: var(--color-success);
+  --color-admonition-danger: var(--color-danger);
+  --color-admonition-warning: var(--color-warning);
+  --color-admonition-info: var(--color-info);
+
+  /*****************************************************************************
+  * Icon
+  **/
+
+  /* font awesome icons*/
+  --icon-check-circle: '\f058';
+  --icon-info-circle: '\f05a';
+  --icon-exclamation-triangle: '\f071';
+  --icon-exclamation-circle: '\f06a';
+  --icon-times-circle: '\f057';
+  --icon-lightbulb: '\f0eb';
+}

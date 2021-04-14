@@ -12,6 +12,16 @@
 
 #include <blazingdb/io/Config/BlazingContext.h>
 
+#ifdef MYSQL_SUPPORT
+#include "../io/data_parser/sql/MySQLParser.h"
+#include "../io/data_provider/sql/MySQLDataProvider.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include "../io/data_parser/sql/SQLiteParser.h"
+#include "../io/data_provider/sql/SQLiteDataProvider.h"
+#endif
+
 using namespace fmt::literals;
 
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>
@@ -38,7 +48,16 @@ TableSchema parseSchema(std::vector<std::string> files,
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
 
+	std::vector<Uri> uris;
+	for(auto file_path : files) {
+		uris.push_back(Uri{file_path});
+	}
+
 	std::shared_ptr<ral::io::data_parser> parser;
+  std::shared_ptr<ral::io::data_provider> provider = nullptr;
+
+  bool isSqlProvider = false;
+
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
 	} else if(fileType == ral::io::DataType::ORC) {
@@ -47,41 +66,63 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::json_parser>(args_map);
 	} else if(fileType == ral::io::DataType::CSV) {
 		parser = std::make_shared<ral::io::csv_parser>(args_map);
-	}
+	} else if(fileType == ral::io::DataType::MYSQL) {
+#ifdef MYSQL_SUPPORT
+		parser = std::make_shared<ral::io::mysql_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::mysql_data_provider>(sql, 0, 0);
+#endif
+    isSqlProvider = true;
+  } else if(fileType == ral::io::DataType::SQLITE) {
+#ifdef SQLITE_SUPPORT
+    parser = std::make_shared<ral::io::sqlite_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::sqlite_data_provider>(sql, 0, 0);
+    isSqlProvider = true;
+#endif
+  }
 
-	std::vector<Uri> uris;
-	for(auto file_path : files) {
-		uris.push_back(Uri{file_path});
-	}
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
+  if (!isSqlProvider) {
+      provider = std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
+  }
+
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;
 
 	try {
-
 		bool got_schema = false;
-		while (!got_schema && provider->has_next()){
-			ral::io::data_handle handle = provider->get_next();
-			if (handle.file_handle != nullptr){
-				parser->parse_schema(handle.file_handle, schema);
-				if (schema.get_num_columns() > 0){
-					got_schema = true;
-					schema.add_file(handle.uri.toString(true));
-				}
-			}
+    if (isSqlProvider) {
+        ral::io::data_handle handle = provider->get_next(false);
+        parser->parse_schema(handle, schema);
+        if (schema.get_num_columns() > 0){
+          got_schema = true;
+        }
+    } else {
+      while (!got_schema && provider->has_next()){
+        ral::io::data_handle handle = provider->get_next();
+        if (handle.file_handle != nullptr){
+          parser->parse_schema(handle, schema);
+          if (schema.get_num_columns() > 0){
+            got_schema = true;
+            schema.add_file(handle.uri.toString(true));
+          }
+        }
+      }
 		}
 		if (!got_schema){
 			std::cout<<"ERROR: Could not get schema"<<std::endl;
 		}
 
 		bool open_file = false;
-		while (provider->has_next()){
-			std::vector<ral::io::data_handle> handles = provider->get_some(64, open_file);
-			for(auto handle : handles) {
-				schema.add_file(handle.uri.toString(true));
-			}
-		}
+    if (!isSqlProvider) {
+      while (provider->has_next()){
+        std::vector<ral::io::data_handle> handles = provider->get_some(64, open_file);
+        for(auto handle : handles) {
+          schema.add_file(handle.uri.toString(true));
+        }
+      }
+    }
 
 		for(auto extra_column : extra_columns) {
 			schema.add_column(extra_column.first, extra_column.second, 0, false);

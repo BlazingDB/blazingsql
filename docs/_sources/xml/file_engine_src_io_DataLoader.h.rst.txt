@@ -1,0 +1,72 @@
+
+.. _file_engine_src_io_DataLoader.h:
+
+File DataLoader.h
+=================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io>` (``engine/src/io``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/DataLoader.h``)
+-------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``FileSystem/Uri.h``
+
+- ``arrow/io/interfaces.h``
+
+- ``data_parser/DataParser.h`` (:ref:`file_engine_src_io_data_parser_DataParser.h`)
+
+- ``data_provider/DataProvider.h`` (:ref:`file_engine_src_io_data_provider_DataProvider.h`)
+
+- ``execution_graph/Context.h`` (:ref:`file_engine_src_execution_graph_Context.h`)
+
+- ``memory``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_CalciteInterpreter.h`
+
+- :ref:`file_engine_src_cython_io.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.h`
+
+- :ref:`file_engine_src_io_DataLoader.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1io_1_1data__loader`
+

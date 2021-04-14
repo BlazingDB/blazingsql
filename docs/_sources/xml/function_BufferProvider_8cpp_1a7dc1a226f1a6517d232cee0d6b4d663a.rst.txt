@@ -1,0 +1,13 @@
+.. _exhale_function_BufferProvider_8cpp_1a7dc1a226f1a6517d232cee0d6b4d663a:
+
+Function ral::memory::set_allocation_pools
+==========================================
+
+- Defined in :ref:`file_engine_src_bmr_BufferProvider.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::memory::set_allocation_pools(std::size_t, std::size_t, std::size_t, std::size_t, bool, ucp_context_h)

@@ -1,0 +1,33 @@
+.. _dir_engine_src_communication_CommunicationInterface:
+
+
+Directory CommunicationInterface
+================================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication>` (``engine/src/communication``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src/communication/CommunicationInterface``
+
+
+Files
+-----
+
+- :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.hpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_messageListener.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_messageListener.hpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_messageReceiver.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_messageReceiver.hpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_messageSender.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_messageSender.hpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_node.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_node.hpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_protocols.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_serializer.cpp`
+- :ref:`file_engine_src_communication_CommunicationInterface_serializer.hpp`
+
+
