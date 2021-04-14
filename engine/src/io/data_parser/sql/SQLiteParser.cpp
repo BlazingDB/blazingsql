@@ -75,8 +75,8 @@ cudf::type_id parse_sqlite_column_type(std::string t) {
   if (t == "float") { return cudf::type_id::FLOAT32; }
   if (t == "decimal") { return cudf::type_id::FLOAT64; }
   if (t == "boolean") { return cudf::type_id::UINT8; }
-  if (t == "date") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
-  if (t == "datetime") { return cudf::type_id::TIMESTAMP_MICROSECONDS; }
+  if (t == "date") { return cudf::type_id::TIMESTAMP_MILLISECONDS; }
+  if (t == "datetime") { return cudf::type_id::TIMESTAMP_MILLISECONDS; }
 }
 
 sqlite_parser::sqlite_parser() : abstractsql_parser{DataType::SQLITE} {}
@@ -247,6 +247,9 @@ std::uint8_t sqlite_parser::parse_cudf_timestamp_nanoseconds(
 std::uint8_t sqlite_parser::parse_cudf_string(
   void * src, std::size_t col, std::size_t row, cudf_string_col * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
+
+  std::string column_decltype = sqlite3_column_decltype(stmt, col);
+
   if (sqlite3_column_type(stmt, col) == SQLITE_NULL) {
     v->offsets.push_back(v->offsets.back());
     return 0;

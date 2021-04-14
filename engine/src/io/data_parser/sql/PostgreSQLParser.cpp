@@ -358,7 +358,6 @@ std::uint8_t postgresql_parser::parse_cudf_string(
     const std::int64_t value =
       __builtin_bswap64(*reinterpret_cast<const std::int64_t *>(result));
     data = timestamp_to_string(value);
-    std::cout << "\033[33m>>> " << data << "\033[0m" << std::endl;
     break;
   }
   default: throw std::runtime_error("Unsupported oid parse string");
