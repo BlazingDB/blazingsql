@@ -32,9 +32,10 @@ static inline bool postgresql_is_cudf_string(const std::string & hint) {
   return result != std::cend(postgresql_string_type_hints);
 }
 
-static inline std::string date_to_string(std::int32_t jd) {
-  // For date conversion see
-  // https://doxygen.postgresql.org/backend_2utils_2adt_2datetime_8c.html#a889d375aaf2a25be071d818565142b9e
+static inline void date_to_ymd(std::int32_t jd,
+  std::int32_t & year,
+  std::int32_t & month,
+  std::int32_t & day) {
   std::uint32_t julian, quad, extra;
   std::int32_t y;
   julian = static_cast<std::uint32_t>(jd);
@@ -47,13 +48,74 @@ static inline std::string date_to_string(std::int32_t jd) {
   y = julian * 4 / 1461;
   julian = ((y != 0) ? (julian + 305) % 365 : (julian + 306) % 366) + 123;
   y += quad * 4;
-  std::int32_t year = y - 4800;
+  year = y - 4800;
   quad = julian * 2141 / 65536;
-  std::int32_t day = julian - 7834 * quad / 256;
-  std::int32_t month = (quad + 10) % 12 + 1;
+  day = julian - 7834 * quad / 256;
+  month = (quad + 10) % 12 + 1;
+}
+
+static inline void time_to_hms(std::int64_t jd,
+  std::int32_t & hour,
+  std::int32_t & min,
+  std::int32_t & sec,
+  std::int32_t & msec) {
+  std::int64_t time;
+  const std::int64_t USECS_PER_HOUR = 3600000000;
+  const std::int64_t USECS_PER_MINUTE = 60000000;
+  const std::int64_t USECS_PER_SEC = 1000000;
+  time = jd;
+  hour = time / USECS_PER_HOUR;
+  time -= (hour) *USECS_PER_HOUR;
+  min = time / USECS_PER_MINUTE;
+  time -= (min) *USECS_PER_MINUTE;
+  sec = time / USECS_PER_SEC;
+  msec = time - (sec * USECS_PER_SEC);
+}
+
+static inline int timestamp_to_tm(
+  std::int64_t dt, struct tm & tm, std::int32_t & msec) {
+  std::int64_t dDate, POSTGRESQL_EPOCH_DATE = 2451545;
+  std::int64_t time;
+  std::uint64_t USECS_PER_DAY = 86400000000;
+  time = dt;
+
+  dDate = time / USECS_PER_DAY;
+  if (dDate != 0) { time -= dDate * USECS_PER_DAY; }
+
+  if (time < 0) {
+    time += USECS_PER_DAY;
+    dDate -= 1;
+  }
+  dDate += POSTGRESQL_EPOCH_DATE;
+
+  date_to_ymd(
+    static_cast<std::int32_t>(dDate), tm.tm_year, tm.tm_mon, tm.tm_mday);
+  time_to_hms(time, tm.tm_hour, tm.tm_min, tm.tm_sec, msec);
+}
+
+static inline std::string date_to_string(std::int32_t jd) {
+  // For date conversion see
+  // https://doxygen.postgresql.org/backend_2utils_2adt_2datetime_8c.html#a889d375aaf2a25be071d818565142b9e
+  const std::int32_t POSTGRESQL_EPOCH_DATE = 2451545;
+  std::int32_t year, month, day;
+  date_to_ymd(POSTGRESQL_EPOCH_DATE + jd, year, month, day);
   std::stringstream oss;
   oss << year << '-' << std::setfill('0') << std::setw(2) << month << '-'
       << std::setw(2) << day;
+  return oss.str();
+}
+
+static inline std::string timestamp_to_string(std::int64_t tstamp) {
+  // For timestamp conversion see
+  // https://doxygen.postgresql.org/backend_2utils_2adt_2timestamp_8c.html#a933dc09a38ddcf144a48b2aaf5790893
+  struct tm tm;
+  std::int32_t msec;
+  timestamp_to_tm(tstamp, tm, msec);
+  std::stringstream oss;
+  oss << tm.tm_year << '-' << std::setfill('0') << std::setw(2) << tm.tm_mon
+      << '-' << std::setw(2) << tm.tm_mday << ' ' << std::setw(2) << tm.tm_hour
+      << ':' << std::setw(2) << tm.tm_min << ':' << std::setw(2) << tm.tm_sec;
+  if (msec != 0) { oss << '.' << std::setw(6) << msec; }
   return oss.str();
 }
 
@@ -76,19 +138,19 @@ static inline cudf::type_id parse_postgresql_column_type(
   if (columnTypeName == "date") { return cudf::type_id::TIMESTAMP_DAYS; }
   if (columnTypeName == "money") { return cudf::type_id::UINT64; }
   if (columnTypeName == "timestamp without time zone") {
-    return cudf::type_id::TIMESTAMP_MICROSECONDS;
+    return cudf::type_id::TIMESTAMP_MILLISECONDS;
   }
   if (columnTypeName == "timestamp with time zone") {
-    return cudf::type_id::TIMESTAMP_MICROSECONDS;
+    return cudf::type_id::TIMESTAMP_MILLISECONDS;
   }
   if (columnTypeName == "time without time zone") {
-    return cudf::type_id::DURATION_MICROSECONDS;
+    return cudf::type_id::DURATION_MILLISECONDS;
   }
   if (columnTypeName == "time with time zone") {
-    return cudf::type_id::DURATION_MICROSECONDS;
+    return cudf::type_id::DURATION_MILLISECONDS;
   }
   if (columnTypeName == "interval") {
-    return cudf::type_id::DURATION_MICROSECONDS;
+    return cudf::type_id::DURATION_MILLISECONDS;
   }
   if (columnTypeName == "inet") { return cudf::type_id::UINT64; }
   if (columnTypeName == "USER-DEFINED") { return cudf::type_id::STRUCT; }
@@ -280,16 +342,23 @@ std::uint8_t postgresql_parser::parse_cudf_string(
   std::string data;
 
   // TODO(cristhian): convert oid to data type using postgresql pgtype table
+  // https://www.postgresql.org/docs/13/catalog-pg-type.html
   switch (oid) {
   case 1043: {  // text
     data = result;
     break;
   }
   case 1082: {  // date
-    const std::uint32_t POSTGRESQL_EPOCH_DATE = 2451545;
     const std::int32_t value =
       ntohl(*reinterpret_cast<const std::int32_t *>(result));
-    data = date_to_string(POSTGRESQL_EPOCH_DATE + value);
+    data = date_to_string(value);
+    break;
+  }
+  case 1114: {  // timestamp
+    const std::int64_t value =
+      __builtin_bswap64(*reinterpret_cast<const std::int64_t *>(result));
+    data = timestamp_to_string(value);
+    std::cout << "\033[33m>>> " << data << "\033[0m" << std::endl;
     break;
   }
   default: throw std::runtime_error("Unsupported oid parse string");
