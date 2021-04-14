@@ -111,13 +111,21 @@ TEST_F(ExpressionUtilsTest, gettings_bounds_from_window_expression) {
 	EXPECT_EQ(preceding_value, expected_preceding);
 	EXPECT_EQ(following_value, expected_following);
 	
-	int expected_preceding2 = 1;
-	int expected_following2 = 2;
-	std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING)]";
-	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
-
-	EXPECT_EQ(preceding_value, expected_preceding2);
-	EXPECT_EQ(following_value, expected_following2);	
+	std::vector<std::string> preceding_options ={"UNBOUNDED PRECEDING", "4 PRECEDING", "CURRENT ROW"};
+	std::vector<std::string> following_options ={"UNBOUNDED FOLLOWING", "4 FOLLOWING", "CURRENT ROW"};
+	std::vector<int> expected = {-1, 4, 0};
+	for (int i = 0; i < preceding_options.size(); ++i) {
+		for (int j = 0; j < following_options.size(); ++j) {
+			if (!(preceding_options[i] == "CURRENT ROW" && following_options[j] == "CURRENT ROW")){
+				int expected_preceding2 = expected[i];
+				int expected_following2 = expected[j];
+				std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN " +  preceding_options[i] + " AND " + following_options[j] + ")]";
+				std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
+				EXPECT_EQ(preceding_value, expected_preceding2);
+				EXPECT_EQ(following_value, expected_following2);
+			}
+		}
+	}		
 }
 
 TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) {
