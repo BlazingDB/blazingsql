@@ -55,7 +55,7 @@ public:
 	size_t get_num_columns() const;
 
 	std::vector<int> get_rowgroup_ids(size_t file_index) const;
-	std::vector<std::vector<int>> get_rowgroups();
+	std::vector<std::vector<int>> get_rowgroups() const;
 	int get_total_num_rowgroups();
 
 	bool get_has_header_csv() const;
@@ -69,6 +69,8 @@ public:
 		bool is_in_file = true);
 
 	std::unique_ptr<ral::frame::BlazingTable> makeEmptyBlazingTable(const std::vector<int> & column_indices) const;
+
+	void set_row_groups_ids(const std::vector<std::vector<int>> row_groups_ids);
 
 	inline bool operator==(const Schema & rhs) const {
 		return (this->names == rhs.names) && (this->types == rhs.types);

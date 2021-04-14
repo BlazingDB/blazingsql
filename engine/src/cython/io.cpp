@@ -147,6 +147,25 @@ TableSchema parseSchema(std::vector<std::string> files,
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
 	tableSchema.has_header_csv = schema.get_has_header_csv();
+	//tableSchema.row_groups_ids = schema.get_rowgroups();
+
+	if(fileType == ral::io::DataType::CSV) {
+		// duplicating the csv files
+		if(!schema.get_rowgroups().empty()){
+			std::vector<std::vector<int>> new_row_groups_ids;
+
+			for (auto row_groups : schema.get_rowgroups()){
+				for (auto row_group_id : row_groups){
+					std::vector<int> new_vector = {row_group_id};
+					new_row_groups_ids.push_back(new_vector);
+				}
+			}
+
+			auto size_chunks = schema.get_rowgroups()[0].size();
+			tableSchema.files.resize(size_chunks, tableSchema.files[0]);
+			tableSchema.row_groups_ids = new_row_groups_ids;
+		}
+	}
 
 	return tableSchema;
 }
