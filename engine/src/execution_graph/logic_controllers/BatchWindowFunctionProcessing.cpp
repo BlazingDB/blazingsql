@@ -143,7 +143,10 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         else if (window_expression_contains_order_by(this->expression)) {
             if (window_expression_contains_bounds(this->expression)) {
                 // TODO: for now just ROWS bounds works (not RANGE)
-                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 
+                    this->preceding_value >= 0 ? this->preceding_value + 1: partitioned_table_view.num_rows(), 
+                    this->following_value >= 0 ? this->following_value : partitioned_table_view.num_rows(), 
+                    1, window_aggregation);
             } else {
                 if (this->type_aggs_as_str[pos] == "LEAD") {
                     windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 0, col_view_to_agg.size(), 1, window_aggregation);
