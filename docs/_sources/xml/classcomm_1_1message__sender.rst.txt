@@ -1,0 +1,16 @@
+.. _exhale_class_classcomm_1_1message__sender:
+
+Class message_sender
+====================
+
+- Defined in :ref:`file_engine_src_communication_CommunicationInterface_messageSender.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: comm::message_sender
+   :members:
+   :protected-members:
+   :undoc-members:

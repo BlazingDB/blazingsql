@@ -1,0 +1,13 @@
+.. _exhale_function_io_8cpp_1a0b61d69465a819e765ddc4b11d12d057:
+
+Function parseSchema_C
+======================
+
+- Defined in :ref:`file_engine_src_cython_io.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: parseSchema_C(std::vector<std::string>, std::string, std::vector<std::string>, std::vector<std::string>, std::vector<std::pair<std::string, cudf::type_id>>, bool)

@@ -6,6 +6,7 @@
 #include <cudf/io/orc.hpp>
 #include <cudf/io/csv.hpp>
 #include <cudf/io/datasource.hpp>
+#include "../data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace io {
@@ -33,6 +34,8 @@ cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std
 std::map<std::string, std::string> to_map(std::vector<std::string> arg_keys, std::vector<std::string> arg_values);
 
 std::string getDataTypeName(DataType dataType);
+
+sql_info getSqlInfo(std::map<std::string, std::string> &args_map);
 
 } /* namespace io */
 } /* namespace ral */

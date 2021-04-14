@@ -1,0 +1,13 @@
+.. _exhale_function_LogicalFilter_8h_1ab1c35937a56792f8ba7d7983f2b09742:
+
+Function ral::processor::process_distribution_table
+===================================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_LogicalFilter.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::processor::process_distribution_table(const ral::frame::BlazingTableView&, std::vector<int>&, blazingdb::manager::Context *)

@@ -1,0 +1,23 @@
+.. _dir_engine_src_parser:
+
+
+Directory parser
+================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src/parser``
+
+
+Files
+-----
+
+- :ref:`file_engine_src_parser_expression_tree.cpp`
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+- :ref:`file_engine_src_parser_expression_utils.cpp`
+- :ref:`file_engine_src_parser_expression_utils.hpp`
+
+
