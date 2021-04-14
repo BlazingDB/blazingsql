@@ -50,6 +50,7 @@
 - #1400 Fix for Column aliases when exists a Join op
 - #1456 Raising exceptions on Python side for RAL
 - #1466 SQL providers: update README.md
+- #1470 Fix pre compiler flags for sql parsers
 
 
 ## Deprecated Features
