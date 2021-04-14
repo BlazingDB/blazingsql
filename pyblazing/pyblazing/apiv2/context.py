@@ -910,7 +910,6 @@ def kwargs_validation(kwargs, bc_api_str):
             "num_rows",
             "use_index",
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
-            "local_files",
             "get_metadata",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
@@ -2481,6 +2480,9 @@ class BlazingContext(object):
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
                 table.row_groups_ids = row_groups_ids
+
+            if parsedSchema["file_type"] == DataType.CSV:
+                table.row_groups_ids = parsedSchema["row_groups_ids"]
 
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
