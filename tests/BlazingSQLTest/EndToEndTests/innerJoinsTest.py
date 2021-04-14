@@ -310,6 +310,100 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             #     print_result=True,
             # )
 
+            # These tests are not validated because engines like `pyspark` and `drill`
+            # do not consider unsigned types
+            # These tests are just to verify that in C++ layer, unsigned types are enabled.
+
+            # most of these numbers are limit of different int (or unsigned int) types
+            data = [0, 127, 128, 255, 256, 32767, 32758, 65535, 65536, -5]
+
+            import cudf
+
+            try:
+                # DataFrame with unsigned types
+                df_u = cudf.DataFrame({'col_orig': data})
+                df_u['col_uint8'] = df_u['col_orig'].astype('uint8')
+                df_u['col_uint16'] = df_u['col_orig'].astype('uint16')
+                df_u['col_uint32'] = df_u['col_orig'].astype('uint32')
+                df_u['col_uint64'] = df_u['col_orig'].astype('uint64')
+
+                df = cudf.DataFrame({'col_orig': data})
+                df['col_int8'] = df['col_orig'].astype('int8')
+                df['col_int16'] = df['col_orig'].astype('int16')
+                df['col_int32'] = df['col_orig'].astype('int32')
+                df['col_int64'] = df['col_orig'].astype('int64')
+
+                bc.create_table('table_unsig', df_u)
+                bc.create_table('table_sig', df)
+
+                # Let's apply `union` statement for all its dtypes 
+                query_join_1 = """select * from table_unsig inner join
+                                    table_sig on col_uint8 = col_int8"""
+                bc.sql(query_join_1)
+
+                query_join_2 = """select * from table_unsig inner join
+                                    table_sig on col_uint16 = col_int8"""
+                bc.sql(query_join_2)
+
+                query_join_3 = """select * from table_unsig inner join
+                                    table_sig on col_uint32 = col_int8"""
+                bc.sql(query_join_3)
+
+                query_join_4 = """select * from table_unsig inner join
+                                    table_sig on col_uint64 = col_int8"""
+                bc.sql(query_join_4)
+
+                query_join_5 = """select * from table_unsig inner join
+                                    table_sig on col_uint8 = col_int16"""
+                bc.sql(query_join_5)
+
+                query_join_6 = """select * from table_unsig inner join
+                                    table_sig on col_uint16 = col_int16"""
+                bc.sql(query_join_6)
+
+                query_join_7 = """select * from table_unsig inner join
+                                    table_sig on col_uint32 = col_int16"""
+                bc.sql(query_join_7)
+
+                query_join_8 = """select * from table_unsig inner join
+                                    table_sig on col_uint64 = col_int16"""
+                bc.sql(query_join_8)
+
+                query_join_9 = """select * from table_unsig inner join
+                                    table_sig on col_uint8 = col_int32"""
+                bc.sql(query_join_9)
+
+                query_join_10 = """select * from table_unsig inner join
+                                    table_sig on col_uint16 = col_int32"""
+                bc.sql(query_join_10)
+
+                query_join_11 = """select * from table_unsig inner join
+                                    table_sig on col_uint32 = col_int32"""
+                bc.sql(query_join_11)
+
+                query_join_12 = """select * from table_unsig inner join
+                                    table_sig on col_uint64 = col_int32"""
+                bc.sql(query_join_12)
+
+                query_join_13 = """select * from table_unsig inner join
+                                    table_sig on col_uint8 = col_int64"""
+                bc.sql(query_join_13)
+
+                query_join_14 = """select * from table_unsig inner join
+                                    table_sig on col_uint16 = col_int64"""
+                bc.sql(query_join_14)
+
+                query_join_15 = """select * from table_unsig inner join
+                                    table_sig on col_uint32 = col_int64"""
+                bc.sql(query_join_15)
+
+                query_join_16 = """select * from table_unsig inner join
+                                  table_sig on col_uint64 = col_int64"""
+                bc.sql(query_join_16)
+
+            except Exception as e:
+                raise e
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
