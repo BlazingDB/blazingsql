@@ -102,6 +102,9 @@ cudf::type_id sqlite_parser::get_cudf_type_id(
   return parse_sqlite_column_type(sql_column_type);
 }
 
+// To know about postgresql data type details
+// see https://www.postgresql.org/docs/current/datatype.html
+
 std::uint8_t sqlite_parser::parse_cudf_int8(
   void * src, std::size_t col, std::size_t row, std::vector<std::int8_t> * v) {
   sqlite3_stmt * stmt = reinterpret_cast<sqlite3_stmt *>(src);
