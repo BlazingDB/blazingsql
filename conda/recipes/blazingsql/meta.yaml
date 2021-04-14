@@ -46,7 +46,7 @@ requirements:
         - nlohmann_json
         - aws-sdk-cpp
         - google-cloud-cpp 1.25.0
-        - openjdk >= 8.0.282, < 9.0
+        - openjdk >=8.0, <9.0
         - jpype1
         - netifaces
         - pyhive
