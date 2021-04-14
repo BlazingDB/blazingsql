@@ -315,7 +315,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
 
 		RAL_EXPECTS(!ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views), "Concatenating tables will overflow");
 	}
-
 	return ral::utilities::concatTables(table_views);
 }
 

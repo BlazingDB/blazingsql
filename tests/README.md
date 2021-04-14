@@ -27,9 +27,9 @@ cd blazingsql
 ./test.sh
 ```
 
-### End to End tests
+## End to End tests
 
-#### Default settings
+### Default settings
 By default the end to end tests:
 - Run in single node only (nrals: 1)
 - Compare against parquet result files instead of Drill or pySpark (execution mode: gpuci)
@@ -49,7 +49,7 @@ cd blazingsql
 ./test.sh e2e tests=roundTest,orderbyTest
 ```
 
-#### Custom settings
+### Custom settings
 All the behaviour of the end to end test are base on environment variables. So when you want to have more control you need to change some of the default values exporting or defining the target environment variable before run the tests.
 
 Examples:
@@ -96,13 +96,14 @@ export BLAZINGSQL_E2E_WORKSHEET="BSQL Log Results" # or "BSQL Performance Result
 export BLAZINGSQL_E2E_LOG_INFO=''
 export BLAZINGSQL_E2E_COMPARE_RESULTS=true
 export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=""
+export BLAZINGSQL_E2E_TEST_WITH_NULLS="false" # use this when you want to use the dataset with nulls
 
 #ComparissonTest
 export BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE=false
 export BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE=0.01
 ```
 
-If you don't want to use the stored parquet results (BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY) and you want to compare directly against `Drill` or `Spark` then you can change the execution mode variable BLAZINGSQL_E2E_EXEC_MODE from `"gpuci"` to `"full"`. 
+If you don't want to use the stored parquet results (BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY) and you want to compare directly against `Drill` or `Spark` then you can change the execution mode variable BLAZINGSQL_E2E_EXEC_MODE from `"gpuci"` to `"full"`.
 Please, note that if you want to run on `full` mode you must have a `Drill` instance running.
 
 If you want to run a test with n rals/workers where n>1 you need to change the environment variable BLAZINGSQL_E2E_N_RALS.
@@ -115,7 +116,17 @@ Finally, there are sensible data that never must be public so to get the values 
 - Google Storage connection settings: BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID, BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME, BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE
 - Google Docs spreadsheet access: BLAZINGSQL_E2E_LOG_INFO
 
-#### Testing workflow remarks
+### Generating New Test Result Files
+When running the end to end tests in its default mode (BLAZINGSQL_E2E_EXEC_MODE="gpuci"), it will use result files which live in the blazingsql-testing-files repository which should be in the root of your conda environment directory. To generate new files here for new E2E test queries, you will need to run the testing framework for the test set in generator mode. You must also run it for regular data and data with nulls. You will have to do something like this:
+
+```shell-script
+BLAZINGSQL_E2E_EXEC_MODE="generator" ./test.sh e2e tests=windowNoPartitionTest
+BLAZINGSQL_E2E_TEST_WITH_NULLS=true   BLAZINGSQL_E2E_EXEC_MODE="generator" ./test.sh e2e tests=windowNoPartitionTest
+```
+
+**Note:** If you need to modify an already existing file, you will need to delete it, before you try to regenerate it.
+
+### Testing workflow remarks
 - For development/debugging is recommended to set you env var BLAZINGSQL_E2E_DASK_CONNECTION to your dask-scheduler IP:PORT
 - Do not touch bash files, if you need a feature please talk with QA & DevOps teams.
 - Only add/modify end to end tests once you have coordinated with QA team.
@@ -178,7 +189,7 @@ To support the testing of queries to a HDFS filesystem whose authentication is g
 	```
 
 - Download and extract a compatible Hadoop distribution that contains the client libraries (tested with versions 2.7.3 and 2.7.4):
-	
+
 	https://archive.apache.org/dist/hadoop/common/
 
 #### Running the E2E tests with the support of HDFS and Kerberos
@@ -204,7 +215,7 @@ To run other tests beyond the E2E tests (ad hoc scripts, local Hadoop tests), yo
 	$ cd KrbHDFS
 	$ source ./load_hdfs_env_vars.sh /PATH/TO/HADOOP
 	```
- 
+
 2. Run the script that we provided to start the containers. You need to pass as first argument the root of your Hadoop distribution, and the path to the data that will be copied inside the HDFS instance.
 	```shell-script
 	$ cd KrbHDFS
@@ -240,6 +251,28 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	$ python -m EndToEndTests.fileSystemHiveTest configE2ETest.json
 	```
 
+#### MySQL, PostgreSQL, SQLite testing
+For MySQL you will need to install this lib:
+```shell-script
+conda install -c conda-forge mysql-connector-python
+```
+
+and run the following line into mysql console:
+```sql
+SET GLOBAL local_infile = 'ON';
+```
+
+To run the tests for tables from other SQL databases just define these env vars before run the test:
+
+```shell-script
+BLAZINGSQL_E2E_SQL_HOSTNAME
+BLAZINGSQL_E2E_SQL_PORT
+BLAZINGSQL_E2E_SQL_USERNAME
+BLAZINGSQL_E2E_SQL_PASSWORD
+BLAZINGSQL_E2E_SQL_SCHEMA
+```
+
+Note BLAZINGSQL_E2E_SQL_PORT is a number and the other vars are strings!
 #### Troubleshooting
 
 Sometimes, for many reasons the E2E script test could raise an error. In that case, containers may be in an invalid state. Before try again, please check that there aren't any HDFS or Kerberos containers running by calling the stopping of the containers explicitly:
@@ -254,9 +287,9 @@ $ docker-compose down
 - To generate TPCH Dataset, you have to use the GenerateTpchDataFiles script
 
 ### Data Directory Structure
- - In configurationFile.json  -> 
+ - In configurationFile.json  ->
 					"dataDirectory": "/path_to_dataset/100MB2Part/"
-		 
+
 	You should have two folders inside dataDirectory: tpch folder and tpcx folder
 	See https://github.com/BlazingDB/blazingsql-testing-files/blob/master/data.tar.gz
 

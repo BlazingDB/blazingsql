@@ -1,0 +1,61 @@
+
+.. _file_engine_src_CalciteInterpreter.h:
+
+File CalciteInterpreter.h
+=========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/CalciteInterpreter.h``)
+------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``execution_graph/Context.h`` (:ref:`file_engine_src_execution_graph_Context.h`)
+
+- ``execution_graph/logic_controllers/taskflow/graph.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_graph.h`)
+
+- ``io/DataLoader.h`` (:ref:`file_engine_src_io_DataLoader.h`)
+
+- ``string``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_CalciteInterpreter.cpp`
+
+- :ref:`file_engine_src_cython_engine.cpp`
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_CalciteInterpreter_8h_1a78900caa2be5784a34668af3a49bd829`
+
+- :ref:`exhale_function_CalciteInterpreter_8h_1afafaece78c14fa2854655452fab848b5`
+
+- :ref:`exhale_function_CalciteInterpreter_8h_1a98297e82182b34631e2aed11b5ecf217`
+
+- :ref:`exhale_function_CalciteInterpreter_8h_1a3067ba222250cdcb155dcc82b7c6261c`
+

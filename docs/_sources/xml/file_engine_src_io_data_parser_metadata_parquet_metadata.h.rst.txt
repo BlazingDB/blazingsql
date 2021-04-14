@@ -1,0 +1,55 @@
+
+.. _file_engine_src_io_data_parser_metadata_parquet_metadata.h:
+
+File parquet_metadata.h
+=======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_parser_metadata>` (``engine/src/io/data_parser/metadata``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_parser/metadata/parquet_metadata.h``)
+----------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``common_metadata.h`` (:ref:`file_engine_src_io_data_parser_metadata_common_metadata.h`)
+
+- ``memory``
+
+- ``parquet/api/reader.h``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_io_data_parser_metadata_parquet_metadata.cpp`
+
+- :ref:`file_engine_src_io_data_parser_ParquetParser.cpp`
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_parquet__metadata_8h_1a1c287d4955f6219fb9b083ea01b8f045`
+
+- :ref:`exhale_function_parquet__metadata_8h_1a880d2c82faa9779c96d1336488063231`
+

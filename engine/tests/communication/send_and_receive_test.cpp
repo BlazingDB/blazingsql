@@ -156,7 +156,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveTest0) {
 
   metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
     
-  output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+  output_cache->addToCache(std::move(table),"",true,metadata, true);
 
   auto received_table = input_cache->pullFromCache();
 
@@ -198,7 +198,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveALOT) {
 
       metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
         
-      output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+      output_cache->addToCache(std::move(table),"",true,metadata, true);
       std::cout<<"output_cache->addToCache "<<i<<std::endl;
     }));
   }
@@ -248,7 +248,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveALOT) {
 
       metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
         
-      output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+      output_cache->addToCache(std::move(table),"",true,metadata, true);
     }));
   }
 

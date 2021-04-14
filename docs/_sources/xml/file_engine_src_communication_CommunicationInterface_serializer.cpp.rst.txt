@@ -1,0 +1,54 @@
+
+.. _file_engine_src_communication_CommunicationInterface_serializer.cpp:
+
+File serializer.cpp
+===================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication_CommunicationInterface>` (``engine/src/communication/CommunicationInterface``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/communication/CommunicationInterface/serializer.cpp``)
+-------------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``communication/messages/MessageUtil.cuh``
+
+- ``cstring``
+
+- ``cudf/column/column_factories.hpp``
+
+- ``cudf/null_mask.hpp``
+
+- ``serializer.hpp`` (:ref:`file_engine_src_communication_CommunicationInterface_serializer.hpp`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_comm`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_serializer_8cpp_1a7fd15c31dc49df173a59a475f63760b4`
+

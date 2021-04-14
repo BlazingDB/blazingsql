@@ -35,7 +35,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	while (!got_schema && this->provider->has_next()){
 		data_handle handle = this->provider->get_next();
 		if (handle.file_handle != nullptr){
-			this->parser->parse_schema(handle.file_handle, schema);
+			this->parser->parse_schema(handle, schema);
 			if (schema.get_num_columns() > 0){
 				got_schema = true;
 				schema.add_file(handle.uri.toString(true));
@@ -75,7 +75,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 		for(auto handle : handles) {
 			files.push_back(handle.file_handle);
 		}
-		metadata_batches.emplace_back(this->parser->get_metadata(files, offset));
+		metadata_batches.emplace_back(this->parser->get_metadata(handles, offset));
 		metadata_batches_views.emplace_back(metadata_batches.back()->toBlazingTableView());
 		offset += files.size();
 		this->provider->close_file_handles();

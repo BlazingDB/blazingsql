@@ -1,0 +1,16 @@
+.. _exhale_class_classctpl_1_1detail_1_1Queue:
+
+Template Class Queue
+====================
+
+- Defined in :ref:`file_engine_src_utilities_ctpl_stl.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: ctpl::detail::Queue
+   :members:
+   :protected-members:
+   :undoc-members:
