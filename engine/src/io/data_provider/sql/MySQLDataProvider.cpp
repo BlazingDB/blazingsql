@@ -203,6 +203,9 @@ mysql_data_provider::mysql_data_provider(
   this->column_names = cols_info.columns;
   this->column_types = cols_info.types;
   this->column_bytes = cols_info.bytes;
+
+  // see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
+  this->register_operator(operator_type::BLZ_IS_NOT_NULL, "IS NOT NULL", true);
 }
 
 mysql_data_provider::~mysql_data_provider() {
@@ -237,7 +240,7 @@ data_handle mysql_data_provider::get_next(bool open_file) {
   size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * this->batch_position + this->self_node_idx);
   std::string query = select_from + where + this->sql.table_filter + this->build_limit_offset(offset);
   // DEBUG
-  //std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MYSQL QUERY:\n\n" << query << "\n\n\n";
+  std::cout << "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MYSQL QUERY:\n\n" << query << "\n\n\n";
   ++this->batch_position;
   auto res = execute_mysql_query(this->mysql_connection.get(), query);
 

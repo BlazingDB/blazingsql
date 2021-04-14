@@ -88,7 +88,7 @@ void print_batch(const ral::io::data_handle &handle,
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis"+std::to_string(++i));
 }
 
-TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
+TEST_F(SQLProviderTest, mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 3306;
@@ -111,11 +111,11 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
 
 
   sql.schema = "tpch";
-  //sql.table = "lineitem";
-  sql.table = "nation";
+  sql.table = "lineitem";
+  //sql.table = "nation";
 
   sql.table_filter = "";
-  sql.table_batch_size = 2000;
+  sql.table_batch_size = 200000;
   sql.table_batch_size = 2;
 
   auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
@@ -142,6 +142,11 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   }
   mysql_provider->set_column_indices(column_indices);
 
+  std::string exp = "BindableTableScan(table=[[main, lineitem]], filters=[[OR(AND(>($0, 599990), <=($3, 1998-09-02)), AND(<>(-($0, 1), +(65, /(*(*(98, $0), 2), 3))), IS NOT NULL($1)))]], projects=[[0, 1, 9, 10]], aliases=[[l_orderkey, l_partkey, l_linestatus, l_shipdate]])";
+  mysql_provider->set_predicate_pushdown(schema, exp);
+
+  return;
+  
   std::cout << "\tTABLE\n";
   auto cols = schema.get_names();
   std::cout << "total cols: " << cols.size() << "\n";
