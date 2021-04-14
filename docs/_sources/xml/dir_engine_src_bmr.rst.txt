@@ -1,0 +1,26 @@
+.. _dir_engine_src_bmr:
+
+
+Directory bmr
+=============
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src/bmr``
+
+
+Files
+-----
+
+- :ref:`file_engine_src_bmr_BlazingMemoryResource.cpp`
+- :ref:`file_engine_src_bmr_BlazingMemoryResource.h`
+- :ref:`file_engine_src_bmr_BufferProvider.cpp`
+- :ref:`file_engine_src_bmr_BufferProvider.h`
+- :ref:`file_engine_src_bmr_initializer.h`
+- :ref:`file_engine_src_bmr_MemoryMonitor.cpp`
+- :ref:`file_engine_src_bmr_MemoryMonitor.h`
+
+

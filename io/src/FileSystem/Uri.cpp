@@ -164,6 +164,19 @@ Uri::Uri(const std::string & scheme, const std::string & authority, const Path &
 Uri::Uri(FileSystemType fileSystemType, const std::string & authority, const Path & path, bool strict)
 	: Uri(Uri::fileSystemTypeToScheme(fileSystemType), authority, path, strict) {}
 
+Uri::Uri(const std::string &scheme,
+         const std::string &authority,
+         const std::string &path,
+         const std::string &query,
+         const std::string &fragment)
+  : fileSystemType(FileSystemType::UNDEFINED)
+  , scheme(scheme)
+  , authority(authority)
+  , path(Path(path, false))
+  , query(query)
+  , fragment(fragment)
+  , valid(true) {}
+
 Uri::Uri(const Uri & other)
 	: fileSystemType(other.fileSystemType), scheme(other.scheme), authority(other.authority), path(other.path),
 	  valid(other.valid) {}

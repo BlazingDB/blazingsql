@@ -1,0 +1,13 @@
+.. _exhale_function_orc__metadata_8cpp_1a3587ab7d35c3eafab6fe361b35a54e9a:
+
+Function get_typed_vector_str_content
+=====================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_metadata_orc_metadata.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_typed_vector_str_content(cudf::type_id, std::vector<std::string>&)

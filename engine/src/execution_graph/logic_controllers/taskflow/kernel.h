@@ -19,7 +19,7 @@ struct task_result{
 	std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs;
 };
 
-} 
+}
 }
 
 namespace ral {
@@ -31,7 +31,7 @@ using kernel_pair = std::pair<kernel *, std::string>;
 /**
  * @brief This interface represents a computation unit in the execution graph.
  * Each kernel has basically and input and output ports and the expression asocciated to the computation unit.
- * Each class that implements this interface should define how the computation is executed. See `run()` method.
+ * Each class that implements this interface should define how the computation is executed. See `do_process()` method.
  */
 class kernel {
 public:
@@ -182,24 +182,57 @@ public:
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
 
+	/**
+	* @brief Invokes the do_process function.
+	*/
 	ral::execution::task_result process(std::vector<std::unique_ptr<ral::frame::BlazingTable > >  inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, const std::map<std::string, std::string>& args);
 
+	/**
+	* @brief Implemented by all derived classes and is the function which actually performs transformations on dataframes.
+	* @param inputs The data being operated on
+	* @param output the output cache to write the output to
+	* @param stream the cudastream to to use
+	* @param args any additional arguments the kernel may need to perform its execution that may not be available to the kernel at instantiation.
+	*/
 	virtual ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
 		std::shared_ptr<ral::cache::CacheMachine> /*output*/,
 		cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/){
 			return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
+	/**
+	* @brief given the inputs, estimates the number of bytes that will be necessary for holding the output after performing a transformation. For many kernels this is not an estimate but rather a certainty. For operations whose outputs are of indeterminate size it provides an estimate.
+	* @param inputs the data that would be transformed
+	* @returns the number of bytes that we expect to be needed to hold the output after performing this kernels transformations on the given inputs.
+	*/
 	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
+
+	/**
+	* @brief given the inputs, estimates the number of bytes that will be necessary for performing the transformation. This can be thought of as the memory overhead of the actual transformations being performed. For many kernels this is not an estimate but rather a certainty. For operations that perform indeterminately sized allocations based on the contents of inputs it provides an estimate.
+	* @param inputs the data that would be transformed
+	* @returns the number of bytes that we expect to be needed to hold the output after performing this kernels transformations on the given inputs.
+	*/
 	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 
 	virtual std::string kernel_name() { return "base_kernel"; }
 
+	/**
+	* @brief notify the kernel that a task it dispatched was completed successfully.
+	*/
 	void notify_complete(size_t task_id);
+	/**
+	* @brief notify the kernel that a task it dispatched failed.
+	*/
 	void notify_fail(size_t task_id);
+	/**
+	* @brief add a task to the list of tasks the kernel is waiting to complete.
+	*/
 	void add_task(size_t task_id);
+	/**
+	* @brief check and see if all the tasks were completed.
+	*/
 	bool finished_tasks(){
 		return tasks.empty();
 	}
@@ -210,6 +243,7 @@ protected:
 	std::atomic<std::size_t> total_input_bytes_processed;
 	std::atomic<std::size_t> total_input_rows_processed;
 	
+
 public:
 	std::string expression; /**< Stores the logical expression being processed. */
 	port input_{this}; /**< Represents the input cache machines and their names. */

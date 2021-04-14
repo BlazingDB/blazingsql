@@ -21,7 +21,7 @@ arrow_parser::arrow_parser(std::shared_ptr< arrow::Table > table):  table(table)
 
 arrow_parser::~arrow_parser() {}
 
-void arrow_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> /*file*/,
+void arrow_parser::parse_schema(ral::io::data_handle /*handle*/,
 		ral::io::Schema &  /*schema*/){
 	std::vector<std::string> names;
 	std::vector<cudf::type_id> types;

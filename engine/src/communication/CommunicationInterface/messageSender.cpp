@@ -118,7 +118,11 @@ void message_sender::run_polling() {
 						for(auto worker_id : worker_ids) {
 
 							if(node_address_map.find(worker_id) == node_address_map.end()) {
-								throw std::runtime_error("Worker id not found!" + worker_id);
+								std::string possible_nodes;
+								std::for_each(node_address_map.begin(), node_address_map.end(), [&possible_nodes](const std::pair<std::string, node> &p) {
+										possible_nodes += p.first + ", ";										
+									});
+								throw std::runtime_error("Worker id " + worker_id + " not found! The nodes list is: " + possible_nodes);
 							}
 							destinations.push_back(node_address_map.at(worker_id));
 						}
