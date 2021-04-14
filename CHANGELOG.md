@@ -6,7 +6,7 @@
 
 
 ## Improvements
-- #1464 Better Support for unsigned types
+- #1464 Better Support for unsigned types in C++ side
 
 
 ## Bug Fixes
