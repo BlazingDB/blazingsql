@@ -21,6 +21,7 @@
 - #1419 Added concat cache machine timeout 
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
+- #1469 Setting csv chunk size default to 256MB
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
