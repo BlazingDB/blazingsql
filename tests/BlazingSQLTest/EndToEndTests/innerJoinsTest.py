@@ -336,7 +336,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 bc.create_table('table_unsig', df_u)
                 bc.create_table('table_sig', df)
 
-                # Let's apply `union` statement for all its dtypes 
+                # Let's apply `join` statement for all its dtypes 
                 query_join_1 = """select * from table_unsig inner join
                                     table_sig on col_uint8 = col_int8"""
                 bc.sql(query_join_1)
