@@ -8,6 +8,7 @@
 #include "AbstractSQLDataProvider.h"
 
 #include <jdbc/cppconn/connection.h>
+#include "parser/expression_tree.hpp"
 
 namespace ral {
 namespace io {
@@ -49,11 +50,15 @@ public:
 	 */ 
 	size_t get_num_handles() override;
 
+protected:
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override;
+
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
   size_t estimated_table_row_count;
   size_t batch_position;
   bool table_fetch_completed;
+  std::map<operator_type, std::pair<std::string, ral::parser::operator_node::placement_type>> operators;
 };
 
 } /* namespace io */

@@ -7,7 +7,7 @@
 
 #include "io/data_provider/DataProvider.h"
 #include "io/Schema.h"
-#include "parser/expression_utils.hpp"
+#include "parser/expression_tree.hpp"
 
 namespace ral {
 namespace io {
@@ -52,7 +52,7 @@ public:
 	 */
   void set_column_indices(std::vector<int> column_indices) { this->column_indices = column_indices; }
 
-  void set_predicate_pushdown(ral::io::Schema & schema, const std::string &queryString);
+  bool set_predicate_pushdown(const std::string &queryString);
 
 protected:
   // returns SELECT ... FROM
@@ -61,8 +61,7 @@ protected:
   // returns LIMIT ... OFFSET
   std::string build_limit_offset(size_t offset) const;
 
-  void register_operator(operator_type op_type, const std::string &op_name,
-    bool is = false);
+  virtual std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const = 0;
 
 protected:
   sql_info sql;
@@ -83,12 +82,11 @@ void set_sql_projections(data_provider *provider, const std::vector<int> &projec
 }
 
 template<class SQLProvider>
-void set_sql_predicate_pushdown(data_provider *provider,
-                                ral::io::Schema & schema,
+bool set_sql_predicate_pushdown(data_provider *provider,
                                 const std::string &queryString)
 {
   auto sql_provider = static_cast<SQLProvider*>(provider);
-  sql_provider->set_predicate_pushdown(schema, queryString);
+  return sql_provider->set_predicate_pushdown(queryString);
 }
 
 } /* namespace io */

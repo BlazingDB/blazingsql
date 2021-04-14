@@ -180,6 +180,53 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
   return ret;
 }
 
+class mysql_predicate_transformer : public parser::node_transformer {
+public:
+  mysql_predicate_transformer(const std::vector<int> &column_indices,
+    const std::vector<std::string> &column_names,
+    const std::map<operator_type, std::pair<std::string, ral::parser::operator_node::placement_type>> &operators)
+    : column_indices(column_indices), column_names(column_names), operators(operators) {}
+
+  virtual ~mysql_predicate_transformer() {}
+
+  parser::node * transform(parser::operad_node& node) override {
+    auto ndir = &((ral::parser::node&)node);
+    if (this->visited.count(ndir)) {
+      return &node;
+    }
+    if (node.type == ral::parser::node_type::VARIABLE) {
+      std::string var = StringUtil::split(node.value, "$")[1];
+      int idx = std::atoi(var.c_str());
+      node.value = column_names[column_indices[idx]];
+    }
+    this->visited[ndir] = true;
+    return &node;
+  }
+
+  parser::node * transform(parser::operator_node& node) override {
+    auto ndir = &((ral::parser::node&)node);
+    if (this->visited.count(ndir)) {
+      return &node;
+    }
+    if (!operators.empty()) {
+      operator_type op = map_to_operator_type(node.value);
+      if (operators.count(op)) {
+        auto op_obj = operators.at(op);
+        node.label = op_obj.first;
+        node.placement = op_obj.second;
+      }
+    }
+    this->visited[ndir] = true;
+    return &node;
+  }
+
+private:
+  std::map<ral::parser::node*, bool> visited;
+  std::vector<int> column_indices;
+  std::vector<std::string> column_names;
+  std::map<operator_type, std::pair<std::string, ral::parser::operator_node::placement_type>> operators;
+};
+
 mysql_data_provider::mysql_data_provider(
     const sql_info &sql,
     size_t total_number_of_nodes,
@@ -205,7 +252,8 @@ mysql_data_provider::mysql_data_provider(
   this->column_bytes = cols_info.bytes;
 
   // see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
-  this->register_operator(operator_type::BLZ_IS_NOT_NULL, "IS NOT NULL", true);
+  operators[operator_type::BLZ_IS_NOT_NULL] = std::make_pair("IS NOT NULL", ral::parser::operator_node::placement_type::END);
+  operators[operator_type::BLZ_IS_NULL] = std::make_pair("IS NULL", ral::parser::operator_node::placement_type::END);
 }
 
 mysql_data_provider::~mysql_data_provider() {
@@ -262,6 +310,14 @@ data_handle mysql_data_provider::get_next(bool open_file) {
 size_t mysql_data_provider::get_num_handles() {
   size_t ret = this->estimated_table_row_count / this->sql.table_batch_size;
   return ret == 0? 1 : ret;
+}
+
+std::unique_ptr<ral::parser::node_transformer> mysql_data_provider::get_predicate_transformer() const {
+  return std::unique_ptr<ral::parser::node_transformer>(new mysql_predicate_transformer(
+    this->column_indices,
+    this->column_names,
+    this->operators
+  ));
 }
 
 } /* namespace io */

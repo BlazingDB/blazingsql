@@ -79,7 +79,14 @@ private:
 };
 
 struct operator_node : public node {
-    operator_node(const std::string& value) : node{ node_type::OPERATOR, value } {};
+    enum placement_type {
+      AUTO,
+      BEGIN,
+      MIDDLE,
+      END
+    };
+
+    operator_node(const std::string& value) : node{ node_type::OPERATOR, value }, label(value) {};
 
     node * clone() const override {
         node * ret = new operator_node(this->value);
@@ -108,6 +115,9 @@ struct operator_node : public node {
         }
         return transformer.transform(*this);
     }
+
+    placement_type placement = placement_type::AUTO;
+    std::string label;
 };
 
 namespace detail {

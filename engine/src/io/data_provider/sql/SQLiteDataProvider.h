@@ -49,6 +49,10 @@ public:
 	 */ 
 	size_t get_num_handles() override;
 
+protected:
+  // TODO percy c.gonzales
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
+
 private:
   sqlite3* sqlite_connection;
   std::vector<std::string> partitions;
