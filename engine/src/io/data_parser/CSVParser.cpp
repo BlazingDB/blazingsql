@@ -56,15 +56,19 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		else args.set_header(-1);
 
 		// Override `byte_range_offset` and `byte_range_size`
-		auto iter = args_map.find("max_bytes_chunk_read");
-		if(iter != args_map.end() && !row_groups.empty()) {
-			auto chunk_size = std::stoll(iter->second);
-			args.set_byte_range_offset(chunk_size * row_groups[0]);
-			args.set_byte_range_size(chunk_size);
-		}else{
-			//const auto row_groups = schema.get_rowgroups(); TODO duplicated values
-			args.set_byte_range_offset(DEFAULT_CSV_CHUNK_SIZE * (row_groups[0]));
-			args.set_byte_range_size(DEFAULT_CSV_CHUNK_SIZE);
+
+		if(!row_groups.empty()) {
+			auto iter = args_map.find("max_bytes_chunk_read");
+
+			if(iter == args_map.end()){
+				//const auto row_groups = schema.get_rowgroups(); TODO duplicated values
+				args.set_byte_range_offset(DEFAULT_CSV_CHUNK_SIZE * (row_groups[0]));
+				args.set_byte_range_size(DEFAULT_CSV_CHUNK_SIZE);
+			}else if(iter->second != "None"){
+				auto chunk_size = std::stoll(iter->second);
+				args.set_byte_range_offset(chunk_size * row_groups[0]);
+				args.set_byte_range_size(chunk_size);
+			}
 		}
 
 		cudf::io::table_with_metadata csv_table = cudf::io::read_csv(args);
