@@ -2,7 +2,7 @@
 
 
 ## New Features
-
+- #1471 Unbounded partitioned windows 
 
 
 ## Improvements
