@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8cpp_1a9047f7579abb1d46982975ba6d28014c:
+
+Function ral::utilities::create_empty_table(const BlazingTableView&)
+====================================================================
+
+- Defined in :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::create_empty_table(const BlazingTableView&)

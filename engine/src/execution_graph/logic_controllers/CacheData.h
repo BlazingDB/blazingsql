@@ -56,6 +56,14 @@ const std::string MESSAGE_ID = "message_id"; /**< A message metadata field that 
 const std::string PARTITION_COUNT = "partition_count"; /**< A message metadata field that indicates the number of partitions a kernel processed.  */
 const std::string UNIQUE_MESSAGE_ID = "unique_message_id"; /**< A message metadata field that indicates the unique id of a message. */
 
+// fields for window functions
+const std::string OVERLAP_STATUS = "overlap_status"; /**< A message metadata field that indicates the status of this overlap data. */
+const std::string OVERLAP_MESSAGE_TYPE = "overlap_message_type"; /**< A message metadata field that indicates the type of overlap request (preceding_request, following_request, preceding_response, following_response)*/
+const std::string OVERLAP_SIZE = "overlap_size"; /**< A message metadata field that contains an integer indicating the amount of overlap*/
+const std::string OVERLAP_SOURCE_NODE_INDEX = "overlap_source_node_index"; /**< A message metadata field that contains an integer indicating the node to from where it came*/
+const std::string OVERLAP_TARGET_NODE_INDEX = "overlap_target_node_index"; /**< A message metadata field that contains an integer indicating the node to whom it will be sent*/
+const std::string OVERLAP_TARGET_BATCH_INDEX = "overlap_target_batch_index"; /**< A message metadata field that contains an integer indicating the batch index for the node to whom it will be sent*/
+
 /**
 * Lightweight wrapper for a map that will one day be used for compile time checks.
 * Currently it is just a wrapper for map but in the future the intention is for
@@ -227,6 +235,13 @@ public:
 	*/
 	CacheDataType get_type() const {
 		return cache_type;
+	}
+
+	/**
+	* Set the MetadataDictionary
+	*/
+	void setMetadata(MetadataDictionary new_metadata){
+		this->metadata = new_metadata;
 	}
 
 	/**
@@ -563,7 +578,7 @@ public:
 	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();
 
 	virtual ~ConcatCacheData() {}
-
+	
 protected:
 	std::vector<std::unique_ptr<CacheData>> _cache_datas;
 };

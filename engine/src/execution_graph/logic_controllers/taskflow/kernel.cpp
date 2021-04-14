@@ -7,6 +7,7 @@ namespace cache {
 
 kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id)
         : total_input_bytes_processed{0},
+          total_input_rows_processed{0},
           expression{expr},
           kernel_id(kernel_id),
           parent_id_(-1),
@@ -86,12 +87,16 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
     }
 
     size_t bytes = 0;
+    size_t rows = 0;
     for(auto & input : inputs){
         bytes += input->sizeInBytes();
+        rows += input->num_rows();
     }
     auto result = do_process(std::move(inputs), output, stream, args);
     if(result.status == ral::execution::SUCCESS){
-        total_input_bytes_processed += bytes; // increment this AFTER its been processed successfully
+         // increment these AFTER its been processed successfully
+        total_input_bytes_processed += bytes;
+        total_input_rows_processed += rows;
     } else {
         auto logger = spdlog::get("batch_logger");
         if (logger) {
