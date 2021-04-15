@@ -3067,7 +3067,9 @@ class BlazingContext(object):
             return result
 
         if ") OVER (" in algebra:
-            print("WARNING: Window Functions are currently an experimental feature and not fully supported or tested")
+            print(
+                "WARNING: Window Functions are currently an experimental feature and not fully supported or tested"
+            )
 
         if algebra == "":
             print("Parsing Error")
