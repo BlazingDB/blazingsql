@@ -19,6 +19,7 @@
 #include <cudf/partitioning.hpp>
 #include <cudf/types.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/filling.hpp>
 #include <cudf/aggregation.hpp>
 #include <cudf/search.hpp>
 #include <cudf/join.hpp>
@@ -1310,44 +1311,61 @@ kstatus ComputeWindowKernelUnbounded::run() {
 
     // WSM TODO distributed vs single node????
     if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
+        std::vector<std::string> agg_column_names = partial_aggregations_table->names();
         auto nodes = context->getAllNodes();
-        std::vector<std::unique_ptr<ral::frame::BlazingTable>> all_partial_aggregations;
+        std::vector<std::unique_ptr<ral::frame::BlazingTable>> node_partial_aggregations;
         std::vector<int> num_batches_per_node;
         for(std::size_t i = 0; i < nodes.size(); ++i) {
             if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
                 std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
                 auto partial_aggregations_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
                 num_batches_per_node.push_back(partial_aggregations_cache_data->num_rows());
-                all_partial_aggregations.push_back(std::move(partial_aggregations_cache_data->decache()));
+                node_partial_aggregations.push_back(std::move(partial_aggregations_cache_data->decache()));
             } else {
                 num_batches_per_node.push_back(partial_aggregations_table->num_rows());
-                all_partial_aggregations.push_back(std::move(partial_aggregations_table));
+                node_partial_aggregations.push_back(std::move(partial_aggregations_table));
             }
         }
-        // WSM left off here. Perform cumulative aggregation and send it back
+
+        std::unique_ptr<ral::frame::BlazingTable> all_partial_aggregations_table = ral::utilities::concatTables(std::move(node_partial_aggregations));
+        // Perform cumulative aggregation 
+        std::vector<std::unique_ptr<cudf::column>> cumulative_agg_columns;
+        std::unique_ptr<cudf::column> reverse_sequence; // if we need it, we only want to create it once, so I will declare it out here
         for (std::size_t col_i = 0; col_i < this->aggs_wind_func.size(); ++col_i) {
             std::unique_ptr<cudf::aggregation> window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[col_i], this->agg_param_values[col_i]);
-            
-        }
-         if (this->preceding_value == -1) { // is unbounded
-                    // want to get last value
-                    std::vector<cudf::table_view> split_window_view = cudf::split(window_agg_table_view, {window_agg_table_view.num_rows() - 2});
-                    partial_aggregations_table_view = split_window_view[1];
-                } else if (this->following_value == -1) { // is unbounded
-                    // want to get first value
-                    std::vector<cudf::table_view> split_window_view = cudf::split(window_agg_table_view, {1});
-                    partial_aggregations_table_view = split_window_view[0];
-                } else {
-                    // error one of the two should be unbounded otherwise we should not be in this kernel
-                }
 
-// https://github.com/rapidsai/cudf/issues/7967
-        std::unique_ptr<column> scan(
-        const column_view &input,
-        std::unique_ptr<aggregation> const &agg,
-        scan_type inclusive,
-        null_policy null_handling           = null_policy::EXCLUDE,
-        rmm::mr::device_memory_resource *mr = rmm::mr::get_current_device_resource());
+            cudf::column_view partial_agg_column_view = all_partial_aggregations_table->view().column(col_i);
+            std::unique_ptr<cudf::column> cumulative_agg_column;
+            if (this->preceding_value == -1) { // is unbounded
+                cumulative_agg_column = cudf::scan(partial_agg_column_view, window_aggregation, cudf::scan_type::INCLUSIVE);                
+            } 
+            if (this->following_value == -1) { // is unbounded
+                if (this->preceding_value == -1){ // if we already had to do preceding unbounded, we want to use the output of that
+                    partial_agg_column_view = cumulative_agg_column->view();
+                }
+                // before we do the scan, we will want to do a reverse on the data
+                // right now there is no reverse API (https://github.com/rapidsai/cudf/issues/7967) so we need to do a sequense and gather
+                if (reverse_sequence == nullptr){ // if not initialized
+                    reverse_sequence = cudf::sequence(partial_agg_column_view.num_rows(), partial_agg_column_view.num_rows() - 1, -1);
+                }
+                cudf::table_view temp_table_view({partial_agg_column_view});
+                std::unique_ptr<cudf::table> reversed = cudf::gather(temp_table_view, reverse_sequence->view());
+
+                // now we do the inclusive scan on the reversed data.
+                cumulative_agg_column = cudf::scan(reversed->get_column(0)->view(), window_aggregation, cudf::scan_type::INCLUSIVE);
+                
+                // after we do the scan, we want to reverse the data back
+                temp_table_view = cudf::table_view({cumulative_agg_column->view()});
+                reversed = cudf::gather(temp_table_view, reverse_sequence->view());
+                std::vector<std::unique_ptr<column>> temp_released = reversed->release();
+                cumulative_agg_column = std::move(temp_released[0]);
+            }
+            cumulative_agg_columns.push_back(std::move(cumulative_agg_column));
+        }
+        std::unique_ptr<ral::frame::BlazingTable> cumulative_agg_table = std::make_unique<ral::frame::BlazingTable>(
+            std::make_unique<cudf::table>(std::move(cumulative_agg_columns)), agg_column_names);
+         
+        
     } else {
         send_message(std::move(partial_aggregations_table),
                 false, //specific_cache
