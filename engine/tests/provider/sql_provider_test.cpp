@@ -80,7 +80,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
 
 void print_batch(const ral::io::data_handle & handle,
     const ral::io::Schema & schema,
-    ral::io::mysql_parser & parser,
+    ral::io::postgresql_parser & parser,
     const std::vector<int> & column_indices) {
   std::vector<cudf::size_type> row_groups;
   std::unique_ptr<ral::frame::BlazingTable> bztbl =
@@ -88,12 +88,13 @@ void print_batch(const ral::io::data_handle & handle,
   static int i = 0;
   ral::utilities::print_blazing_table_view(
       bztbl->toBlazingTableView(), "holis" + std::to_string(++i));
+  std::cout << "TREMINO DE IMPRIMER CUDF TABLE!!! \n";
 }
 
-TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
+TEST_F(SQLProviderTest, mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
-  sql.port = 3306;
+  sql.port = 5432;
   //  sql.user = "blazing";
   //  sql.password = "admin";
   //  sql.schema = "bz3";
@@ -104,7 +105,7 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   //  sql.table_filter = "";
   //  sql.table_batch_size = 100;
 
-  sql.user = "lucho";
+  sql.user = "admin";
   sql.password = "admin";
   sql.schema = "employees";
   // sql.table = "departments";
@@ -121,11 +122,11 @@ TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   sql.table_batch_size = 2;
 
   auto mysql_provider =
-      std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
+      std::make_shared<ral::io::postgresql_data_provider>(sql, 1, 0);
 
   int rows = mysql_provider->get_num_handles();
 
-  ral::io::mysql_parser parser;
+  ral::io::postgresql_parser parser;
   ral::io::Schema schema;
   auto handle =
       mysql_provider->get_next(false);  // false so we make sure dont go to
