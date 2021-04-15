@@ -200,7 +200,7 @@ public:
       std::string var = StringUtil::split(node.value, "$")[1];
       size_t idx = std::atoi(var.c_str());
       size_t col = column_indices[idx];
-      node.value = column_names[col];        
+      node.value = column_names[col];
     } else if (node.type == ral::parser::node_type::LITERAL) {
       ral::parser::literal_node &literal_node = ((ral::parser::literal_node&)node);
       if (literal_node.type().id() == cudf::type_id::TIMESTAMP_DAYS ||

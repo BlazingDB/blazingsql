@@ -31,22 +31,22 @@ sql_table_filters = {
 
 # aprox. taken from parquet parts (tpch with nulls 2 parts)
 sql_table_batch_sizes = {
-#    "nation": 30,
-#    "region": 10,
-#    "customer": 7000,
+    "nation": 30,
+    "region": 10,
+    "customer": 7000,
     "lineitem": 300000,
-#    "orders": 7500,
-#    "supplier": 600,
-#    "part": 10000,
-#    "partsupp": 40000,
+    "orders": 7500,
+    "supplier": 600,
+    "part": 10000,
+    "partsupp": 40000,
 }
 
 tpch_queries = [
-#    "TEST_13",
+    "TEST_13",
 #    "TEST_07",
 #    "TEST_12",
 #    "TEST_04",
-    "TEST_01",
+#    "TEST_01",
 ]
 
 # Parameter to indicate if its necessary to order
@@ -118,6 +118,8 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
             break
 
         print("==>> Run query for sample", sampleId)
+        print("PLAN:")
+        print(bc.explain(query, True))
         runTest.run_query(
             bc,
             drill,

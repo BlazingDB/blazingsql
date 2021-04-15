@@ -118,6 +118,7 @@ struct operator_node : public node {
 
     placement_type placement = placement_type::AUTO;
     std::string label;
+    bool parentheses_wrap = true;
 };
 
 namespace detail {
