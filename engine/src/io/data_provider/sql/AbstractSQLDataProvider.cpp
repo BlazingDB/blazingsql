@@ -58,9 +58,14 @@ std::string in_order(const ral::parser::node &node) {
         }
       }
     } else if (is_binary_operator(op)) {
-      auto c1 = node.children[0].get();
-      auto c2 = node.children[1].get();
-      auto body = in_order(*c1) + " " + op_node.label + " " + in_order(*c2);
+      std::string body;
+      for (int i = 0; i < node.children.size(); ++i) {
+        auto c = node.children[i].get();
+        body += in_order(*c);
+        if (i < node.children.size()-1) {
+          body += " " + op_node.label + " ";
+        }
+      }
       if (op_node.parentheses_wrap) {
         return "(" + body + ")";
       } else {

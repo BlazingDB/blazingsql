@@ -113,7 +113,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   sql.schema = "tpch";
   sql.table = "lineitem";
   //sql.table = "nation";
-  sql.table = "orders";
+  //sql.table = "orders";
 
   sql.table_filter = "";
   sql.table_batch_size = 200000;
@@ -144,7 +144,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   mysql_provider->set_column_indices(column_indices);
 
   //std::string exp = "BindableTableScan(table=[[main, lineitem]], filters=[[OR(AND(>($0, 599990), <=($3, 1998-09-02)), AND(<>(-($0, 1), +(65, /(*(*(98, $0), 2), 3))), IS NOT NULL($1)))]], projects=[[0, 1, 9, 10]], aliases=[[l_orderkey, l_partkey, l_linestatus, l_shipdate]])";
-  std::string exp = "BindableTableScan(table=[[main, orders]], filters=[[NOT(LIKE($2, '%special%requests%'))]], projects=[[0, 1, 8]], aliases=[[o_orderkey, o_custkey, o_comment]])";
+  //std::string exp = "BindableTableScan(table=[[main, orders]], filters=[[NOT(LIKE($2, '%special%requests%'))]], projects=[[0, 1, 8]], aliases=[[o_orderkey, o_custkey, o_comment]])";
+  std::string exp = "BindableTableScan(table=[[main, lineitem]], filters=[[AND(OR(=($4, 'MAIL'), =($4, 'SHIP')), <($2, $3), <($1, $2), >=($3, 1994-01-01), <($3, 1995-01-01))]], projects=[[0, 10, 11, 12, 14]], aliases=[[l_orderkey, l_shipdate, l_commitdate, l_receiptdate, l_shipmode]])";
 
   mysql_provider->set_predicate_pushdown(exp, schema.get_dtypes());
 
