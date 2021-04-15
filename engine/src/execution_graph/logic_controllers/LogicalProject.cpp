@@ -950,6 +950,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
         expression = fill_minus_op_with_zero(expression);
         expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+        expression = convert_ms_to_ns_units(expression);
 
         expressions[i] = expression;
         out_column_names[i] = name;

@@ -226,3 +226,5 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 std::string fill_minus_op_with_zero(std::string expression);
 
 std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
+
+std::string convert_ms_to_ns_units(std::string expression);

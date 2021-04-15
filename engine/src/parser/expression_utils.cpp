@@ -1032,3 +1032,34 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 
 	return new_expression;
 }
+
+// Calcite by default returns units in miliseconds, as we are getting a
+// TIMESTAMP_NANOSECONDS from BLZ_TO_TIMESTAMP, we want to convert these to nanoseconds units
+// input: CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER]
+// output: CAST(/INT(Reinterpret(-(2020-11-10 12:00:01, CAST($0):TIMESTAMP(0))), 86400000000000)):INTEGER
+std::string convert_ms_to_ns_units(std::string expression) {
+	std::string ns_str_to_concat = "000000";
+	// For timestampdiff
+	if (expression.find("Reinterpret(") != expression.npos) {
+		std::string day_ms = "86400000", hour_ms = "3600000", min_ms = "60000", sec_ms = "1000";
+		if (expression.find(day_ms) != expression.npos) {
+			return StringUtil::replace(expression, day_ms, day_ms + ns_str_to_concat);
+		} else if(expression.find(hour_ms) != expression.npos) {
+			return StringUtil::replace(expression, hour_ms, hour_ms + ns_str_to_concat);
+		} else if(expression.find(min_ms) != expression.npos) {
+			return StringUtil::replace(expression, min_ms, min_ms + ns_str_to_concat);
+		} else if(expression.find(sec_ms) != expression.npos) {
+			return StringUtil::replace(expression, sec_ms, sec_ms + ns_str_to_concat);
+		}
+	}
+
+	// For timestampdadd
+	size_t start_interval_pos = expression.find(":INTERVAL");
+	if (start_interval_pos != expression.npos) {
+		size_t start_pos = expression.find(", ") + 2;
+		std::string time_value_str = expression.substr(start_pos, start_interval_pos - start_pos);
+		return StringUtil::replace(expression, time_value_str, time_value_str + ns_str_to_concat);	 
+	}
+
+	return expression;	
+}
