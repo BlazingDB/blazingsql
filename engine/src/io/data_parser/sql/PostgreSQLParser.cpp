@@ -344,10 +344,6 @@ std::uint8_t postgresql_parser::parse_cudf_string(
   // TODO(cristhian): convert oid to data type using postgresql pgtype table
   // https://www.postgresql.org/docs/13/catalog-pg-type.html
   switch (oid) {
-  case 1043: {  // text
-    data = result;
-    break;
-  }
   case 1082: {  // date
     const std::int32_t value =
       ntohl(*reinterpret_cast<const std::int32_t *>(result));
@@ -360,7 +356,7 @@ std::uint8_t postgresql_parser::parse_cudf_string(
     data = timestamp_to_string(value);
     break;
   }
-  default: throw std::runtime_error("Unsupported oid parse string");
+  default: data = result;
   }
 
   v->chars.insert(v->chars.end(), data.cbegin(), data.cend());
