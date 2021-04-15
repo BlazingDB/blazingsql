@@ -54,8 +54,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             #
             # Run Queries ---------------------------------------------------
             queryId = "TEST_01"
-            query = """select o_orderkey, o_custkey, o_totalprice, o_confirmed from bool_orders
-                    order by o_orderkey, o_totalprice limit 300"""
+            query = """select * from bool_orders
+                    order by o_orderkey, o_custkey limit 300"""
             runTest.run_query(
                 bc,
                 drill,
