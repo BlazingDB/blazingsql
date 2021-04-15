@@ -755,12 +755,12 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 // input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             max_keys=[MAX(4) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)])
-// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [3] >
+// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [0, 0, 3] >
 std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<std::string> aggregations;
-	std::vector<int> agg_param_values;
+	std::vector<int> agg_param_values; // will be set to 0 when not actually used
 
 	std::string query_part = get_query_part(logical_plan);
 	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
@@ -777,6 +777,7 @@ get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan)
 			if (split_parts[0] == "ROW_NUMBER()") {
 				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
 				column_index.push_back(0);
+				agg_param_values.push_back(0);
 			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
 				// we need to get the constant values
 				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
@@ -790,10 +791,18 @@ get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan)
 				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
 				column_index.push_back(std::stoi(indice));
 				column_index.push_back(std::stoi(indice));
+				agg_param_values.push_back(0);
+				agg_param_values.push_back(0);
+			} else if (is_last_value_window(project_expressions[i])) {
+				aggregations.push_back(split_parts[0]);
+				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
+				column_index.push_back(std::stoi(col_index));
+				agg_param_values.push_back(-1);			
 			} else {
 				aggregations.push_back(split_parts[0]);
 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
 				column_index.push_back(std::stoi(col_index));
+				agg_param_values.push_back(0);
 			}
 		}
 	}
