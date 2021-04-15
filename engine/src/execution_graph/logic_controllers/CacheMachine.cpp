@@ -782,21 +782,18 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		output = data->decache();
 		num_rows = output->num_rows();
 	}	else {
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
-		std::vector<ral::frame::BlazingTableView> table_views;
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 		for (size_t i = 0; i < collected_messages.size(); i++){
             CodeTimer cacheEventTimer;
 		    cacheEventTimer.start();
 
 			auto data = collected_messages[i]->release_data();
-			tables_holder.push_back(data->decache());
-			table_views.push_back(tables_holder[i]->toBlazingTableView());
-
+			tables.push_back(data->decache());
+			
 			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
-			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views)){
-				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables_holder.back()));
-				tables_holder.pop_back();
-				table_views.pop_back();
+			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables)){
+				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables.back()));
+				tables.pop_back();
 				collected_messages[i] =	std::make_unique<message>(std::move(cache_data), collected_messages[i]->get_message_id());
 				for (; i < collected_messages.size(); i++){
 					this->waitingCache->put(std::move(collected_messages[i]));
@@ -839,7 +836,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
                                           "description"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length");
             }
 		}
-		output = ral::utilities::concatTables(table_views);
+		output = ral::utilities::concatTables(std::move(tables));
 		num_rows = output->num_rows();
 	}
 

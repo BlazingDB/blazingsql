@@ -227,6 +227,7 @@ private:
 	std::vector<std::string> type_aggs_as_str;     // ["MIN", "LAG"]
 	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::LAG]
 	bool remove_overlap; 						   // If we need to remove the overlaps after computing the windows
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> partial_aggregations;   // container to hold single row tables of the partial_aggregation values for each batch
 };
 
 
