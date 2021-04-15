@@ -123,8 +123,6 @@ Finally, there are sensible data that never must be public so to get the values 
 
 ### Unit tests
 
-
-
 ```shell-script
 cd blazingsql
 
@@ -242,12 +240,13 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	```
 
 #### MySQL, PostgreSQL, SQLite testing
-For MySQL you will need to install this lib:
+For MySQL and PostgreSQL you will need to install these libs:
 ```shell-script
 conda install -c conda-forge mysql-connector-python
+conda install -c conda-forge psycopg2
 ```
 
-and run the following line into mysql console:
+and run the following line in the MySQL console:
 ```sql
 SET GLOBAL local_infile = 'ON';
 ```

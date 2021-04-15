@@ -8,8 +8,8 @@ from EndToEndTests.tpchQueries import get_tpch_query
 
 queryType = "TablesFromSQL"
 data_types = [
-    DataType.MYSQL,
-    #DataType.POSTGRESQL,
+    #DataType.MYSQL,
+    DataType.POSTGRESQL,
     #DataType.SQLITE,
     # TODO percy c.gonzales
 ]
@@ -140,9 +140,10 @@ def setup_test() -> bool:
         print("ERROR: You cannot run tablesFromSQL test, settup your SQL connection using env vars! See tests/README.md")
         return None
 
-    from DataBase import mysqlSchema
+    #from DataBase import mysqlSchema
+    from DataBase import postgreSQLSchema
 
-    mysqlSchema.create_and_load_tpch_schema(sql)
+    postgreSQLSchema.create_and_load_tpch_schema(sql)
     return sql
 
 

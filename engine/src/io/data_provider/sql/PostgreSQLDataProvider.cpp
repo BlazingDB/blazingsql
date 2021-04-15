@@ -116,12 +116,12 @@ std::shared_ptr<data_provider> postgresql_data_provider::clone() {
 }
 
 bool postgresql_data_provider::has_next() {
-  return table_fetch_completed == false;
+  return this->table_fetch_completed == false;
 }
 
 void postgresql_data_provider::reset() {
-  table_fetch_completed = true;
-  batch_position = 0;
+  this->table_fetch_completed = false;
+  this->batch_position = 0;
 }
 
 data_handle postgresql_data_provider::get_next(bool open_file) {
