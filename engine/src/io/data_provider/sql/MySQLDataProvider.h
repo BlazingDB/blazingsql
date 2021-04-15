@@ -51,7 +51,8 @@ public:
 	size_t get_num_handles() override;
 
 protected:
-  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override;
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer(
+      const std::vector<cudf::type_id> &cudf_types) const override;
 
 private:
   std::unique_ptr<sql::Connection> mysql_connection;

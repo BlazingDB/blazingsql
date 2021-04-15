@@ -101,12 +101,14 @@ void abstractsql_data_provider::close_file_handles() {
   // NOTE we don't use any file handle for this provider so nothing to do here
 }
 
-bool abstractsql_data_provider::set_predicate_pushdown(const std::string &queryString)
+bool abstractsql_data_provider::set_predicate_pushdown(
+  const std::string &queryString,
+  const std::vector<cudf::type_id> &cudf_types)
 {
-  auto predicate_transformer = this->get_predicate_transformer();
+  auto predicate_transformer = this->get_predicate_transformer(cudf_types);
   this->where = transpile_sql_predicate(queryString, predicate_transformer.get());
   // DEBUG
-  //std::cout << "\nWHERE stmt for the predicate pushdown:\n" << this->where << "\n\n";
+  std::cout << "\nWHERE stmt for the predicate pushdown:\n" << this->where << "\n\n";
   return !this->where.empty();
 }
 

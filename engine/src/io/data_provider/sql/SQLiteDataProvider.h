@@ -51,7 +51,8 @@ public:
 
 protected:
   // TODO percy c.gonzales
-  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer(
+      const std::vector<cudf::type_id> &cudf_types) const override { return nullptr; }
 
 private:
   sqlite3* sqlite_connection;
