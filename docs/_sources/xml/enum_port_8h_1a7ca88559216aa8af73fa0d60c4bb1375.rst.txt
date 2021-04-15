@@ -1,0 +1,13 @@
+.. _exhale_enum_port_8h_1a7ca88559216aa8af73fa0d60c4bb1375:
+
+Enum kstatus
+============
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_port.h`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: ral::cache::kstatus

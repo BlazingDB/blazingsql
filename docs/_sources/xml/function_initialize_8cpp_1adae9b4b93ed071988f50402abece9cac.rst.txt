@@ -1,0 +1,13 @@
+.. _exhale_function_initialize_8cpp_1adae9b4b93ed071988f50402abece9cac:
+
+Function finalize_C
+===================
+
+- Defined in :ref:`file_engine_src_cython_initialize.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: finalize_C(std::vector<int32_t>)

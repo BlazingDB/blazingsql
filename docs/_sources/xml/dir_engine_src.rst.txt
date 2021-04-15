@@ -1,0 +1,41 @@
+.. _dir_engine_src:
+
+
+Directory src
+=============
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine>` (``engine``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src``
+
+Subdirectories
+--------------
+
+- :ref:`dir_engine_src_bmr`
+- :ref:`dir_engine_src_communication`
+- :ref:`dir_engine_src_cython`
+- :ref:`dir_engine_src_distribution`
+- :ref:`dir_engine_src_execution_graph`
+- :ref:`dir_engine_src_Interpreter`
+- :ref:`dir_engine_src_io`
+- :ref:`dir_engine_src_operators`
+- :ref:`dir_engine_src_parser`
+- :ref:`dir_engine_src_skip_data`
+- :ref:`dir_engine_src_transport`
+- :ref:`dir_engine_src_utilities`
+
+
+Files
+-----
+
+- :ref:`file_engine_src_CalciteExpressionParsing.cpp`
+- :ref:`file_engine_src_CalciteExpressionParsing.h`
+- :ref:`file_engine_src_CalciteInterpreter.cpp`
+- :ref:`file_engine_src_CalciteInterpreter.h`
+- :ref:`file_engine_src_CodeTimer.h`
+- :ref:`file_engine_src_error.hpp`
+
+

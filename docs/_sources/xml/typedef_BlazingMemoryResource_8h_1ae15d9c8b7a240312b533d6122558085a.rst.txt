@@ -1,0 +1,13 @@
+.. _exhale_typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a:
+
+Typedef cudaStream_t
+====================
+
+- Defined in :ref:`file_engine_src_bmr_BlazingMemoryResource.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: cudaStream_t

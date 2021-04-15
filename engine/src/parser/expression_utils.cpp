@@ -664,19 +664,35 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 
 	// getting the first limit value
 	std::string between_expr = "BETWEEN ";
-	std::string preceding_expr = " PRECEDING";
+	std::string and_expr = "AND ";
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
-	size_t end_pos = over_clause.find(preceding_expr);
-	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	preceding_value = std::stoi(first_limit);
+	size_t end_pos = over_clause.find(and_expr);
+
+	std::string preceding_clause = over_clause.substr(start_pos, end_pos - start_pos);
+	std::string following_clause = over_clause.substr(end_pos + and_expr.size());
+
+	if (preceding_clause.find("CURRENT ROW") != std::string::npos){
+		preceding_value = 0;
+	} else if (preceding_clause.find("UNBOUNDED") != std::string::npos){
+		preceding_value = -1;
+	} else {
+		std::string preceding_expr = " PRECEDING";
+		end_pos = preceding_clause.find(preceding_expr);
+		std::string str_value = preceding_clause.substr(0, end_pos);
+		preceding_value = std::stoi(str_value);
+	}
 
 	// getting the second limit value
-	std::string and_expr = "AND ";
-	std::string following_expr = " FOLLOWING";
-	start_pos = over_clause.find(and_expr) + and_expr.size();
-	end_pos = over_clause.find(following_expr);
-	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	following_value = std::stoi(second_limit);
+	if (following_clause.find("CURRENT ROW") != std::string::npos){
+		following_value = 0;
+	} else if (following_clause.find("UNBOUNDED") != std::string::npos){
+		following_value = -1;
+	} else {
+		std::string following_expr = " FOLLOWING";
+		end_pos = following_clause.find(following_expr);
+		std::string str_value = following_clause.substr(0, end_pos);
+		following_value = std::stoi(str_value);
+	}
 
 	return std::make_tuple(preceding_value, following_value);
 }

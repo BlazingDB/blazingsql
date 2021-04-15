@@ -1,0 +1,43 @@
+
+.. _file_engine_src_execution_graph_Context.cpp:
+
+File Context.cpp
+================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph>` (``engine/src/execution_graph``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/Context.cpp``)
+-------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``Context.h`` (:ref:`file_engine_src_execution_graph_Context.h`)
+
+- ``algorithm``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_blazingdb`
+
+- :ref:`namespace_blazingdb__manager`
+

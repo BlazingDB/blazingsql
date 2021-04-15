@@ -1,0 +1,20 @@
+
+.. _namespace_rmm:
+
+Namespace rmm
+=============
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_rmm__mr`

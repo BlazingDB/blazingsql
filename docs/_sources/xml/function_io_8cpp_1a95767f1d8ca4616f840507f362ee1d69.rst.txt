@@ -1,0 +1,13 @@
+.. _exhale_function_io_8cpp_1a95767f1d8ca4616f840507f362ee1d69:
+
+Function registerFileSystem
+===========================
+
+- Defined in :ref:`file_engine_src_cython_io.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: registerFileSystem(FileSystemConnection, std::string, std::string)
