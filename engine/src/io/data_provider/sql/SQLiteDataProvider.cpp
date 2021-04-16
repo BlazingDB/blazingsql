@@ -78,30 +78,11 @@ get_sqlite_table_info(sqlite3 * db, const std::string & table) {
       },
       &ret,
       nullptr);
-  if (err != SQLITE_OK) { throw std::runtime_error("getting number of rows"); }
-  return ret;
-}
-
-// TODO percy avoid code duplication
-bool sqlite_is_string_col_type(const std::string & t) {
-  std::vector<std::string> mysql_string_types_hints = {
-      "character",
-      "varchar",
-      "char",
-      "varying character",
-      "nchar",
-      "native character",
-      "nvarchar",
-      "text",
-      "clob",
-      "string"  // TODO percy ???
-  };
-
-  for (auto hint : mysql_string_types_hints) {
-    if (StringUtil::beginsWith(t, hint)) return true;
+  if (err != SQLITE_OK) {
+    throw std::runtime_error{std::string{"getting number of rows"} +
+                             sqlite3_errmsg(db)};
   }
-
-  return false;
+  return ret;
 }
 
 static inline sqlite_columns_info
@@ -126,13 +107,6 @@ get_sqlite_columns_info(sqlite3 * db, const std::string & table) {
         col_type.begin(),
         [](const std::string::value_type c) { return std::tolower(c); });
 
-    std::size_t max_bytes = 8;  // TODO percy check max scalar bytes from sqlite
-    if (sqlite_is_string_col_type(col_type)) {
-      // max_bytes = res->getUInt64("CHARACTER_MAXIMUM_LENGTH");
-      // TODO percy see how to get the max size for string/txt cols ...
-      // see docs
-      max_bytes = 256;
-    }
     ret.types.push_back(col_type);
   }
 
@@ -151,8 +125,7 @@ sqlite_data_provider::sqlite_data_provider(const sql_info & sql,
                                            size_t total_number_of_nodes,
                                            size_t self_node_idx)
     : abstractsql_data_provider{sql, total_number_of_nodes, self_node_idx},
-      db{nullptr}, current_stmt{nullptr}, batch_position{0}, current_row_count{
-                                                                 0} {
+      db{nullptr}, batch_position{0} {
   int errorCode = sqlite3_open(sql.schema.c_str(), &db);
 
   if (errorCode != SQLITE_OK) {
@@ -177,31 +150,90 @@ std::shared_ptr<data_provider> sqlite_data_provider::clone() {
                                                 self_node_idx);
 }
 
-bool sqlite_data_provider::has_next() { return current_stmt != nullptr; }
+static inline std::string
+make_table_query_string(const std::string & table,
+                        const std::size_t limit,
+                        const std::size_t batch_size,
+                        const std::size_t batch_position,
+                        const std::size_t number_of_nodes,
+                        const std::size_t node_idx) {
+  const std::size_t offset =
+      batch_size * (batch_position * number_of_nodes + node_idx);
+  std::ostringstream oss;
+  oss << "SELECT * FROM " << table << " LIMIT " << limit << " OFFSET "
+      << offset;
+  return oss.str();
+}
+
+bool sqlite_data_provider::has_next() {
+  const std::string query = make_table_query_string(sql.table,
+                                                    1,
+                                                    sql.table_batch_size,
+                                                    batch_position,
+                                                    total_number_of_nodes,
+                                                    self_node_idx);
+  bool it_has = false;
+  int errorCode = sqlite3_exec(
+      db,
+      query.c_str(),
+      [](void * data, int count, char ** rows, char **) -> int {
+        *static_cast<bool *>(data) = count > 0 && rows;
+        return 0;
+      },
+      &it_has,
+      nullptr);
+  if (errorCode != SQLITE_OK) {
+    throw std::runtime_error{std::string{"Has next SQLite batch: "} +
+                             sqlite3_errmsg(db)};
+  }
+  return it_has;
+}
 
 void sqlite_data_provider::reset() { batch_position = 0; }
 
-data_handle sqlite_data_provider::get_next(bool) {
-  data_handle ret;
-
-  const std::int32_t limit = batch_position + sql.table_batch_size;
-  const std::int32_t offset = batch_position;
-
+static inline std::size_t get_size_for_statement(sqlite3_stmt * stmt) {
   std::ostringstream oss;
-  oss << "SELECT * FROM " << sql.table << " LIMIT " << limit << " OFFSET "
-      << offset;
+  oss << "select count(*) from (" << sqlite3_expanded_sql(stmt) << ')'
+      << std::endl;
   std::string query = oss.str();
 
-  batch_position += sql.table_batch_size;
+  std::size_t nRows = 0;
+  const std::int32_t errorCode = sqlite3_exec(
+      sqlite3_db_handle(stmt),
+      query.c_str(),
+      [](void * data, int count, char ** rows, char **) -> int {
+        if (count == 1 && rows) {
+          *static_cast<std::size_t *>(data) =
+              static_cast<std::size_t>(std::atoi(rows[0]));
+          return 0;
+        }
+        return 1;
+      },
+      &nRows,
+      nullptr);
+  if (errorCode != SQLITE_OK) {
+    throw std::runtime_error{std::string{"Has next SQLite batch: "} +
+                             sqlite3_errstr(errorCode)};
+  }
+  return nRows;
+}
+
+data_handle sqlite_data_provider::get_next(bool) {
+  data_handle ret;
+  const std::string query = make_table_query_string(sql.table,
+                                                    sql.table_batch_size,
+                                                    sql.table_batch_size,
+                                                    batch_position,
+                                                    total_number_of_nodes,
+                                                    self_node_idx);
+  batch_position++;
 
   std::shared_ptr<sqlite3_stmt> stmt = execute_sqlite_query(db, query);
-
-  current_row_count += batch_position;
 
   ret.sql_handle.table = sql.table;
   ret.sql_handle.column_names = column_names;
   ret.sql_handle.column_types = column_types;
-  ret.sql_handle.row_count = row_count;
+  ret.sql_handle.row_count = get_size_for_statement(stmt.get());
   ret.sql_handle.sqlite_statement = stmt;
 
   // TODO percy add columns to uri.query
