@@ -307,15 +307,13 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
 		return _cache_datas[0]->decache();
 	}
 
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
-	std::vector<ral::frame::BlazingTableView> table_views;
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 	for (auto && cache_data : _cache_datas){
-		tables_holder.push_back(cache_data->decache());
-		table_views.push_back(tables_holder.back()->toBlazingTableView());
-
-		RAL_EXPECTS(!ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views), "Concatenating tables will overflow");
+		tables.push_back(cache_data->decache());
+		
+		RAL_EXPECTS(!ral::utilities::checkIfConcatenatingStringsWillOverflow(tables), "Concatenating tables will overflow");
 	}
-	return ral::utilities::concatTables(table_views);
+	return ral::utilities::concatTables(std::move(tables));
 }
 
 size_t ConcatCacheData::sizeInBytes() const {
