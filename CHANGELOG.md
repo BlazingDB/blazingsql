@@ -104,6 +104,7 @@
 - #1320 Revamping cache logger
 - #1323 Made progress bar update continuously and stay after query is done 
 - #1336 Improvements for the cache API
+- #1479 Improvements for dependencies script
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
