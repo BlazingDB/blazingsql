@@ -78,7 +78,7 @@ extensions = [
         ],
         libraries=get_libs(),
         language="c++",
-        extra_compile_args=["-std=c++14",
+        extra_compile_args=["-std=c++17",
                             "-Wno-unknown-pragmas",
                             "-Wno-unused-variable",
                             "-Wno-unused-function",

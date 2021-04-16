@@ -30,10 +30,12 @@
 - #1333 Fixing build due to cudf update
 - #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
+- #1430 Updating GCP to >= version
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
 - #1434 Added documentation for C++ and Python in Sphinx
 - #1419 Added concat cache machine timeout 
+- #1444 Updating GCP to >= version
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
 - #1473 Added Warning to Window Functions 
