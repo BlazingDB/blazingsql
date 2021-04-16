@@ -91,7 +91,7 @@ void print_batch(const ral::io::data_handle & handle,
   std::cout << "TREMINO DE IMPRIMER CUDF TABLE!!! \n";
 }
 
-TEST_F(SQLProviderTest, mysql_select_all) {
+TEST_F(SQLProviderTest, DISABLED_mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
   //sql.port = 5432; // pg
