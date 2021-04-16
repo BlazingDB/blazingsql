@@ -52,8 +52,10 @@ public:
 	 */
   void set_column_indices(std::vector<int> column_indices) { this->column_indices = column_indices; }
 
-  bool set_predicate_pushdown(const std::string &queryString,
-                              const std::vector<cudf::type_id> &cudf_types);
+  bool set_predicate_pushdown(const std::string &queryString);
+
+protected:
+  virtual std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const = 0;
 
 protected:
   // returns SELECT ... FROM
@@ -61,9 +63,6 @@ protected:
 
   // returns LIMIT ... OFFSET
   std::string build_limit_offset(size_t offset) const;
-
-  virtual std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer(
-      const std::vector<cudf::type_id> &cudf_types) const = 0;
 
 protected:
   sql_info sql;
@@ -84,12 +83,10 @@ void set_sql_projections(data_provider *provider, const std::vector<int> &projec
 }
 
 template<class SQLProvider>
-bool set_sql_predicate_pushdown(data_provider *provider,
-  const std::string &queryString,
-  const std::vector<cudf::type_id> &cudf_types)
+bool set_sql_predicate_pushdown(data_provider *provider, const std::string &queryString)
 {
   auto sql_provider = static_cast<SQLProvider*>(provider);
-  return sql_provider->set_predicate_pushdown(queryString, cudf_types);
+  return sql_provider->set_predicate_pushdown(queryString);
 }
 
 } /* namespace io */

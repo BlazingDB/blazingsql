@@ -1,7 +1,6 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Cristhian Alberto Gonzales Castillo
- * <cristhian@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
+ * Copyright 2021 Cristhian Alberto Gonzales Castillo
  */
 
 #ifndef _POSTGRESQLSQLPARSER_H_

@@ -34,6 +34,12 @@ struct mysql_columns_info {
   std::vector<size_t> bytes;
 };
 
+struct mysql_operator_info {
+  std::string label;
+  ral::parser::operator_node::placement_type placement = ral::parser::operator_node::AUTO;
+  bool parentheses_wrap = true;
+};
+
 /* MySQL supports these connection properties:
   - hostName
   - userName
@@ -180,14 +186,24 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
   return ret;
 }
 
+static std::map<operator_type, mysql_operator_info> get_mysql_operators() {
+  using ral::parser::operator_node;
+  
+  // see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
+  static std::map<operator_type, mysql_operator_info> operators;
+  if (operators.empty()) {
+    operators[operator_type::BLZ_IS_NOT_NULL] = {.label = "IS NOT NULL", .placement = operator_node::END};
+    operators[operator_type::BLZ_IS_NULL] = {.label = "IS NULL", .placement = operator_node::END};
+  }
+  return operators;
+}
+
 class mysql_predicate_transformer : public parser::node_transformer {
 public:
   mysql_predicate_transformer(
     const std::vector<int> &column_indices,
-    const std::vector<std::string> &column_names,
-    const std::vector<cudf::type_id> &cudf_types,
-    const std::map<operator_type, std::pair<std::string, ral::parser::operator_node::placement_type>> &operators)
-    : column_indices(column_indices), column_names(column_names), cudf_types(cudf_types), operators(operators) {}
+    const std::vector<std::string> &column_names)
+    : column_indices(column_indices), column_names(column_names) {}
 
   virtual ~mysql_predicate_transformer() {}
 
@@ -221,12 +237,13 @@ public:
     if (this->visited.count(ndir)) {
       return &node;
     }
-    if (!operators.empty()) {
+    if (!get_mysql_operators().empty()) {
       operator_type op = map_to_operator_type(node.value);
-      if (operators.count(op)) {
-        auto op_obj = operators.at(op);
-        node.label = op_obj.first;
-        node.placement = op_obj.second;
+      if (get_mysql_operators().count(op)) {
+        auto op_obj = get_mysql_operators().at(op);
+        node.label = op_obj.label;
+        node.placement = op_obj.placement;
+        node.parentheses_wrap = op_obj.parentheses_wrap;
       }
     }
     this->visited[ndir] = true;
@@ -237,8 +254,6 @@ private:
   std::map<ral::parser::node*, bool> visited;
   std::vector<int> column_indices;
   std::vector<std::string> column_names;
-  std::vector<cudf::type_id> cudf_types;
-  std::map<operator_type, std::pair<std::string, ral::parser::operator_node::placement_type>> operators;
 };
 
 mysql_data_provider::mysql_data_provider(
@@ -264,11 +279,6 @@ mysql_data_provider::mysql_data_provider(
   this->column_names = cols_info.columns;
   this->column_types = cols_info.types;
   this->column_bytes = cols_info.bytes;
-
-  // see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
-  using ral::parser::operator_node;
-  operators[operator_type::BLZ_IS_NOT_NULL] = std::make_pair("IS NOT NULL", operator_node::END);
-  operators[operator_type::BLZ_IS_NULL] = std::make_pair("IS NULL", operator_node::END);
 }
 
 mysql_data_provider::~mysql_data_provider() {
@@ -327,14 +337,11 @@ size_t mysql_data_provider::get_num_handles() {
   return ret == 0? 1 : ret;
 }
 
-std::unique_ptr<ral::parser::node_transformer> mysql_data_provider::get_predicate_transformer(
-  const std::vector<cudf::type_id> &cudf_types) const
+std::unique_ptr<ral::parser::node_transformer> mysql_data_provider::get_predicate_transformer() const
 {
   return std::unique_ptr<ral::parser::node_transformer>(new mysql_predicate_transformer(
     this->column_indices,
-    this->column_names,
-    cudf_types,
-    this->operators
+    this->column_names
   ));
 }
 

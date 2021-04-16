@@ -80,7 +80,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
 
 void print_batch(const ral::io::data_handle & handle,
     const ral::io::Schema & schema,
-    ral::io::postgresql_parser & parser,
+    ral::io::mysql_parser & parser,
     const std::vector<int> & column_indices) {
   std::vector<cudf::size_type> row_groups;
   std::unique_ptr<ral::frame::BlazingTable> bztbl =
@@ -94,7 +94,8 @@ void print_batch(const ral::io::data_handle & handle,
 TEST_F(SQLProviderTest, mysql_select_all) {
   ral::io::sql_info sql;
   sql.host = "localhost";
-  sql.port = 5432;
+  //sql.port = 5432; // pg
+  sql.port = 3306;
   //  sql.user = "blazing";
   //  sql.password = "admin";
   //  sql.schema = "bz3";
@@ -105,7 +106,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   //  sql.table_filter = "";
   //  sql.table_batch_size = 100;
 
-  sql.user = "admin";
+  sql.user = "lucho";
   sql.password = "admin";
   sql.schema = "employees";
   // sql.table = "departments";
@@ -123,11 +124,11 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   sql.table_batch_size = 2;
 
   auto mysql_provider =
-      std::make_shared<ral::io::postgresql_data_provider>(sql, 1, 0);
+      std::make_shared<ral::io::mysql_data_provider>(sql, 1, 0);
 
   int rows = mysql_provider->get_num_handles();
 
-  ral::io::postgresql_parser parser;
+  ral::io::mysql_parser parser;
   ral::io::Schema schema;
   auto handle =
       mysql_provider->get_next(false);  // false so we make sure dont go to
@@ -151,10 +152,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   //std::string exp = "BindableTableScan(table=[[main, orders]], filters=[[NOT(LIKE($2, '%special%requests%'))]], projects=[[0, 1, 8]], aliases=[[o_orderkey, o_custkey, o_comment]])";
   std::string exp = "BindableTableScan(table=[[main, lineitem]], filters=[[AND(OR(=($4, 'MAIL'), =($4, 'SHIP')), <($2, $3), <($1, $2), >=($3, 1994-01-01), <($3, 1995-01-01))]], projects=[[0, 10, 11, 12, 14]], aliases=[[l_orderkey, l_shipdate, l_commitdate, l_receiptdate, l_shipmode]])";
 
-  mysql_provider->set_predicate_pushdown(exp, schema.get_dtypes());
+  mysql_provider->set_predicate_pushdown(exp);
 
-  return;
-  
   std::cout << "\tTABLE\n";
   auto cols = schema.get_names();
   std::cout << "total cols: " << cols.size() << "\n";

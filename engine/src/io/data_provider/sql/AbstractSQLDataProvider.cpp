@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
  */
 
 #include "AbstractSQLDataProvider.h"
@@ -125,13 +124,11 @@ void abstractsql_data_provider::close_file_handles() {
   // NOTE we don't use any file handle for this provider so nothing to do here
 }
 
-bool abstractsql_data_provider::set_predicate_pushdown(
-  const std::string &queryString,
-  const std::vector<cudf::type_id> &cudf_types)
+bool abstractsql_data_provider::set_predicate_pushdown(const std::string &queryString)
 {
   // DEBUG
   std::cout << "\nORIGINAL query part for the predicate pushdown:\n" << queryString << "\n\n";
-  auto predicate_transformer = this->get_predicate_transformer(cudf_types);
+  auto predicate_transformer = this->get_predicate_transformer();
   this->where = transpile_sql_predicate(queryString, predicate_transformer.get());
   // DEBUG
   std::cout << "\nWHERE stmt for the predicate pushdown:\n" << this->where << "\n\n";
