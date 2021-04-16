@@ -57,7 +57,7 @@ endif ()
 
 #########################################################################3
 # - compiler stuff ------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
@@ -160,7 +160,25 @@ add_library(blazingdb-io SHARED
     ${EXCEPTION_SRC_FILES}
 )
 
-target_link_libraries(blazingdb-io ${CURL_LIBRARIES} ${GCS_LIBRARY} ${S3_LIBRARY} arrow)
+target_link_libraries(
+    blazingdb-io
+    ${CURL_LIBRARIES}
+    ${GCS_LIBRARY}
+    ${S3_LIBRARY}
+    arrow
+
+    libabsl_time.so
+    libabsl_str_format_internal.so
+    libabsl_strings.so
+    libabsl_strings_internal.so
+    libabsl_time_zone.so
+    libabsl_base.so
+    libabsl_int128.so
+    libabsl_raw_logging_internal.so
+    libabsl_spinlock_wait.so
+    libabsl_bad_variant_access.so
+    libabsl_civil_time.so
+)
 
 # Install target and headers
 install(TARGETS blazingdb-io DESTINATION lib)

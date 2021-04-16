@@ -18,6 +18,18 @@ function(configure_test TEST_NAME Tests_SRCS)
         ${S3_LIBRARY}
         ${GCS_LIBRARY}
         arrow
+
+        libabsl_time.so
+        libabsl_str_format_internal.so
+        libabsl_strings.so
+        libabsl_strings_internal.so
+        libabsl_time_zone.so
+        libabsl_base.so
+        libabsl_int128.so
+        libabsl_raw_logging_internal.so
+        libabsl_spinlock_wait.so
+        libabsl_bad_variant_access.so
+        libabsl_civil_time.so
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES
