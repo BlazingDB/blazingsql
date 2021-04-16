@@ -33,10 +33,7 @@ struct sqlite_columns_info {
 };
 
 struct callb {
-  int sqlite_callback(void * NotUsed,
-                      int argc,
-                      char ** argv,
-                      char ** azColName) {
+  int sqlite_callback(void *, int argc, char ** argv, char ** azColName) {
     int i;
     for (i = 0; i < argc; i++) {
       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -49,22 +46,22 @@ struct callb {
 static inline std::shared_ptr<sqlite3_stmt>
 execute_sqlite_query(sqlite3 * db, const std::string & query) {
   sqlite3_stmt * stmt;
-  const char * sql = query.c_str();
 
-  int errorCode = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-  if (errorCode != SQLITE_OK) { printf("error: %s", sqlite3_errmsg(db)); }
+  int errorCode = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr);
+  if (errorCode != SQLITE_OK) {
+    std::ostringstream oss;
+    oss << "Executing SQLite query provider: " << std::endl
+        << "query: " << query << std::endl
+        << "error message: " << sqlite3_errmsg(db);
+    throw std::runtime_error{oss.str()};
+  }
 
-  auto sqlite_deleter = [](sqlite3_stmt * pointer) {
-    sqlite3_finalize(pointer);
-  };
-
-  std::shared_ptr<sqlite3_stmt> ret(stmt, sqlite_deleter);
-
-  return ret;
+  auto sqlite_deleter = [](sqlite3_stmt * stmt) { sqlite3_finalize(stmt); };
+  return std::shared_ptr<sqlite3_stmt>{stmt, sqlite_deleter};
 }
 
-sqlite_table_info get_sqlite_table_info(sqlite3 * db,
-                                        const std::string & table) {
+static inline sqlite_table_info
+get_sqlite_table_info(sqlite3 * db, const std::string & table) {
   sqlite_table_info ret;
   const std::string sql{"select count(*) from " + table};
   int err = sqlite3_exec(
@@ -107,23 +104,21 @@ bool sqlite_is_string_col_type(const std::string & t) {
   return false;
 }
 
-sqlite_columns_info get_sqlite_columns_info(sqlite3 * conn,
-                                            const std::string & table) {
-  // TODO percy error handling
-
+static inline sqlite_columns_info
+get_sqlite_columns_info(sqlite3 * db, const std::string & table) {
   sqlite_columns_info ret;
   std::string query = "PRAGMA table_info(" + table + ")";
-  auto A = execute_sqlite_query(conn, query);
+  auto A = execute_sqlite_query(db, query);
   sqlite3_stmt * stmt = A.get();
 
-  int rc = 0;
+  int rc = SQLITE_ERROR;
   while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
     const unsigned char * name = sqlite3_column_text(stmt, 1);
-    std::string col_name((char *) name);
+    std::string col_name(reinterpret_cast<const char *>(name));
     ret.columns.push_back(col_name);
 
     const unsigned char * type = sqlite3_column_text(stmt, 2);
-    std::string col_type((char *) type);
+    std::string col_type(reinterpret_cast<const char *>(type));
 
     std::transform(
         col_type.cbegin(),
@@ -131,7 +126,7 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 * conn,
         col_type.begin(),
         [](const std::string::value_type c) { return std::tolower(c); });
 
-    size_t max_bytes = 8;  // TODO percy check max scalar bytes from sqlite
+    std::size_t max_bytes = 8;  // TODO percy check max scalar bytes from sqlite
     if (sqlite_is_string_col_type(col_type)) {
       // max_bytes = res->getUInt64("CHARACTER_MAXIMUM_LENGTH");
       // TODO percy see how to get the max size for string/txt cols ...
@@ -140,9 +135,13 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 * conn,
     }
     ret.types.push_back(col_type);
   }
+
   if (rc != SQLITE_DONE) {
-    printf("error: %s", sqlite3_errmsg(conn));
-    // TODO percy error
+    std::ostringstream oss;
+    oss << "Getting SQLite columns info: " << std::endl
+        << "query: " << query << std::endl
+        << "error message: " << sqlite3_errmsg(db);
+    throw std::runtime_error{oss.str()};
   }
 
   return ret;
@@ -151,8 +150,9 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 * conn,
 sqlite_data_provider::sqlite_data_provider(const sql_info & sql,
                                            size_t total_number_of_nodes,
                                            size_t self_node_idx)
-    : abstractsql_data_provider(sql, total_number_of_nodes, self_node_idx),
-      db(nullptr), batch_position(0), current_row_count(0) {
+    : abstractsql_data_provider{sql, total_number_of_nodes, self_node_idx},
+      db{nullptr}, current_stmt{nullptr}, batch_position{0}, current_row_count{
+                                                                 0} {
   int errorCode = sqlite3_open(sql.schema.c_str(), &db);
 
   if (errorCode != SQLITE_OK) {
@@ -172,16 +172,14 @@ sqlite_data_provider::sqlite_data_provider(const sql_info & sql,
 sqlite_data_provider::~sqlite_data_provider() { sqlite3_close(db); }
 
 std::shared_ptr<data_provider> sqlite_data_provider::clone() {
-  return std::make_shared<sqlite_data_provider>(this->sql,
-                                                this->total_number_of_nodes,
-                                                this->self_node_idx);
+  return std::make_shared<sqlite_data_provider>(sql,
+                                                total_number_of_nodes,
+                                                self_node_idx);
 }
 
-bool sqlite_data_provider::has_next() {
-  return this->current_row_count < row_count;
-}
+bool sqlite_data_provider::has_next() { return current_stmt != nullptr; }
 
-void sqlite_data_provider::reset() { this->batch_position = 0; }
+void sqlite_data_provider::reset() { batch_position = 0; }
 
 data_handle sqlite_data_provider::get_next(bool) {
   data_handle ret;
@@ -196,20 +194,18 @@ data_handle sqlite_data_provider::get_next(bool) {
 
   batch_position += sql.table_batch_size;
 
-  std::cout << "\033[32m>>> query: " << query << "\033[0m" << std::endl;
-
   std::shared_ptr<sqlite3_stmt> stmt = execute_sqlite_query(db, query);
 
   current_row_count += batch_position;
 
-  ret.sql_handle.table = this->sql.table;
-  ret.sql_handle.column_names = this->column_names;
-  ret.sql_handle.column_types = this->column_types;
+  ret.sql_handle.table = sql.table;
+  ret.sql_handle.column_names = column_names;
+  ret.sql_handle.column_types = column_types;
   ret.sql_handle.row_count = row_count;
   ret.sql_handle.sqlite_statement = stmt;
 
   // TODO percy add columns to uri.query
-  ret.uri = Uri("sqlite", "", this->sql.schema + "/" + this->sql.table, "", "");
+  ret.uri = Uri("sqlite", "", sql.schema + "/" + sql.table, "", "");
   return ret;
 }
 

@@ -52,6 +52,7 @@ public:
 
 private:
   sqlite3 * db;
+  sqlite3_stmt * current_stmt;
   std::vector<std::string> partitions;
   std::size_t row_count;
   std::size_t batch_position;
