@@ -665,11 +665,13 @@ private:
 			bool left_valid = getColumnValid(row_valids, left_position);
 
 			if (oper == operator_type::BLZ_IS_NOT_TRUE) {
-				left_valid = (left_value == false) ? true : false;
-				store_data_in_buffer(static_cast<int64_t>(true), buffer, output_position);
+				bool val = (left_valid == true && left_value == true) ? false : true;
+    			left_valid = true;
+    			store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
 			} else if (oper == operator_type::BLZ_IS_NOT_FALSE) {
-				left_valid = (left_value == true || left_valid == false) ? true : false;
-				store_data_in_buffer(static_cast<int64_t>(true), buffer, output_position);
+				bool val = (left_valid == true && left_value == false) ? false : true;
+    			left_valid = true;
+    			store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
 			} else if(oper == operator_type::BLZ_IS_NULL) {
 				store_data_in_buffer(static_cast<int64_t>(!left_valid), buffer, output_position);
 			} else if(oper == operator_type::BLZ_IS_NOT_NULL) {
