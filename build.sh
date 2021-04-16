@@ -168,6 +168,8 @@ fi
 
 ################################################################################
 
+
+
 if buildAll || hasArg io; then
     disabled_aws_s3_flag=""
     if hasArg disable-aws-s3; then
@@ -260,6 +262,7 @@ if buildAll || hasArg libengine; then
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi
+
 
 if buildAll || hasArg engine; then
     echo "Building engine (cython wrapper)"
