@@ -666,12 +666,12 @@ private:
 
 			if (oper == operator_type::BLZ_IS_NOT_TRUE) {
 				bool val = (left_valid == true && left_value == true) ? false : true;
-    			left_valid = true;
-    			store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
+				left_valid = true;
+				store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
 			} else if (oper == operator_type::BLZ_IS_NOT_FALSE) {
 				bool val = (left_valid == true && left_value == false) ? false : true;
-    			left_valid = true;
-    			store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
+				left_valid = true;
+				store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
 			} else if(oper == operator_type::BLZ_IS_NULL) {
 				store_data_in_buffer(static_cast<int64_t>(!left_valid), buffer, output_position);
 			} else if(oper == operator_type::BLZ_IS_NOT_NULL) {
