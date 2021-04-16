@@ -127,16 +127,17 @@ void abstractsql_data_provider::close_file_handles() {
 bool abstractsql_data_provider::set_predicate_pushdown(const std::string &queryString)
 {
   // DEBUG
-  std::cout << "\nORIGINAL query part for the predicate pushdown:\n" << queryString << "\n\n";
+  //std::cout << "\nORIGINAL query part for the predicate pushdown:\n" << queryString << "\n\n";
   auto predicate_transformer = this->get_predicate_transformer();
   this->where = transpile_sql_predicate(queryString, predicate_transformer.get());
   // DEBUG
-  std::cout << "\nWHERE stmt for the predicate pushdown:\n" << this->where << "\n\n";
+  //std::cout << "\nWHERE stmt for the predicate pushdown:\n" << this->where << "\n\n";
   return !this->where.empty();
 }
 
-std::string abstractsql_data_provider::build_select_from() const {
+std::string abstractsql_data_provider::build_select_query(size_t batch_index) const {
   std::string cols;
+
   if (this->column_indices.empty()) {
     cols = "* ";
   } else {
@@ -150,13 +151,20 @@ std::string abstractsql_data_provider::build_select_from() const {
       }
     }
   }
-  auto ret = "SELECT " + cols + "FROM " + this->sql.table;
-  if (this->where.empty()) return ret;
-  return ret + " where " + this->where;
-}
 
-std::string abstractsql_data_provider::build_limit_offset(size_t offset) const {
-  return " LIMIT " + std::to_string(this->sql.table_batch_size) + " OFFSET " + std::to_string(offset);
+  const size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * batch_index + this->self_node_idx);
+  std::string limit = " LIMIT " + std::to_string(this->sql.table_batch_size) + " OFFSET " + std::to_string(offset);
+  auto ret = "SELECT " + cols + "FROM " + this->sql.table;
+
+  if (sql.table_filter.empty()) {
+    if (!this->where.empty()) { // then the filter is from the predicate pushdown{
+      ret += " where " + this->where;
+    }
+  } else {
+    ret += " where " + sql.table_filter;
+  }
+
+  return ret + limit;
 }
 
 } /* namespace io */

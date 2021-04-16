@@ -139,7 +139,7 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
 def setup_test(data_type: DataType) -> bool:
     sql = createSchema.get_sql_connection(data_type)
     if not sql:
-        print("ERROR: You cannot run tablesFromSQL test, settup your SQL connection using env vars! See tests/README.md")
+        print(f"ERROR: You cannot run tablesFromSQL test, setup your SQL connection for {data_type}using env vars! See tests/README.md")
         return None
 
     if data_type is DataType.MYSQL:

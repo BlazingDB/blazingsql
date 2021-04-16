@@ -86,7 +86,7 @@ def get_mysql_connection() -> sql_connection:
     sql_password = os.getenv("BLAZINGSQL_E2E_MYSQL_PASSWORD", "")
     if not sql_password: return None
 
-    sql_schema = os.getenv("BLAZINGSQL_E2E_MYSQL_SCHEMA", "")
+    sql_schema = os.getenv("BLAZINGSQL_E2E_MYSQL_DATABASE", "")
     if not sql_schema: return None
 
     ret = sql_connection(hostname = sql_hostname,
@@ -110,7 +110,7 @@ def get_postgresql_connection() -> sql_connection:
     sql_password = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_PASSWORD", "")
     if not sql_password: return None
 
-    sql_schema = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_SCHEMA", "")
+    sql_schema = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_DATABASE", "")
     if not sql_schema: return None
 
     ret = sql_connection(hostname = sql_hostname,
@@ -122,7 +122,7 @@ def get_postgresql_connection() -> sql_connection:
 
 
 def get_sqlite_connection() -> sql_connection:
-    sql_schema = os.getenv("BLAZINGSQL_E2E_SQLITE_SCHEMA", "")
+    sql_schema = os.getenv("BLAZINGSQL_E2E_SQLITE_DATABASE", "")
     if not sql_schema: return None
     return sql_connection(hostname='',
                           port=0,
@@ -1362,7 +1362,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
                 port = sql_port,
                 username = sql_username,
                 password = sql_password,
-                schema = sql_schema,
+                database = sql_schema,
                 table_filter = sql_table_filter,
                 table_batch_size = sql_table_batch_size)
         else:

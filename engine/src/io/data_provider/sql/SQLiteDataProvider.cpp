@@ -164,7 +164,6 @@ sqlite_data_provider::sqlite_data_provider(
       get_sqlite_columns_info(conn, this->sql.table);
   this->column_names = cols_info.columns;
   this->column_types = cols_info.types;
-  this->column_bytes = cols_info.bytes;
 }
 
 sqlite_data_provider::~sqlite_data_provider() {
@@ -183,11 +182,7 @@ bool sqlite_data_provider::has_next() {
 void sqlite_data_provider::reset() { this->batch_position = 0; }
 
 data_handle sqlite_data_provider::get_next(bool) {
-  std::string query;
-
-  query = "SELECT * FROM " + this->sql.table + " LIMIT " +
-          std::to_string(this->batch_position + this->sql.table_batch_size) +
-          " OFFSET " + std::to_string(this->batch_position);
+  std::string query = this->build_select_query(this->batch_position);
   this->batch_position += this->sql.table_batch_size;
 
   std::cout << "query: " << query << "\n";
@@ -197,7 +192,6 @@ data_handle sqlite_data_provider::get_next(bool) {
   ret.sql_handle.table = this->sql.table;
   ret.sql_handle.column_names = this->column_names;
   ret.sql_handle.column_types = this->column_types;
-  ret.sql_handle.column_bytes = this->column_bytes;
   ret.sql_handle.row_count = row_count;
   ret.sql_handle.sqlite_statement = stmt;
   // TODO percy add columns to uri.query

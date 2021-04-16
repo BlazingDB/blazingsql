@@ -104,7 +104,6 @@ postgresql_data_provider::postgresql_data_provider(const sql_info &sql,
 
   column_names = tableInfo.column_names;
   column_types = tableInfo.column_types;
-  column_bytes = tableInfo.column_bytes;
 }
 
 postgresql_data_provider::~postgresql_data_provider() { PQfinish(connection); }
@@ -132,10 +131,7 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
 
   if (!open_file) { return handle; }
 
-  const std::string select_from = build_select_from();
-  const std::string where = sql.table_filter.empty() ? "" : " where ";
-  const std::string query = select_from + where + sql.table_filter +
-                            build_limit_offset(batch_position);
+  const std::string query = this->build_select_query(this->batch_position);
 
   batch_position += sql.table_batch_size;
   PGresult *result = PQexecParams(
@@ -151,7 +147,6 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
 
   if (!resultNtuples) { table_fetch_completed = true; }
 
-  handle.sql_handle.column_bytes = column_bytes;
   handle.sql_handle.postgresql_result.reset(result, PQclear);
   handle.sql_handle.row_count = PQntuples(result);
   handle.uri = Uri("postgresql", "", sql.schema + "/" + sql.table, "", "");

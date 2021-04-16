@@ -58,22 +58,17 @@ protected:
   virtual std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const = 0;
 
 protected:
-  // returns SELECT ... FROM
-  std::string build_select_from() const;
-
-  // returns LIMIT ... OFFSET
-  std::string build_limit_offset(size_t offset) const;
+  // returns SELECT ... FROM ... WHERE ... LIMIT ... OFFSET
+  std::string build_select_query(size_t batch_index) const;
 
 protected:
   sql_info sql;
   std::vector<int> column_indices;
   std::vector<std::string> column_names;
   std::vector<std::string> column_types;
-  std::vector<size_t> column_bytes;
   size_t total_number_of_nodes;
   size_t self_node_idx;
   std::string where;
-  std::map<operator_type, std::string> ops;
 };
 
 template<class SQLProvider>

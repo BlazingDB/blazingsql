@@ -922,7 +922,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "port",
             "username",
             "password",
-            "schema",
+            "database",
             "table_filter",
             "table_batch_size",
         ]

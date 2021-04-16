@@ -55,7 +55,7 @@ protected:
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
   size_t estimated_table_row_count;
-  size_t batch_position;
+  size_t batch_index;
   bool table_fetch_completed;
 };
 
