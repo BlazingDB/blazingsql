@@ -1,3 +1,18 @@
+# BlazingSQL 0.20.0 (Date TBS)
+
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+
+
+
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
@@ -21,6 +36,7 @@
 - #1419 Added concat cache machine timeout 
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
+- #1473 Added Warning to Window Functions 
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -50,6 +66,7 @@
 - #1400 Fix for Column aliases when exists a Join op
 - #1456 Raising exceptions on Python side for RAL
 - #1466 SQL providers: update README.md
+- #1470 Fix pre compiler flags for sql parsers
 
 
 ## Deprecated Features
