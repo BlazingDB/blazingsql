@@ -34,6 +34,8 @@ import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperatorTable;
+import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.SqlExplainFormat;
 import org.apache.calcite.sql.fun.SqlLibrary;
 import org.apache.calcite.sql.fun.SqlLibraryOperatorTableFactory;
 import org.apache.calcite.sql.parser.SqlParseException;
@@ -271,22 +273,14 @@ public class RelationalAlgebraGenerator {
 		String response = "";
 
 		try {
-			response = RelOptUtil.toString(getRelationalAlgebra(sql));
+			RelNode optimizedPlan = getRelationalAlgebra(sql);
+			response = RelOptUtil.dumpPlan("", optimizedPlan, SqlExplainFormat.TEXT, SqlExplainLevel.NON_COST_ATTRIBUTES);
 		}catch(SqlValidationException ex){
-			//System.out.println(ex.getMessage());
-			//System.out.println("Found validation err!");
 			throw ex;
-			//return "fail: \n " + ex.getMessage();
 		}catch(SqlSyntaxException ex){
-			//System.out.println(ex.getMessage());
-			//System.out.println("Found syntax err!");
 			throw ex;
-			//return "fail: \n " + ex.getMessage();
 		} catch(Exception ex) {
-			//System.out.println(ex.toString());
-			//System.out.println(ex.getMessage());
 			ex.printStackTrace();
-
 			LOGGER.error(ex.getMessage());
 			return "fail: \n " + ex.getMessage();
 		}
