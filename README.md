@@ -70,7 +70,7 @@ bc.sql('SELECT passenger_count, trip_distance FROM taxi LIMIT 2')
 ## Documentation
 You can find our full documentation at [docs.blazingdb.com](https://docs.blazingdb.com/docs).
 
-# Prerequisites 
+# Prerequisites
 * [Anaconda or Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) installed
 * OS Support
   * Ubuntu 16.04/18.04 LTS
@@ -96,7 +96,7 @@ Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda install -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.1
-``` 
+```
 
 ## Nightly Version
 ```bash

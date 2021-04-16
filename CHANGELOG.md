@@ -1,3 +1,17 @@
+# BlazingSQL 0.20.0 (Date TBS)
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+
+
+
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features

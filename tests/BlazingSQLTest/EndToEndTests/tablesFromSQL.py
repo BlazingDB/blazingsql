@@ -8,8 +8,8 @@ from EndToEndTests.tpchQueries import get_tpch_query
 
 queryType = "TablesFromSQL"
 data_types = [
-    DataType.MYSQL,
-    #DataType.POSTGRESQL,
+    #DataType.MYSQL,
+    DataType.POSTGRESQL,
     #DataType.SQLITE,
     # TODO percy c.gonzales
 ]
@@ -136,16 +136,21 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
         currrentFileSchemaType = fileSchemaType
 
 
-def setup_test() -> bool:
-    sql = createSchema.get_sql_connection(DataType.MYSQL)
+def setup_test(data_type: DataType) -> bool:
+    sql = createSchema.get_sql_connection(data_type)
     if not sql:
         print("ERROR: You cannot run tablesFromSQL test, settup your SQL connection using env vars! See tests/README.md")
         return None
 
-    from DataBase import mysqlSchema
+    if data_type is DataType.MYSQL:
+      from DataBase import mysqlSchema
+      mysqlSchema.create_and_load_tpch_schema(sql)
+      return sql
 
-    mysqlSchema.create_and_load_tpch_schema(sql)
-    return sql
+    if data_type is DataType.SQLITE:
+      from DataBase import sqliteSchema
+      sqliteSchema.create_and_load_tpch_schema(sql)
+      return sql
 
 
 def executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql):
@@ -162,9 +167,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     print(queryType)
     print("==============================")
 
-    sql = setup_test()
-    if sql:
-        start_mem = gpuMemory.capture_gpu_memory_usage()
-        executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
-        end_mem = gpuMemory.capture_gpu_memory_usage()
-        gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+    for data_type in data_types:
+      sql = setup_test(data_type)
+      if sql:
+          start_mem = gpuMemory.capture_gpu_memory_usage()
+          executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
+          end_mem = gpuMemory.capture_gpu_memory_usage()
+          gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
