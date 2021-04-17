@@ -99,10 +99,12 @@ def sqlite_load_data_in_file(table: str,
         with open(psvpath) as psv:
             reader = csv.reader(psv, delimiter='|')
             row = next(reader)
+            row = [c if c.lower() != 'null' else None for c in row]
             nfields = ','.join('?' * len(row))
             query = f'insert into {table} values ({nfields})'
             cursor.execute(query, row)
             for row in reader:
+                row = [c if c.lower() != 'null' else None for c in row]
                 cursor.execute(query, row)
             connection.commit()
 

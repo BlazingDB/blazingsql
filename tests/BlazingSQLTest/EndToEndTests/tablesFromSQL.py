@@ -9,8 +9,8 @@ from EndToEndTests.tpchQueries import get_tpch_query
 queryType = "TablesFromSQL"
 data_types = [
     #DataType.MYSQL,
-    DataType.POSTGRESQL,
-    #DataType.SQLITE,
+    #DataType.POSTGRESQL,
+    DataType.SQLITE,
     # TODO percy c.gonzales
 ]
 

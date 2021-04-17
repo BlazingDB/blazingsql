@@ -151,27 +151,27 @@ std::shared_ptr<data_provider> sqlite_data_provider::clone() {
 }
 
 static inline std::string
-make_table_query_string(const std::string & table,
-                        const std::size_t limit,
+make_table_query_string(const std::size_t limit,
                         const std::size_t batch_size,
                         const std::size_t batch_position,
                         const std::size_t number_of_nodes,
-                        const std::size_t node_idx) {
+                        const std::size_t node_idx,
+                        const std::string & select_from) {
   const std::size_t offset =
       batch_size * (batch_position * number_of_nodes + node_idx);
   std::ostringstream oss;
-  oss << "SELECT * FROM " << table << " LIMIT " << limit << " OFFSET "
-      << offset;
+  oss << select_from << " LIMIT " << limit << " OFFSET " << offset;
   return oss.str();
 }
 
 bool sqlite_data_provider::has_next() {
-  const std::string query = make_table_query_string(sql.table,
-                                                    1,
-                                                    sql.table_batch_size,
-                                                    batch_position,
-                                                    total_number_of_nodes,
-                                                    self_node_idx);
+  const std::string query =
+      make_table_query_string(1,
+                              sql.table_batch_size,
+                              batch_position,
+                              total_number_of_nodes,
+                              self_node_idx,
+                              "select * from " + sql.table);
   bool it_has = false;
   int errorCode = sqlite3_exec(
       db,
@@ -220,12 +220,14 @@ static inline std::size_t get_size_for_statement(sqlite3_stmt * stmt) {
 
 data_handle sqlite_data_provider::get_next(bool) {
   data_handle ret;
-  const std::string query = make_table_query_string(sql.table,
-                                                    sql.table_batch_size,
+
+  const std::string select_from = build_select_from();
+  const std::string query = make_table_query_string(sql.table_batch_size,
                                                     sql.table_batch_size,
                                                     batch_position,
                                                     total_number_of_nodes,
-                                                    self_node_idx);
+                                                    self_node_idx,
+                                                    select_from);
   batch_position++;
 
   std::shared_ptr<sqlite3_stmt> stmt = execute_sqlite_query(db, query);
@@ -242,11 +244,8 @@ data_handle sqlite_data_provider::get_next(bool) {
 }
 
 size_t sqlite_data_provider::get_num_handles() {
-  if (partitions.empty()) {
-    size_t ret = row_count / sql.table_batch_size;
-    return ret == 0 ? 1 : ret;
-  }
-  return partitions.size();
+  std::size_t ret = row_count / sql.table_batch_size;
+  return ret == 0 ? 1 : ret;
 }
 
 } /* namespace io */
