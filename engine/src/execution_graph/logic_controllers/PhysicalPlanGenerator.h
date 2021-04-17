@@ -38,6 +38,7 @@ struct tree_processor {
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
 	std::vector<std::string> table_scans;
+	std::map<int, std::shared_ptr<node>> mapped_ids; //TODO to clean this state
 	const bool transform_operators_bigger_than_gpu = false;
 
 	tree_processor(	node root,
@@ -133,11 +134,19 @@ struct tree_processor {
 		root_ptr->level = level;
 		root_ptr->kernel_unit = make_kernel(kernel_id, expr, query_graph);
 		kernel_id++;
-		for (auto &child : p_tree.get_child("children")) {
-			auto child_node_ptr = std::make_shared<node>();
-			root_ptr->children.push_back(child_node_ptr);
-			kernel_id = expr_tree_from_json(kernel_id, child.second, child_node_ptr.get(), level + 1, query_graph);
+		auto step_id = get_id_from_expression(expr);
+		if(mapped_ids.find(step_id) == mapped_ids.end()){
+			for (auto &child : p_tree.get_child("children")) {
+				auto child_node_ptr = std::make_shared<node>();
+				root_ptr->children.push_back(child_node_ptr);
+				kernel_id = expr_tree_from_json(kernel_id, child.second, child_node_ptr.get(), level + 1, query_graph);
+			}
+			std::shared_ptr<node> my_ptr(root_ptr);
+			mapped_ids[step_id] = my_ptr;
+		}else{ //This node was already processed
+			root_ptr->children.push_back(mapped_ids[step_id]);
 		}
+
 		return kernel_id;
 	}
 
