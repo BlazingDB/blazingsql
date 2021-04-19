@@ -220,13 +220,7 @@ static inline std::size_t get_size_for_statement(sqlite3_stmt * stmt) {
 data_handle sqlite_data_provider::get_next(bool) {
   data_handle ret;
 
-  const std::string select_from = build_select_from();
-  const std::string query = make_table_query_string(sql.table_batch_size,
-                                                    sql.table_batch_size,
-                                                    batch_position,
-                                                    total_number_of_nodes,
-                                                    self_node_idx,
-                                                    select_from);
+  const std::string query = build_select_query(batch_position);
   batch_position++;
 
   std::shared_ptr<sqlite3_stmt> stmt = execute_sqlite_query(db, query);

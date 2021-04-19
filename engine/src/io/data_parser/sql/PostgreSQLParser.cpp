@@ -24,106 +24,11 @@ static const std::array<const char *, 6> postgresql_string_type_hints =
     {"character", "character varying", "bytea", "text", "anyarray", "name"};
 
 static inline bool postgresql_is_cudf_string(const std::string & hint) {
-  const auto * result =
-      std::find_if(std::cbegin(postgresql_string_type_hints),
-                   std::cend(postgresql_string_type_hints),
-                   [&hint](const char * c_hint) {
-                     return std::strcmp(c_hint, hint.c_str()) == 0;
-                   });
+  const auto * result = std::find_if(
+      std::cbegin(postgresql_string_type_hints),
+      std::cend(postgresql_string_type_hints),
+      [&hint](const char * c_hint) { return !hint.rfind(c_hint, 0); });
   return result != std::cend(postgresql_string_type_hints);
-}
-
-// To avoid theses functions we could use postgresql ecpg. But for now, there is
-// not exist a official conda channel for ecpg. Maybe we could add to cmake
-// script a function to check a postgresql installation folder
-
-static inline void date_to_ymd(std::int32_t jd,
-                               std::int32_t & year,
-                               std::int32_t & month,
-                               std::int32_t & day) {
-  std::uint32_t julian, quad, extra;
-  std::int32_t y;
-  julian = static_cast<std::uint32_t>(jd);
-  julian += 32044;
-  quad = julian / 146097;
-  extra = (julian - quad * 146097) * 4 + 3;
-  julian += 60 + quad * 3 + extra / 146097;
-  quad = julian / 1461;
-  julian -= quad * 1461;
-  y = julian * 4 / 1461;
-  julian = ((y != 0) ? (julian + 305) % 365 : (julian + 306) % 366) + 123;
-  y += quad * 4;
-  year = y - 4800;
-  quad = julian * 2141 / 65536;
-  day = julian - 7834 * quad / 256;
-  month = (quad + 10) % 12 + 1;
-}
-
-static inline void time_to_hms(std::int64_t jd,
-                               std::int32_t & hour,
-                               std::int32_t & min,
-                               std::int32_t & sec,
-                               std::int32_t & msec) {
-  std::int64_t time;
-  const std::int64_t USECS_PER_HOUR = 3600000000;
-  const std::int64_t USECS_PER_MINUTE = 60000000;
-  const std::int64_t USECS_PER_SEC = 1000000;
-  time = jd;
-  hour = time / USECS_PER_HOUR;
-  time -= (hour) *USECS_PER_HOUR;
-  min = time / USECS_PER_MINUTE;
-  time -= (min) *USECS_PER_MINUTE;
-  sec = time / USECS_PER_SEC;
-  msec = time - (sec * USECS_PER_SEC);
-}
-
-static inline int
-timestamp_to_tm(std::int64_t dt, struct tm & tm, std::int32_t & msec) {
-  std::int64_t dDate, POSTGRESQL_EPOCH_DATE = 2451545;
-  std::int64_t time;
-  std::uint64_t USECS_PER_DAY = 86400000000;
-  time = dt;
-
-  dDate = time / USECS_PER_DAY;
-  if (dDate != 0) { time -= dDate * USECS_PER_DAY; }
-
-  if (time < 0) {
-    time += USECS_PER_DAY;
-    dDate -= 1;
-  }
-  dDate += POSTGRESQL_EPOCH_DATE;
-
-  date_to_ymd(static_cast<std::int32_t>(dDate),
-              tm.tm_year,
-              tm.tm_mon,
-              tm.tm_mday);
-  time_to_hms(time, tm.tm_hour, tm.tm_min, tm.tm_sec, msec);
-}
-
-static inline std::string date_to_string(std::int32_t jd) {
-  // For date conversion see
-  // https://doxygen.postgresql.org/backend_2utils_2adt_2datetime_8c.html#a889d375aaf2a25be071d818565142b9e
-  const std::int32_t POSTGRESQL_EPOCH_DATE = 2451545;
-  std::int32_t year, month, day;
-  date_to_ymd(POSTGRESQL_EPOCH_DATE + jd, year, month, day);
-  std::stringstream oss;
-  oss << year << '-' << std::setfill('0') << std::setw(2) << month << '-'
-      << std::setw(2) << day;
-  return oss.str();
-}
-
-static inline std::string timestamp_to_string(std::int64_t tstamp) {
-  // For timestamp conversion see
-  // https://doxygen.postgresql.org/backend_2utils_2adt_2timestamp_8c.html#a933dc09a38ddcf144a48b2aaf5790893
-  struct tm tm;
-  std::int32_t msec;
-  timestamp_to_tm(tstamp, tm, msec);
-  std::stringstream oss;
-  oss << tm.tm_year << '-' << std::setfill('0') << std::setw(2) << tm.tm_mon
-      << '-' << std::setw(2) << tm.tm_mday << ' ' << std::setw(2) << tm.tm_hour
-      << ':' << std::setw(2) << tm.tm_min << ':' << std::setw(2) << tm.tm_sec;
-  if (msec != 0) { oss << '.' << std::setw(6) << msec; }
-  return oss.str();
 }
 
 static inline cudf::type_id
@@ -134,8 +39,8 @@ parse_postgresql_column_type(const std::string & columnTypeName) {
   if (!columnTypeName.rfind("smallint", 0)) { return cudf::type_id::INT16; }
   if (!columnTypeName.rfind("integer", 0)) { return cudf::type_id::INT32; }
   if (!columnTypeName.rfind("bigint", 0)) { return cudf::type_id::INT64; }
-  if (!columnTypeName.rfind("decimal", 0)) { return cudf::type_id::DECIMAL64; }
-  if (!columnTypeName.rfind("numeric", 0)) { return cudf::type_id::DECIMAL64; }
+  if (!columnTypeName.rfind("decimal", 0)) { return cudf::type_id::FLOAT64; }
+  if (!columnTypeName.rfind("numeric", 0)) { return cudf::type_id::FLOAT64; }
   if (!columnTypeName.rfind("real", 0)) { return cudf::type_id::FLOAT32; }
   if (!columnTypeName.rfind("double precision", 0)) {
     return cudf::type_id::FLOAT64;
@@ -145,7 +50,7 @@ parse_postgresql_column_type(const std::string & columnTypeName) {
   if (!columnTypeName.rfind("bigserial", 0)) { return cudf::type_id::INT64; }
   if (!columnTypeName.rfind("boolean", 0)) { return cudf::type_id::BOOL8; }
   if (!columnTypeName.rfind("date", 0)) {
-    return cudf::type_id::TIMESTAMP_DAYS;
+    return cudf::type_id::TIMESTAMP_MILLISECONDS;
   }
   if (!columnTypeName.rfind("money", 0)) { return cudf::type_id::UINT64; }
   if (!columnTypeName.rfind("timestamp without time zone", 0)) {
@@ -206,7 +111,9 @@ std::uint8_t postgresql_parser::parse_cudf_int8(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
-  const std::int8_t value = *reinterpret_cast<const std::int8_t *>(result);
+  char * end;
+  const std::int8_t value =
+      static_cast<std::int8_t>(std::strtol(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -219,8 +126,9 @@ postgresql_parser::parse_cudf_int16(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
+  char * end;
   const std::int16_t value =
-      ntohs(*reinterpret_cast<const std::int16_t *>(result));
+      static_cast<std::int16_t>(std::strtol(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -233,8 +141,9 @@ postgresql_parser::parse_cudf_int32(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
+  char * end;
   const std::int32_t value =
-      ntohl(*reinterpret_cast<const std::int32_t *>(result));
+      static_cast<std::int32_t>(std::strtol(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -247,8 +156,9 @@ postgresql_parser::parse_cudf_int64(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
+  char * end;
   const std::int64_t value =
-      __builtin_bswap64(*reinterpret_cast<const std::int64_t *>(result));
+      static_cast<std::int64_t>(std::strtoll(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -261,7 +171,9 @@ postgresql_parser::parse_cudf_uint8(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
-  const std::uint8_t value = *reinterpret_cast<const std::uint8_t *>(result);
+  char * end;
+  const std::uint8_t value =
+      static_cast<std::uint8_t>(std::strtoul(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -274,8 +186,9 @@ postgresql_parser::parse_cudf_uint16(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
+  char * end;
   const std::uint16_t value =
-      ntohs(*reinterpret_cast<const std::uint16_t *>(result));
+      static_cast<std::uint16_t>(std::strtol(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -288,8 +201,9 @@ postgresql_parser::parse_cudf_uint32(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
+  char * end;
   const std::uint32_t value =
-      ntohl(*reinterpret_cast<const std::uint32_t *>(result));
+      static_cast<std::uint32_t>(std::strtoul(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -302,8 +216,9 @@ postgresql_parser::parse_cudf_uint64(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
+  char * end;
   const std::uint64_t value =
-      __builtin_bswap64(*reinterpret_cast<const std::int64_t *>(result));
+      static_cast<std::uint64_t>(std::strtoull(result, &end, 10));
   v->at(row) = value;
   return 1;
 }
@@ -315,9 +230,8 @@ std::uint8_t postgresql_parser::parse_cudf_float32(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
-  const std::int32_t casted =
-      ntohl(*reinterpret_cast<const std::int32_t *>(result));
-  const float value = *reinterpret_cast<const float *>(&casted);
+  char * end;
+  const float value = static_cast<float>(std::strtof(result, &end));
   v->at(row) = value;
   return 1;
 }
@@ -329,9 +243,8 @@ std::uint8_t postgresql_parser::parse_cudf_float64(void * src,
   PGresult * pgResult = static_cast<PGresult *>(src);
   if (PQgetisnull(pgResult, row, col)) { return 0; }
   const char * result = PQgetvalue(pgResult, row, col);
-  const std::int64_t casted =
-      __builtin_bswap64(*reinterpret_cast<const std::int64_t *>(result));
-  const double value = *reinterpret_cast<const double *>(&casted);
+  char * end;
+  const double value = static_cast<double>(std::strtod(result, &end));
   v->at(row) = value;
   return 1;
 }
@@ -340,7 +253,21 @@ std::uint8_t postgresql_parser::parse_cudf_bool8(void * src,
                                                  std::size_t col,
                                                  std::size_t row,
                                                  std::vector<std::int8_t> * v) {
-  return parse_cudf_int8(src, col, row, v);
+  PGresult * pgResult = static_cast<PGresult *>(src);
+  if (PQgetisnull(pgResult, row, col)) { return 0; }
+  const std::string result = std::string{PQgetvalue(pgResult, row, col)};
+  std::int8_t value;
+  if (result == "t") {
+    value = 1;
+  } else {
+    if (result == "f") {
+      value = 0;
+    } else {
+      return 0;
+    }
+  }
+  v->at(row) = value;
+  return 1;
 }
 
 std::uint8_t postgresql_parser::parse_cudf_timestamp_days(void * src,
@@ -396,25 +323,7 @@ std::uint8_t postgresql_parser::parse_cudf_string(void * src,
     return 0;
   }
   const char * result = PQgetvalue(pgResult, row, col);
-  std::string data;
-
-  // TODO(cristhian): convert oid to data type using postgresql pgtype table
-  // https://www.postgresql.org/docs/13/catalog-pg-type.html
-  switch (oid) {
-  case 1082: {  // date
-    const std::int32_t value =
-        ntohl(*reinterpret_cast<const std::int32_t *>(result));
-    data = date_to_string(value);
-    break;
-  }
-  case 1114: {  // timestamp
-    const std::int64_t value =
-        __builtin_bswap64(*reinterpret_cast<const std::int64_t *>(result));
-    data = timestamp_to_string(value);
-    break;
-  }
-  default: data = result;
-  }
+  std::string data = result;
 
   v->chars.insert(v->chars.end(), data.cbegin(), data.cend());
   v->offsets.push_back(v->offsets.back() + data.length());

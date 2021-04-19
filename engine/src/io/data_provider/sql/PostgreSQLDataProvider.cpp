@@ -36,7 +36,6 @@ class TableInfo {
 public:
   std::vector<std::string> column_names;
   std::vector<std::string> column_types;
-  std::vector<std::size_t> column_bytes;
   std::size_t row_count;
 };
 
@@ -49,38 +48,42 @@ inline TableInfo ExecuteTableInfo(PGconn * connection, const sql_info & sql) {
   }
 
   int resultNtuples = PQntuples(result);
-  int resultNfields = PQnfields(result);
   TableInfo tableInfo;
-  tableInfo.column_names.reserve(resultNfields);
-  tableInfo.column_types.reserve(resultNfields);
-  tableInfo.row_count = static_cast<std::size_t>(resultNtuples);
+  tableInfo.column_names.reserve(resultNtuples);
+  tableInfo.column_types.reserve(resultNtuples);
 
   int columnNameFn = PQfnumber(result, "column_name");
   int dataTypeFn = PQfnumber(result, "data_type");
   int characterMaximumLengthFn = PQfnumber(result, "character_maximum_length");
 
-  for (int i = 0; i < resultNfields; i++) {
+  for (int i = 0; i < resultNtuples; i++) {
     tableInfo.column_names.emplace_back(
         std::string{PQgetvalue(result, i, columnNameFn)});
     tableInfo.column_types.emplace_back(
         std::string{PQgetvalue(result, i, dataTypeFn)});
 
     // NOTE character_maximum_length is used for char or byte string type
-    if (PQgetisnull(result, i, characterMaximumLengthFn)) {
-      // TODO(recy, cristhian): check the minimum size for types
-      tableInfo.column_bytes.emplace_back(8);
-    } else {
+    if (!PQgetisnull(result, i, characterMaximumLengthFn)) {
       const char * characterMaximumLengthBytes =
           PQgetvalue(result, i, characterMaximumLengthFn);
       // NOTE postgresql representation of number is in network order
       const std::uint32_t characterMaximumLength =
           ntohl(*reinterpret_cast<const std::uint32_t *>(
               characterMaximumLengthBytes));
-      tableInfo.column_bytes.emplace_back(
-          static_cast<const std::size_t>(characterMaximumLength));
     }
   }
-
+  PQclear(result);
+  const std::string query = "select count(*) from " + sql.table;
+  result = PQexec(connection, query.c_str());
+  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    PQclear(result);
+    PQfinish(connection);
+    throw std::runtime_error("Error access for columns info");
+  }
+  const char * value = PQgetvalue(result, 0, 0);
+  char * end;
+  tableInfo.row_count = std::strtoll(value, &end, 10);
+  PQclear(result);
   return tableInfo;
 }
 
@@ -103,7 +106,6 @@ postgresql_data_provider::postgresql_data_provider(
   TableInfo tableInfo = ExecuteTableInfo(connection, sql);
   column_names = tableInfo.column_names;
   column_types = tableInfo.column_types;
-  column_bytes = tableInfo.column_bytes;
   estimated_table_row_count = tableInfo.row_count;
 }
 
@@ -132,17 +134,9 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
   handle.sql_handle.column_names = column_names;
   handle.sql_handle.column_types = column_types;
 
-  if (!open_file) { return handle; }
-
-  const std::string select_from = build_select_from();
-  const std::string where = sql.table_filter.empty() ? "" : " where ";
-  const std::size_t offset =
-      sql.table_batch_size *
-      (batch_position * total_number_of_nodes + self_node_idx);
-  const std::string query =
-      select_from + where + sql.table_filter + build_limit_offset(offset);
-
+  const std::string query = build_select_query(batch_position);
   batch_position++;
+
   PGresult * result = PQexecParams(connection,
                                    query.c_str(),
                                    0,
@@ -150,8 +144,7 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
                                    nullptr,
                                    nullptr,
                                    nullptr,
-                                   1);
-
+                                   0);
   if (PQresultStatus(result) != PGRES_TUPLES_OK) {
     PQclear(result);
     PQfinish(connection);

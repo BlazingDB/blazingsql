@@ -97,7 +97,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #ifdef POSTGRESQL_SUPPORT
 		parser = std::make_shared<ral::io::postgresql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
-    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, 0, 0);
+    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, total_number_of_nodes, self_node_idx);
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
 #endif
@@ -200,7 +200,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 {
   using blazingdb::manager::Context;
   using blazingdb::transport::Node;
-  
+
   auto& communicationData = ral::communication::CommunicationData::getInstance();
 
   std::vector<Node> contextNodes;
