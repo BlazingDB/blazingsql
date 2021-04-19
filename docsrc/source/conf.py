@@ -12,7 +12,17 @@
 #
 import os
 import sys
+import sphinx  # isort:skip
+from sphinx.util import rpartition  # isort:skip
+from sphinx.ext.autodoc import (  # isort:skip
+    AttributeDocumenter,
+    Documenter,
+    MethodDocumenter,
+)
+from sphinx.ext.autosummary import Autosummary  # isort:skip
+
 sys.path.insert(0, os.path.abspath('../../pyblazing'))
+sys.path.insert(0, os.path.abspath('../../pyblazing/blazingsql'))
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
@@ -60,12 +70,12 @@ exhale_args = {
     # These arguments are required
     "containmentFolder":     "./xml",
     "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Library API",
+    "rootFileTitle":         "C++ API Reference",
     "doxygenStripFromPath":  "..",
     # Suggested optional arguments
     "createTreeView":        True,
     # TIP: if using the sphinx-bootstrap-theme, you need
-    #"treeViewIsBootstrap": True
+    "treeViewIsBootstrap": True
 }
 
 # Setup the breathe extension
@@ -146,24 +156,62 @@ html_context = {
     "github_repo": "blazingsql",
     "github_version": "feedback",
     "doc_path": "docsrc/source",
+    "sql": {
+        "query": ['SELECT','SELECT_ALL','SELECT_DISTINCT']
+        , "filter": [
+            'WHERE_RELATIONAL', 'WHERE_AND','WHERE_ANDNOT'
+            ,'WHERE_BETWEEN','WHERE_IN','WHERE_ISDISTINCTFROM','WHERE_ISFALSE','WHERE_ISNOTDISTINCTFROM'
+            ,'WHERE_ISNOTNULL','WHERE_ISNOTTRUE','WHERE_ISNOTUNKNOWN','WHERE_ISNULL','WHERE_ISTRUE','WHERE_ISUNKNOWN'
+            ,'WHERE_LIKE','WHERE_NOTBETWEEN','WHERE_NOTIN','WHERE_NOTLIKE','WHERE_OR','WHERE_ORNOT'
+        ]
+        , "order": [
+            'ORDERBY_','ORDERBY_ASC','ORDERBY_ASCNULLSFIRST','ORDERBY_ASCNULLSLAST','ORDERBY_DESC','ORDERBY_DESCNULLSFIRST'
+            ,'ORDERBY_DESCNULLSLAST','ORDERBY_NULLSFIRST','ORDERBY_NULLSLAST'
+        ]
+        , "arithmetic": [
+            'ARITHMETIC_ABS','ARITHMETIC_ACOS','ARITHMETIC_ADD','ARITHMETIC_ASIN'
+            ,'ARITHMETIC_ATAN','ARITHMETIC_CEIL','ARITHMETIC_COS','ARITHMETIC_DIVIDE'
+            ,'ARITHMETIC_FLOOR','ARITHMETIC_GREATEST','ARITHMETIC_LEAST','ARITHMETIC_LN'
+            ,'ARITHMETIC_LOG10','ARITHMETIC_MOD','ARITHMETIC_MULTIPLY','ARITHMETIC_NEGATIVE'
+            ,'ARITHMETIC_POWER','ARITHMETIC_RAND','ARITHMETIC_ROUND','ARITHMETIC_SIN'
+            ,'ARITHMETIC_SQRT','ARITHMETIC_SUBTRACT','ARITHMETIC_TAN'
+        ]
+        , "strings": [
+            'STRING_CHARACTERLENGTH','STRING_CHARLENGTH','STRING_CONCAT','STRING_GREATEST','STRING_INITCAP'
+            ,'STRING_LEAST','STRING_LEFT','STRING_LOWER','STRING_LTRIM','STRING_NVL','STRING_REGEXPREPLACE','STRING_REVERSE'
+            ,'STRING_RIGHT','STRING_RTRIM','STRING_SUBSTRING','STRING_TRIM','STRING_UPPER'
+        ]
+        , "dates": [
+            'DATE_DAYOFMONTH','DATE_DAYOFWEEK','DATE_EXTRACT','DATE_HOUR','DATE_MINUTE','DATE_MONTH','DATE_SECOND','DATE_YEAR'
+        ]
+        , "functions": [
+            "FUNC_CASE","FUNC_COALESCE","FUNC_NULLIF"
+        ]
+        , "casting": [
+            'CAST_BIGINT','CAST_BOOLEAN','CAST_CHAR','CAST_DATE','CAST_DECIMAL','CAST_DOUBLE'
+            ,'CAST_FLOAT','CAST_INT','CAST_SMALLINT','CAST_TINYINT','CAST_VARCHAR'
+        ]
+        , "aggregating": [
+            'AGG_AVG','AGG_COUNT','AGG_MAX','AGG_MIN','AGG_STDDEV','AGG_STDDEVPOP','AGG_STDDEVSAMP','AGG_SUM','AGG_VARPOP','AGG_VARSAMP'            
+        ]
+        , "windowing": [
+            'WINDOW_AVG','WINDOW_FIRSTVALUE','WINDOW_LAG','WINDOW_LASTVALUE','WINDOW_LEAD','WINDOW_MAX','WINDOW_MIN'
+            ,'WINDOW_ROWNUMBER','WINDOW_SUM'
+        ]
+        , "joins": ['JOIN_FULL','JOIN_FULLOUTER','JOIN_LEFT','JOIN_LEFTOUTER']
+    }
 }
+
+skip_methods = ['add_remove_table', 'partition', 'do_progress_bar', 'localfs']
 
 def skip(app, what, name, obj, would_skip, options):
     if name == "__init__":
         return True
     elif name[0] == '_':
         return True
+    elif name in skip_methods:
+        return True
     return would_skip
-
-import sphinx  # isort:skip
-from sphinx.util import rpartition  # isort:skip
-from sphinx.ext.autodoc import (  # isort:skip
-    AttributeDocumenter,
-    Documenter,
-    MethodDocumenter,
-)
-from sphinx.ext.autosummary import Autosummary  # isort:skip
-
 
 class AccessorDocumenter(MethodDocumenter):
     """
@@ -272,13 +320,16 @@ def rstjinja(app, docname, source):
     if app.builder.format != "html":
         return
     src = source[0]
+    # print(docname, source)
     rendered = app.builder.templates.render_string(src, app.config.html_context)
+    # print(rendered)
     source[0] = rendered
 
 def setup(app):
     app.add_js_file("js/d3.v3.min.js")
     app.connect("autodoc-skip-member", skip)
-    # app.connect("source-read", rstjinja)
+    app.connect("source-read", rstjinja)
+    # app.connect("env-get-outdated", test2)
     # app.connect("autodoc-process-docstring", remove_flags_docstring)
     # app.connect("autodoc-process-docstring", process_class_docstrings)
     # app.connect("autodoc-process-docstring", process_business_alias_docstrings)
