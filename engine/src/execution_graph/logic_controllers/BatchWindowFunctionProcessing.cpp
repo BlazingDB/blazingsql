@@ -15,7 +15,7 @@
 #include <cudf/stream_compaction.hpp>
 #include "cudf/column/column_view.hpp"
 #include <cudf/rolling.hpp>
-#include <cudf/filling.hpp>
+#include <cudf/reduction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/types.hpp>
 #include <cudf/copying.hpp>
@@ -1000,7 +1000,7 @@ In the future, when we can have CacheData's shared between nodes, then we can re
 ComputeWindowKernelUnbounded::ComputeWindowKernelUnbounded(std::size_t kernel_id, const std::string & queryString,
     std::shared_ptr<Context> context,
     std::shared_ptr<ral::cache::graph> query_graph)
-    : kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
+    : distributing_kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
     this->query_graph = query_graph;
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
     this->frame_type = get_frame_type_from_over_clause(this->expression);
@@ -1029,8 +1029,6 @@ std::unique_ptr<CudfColumn> ComputeWindowKernelUnbounded::compute_column_from_wi
     cudf::table_view input_table_cudf_view,
     cudf::column_view col_view_to_agg,
     std::size_t pos) {
-
-    std::unique_ptr<cudf::aggregation> window_aggregation;
 
     // we want firs get the type of aggregation
     std::unique_ptr<cudf::aggregation> window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->agg_param_values[pos]);
@@ -1314,7 +1312,7 @@ kstatus ComputeWindowKernelUnbounded::run() {
         std::vector<std::string> agg_column_names = partial_aggregations_table->names();
         auto nodes = context->getAllNodes();
         std::vector<std::unique_ptr<ral::frame::BlazingTable>> node_partial_aggregations;
-        std::vector<int> num_batches_per_node;
+        std::vector<cudf::size_type> num_batches_per_node;
         for(std::size_t i = 0; i < nodes.size(); ++i) {
             if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
                 std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
@@ -1346,24 +1344,31 @@ kstatus ComputeWindowKernelUnbounded::run() {
                 // before we do the scan, we will want to do a reverse on the data
                 // right now there is no reverse API (https://github.com/rapidsai/cudf/issues/7967) so we need to do a sequense and gather
                 if (reverse_sequence == nullptr){ // if not initialized
-                    reverse_sequence = cudf::sequence(partial_agg_column_view.num_rows(), partial_agg_column_view.num_rows() - 1, -1);
+                    reverse_sequence = cudf::sequence(all_partial_aggregations_table->num_rows(), 
+                                                        cudf::numeric_scalar(all_partial_aggregations_table->num_rows() - 1, true),  
+                                                        cudf::numeric_scalar(-1, true));
                 }
+
                 cudf::table_view temp_table_view({partial_agg_column_view});
                 std::unique_ptr<cudf::table> reversed = cudf::gather(temp_table_view, reverse_sequence->view());
 
                 // now we do the inclusive scan on the reversed data.
-                cumulative_agg_column = cudf::scan(reversed->get_column(0)->view(), window_aggregation, cudf::scan_type::INCLUSIVE);
+                cumulative_agg_column = cudf::scan(reversed->get_column(0).view(), window_aggregation, cudf::scan_type::INCLUSIVE);
                 
                 // after we do the scan, we want to reverse the data back
                 temp_table_view = cudf::table_view({cumulative_agg_column->view()});
                 reversed = cudf::gather(temp_table_view, reverse_sequence->view());
-                std::vector<std::unique_ptr<column>> temp_released = reversed->release();
+                std::vector<std::unique_ptr<cudf::column>> temp_released = reversed->release();
                 cumulative_agg_column = std::move(temp_released[0]);
             }
             cumulative_agg_columns.push_back(std::move(cumulative_agg_column));
         }
         std::unique_ptr<ral::frame::BlazingTable> cumulative_agg_table = std::make_unique<ral::frame::BlazingTable>(
             std::make_unique<cudf::table>(std::move(cumulative_agg_columns)), agg_column_names);
+
+        std::vector<cudf::size_type> split_indexes(num_batches_per_node.size() - 1);
+        std::partial_sum(num_batches_per_node.begin(), num_batches_per_node.end()-1, split_indexes.begin());
+        std::vector<cudf::table_view> cumulative_agg_per_node = cudf::split(cumulative_agg_table->view(), split_indexes);
          
         
     } else {

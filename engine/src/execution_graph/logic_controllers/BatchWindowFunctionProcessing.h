@@ -197,7 +197,7 @@ private:
  * New columns will be added to each batch
  */
 
-class ComputeWindowKernelUnbounded : public kernel {
+class ComputeWindowKernelUnbounded : public distributing_kernel {
 public:
 	ComputeWindowKernelUnbounded(std::size_t kernel_id, const std::string & queryString,
 		std::shared_ptr<Context> context,
