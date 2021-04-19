@@ -24,6 +24,7 @@
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
 - #1473 Added Warning to Window Functions 
+- #1480 Improve dependencies script
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
