@@ -9,7 +9,6 @@ package:
 
 source:
     git_url: ../../..
-
 build:
     number: {{ GIT_DESCRIBE_NUMBER }}
     string: cuda_{{ cuda_version }}_py{{ py_version }}_{{ GIT_DESCRIBE_HASH }}_{{ GIT_DESCRIBE_NUMBER }}
@@ -25,15 +24,16 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
-        - google-cloud-cpp 1.16.0
+        - google-cloud-cpp >=1.25.0
         - mysql-connector-cpp 8.0.23
         - libpq 13
+        - nlohmann_json
         - cppzmq
         - python
         - setuptools
         - spdlog >=1.7.0,<1.8.0
         - cython >=0.29,<0.30
-        - openjdk >=8.0
+        - openjdk >=8.0, <9.0
         - maven
         - cudf {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
@@ -42,7 +42,10 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
     run:
         - python
-        - openjdk >=8.0
+        - nlohmann_json
+        - aws-sdk-cpp
+        - google-cloud-cpp >=1.25.0
+        - openjdk >=8.0, <9.0
         - jpype1
         - netifaces
         - pyhive
@@ -60,6 +63,9 @@ test:
     requires:
         - cudatoolkit {{ cuda_version }}.*
         - gtest 1.10
+        - nlohmann_json
+        - aws-sdk-cpp
+        - google-cloud-cpp >=1.25.0
     imports:
         - cio
 
@@ -67,4 +73,4 @@ about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
     license_family: Apache
-    summary: GPU-powered distributed SQL engine in Python
+    summary: GPU-powered distributed SQL engine in Python 
