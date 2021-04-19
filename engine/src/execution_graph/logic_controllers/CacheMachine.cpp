@@ -789,7 +789,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 
 			auto data = collected_messages[i]->release_data();
 			tables.push_back(data->decache());
-			
 			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
 			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables)){
 				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables.back()));
@@ -818,7 +817,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 			}
 		}
 
-		if( concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views) ) { // if we have to concatenate all, then lets throw a warning if it will overflow strings
+		if( concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables) ) { // if we have to concatenate all, then lets throw a warning if it will overflow strings
             CodeTimer cacheEventTimer;
             cacheEventTimer.start();
             cacheEventTimer.stop();
