@@ -1,0 +1,100 @@
+
+.. _file_engine_src_error.hpp:
+
+File error.hpp
+==============
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/error.hpp``)
+-------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/utilities/error.hpp``
+
+- ``exception``
+
+- ``iostream``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_CalciteExpressionParsing.cpp`
+
+- :ref:`file_engine_src_cython_engine.cpp`
+
+- :ref:`file_engine_src_cython_initialize.cpp`
+
+- :ref:`file_engine_src_distribution_primitives.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_LogicalFilter.cpp`
+
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+
+- :ref:`file_engine_src_parser_expression_utils.cpp`
+
+- :ref:`file_engine_src_skip_data_SkipDataProcessor.cpp`
+
+- :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+- :ref:`file_engine_src_utilities_scalar_timestamp_parser.cpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structBlazingMissingMetadataException`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_error_8hpp_1a43b1a8391d990a85e89d3ad398e7aa3a`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_error_8hpp_1aeba3f3a407d4949be4e01e5db08a865c`
+
+- :ref:`exhale_define_error_8hpp_1a7d005d2f5896b65c720823e0e9520082`
+
+- :ref:`exhale_define_error_8hpp_1ab99ef554b80f4e3149aa50a2fb16cbc0`
+
+- :ref:`exhale_define_error_8hpp_1aafefdd05c438f655b1f34e1e66a48951`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_error_8hpp_1a6d895297debc7253322514af9c28d782`
+

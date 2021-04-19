@@ -1,0 +1,16 @@
+.. _exhale_class_classblazingdb_1_1transport_1_1Status:
+
+Class Status
+============
+
+- Defined in :ref:`file_engine_src_transport_Status.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: blazingdb::transport::Status
+   :members:
+   :protected-members:
+   :undoc-members:

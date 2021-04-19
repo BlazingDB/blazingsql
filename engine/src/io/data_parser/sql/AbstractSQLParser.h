@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
  */
 
 #ifndef _ABSTRACTSQLPARSER_H_

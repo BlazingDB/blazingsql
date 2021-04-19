@@ -1,0 +1,13 @@
+.. _exhale_function_ArgsUtil_8cpp_1ab3471859a4fed557f91279ed0cc74b0b:
+
+Function ral::io::getDataTypeName
+=================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_ArgsUtil.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::getDataTypeName(DataType)

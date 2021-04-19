@@ -32,6 +32,10 @@ public:
 
   std::size_t get_num_handles() override;
 
+protected:
+  // TODO percy c.gonzales
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
+
 private:
   PGconn * connection;
   bool table_fetch_completed;

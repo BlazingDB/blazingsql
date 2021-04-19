@@ -27,9 +27,9 @@ cd blazingsql
 ./test.sh
 ```
 
-### End to End tests
+## End to End tests
 
-#### Default settings
+### Default settings
 By default the end to end tests:
 - Run in single node only (nrals: 1)
 - Compare against parquet result files instead of Drill or pySpark (execution mode: gpuci)
@@ -49,7 +49,7 @@ cd blazingsql
 ./test.sh e2e tests=roundTest,orderbyTest
 ```
 
-#### Custom settings
+### Custom settings
 All the behaviour of the end to end test are base on environment variables. So when you want to have more control you need to change some of the default values exporting or defining the target environment variable before run the tests.
 
 Examples:
@@ -116,7 +116,17 @@ Finally, there are sensible data that never must be public so to get the values 
 - Google Storage connection settings: BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID, BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME, BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE
 - Google Docs spreadsheet access: BLAZINGSQL_E2E_LOG_INFO
 
-#### Testing workflow remarks
+### Generating New Test Result Files
+When running the end to end tests in its default mode (BLAZINGSQL_E2E_EXEC_MODE="gpuci"), it will use result files which live in the blazingsql-testing-files repository which should be in the root of your conda environment directory. To generate new files here for new E2E test queries, you will need to run the testing framework for the test set in generator mode. You must also run it for regular data and data with nulls. You will have to do something like this:
+
+```shell-script
+BLAZINGSQL_E2E_EXEC_MODE="generator" ./test.sh e2e tests=windowNoPartitionTest
+BLAZINGSQL_E2E_TEST_WITH_NULLS=true   BLAZINGSQL_E2E_EXEC_MODE="generator" ./test.sh e2e tests=windowNoPartitionTest
+```
+
+**Note:** If you need to modify an already existing file, you will need to delete it, before you try to regenerate it.
+
+### Testing workflow remarks
 - For development/debugging is recommended to set you env var BLAZINGSQL_E2E_DASK_CONNECTION to your dask-scheduler IP:PORT
 - Do not touch bash files, if you need a feature please talk with QA & DevOps teams.
 - Only add/modify end to end tests once you have coordinated with QA team.
@@ -259,17 +269,17 @@ BLAZINGSQL_E2E_MYSQL_HOSTNAME
 BLAZINGSQL_E2E_MYSQL_PORT
 BLAZINGSQL_E2E_MYSQL_USERNAME
 BLAZINGSQL_E2E_MYSQL_PASSWORD
-BLAZINGSQL_E2E_MYSQL_SCHEMA
+BLAZINGSQL_E2E_MYSQL_DATABASE
 
 # for PostgreSQL
 BLAZINGSQL_E2E_POSTGRESQL_HOSTNAME
 BLAZINGSQL_E2E_POSTGRESQL_PORT
 BLAZINGSQL_E2E_POSTGRESQL_USERNAME
 BLAZINGSQL_E2E_POSTGRESQL_PASSWORD
-BLAZINGSQL_E2E_POSTGRESQL_SCHEMA
+BLAZINGSQL_E2E_POSTGRESQL_DATABASE
 
 # for SQLite
-BLAZINGSQL_E2E_SQLITE_SCHEMA
+BLAZINGSQL_E2E_SQLITE_DATABASE
 ```
 
 Note BLAZINGSQL_E2E_SQL_PORT is a number and the other vars are strings!

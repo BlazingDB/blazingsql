@@ -1,0 +1,13 @@
+.. _exhale_function_dbg_8hpp_1a6fdcf2651bcb47e3d703dccd86e14ad7:
+
+Function dbg_macro::prettyPrint(std::ostream&, const std::string&)
+==================================================================
+
+- Defined in :ref:`file_engine_src_transport_common_dbg.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: dbg_macro::prettyPrint(std::ostream&, const std::string&)

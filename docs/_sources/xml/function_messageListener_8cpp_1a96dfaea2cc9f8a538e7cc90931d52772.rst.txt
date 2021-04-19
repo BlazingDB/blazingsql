@@ -1,0 +1,13 @@
+.. _exhale_function_messageListener_8cpp_1a96dfaea2cc9f8a538e7cc90931d52772:
+
+Function comm::poll_for_frames
+==============================
+
+- Defined in :ref:`file_engine_src_communication_CommunicationInterface_messageListener.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: comm::poll_for_frames(std::shared_ptr<message_receiver>, ucp_tag_t, ucp_worker_h, const std::size_t)

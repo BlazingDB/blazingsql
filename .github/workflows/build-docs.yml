@@ -1,0 +1,48 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build docs
+
+# Controls when the action will run. 
+on:
+  push:
+    branches: 
+      - main
+  
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  docs:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - uses: mattnotmitt/doxygen-action@v1
+        with:
+          working-directory: 'docsrc/'
+          doxyfile-path: 'source/Doxyfile'
+      - uses: ammaraskar/sphinx-action@master
+        with:
+          build-command: "make html -e"
+          docs-folder: "docsrc/"
+      - name: Commit documentation changes
+        run: |
+          git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch main --single-branch main
+          cp -a docsrc/build/html/. docs/
+          cd docs
+          touch .nojekyll
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update documentation" -a || true
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: main
+          directory: docs
+          force: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}

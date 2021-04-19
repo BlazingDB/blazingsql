@@ -261,7 +261,7 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
 ucx_buffer_transport::~ucx_buffer_transport() {
 }
 
-std::atomic<int> atomic_message_id(0);
+std::atomic<int> ucx_buffer_transport::atomic_message_id(0);
 
 ucp_tag_t ucx_buffer_transport::generate_message_tag() {
     auto current_message_id = atomic_message_id.fetch_add(1);

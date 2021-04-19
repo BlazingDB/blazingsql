@@ -136,6 +136,10 @@ void CacheMachine::put(size_t index, std::unique_ptr<ral::frame::BlazingTable> t
 	this->addToCache(std::move(table), this->cache_machine_name + "_" + std::to_string(index), true);
 }
 
+void CacheMachine::put(size_t index, std::unique_ptr<ral::cache::CacheData> cacheData) {
+	this->addCacheData(std::move(cacheData), this->cache_machine_name + "_" + std::to_string(index), true);
+}
+
 void CacheMachine::clear() {
 	CodeTimer cacheEventTimer;
     cacheEventTimer.start();
@@ -290,7 +294,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	return false;
 }
 
-bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool include_meta, bool use_pinned) {
+bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool use_pinned) {
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
@@ -325,11 +329,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					// before we put into a cache, we need to make sure we fully own the table
 					table->ensureOwnership();
 					std::unique_ptr<CacheData> cache_data;
-					if(include_meta){
-						cache_data = std::make_unique<GPUCacheData>(std::move(table),metadata);
-					}else{
-						cache_data = std::make_unique<GPUCacheData>(std::move(table));
-					}
+					cache_data = std::make_unique<GPUCacheData>(std::move(table),metadata);
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 
@@ -351,11 +351,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 				} else {
 					if(cacheIndex == 1) {
 						std::unique_ptr<CacheData> cache_data;
-						if(include_meta){
-							cache_data = std::make_unique<CPUCacheData>(std::move(table), metadata, use_pinned);
-						}else{
-							cache_data = std::make_unique<CPUCacheData>(std::move(table), use_pinned);
-						}
+						cache_data = std::make_unique<CPUCacheData>(std::move(table), metadata, use_pinned);
 							
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
@@ -379,6 +375,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 						// want to get only cache directory where orc files should be saved
 						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+						// WSM TODO add metadata to CacheDataLocalFile
 						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
@@ -686,6 +683,41 @@ bool CacheMachine::has_messages_now(std::vector<std::string> messages){
 	return true;
 }
 
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullAnyCacheData(const std::vector<std::string> & messages) {
+
+	if (messages.size() == 0){
+		return nullptr;
+	}
+
+	CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
+    std::unique_ptr<message> message_data = waitingCache->get_or_wait_any(messages);
+	std::string message_id = message_data->get_message_id();
+    
+    size_t num_rows = message_data->get_data().num_rows();
+    size_t num_bytes = message_data->get_data().sizeInBytes();
+    int dataType = static_cast<int>(message_data->get_data().get_type());
+    std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
+                                  "message_id"_a=message_id,
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=num_rows,
+                                  "num_bytes"_a=num_bytes,
+                                  "event_type"_a="pullAnyCacheData",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Pull from CacheMachine CacheData object type {}"_format(dataType));
+    }
+
+	return output;
+}
+
 bool CacheMachine::has_data_in_index_now(size_t index){
     std::string message = this->cache_machine_name + "_" + std::to_string(index);
     std::vector<std::string> current_messages = this->waitingCache->get_all_message_ids();
@@ -699,101 +731,6 @@ bool CacheMachine::has_data_in_index_now(size_t index){
     return found;
 }
 
-HostCacheMachine::HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id)
-		: ctx(context), cache_id(id), cache_events_logger(spdlog::get("cache_events_logger")) {
-	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >("");
-	something_added = false;
-
-	std::shared_ptr<spdlog::logger> kernels_logger;
-	kernels_logger = spdlog::get("kernels_logger");
-
-	if(kernels_logger){
-		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}|{description}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-								"kernel_id"_a=id,
-								"is_kernel"_a=0, //false
-								"kernel_type"_a="host_cache",
-								"description"_a="");
-	}
-}
-
-void HostCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
-	CodeTimer cacheEventTimer;
-	cacheEventTimer.start();
-
-	// we dont want to add empty tables to a cache, unless we have never added anything
-	if (!this->something_added || host_table->num_rows() > 0){
-		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
-		auto item = std::make_unique<message>(std::move(cache_data), message_id);
-		this->waitingCache->put(std::move(item));
-		this->something_added = true;
-
-		cacheEventTimer.stop();
-		if(cache_events_logger) {
-			cache_events_logger->trace("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-										"ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
-										"query_id"_a=(ctx ? ctx->getContextToken() : -1),
-										"message_id"_a=message_id,
-										"cache_id"_a=cache_id,
-										"num_rows"_a=host_table->num_rows(),
-										"num_bytes"_a=host_table->sizeInBytes(),
-										"event_type"_a="AddToCache",
-										"timestamp_begin"_a=cacheEventTimer.start_time(),
-										"timestamp_end"_a=cacheEventTimer.end_time()),
-										"description"_a="Add to HostCacheMachine";
-		}
-	}
-}
-
-std::int32_t HostCacheMachine::get_id() const { return cache_id; }
-
-void HostCacheMachine::finish() {
-	this->waitingCache->finish();
-}
-
-void HostCacheMachine::wait_until_finished() {
-	waitingCache->wait_until_finished();
-}
-
-bool HostCacheMachine::wait_for_next() {
-	return this->waitingCache->wait_for_next();
-}
-
-bool HostCacheMachine::has_next_now() {
-	return this->waitingCache->has_next_now();
-}
-
-std::unique_ptr<ral::frame::BlazingHostTable> HostCacheMachine::pullFromCache(Context * ctx) {
-	CodeTimer cacheEventTimer;
-	cacheEventTimer.start();
-
-	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
-	if (message_data == nullptr) {
-		return nullptr;
-	}
-
-	assert(message_data->get_data().get_type() == CacheDataType::CPU);
-
-	cacheEventTimer.stop();
-	if(cache_events_logger) {
-		cache_events_logger->trace("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-									"ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
-									"query_id"_a=(ctx ? ctx->getContextToken() : -1),
-									"message_id"_a=message_data->get_message_id(),
-									"cache_id"_a=cache_id,
-									"num_rows"_a=message_data->get_data().num_rows(),
-									"num_bytes"_a=message_data->get_data().sizeInBytes(),
-									"event_type"_a="PullFromCache",
-									"timestamp_begin"_a=cacheEventTimer.start_time(),
-									"timestamp_end"_a=cacheEventTimer.end_time()),
-									"description"_a="Pull from HostCacheMachine";
-	}
-
-	return static_cast<CPUCacheData&>(message_data->get_data()).releaseHostTable();
-}
-
-	
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name)
 	: CacheMachine(context, cache_machine_name) {}

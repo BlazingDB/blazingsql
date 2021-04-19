@@ -276,8 +276,8 @@ sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
   if (args_map.find("password") != args_map.end()) {
     sql.password = args_map.at("password");
   }
-  if (args_map.find("schema") != args_map.end()) {
-    sql.schema = args_map.at("schema");
+  if (args_map.find("database") != args_map.end()) {
+    sql.schema = args_map.at("database");
   }
   if (args_map.find("table") != args_map.end()) {
     sql.table = args_map.at("table");

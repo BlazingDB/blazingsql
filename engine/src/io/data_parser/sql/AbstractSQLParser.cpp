@@ -13,7 +13,17 @@
 #include "ExceptionHandling/BlazingThread.h"
 #include "Util/StringUtil.h"
 
+#ifdef MYSQL_SUPPORT
 #include <mysql/jdbc.h>
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include <sqlite3.h>
+#endif
+
+#ifdef POSTGRESQL_SUPPORT
+#include <libpq-fe.h>
+#endif
 
 namespace ral {
 namespace io {

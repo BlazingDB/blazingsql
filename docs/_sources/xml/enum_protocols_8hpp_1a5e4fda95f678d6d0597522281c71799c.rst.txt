@@ -1,0 +1,13 @@
+.. _exhale_enum_protocols_8hpp_1a5e4fda95f678d6d0597522281c71799c:
+
+Enum status_code
+================
+
+- Defined in :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: comm::status_code

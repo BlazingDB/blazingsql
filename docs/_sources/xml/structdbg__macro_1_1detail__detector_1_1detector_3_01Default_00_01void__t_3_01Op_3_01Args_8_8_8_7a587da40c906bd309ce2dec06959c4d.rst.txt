@@ -1,0 +1,16 @@
+.. _exhale_struct_structdbg__macro_1_1detail__detector_1_1detector_3_01Default_00_01void__t_3_01Op_3_01Args_8_8_8_7a587da40c906bd309ce2dec06959c4d:
+
+Template Struct detector< Default, void_t< Op< Args... > >, Op, Args... >
+=========================================================================
+
+- Defined in :ref:`file_engine_src_transport_common_dbg.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: dbg_macro::detail_detector::detector< Default, void_t< Op< Args... > >, Op, Args... >
+   :members:
+   :protected-members:
+   :undoc-members:
