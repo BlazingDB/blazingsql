@@ -344,7 +344,7 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
         dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, 'psv')
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test and testsWithNulls != "true":
+    if bool_test:
         drill.query(
             "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": "bool_orders"}, timeout
