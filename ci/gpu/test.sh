@@ -151,21 +151,23 @@ else
                 git pull
             else
                 logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
+                cd $CONDA_PREFIX
 
                 # Only for PRs
-                if [ "$BUILD_SCOPE" == "NORMAL_BUILD" ]; then
+                PR_BR="master"
+                if [ "$BUILD_SCOPE" == "FORCE_BUILD" ]; then
                     git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch $SOURCE_BRANCH --single-branch
+                    # if branch exits
                     if [ $? -eq 0 ]; then
-                        echo "The branch is "$SOURCE_BRANCH
+                        PR_BR="$SOURCE_BRANCH"
                     else
                         git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
-                        echo "The branch is master"
                     fi
                 else
                     git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
                 fi
 
-                cd $CONDA_PREFIX
+                echo "The branch is "$PR_BR
                 cd blazingsql-testing-files/data
                 tar xf tpch.tar.gz
                 tar xf tpch-with-nulls.tar.gz
