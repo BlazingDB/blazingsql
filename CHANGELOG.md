@@ -2,7 +2,7 @@
 
 
 ## New Features
-
+- #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 
 
 ## Improvements
@@ -23,7 +23,6 @@
 - #1396 Create tables from other RDBMS
 - #1427 Support for CONCAT alias operator
 - #1424 Add get physical plan with explain
-- #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
