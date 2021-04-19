@@ -1038,6 +1038,18 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 // input: CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER]
 // output: CAST(/INT(Reinterpret(-(2020-11-10 12:00:01, CAST($0):TIMESTAMP(0))), 86400000000000)):INTEGER
 std::string convert_ms_to_ns_units(std::string expression) {
+
+	// TODO: Here apply regex      \bCAST\b\(\$[0-9]{1,6}\)\:\bTIMESTAMP\b\([0-9]\)
+	std::cout << "expression: " << expression << std::endl;
+	if (expression.find("CAST($") != expression.npos && expression.find(":TIMESTAMP") != expression.npos) {
+		// For timestampdiff
+		//continue;
+	} else if (expression.find("CAST($") != expression.npos && expression.find(":DATE") != expression.npos) {
+		//continue;
+	} else {
+		return expression;
+	}
+
 	std::string ns_str_to_concat = "000000";
 	// For timestampdiff
 	if (expression.find("Reinterpret(") != expression.npos) {

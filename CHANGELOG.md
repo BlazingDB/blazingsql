@@ -10,7 +10,7 @@
 
 
 ## Bug Fixes
-
+- #1475 Fix wrong results from timestampdiff/add
 
 
 # BlazingSQL 0.19.0 (Date TBS)
