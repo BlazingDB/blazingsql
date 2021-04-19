@@ -39,7 +39,7 @@
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
 - #1473 Added Warning to Window Functions 
-- #1478 Improve test script for blazingsql-testing-file
+- #1482 Improve test script for blazingsql-testing-file
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
