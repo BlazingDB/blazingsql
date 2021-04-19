@@ -492,7 +492,7 @@ private:
 					get_data_from_buffer(&right_value, buffer, right_position);
 				}
 				right_valid = getColumnValid(row_valids, right_position);
-			}	else if(right_position == SCALAR_INDEX) {
+			} else if(right_position == SCALAR_INDEX) {
 				if (is_string_type(right_type_id)) {
 					right_str_view = static_cast<cudf::string_scalar_device_view*>(scalars_right[op_index])->value();
 				} else {
@@ -664,11 +664,19 @@ private:
 			}
 			bool left_valid = getColumnValid(row_valids, left_position);
 
-			if(oper == operator_type::BLZ_IS_NULL) {
+			if (oper == operator_type::BLZ_IS_NOT_TRUE) {
+				bool val = (left_valid == true && left_value == true) ? false : true;
+				left_valid = true;
+				store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
+			} else if (oper == operator_type::BLZ_IS_NOT_FALSE) {
+				bool val = (left_valid == true && left_value == false) ? false : true;
+				left_valid = true;
+				store_data_in_buffer(static_cast<int64_t>(val), buffer, output_position);
+			} else if(oper == operator_type::BLZ_IS_NULL) {
 				store_data_in_buffer(static_cast<int64_t>(!left_valid), buffer, output_position);
 			} else if(oper == operator_type::BLZ_IS_NOT_NULL) {
 				store_data_in_buffer(static_cast<int64_t>(left_valid), buffer, output_position);
-			}	else if (left_valid) {
+			} else if (left_valid) {
 				if(oper == operator_type::BLZ_FLOOR) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(floor(val), buffer, output_position);
@@ -708,6 +716,8 @@ private:
 					}
 				} else if(oper == operator_type::BLZ_NOT) {
 					store_data_in_buffer(static_cast<int64_t>(!left_value), buffer, output_position);
+				} else if(oper == operator_type::BLZ_IS_TRUE) {
+					store_data_in_buffer(static_cast<int64_t>(left_value), buffer, output_position);
 				} else if(oper == operator_type::BLZ_LN) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(log(val), buffer, output_position);

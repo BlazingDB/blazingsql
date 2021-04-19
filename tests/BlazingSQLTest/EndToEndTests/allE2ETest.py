@@ -220,10 +220,8 @@ def main():
     if runAllTests or ("bindableAliasTest" in targetTestGroups):
         bindableAliasTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
-    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-    if testsWithNulls != "true":
-        if runAllTests or ("booleanTest" in targetTestGroups):
-            booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    if runAllTests or ("booleanTest" in targetTestGroups):
+        booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("caseTest" in targetTestGroups):
         caseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -270,6 +268,7 @@ def main():
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
     if testsWithNulls != "true":
         if Settings.execution_mode != ExecutionMode.GPUCI:
             if runAllTests or ("fileSystemS3Test" in targetTestGroups):
