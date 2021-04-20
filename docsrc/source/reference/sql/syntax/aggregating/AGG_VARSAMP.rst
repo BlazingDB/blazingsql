@@ -1,5 +1,3 @@
-.. _sql_agg_varsamp:
-
 AGG VARSAMP
 -----------
 

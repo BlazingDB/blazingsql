@@ -1,5 +1,3 @@
-.. _sql_string_nvl:
-
 STRING NVL
 ----------
 

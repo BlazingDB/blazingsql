@@ -1,5 +1,3 @@
-.. _sql_agg_stddevsamp:
-
 AGG STDDEVSAMP
 --------------
 

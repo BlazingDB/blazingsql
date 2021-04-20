@@ -1,5 +1,3 @@
-.. _sql_window_sum:
-
 WINDOW SUM
 ----------
 

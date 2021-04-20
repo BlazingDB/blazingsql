@@ -1,5 +1,3 @@
-.. _sql_select:
-
 SELECT
 ------
 

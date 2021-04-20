@@ -1,5 +1,3 @@
-.. _sql_orderby_desc:
-
 ORDERBY DESC
 ------------
 

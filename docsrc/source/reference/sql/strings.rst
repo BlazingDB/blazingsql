@@ -4,6 +4,7 @@ String functions
 ================
 
 {% for member in sql.strings %}
+.. _sql_{{ member.lower() }}:
 .. include:: syntax/strings/{{ member }}.rst
 {% endfor %}
  

@@ -1,5 +1,3 @@
-.. _sql_where_notin:
-
 WHERE NOTIN
 -----------
 

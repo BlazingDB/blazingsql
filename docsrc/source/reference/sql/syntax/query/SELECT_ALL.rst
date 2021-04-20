@@ -1,5 +1,3 @@
-.. _sql_select_all:
-
 SELECT ALL
 ----------
 

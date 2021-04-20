@@ -1,5 +1,3 @@
-.. _sql_date_dayofweek:
-
 DATE DAYOFWEEK
 --------------
 

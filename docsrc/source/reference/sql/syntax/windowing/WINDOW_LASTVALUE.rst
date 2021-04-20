@@ -1,5 +1,3 @@
-.. _sql_window_lastvalue:
-
 WINDOW LASTVALUE
 ----------------
 

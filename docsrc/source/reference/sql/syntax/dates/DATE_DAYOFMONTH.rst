@@ -1,5 +1,3 @@
-.. _sql_date_dayofmonth:
-
 DATE DAYOFMONTH
 ---------------
 

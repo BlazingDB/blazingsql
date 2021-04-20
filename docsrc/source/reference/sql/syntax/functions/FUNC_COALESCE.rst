@@ -1,5 +1,3 @@
-.. _sql_func_coalesce:
-
 FUNC COALESCE
 -------------
 

@@ -1,5 +1,3 @@
-.. _sql_agg_min:
-
 AGG MIN
 -------
 

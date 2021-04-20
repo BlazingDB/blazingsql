@@ -1,5 +1,3 @@
-.. _sql_date_year:
-
 DATE YEAR
 ---------
 

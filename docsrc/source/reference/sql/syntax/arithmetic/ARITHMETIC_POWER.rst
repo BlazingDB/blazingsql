@@ -1,5 +1,3 @@
-.. _sql_arithmetic_power:
-
 ARITHMETIC POWER
 ----------------
 

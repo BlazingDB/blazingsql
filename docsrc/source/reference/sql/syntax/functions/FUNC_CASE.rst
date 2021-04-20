@@ -1,5 +1,3 @@
-.. _sql_func_case:
-
 FUNC CASE
 ---------
 

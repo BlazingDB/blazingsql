@@ -1,5 +1,3 @@
-.. _sql_cast_float:
-
 CAST FLOAT
 ----------
 

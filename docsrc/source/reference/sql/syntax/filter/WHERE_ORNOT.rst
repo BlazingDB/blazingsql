@@ -1,5 +1,3 @@
-.. _sql_where_ornot:
-
 WHERE ORNOT
 -----------
 

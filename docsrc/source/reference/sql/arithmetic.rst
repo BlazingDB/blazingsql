@@ -4,6 +4,7 @@ Arithmetic functions
 ====================
 
 {% for member in sql.arithmetic %}
+.. _sql_{{ member.lower() }}:
 .. include:: syntax/arithmetic/{{ member }}.rst
 {% endfor %}
  

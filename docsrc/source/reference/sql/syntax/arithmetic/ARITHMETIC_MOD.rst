@@ -1,5 +1,3 @@
-.. _sql_arithmetic_mod:
-
 ARITHMETIC MOD
 --------------
 

@@ -1,5 +1,3 @@
-.. _sql_string_trim:
-
 STRING TRIM
 -----------
 

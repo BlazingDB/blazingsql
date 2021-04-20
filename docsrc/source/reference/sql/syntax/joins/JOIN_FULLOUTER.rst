@@ -1,5 +1,3 @@
-.. _sql_join_fullouter:
-
 JOIN FULLOUTER
 --------------
 

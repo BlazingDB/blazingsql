@@ -1,5 +1,3 @@
-.. _sql_where_isnull:
-
 WHERE ISNULL
 ------------
 

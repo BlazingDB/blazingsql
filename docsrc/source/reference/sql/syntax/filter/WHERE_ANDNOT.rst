@@ -1,5 +1,3 @@
-.. _sql_where_andnot:
-
 WHERE ANDNOT
 ------------
 

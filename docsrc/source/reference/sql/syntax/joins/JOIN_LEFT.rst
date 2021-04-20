@@ -1,5 +1,3 @@
-.. _sql_join_left:
-
 JOIN LEFT
 ---------
 

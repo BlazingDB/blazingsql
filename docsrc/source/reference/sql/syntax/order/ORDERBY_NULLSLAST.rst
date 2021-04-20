@@ -1,5 +1,3 @@
-.. _sql_orderby_nullslast:
-
 ORDERBY NULLSLAST
 -----------------
 

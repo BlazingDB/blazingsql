@@ -1,5 +1,3 @@
-.. _sql_window_avg:
-
 WINDOW AVG
 ----------
 

@@ -1,5 +1,3 @@
-.. _sql_window_lag:
-
 WINDOW LAG
 ----------
 

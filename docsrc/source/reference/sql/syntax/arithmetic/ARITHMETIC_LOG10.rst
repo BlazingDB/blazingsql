@@ -1,5 +1,3 @@
-.. _sql_arithmetic_log10:
-
 ARITHMETIC LOG10
 ----------------
 

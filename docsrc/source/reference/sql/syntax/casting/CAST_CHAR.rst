@@ -1,5 +1,3 @@
-.. _sql_cast_char:
-
 CAST CHAR
 ---------
 

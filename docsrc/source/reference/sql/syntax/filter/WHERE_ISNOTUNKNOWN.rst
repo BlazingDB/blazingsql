@@ -1,5 +1,3 @@
-.. _sql_where_isnotunknown:
-
 WHERE ISNOTUNKNOWN
 ------------------
 

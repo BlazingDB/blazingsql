@@ -1,5 +1,3 @@
-.. _sql_date_minute:
-
 DATE MINUTE
 -----------
 

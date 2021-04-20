@@ -1,5 +1,3 @@
-.. _sql_where_isunknown:
-
 WHERE ISUNKNOWN
 ---------------
 
