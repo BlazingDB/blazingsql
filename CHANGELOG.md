@@ -10,7 +10,9 @@
 
 
 ## Bug Fixes
+- #1455 Support for IS NOT FALSE condition
 - #1475 Fix wrong results from timestampdiff/add
+
 
 
 # BlazingSQL 0.19.0 (Date TBS)

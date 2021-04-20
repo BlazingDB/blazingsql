@@ -35,6 +35,9 @@ enum class operator_type {
 	BLZ_SECOND,
 	BLZ_IS_NULL,
 	BLZ_IS_NOT_NULL,
+	BLZ_IS_TRUE,
+	BLZ_IS_NOT_TRUE,  // matter when nulls
+	BLZ_IS_NOT_FALSE, // matters when null
 	BLZ_CAST_TINYINT,
 	BLZ_CAST_SMALLINT,
 	BLZ_CAST_INTEGER,
