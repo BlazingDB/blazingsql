@@ -150,22 +150,27 @@ else
                 cd blazingsql-testing-files
                 git pull
             else
+                set +e
                 logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
                 cd $CONDA_PREFIX
 
                 # Only for PRs
                 PR_BR="master"
-                if [ ! -z "$PR_AUTHOR" ]; then
-                    git clone --depth 1 https://github.com/$PR_AUTHOR/blazingsql-testing-files.git --branch $SOURCE_BRANCH --single-branch
+                if [ ! -z "${PR_AUTHOR}" ]; then
+                    echo "PR_AUTHOR: "${PR_AUTHOR}
+                    git clone --depth 1 https://github.com/${PR_AUTHOR}/blazingsql-testing-files.git --branch ${SOURCE_BRANCH} --single-branch
                     # if branch exits
                     if [ $? -eq 0 ]; then
-                        PR_BR="$SOURCE_BRANCH"
+                        echo "The fork exists"
+                        PR_BR="${SOURCE_BRANCH}"
                     else
+                        echo "The fork doesn't exist"
                         git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
                     fi
                 fi
+                set -e
 
-                echo "The branch is "$PR_BR
+                echo "The branch is "${PR_BR}
                 cd blazingsql-testing-files/data
                 tar xf tpch.tar.gz
                 tar xf tpch-with-nulls.tar.gz
