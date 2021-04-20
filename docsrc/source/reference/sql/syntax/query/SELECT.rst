@@ -12,7 +12,7 @@ Examples
 :code:`SELECT *`
 ~~~~~~~~~~~~~~~~
 
-Selects all the data from the data, including all the columns and all the rows.
+Selects all the data from a table, including all the columns and all the rows.
 
 .. code-block:: sql
 
