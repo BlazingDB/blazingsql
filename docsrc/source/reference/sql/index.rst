@@ -9,7 +9,7 @@ ddasd
    
    dtypes
    query
-   filter
+   operators
    order
    arithmetic
    strings

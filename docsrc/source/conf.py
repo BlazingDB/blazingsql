@@ -58,31 +58,31 @@ extensions = ['recommonmark',
                 'sphinx.ext.todo',
                 'sphinx.ext.autodoc',
                 "sphinx.ext.autosummary",
-                'breathe',
-                'exhale'
+                # 'breathe',
+                # 'exhale'
                 ]
 
 autosummary_generate = True 
 autosummary_imported_members = False
 
-# # Setup the exhale extension
-exhale_args = {
-    # These arguments are required
-    "containmentFolder":     "./xml",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "C++ API Reference",
-    "doxygenStripFromPath":  "..",
-    # Suggested optional arguments
-    "createTreeView":        True,
-    # TIP: if using the sphinx-bootstrap-theme, you need
-    "treeViewIsBootstrap": True
-}
+# # # Setup the exhale extension
+# exhale_args = {
+#     # These arguments are required
+#     "containmentFolder":     "./xml",
+#     "rootFileName":          "library_root.rst",
+#     "rootFileTitle":         "C++ API Reference",
+#     "doxygenStripFromPath":  "..",
+#     # Suggested optional arguments
+#     "createTreeView":        True,
+#     # TIP: if using the sphinx-bootstrap-theme, you need
+#     "treeViewIsBootstrap": True
+# }
 
-# Setup the breathe extension
-breathe_projects = {
-    "BlazingSQL Engine": "./xml"
-}
-breathe_default_project = "BlazingSQL Engine"
+# # Setup the breathe extension
+# breathe_projects = {
+#     "BlazingSQL Engine": "./xml"
+# }
+# breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -158,11 +158,11 @@ html_context = {
     "doc_path": "docsrc/source",
     "sql": {
         "query": ['SELECT','SELECT_ALL','SELECT_DISTINCT']
-        , "filter": [
-            'WHERE_RELATIONAL', 'WHERE_AND','WHERE_ANDNOT'
-            ,'WHERE_BETWEEN','WHERE_IN','WHERE_ISDISTINCTFROM','WHERE_ISFALSE','WHERE_ISNOTDISTINCTFROM'
-            ,'WHERE_ISNOTNULL','WHERE_ISNOTTRUE','WHERE_ISNOTUNKNOWN','WHERE_ISNULL','WHERE_ISTRUE','WHERE_ISUNKNOWN'
-            ,'WHERE_LIKE','WHERE_NOTBETWEEN','WHERE_NOTIN','WHERE_NOTLIKE','WHERE_OR','WHERE_ORNOT'
+        , "operators": [
+            'OPS_RELATIONAL', 'OPS_AND','OPS_ANDNOT'
+            ,'OPS_BETWEEN','OPS_IN','OPS_ISDISTINCTFROM','OPS_ISFALSE','OPS_ISNOTDISTINCTFROM'
+            ,'OPS_ISNOTNULL','OPS_ISNOTTRUE','OPS_ISNOTUNKNOWN','OPS_ISNULL','OPS_ISTRUE','OPS_ISUNKNOWN'
+            ,'OPS_LIKE','OPS_NOTBETWEEN','OPS_NOTIN','OPS_NOTLIKE','OPS_OR','OPS_ORNOT'
         ]
         , "order": [
             'ORDERBY_','ORDERBY_ASC','ORDERBY_ASCNULLSFIRST','ORDERBY_ASCNULLSLAST','ORDERBY_DESC','ORDERBY_DESCNULLSFIRST'
