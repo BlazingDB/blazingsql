@@ -27,7 +27,7 @@ requirements:
         - google-cloud-cpp >=1.25.0
         - mysql-connector-cpp 8.0.23
         - libpq 13
-        - nlohmann_json
+        - nlohmann_json 3.9.1
         - cppzmq
         - python
         - setuptools
@@ -42,7 +42,7 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
     run:
         - python
-        - nlohmann_json
+        - nlohmann_json 3.9.1
         - aws-sdk-cpp
         - google-cloud-cpp >=1.25.0
         - openjdk >=8.0, <9.0
@@ -63,7 +63,7 @@ test:
     requires:
         - cudatoolkit {{ cuda_version }}.*
         - gtest 1.10
-        - nlohmann_json
+        - nlohmann_json 3.9.1
         - aws-sdk-cpp
         - google-cloud-cpp >=1.25.0
     imports:
