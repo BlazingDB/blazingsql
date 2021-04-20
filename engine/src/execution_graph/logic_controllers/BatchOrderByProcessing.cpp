@@ -12,7 +12,7 @@ namespace batch {
 PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
     : kernel{kernel_id, queryString, context, kernel_type::PartitionSingleNodeKernel} {
     this->query_graph = query_graph;
-    this->input_.add_port("input_a", "input_b");
+    this->input_.add_port("input_a").add_port("input_b");
 
     if (is_window_function(this->expression)) {
         if (window_expression_contains_partition_by(this->expression)){
@@ -111,7 +111,7 @@ SortAndSampleKernel::SortAndSampleKernel(std::size_t kernel_id, const std::strin
 {
     this->query_graph = query_graph;
     set_number_of_message_trackers(2); //default
-    this->output_.add_port("output_a", "output_b");
+    this->output_.add_port("output_a").add_port("output_b");
     get_samples = true;
     already_computed_partition_plan = false;
 }
@@ -347,7 +347,7 @@ kstatus SortAndSampleKernel::run() {
 PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
     : distributing_kernel{kernel_id, queryString, context, kernel_type::PartitionKernel} {
     this->query_graph = query_graph;
-    this->input_.add_port("input_a", "input_b");
+    this->input_.add_port("input_a").add_port("input_b");
 
     std::map<std::string, std::string> config_options = context->getConfigOptions();
     int max_num_order_by_partitions_per_node = 8;

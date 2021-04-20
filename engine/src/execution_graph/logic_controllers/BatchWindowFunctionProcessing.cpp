@@ -330,7 +330,7 @@ OverlapGeneratorKernel::OverlapGeneratorKernel(std::size_t kernel_id, const std:
     std::shared_ptr<ral::cache::graph> query_graph)
     : kernel{kernel_id, queryString, context, kernel_type::OverlapGeneratorKernel} {
     this->query_graph = query_graph;
-    this->output_.add_port("batches", "preceding_overlaps", "following_overlaps");
+    this->output_.add_port("batches").add_port("preceding_overlaps").add_port("following_overlaps");
 
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
 
@@ -468,7 +468,7 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     std::shared_ptr<ral::cache::graph> query_graph)
     : distributing_kernel{kernel_id, queryString, context, kernel_type::OverlapAccumulatorKernel} {
     this->query_graph = query_graph;
-    this->input_.add_port("batches", "preceding_overlaps", "following_overlaps");
+    this->input_.add_port("batches").add_port("preceding_overlaps").add_port("following_overlaps");
 
     this->num_batches = 0;
 	

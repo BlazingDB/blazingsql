@@ -239,7 +239,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel{kernel_id, queryString, context, kernel_type::PartwiseJoinKernel} {
 	this->query_graph = query_graph;
-	this->input_.add_port("input_a", "input_b");
+	this->input_.add_port("input_a").add_port("input_b");
 
 	this->max_left_ind = -1;
 	this->max_right_ind = -1;
@@ -600,8 +600,8 @@ JoinPartitionKernel::JoinPartitionKernel(std::size_t kernel_id, const std::strin
 	this->query_graph = query_graph;
 	set_number_of_message_trackers(2); //default for left and right partitions
 
-	this->input_.add_port("input_a", "input_b");
-	this->output_.add_port("output_a", "output_b");
+	this->input_.add_port("input_a").add_port("input_b");
+	this->output_.add_port("output_a").add_port("output_b");
 
 	std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 }
