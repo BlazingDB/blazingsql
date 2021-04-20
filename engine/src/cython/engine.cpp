@@ -98,10 +98,10 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		parser = std::make_shared<ral::io::postgresql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::postgresql_data_provider>(sql, total_number_of_nodes, self_node_idx);
+	isSqlProvider = true;
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
 #endif
-    isSqlProvider = true;
 	} else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
   		parser = std::make_shared<ral::io::sqlite_parser>();

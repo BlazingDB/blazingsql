@@ -89,6 +89,32 @@ inline TableInfo ExecuteTableInfo(PGconn * connection, const sql_info & sql) {
 
 }  // namespace
 
+static inline std::string FindKeyName(PGconn * connection,
+                                      const sql_info & sql) {
+  // This function exists because when we get batches from table we use LIMIT
+  // clause since postgresql returns unpredictable subsets of query's rows see
+  // https://www.postgresql.org/docs/13/queries-limit.html
+  std::ostringstream oss;
+  oss << "select column_name, ordinal_position"
+         " from information_schema.table_constraints tc"
+         " join information_schema.key_column_usage kcu"
+         " on tc.constraint_name = kcu.constraint_name"
+         " and tc.constraint_schema = kcu.constraint_schema"
+         " and tc.constraint_name = kcu.constraint_name"
+         " where tc.table_catalog = '"
+      << sql.schema << "' and tc.table_name = '" << sql.table
+      << "' and constraint_type = 'PRIMARY KEY'";
+  const std::string query = oss.str();
+  PGresult * result = PQexec(connection, query.c_str());
+  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    PQclear(result);
+    PQfinish(connection);
+    throw std::runtime_error("Error access for columns info");
+  }
+
+  return "";
+}
+
 postgresql_data_provider::postgresql_data_provider(
     const sql_info & sql,
     std::size_t total_number_of_nodes,
@@ -107,6 +133,7 @@ postgresql_data_provider::postgresql_data_provider(
   column_names = tableInfo.column_names;
   column_types = tableInfo.column_types;
   estimated_table_row_count = tableInfo.row_count;
+  keyname = FindKeyName(connection, sql);
 }
 
 postgresql_data_provider::~postgresql_data_provider() { PQfinish(connection); }
@@ -134,22 +161,18 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
   handle.sql_handle.column_names = column_names;
   handle.sql_handle.column_types = column_types;
 
+  if (open_file == false) { return handle; }
+
   const std::string query = build_select_query(batch_position);
   batch_position++;
 
-  PGresult * result = PQexecParams(connection,
-                                   query.c_str(),
-                                   0,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   nullptr,
-                                   0);
+  PGresult * result = PQexec(connection, query.c_str());
   if (PQresultStatus(result) != PGRES_TUPLES_OK) {
     PQclear(result);
     PQfinish(connection);
     throw std::runtime_error("Error getting next batch from postgresql");
   }
+  PQflush(connection);
 
   int resultNtuples = PQntuples(result);
 

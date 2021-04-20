@@ -315,15 +315,23 @@ std::uint8_t postgresql_parser::parse_cudf_string(void * src,
                                                   cudf_string_col * v) {
   PGresult * pgResult = static_cast<PGresult *>(src);
 
-  Oid oid = PQftype(pgResult, col);
-  if (oid == InvalidOid) { throw std::runtime_error("Bad postgresql type"); }
-
   if (PQgetisnull(pgResult, row, col)) {
     v->offsets.push_back(v->offsets.back());
     return 0;
   }
   const char * result = PQgetvalue(pgResult, row, col);
   std::string data = result;
+
+  // trim spaces because postgresql store chars with padding.
+  Oid oid = PQftype(pgResult, col);
+  if (oid == InvalidOid) { throw std::runtime_error("Bad postgresql type"); }
+  if (oid == static_cast<Oid>(1042)) {
+    data.erase(std::find_if(data.rbegin(),
+                            data.rend(),
+                            [](unsigned char c) { return !std::isspace(c); })
+                   .base(),
+               data.end());
+  }
 
   v->chars.insert(v->chars.end(), data.cbegin(), data.cend());
   v->offsets.push_back(v->offsets.back() + data.length());
