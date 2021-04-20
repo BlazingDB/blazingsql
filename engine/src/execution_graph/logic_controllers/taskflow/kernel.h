@@ -96,14 +96,20 @@ public:
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
 	/**
-	 * @brief Returns the input cache.
+	 * @brief Returns the input cache associated to an identifier. If none is provided it returns the default
+	 * 
+	 * @param cache_id The cache identifier.
+	 *
+	 * @return A shared pointer to the desired CacheMachine
 	 */
-	std::shared_ptr<ral::cache::CacheMachine> input_cache();
+	std::shared_ptr<ral::cache::CacheMachine> input_cache(std::string cache_id = "");
 
 	/**
-	 * @brief Returns the output cache associated to an identifier.
+	 * @brief Returns the output cache associated to an identifier. If none is provided it returns the default
+	 * 
+	 * @param cache_id The cache identifier.
 	 *
-	 * @return cache_id The identifier of the output cache.
+	 * @return A shared pointer to the desired CacheMachine
 	 */
 	std::shared_ptr<ral::cache::CacheMachine> output_cache(std::string cache_id = "");
 

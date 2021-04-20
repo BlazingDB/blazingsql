@@ -1022,6 +1022,10 @@ ComputeWindowKernelUnbounded::ComputeWindowKernelUnbounded(std::size_t kernel_id
     } else {
         this->remove_overlap = false;
     }
+
+    // batches is for the regular computed window function results
+    // cumulative_aggregations is the cumulative aggregation values
+    this->output_.add_port("batches", "cumulative_aggregations");    
 }
 
 // TODO: Support for RANK() and DENSE_RANK()
@@ -1369,7 +1373,18 @@ kstatus ComputeWindowKernelUnbounded::run() {
         std::vector<cudf::size_type> split_indexes(num_batches_per_node.size() - 1);
         std::partial_sum(num_batches_per_node.begin(), num_batches_per_node.end()-1, split_indexes.begin());
         std::vector<cudf::table_view> cumulative_agg_per_node = cudf::split(cumulative_agg_table->view(), split_indexes);
-         
+
+        std::vector<ral::frame::BlazingTableView> bsql_cumulative_agg_per_node;
+        for(auto cumulative_agg : cumulative_agg_per_node) {
+            bsql_cumulative_agg_per_node.push_back(ral::frame::BlazingTableView(cumulative_agg, agg_column_names));
+        }
+
+        scatter(bsql_cumulative_agg_per_node,
+				this->output_.get_cache("cumulative_aggregations").get(),
+				"", //message_id_prefix
+				"cumulative_aggregations" //cache_id				
+			);
+        
         
     } else {
         send_message(std::move(partial_aggregations_table),
@@ -1381,17 +1396,12 @@ kstatus ComputeWindowKernelUnbounded::run() {
                 
     }
 
-
-    // WSM TODO here if is master node, wait until we get all partial_aggregations
-    // Then combine partial_aggregations
-    // Then send out cummulative_aggregations to nodes
-
     if (logger != nullptr) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),
                     "substep"_a=context->getQuerySubstep(),
-                    "info"_a="ComputeWindow Kernel Completed",
+                    "info"_a="ComputeWindowKernelUnbounded Kernel Completed",
                     "duration"_a=timer.elapsed_time(),
                     "kernel_id"_a=this->get_id());
     }
@@ -1400,6 +1410,99 @@ kstatus ComputeWindowKernelUnbounded::run() {
 
 // END ComputeWindowKernelUnbounded
 
+
+// BEGIN WindowAggMergerKernel
+
+WindowAggMergerKernel::WindowAggMergerKernel(std::size_t kernel_id, const std::string & queryString,
+    std::shared_ptr<Context> context,
+    std::shared_ptr<ral::cache::graph> query_graph)
+    : kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
+    this->query_graph = query_graph;
+    std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+    this->frame_type = get_frame_type_from_over_clause(this->expression);
+
+    std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
+                                        get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
+    std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
+    std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
+
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
+    // batches is for the regular computed window function results
+    // cumulative_aggregations is the cumulative aggregation values
+    this->input_.add_port("batches", "cumulative_aggregations");    
+}
+
+
+ral::execution::task_result WindowAggMergerKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+
+        
+    if (inputs.size() == 0) {
+        return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+
+    try{
+      
+        output->addToCache(std::move(windowed_table));
+    }catch(const rmm::bad_alloc& e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(const std::exception& e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+}
+
+kstatus WindowAggMergerKernel::run() {
+    CodeTimer timer;
+
+    int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+    int num_nodes = context->getTotalNodes();
+
+    
+    cumulative_aggregations = this->input_cache("cumulative_aggregations")->pullFromCache();
+    std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache("batches")->pullCacheData();
+
+    while (cache_data != nullptr ){
+        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+        inputs.push_back(std::move(cache_data));
+
+        ral::execution::executor::get_instance()->add_task(
+                std::move(inputs),
+                this->output_cache(),
+                this, 
+                task_args);
+
+        cache_data = this->input_cache()->pullCacheData();
+    }
+    
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
+
+    if (logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="WindowAggMergerKernel Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+    }
+    return kstatus::proceed;
+}
+
+
+// END WindowAggMergerKernel
 
 } // namespace batch
 } // namespace ral
