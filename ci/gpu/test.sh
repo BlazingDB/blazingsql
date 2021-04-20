@@ -155,16 +155,14 @@ else
 
                 # Only for PRs
                 PR_BR="master"
-                if [ "$BUILD_SCOPE" == "FORCE_BUILD" ]; then
-                    git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch $SOURCE_BRANCH --single-branch
+                if [ ! -z "$PR_AUTHOR" ]; then
+                    git clone --depth 1 https://github.com/$PR_AUTHOR/blazingsql-testing-files.git --branch $SOURCE_BRANCH --single-branch
                     # if branch exits
                     if [ $? -eq 0 ]; then
                         PR_BR="$SOURCE_BRANCH"
                     else
                         git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
                     fi
-                else
-                    git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
                 fi
 
                 echo "The branch is "$PR_BR
