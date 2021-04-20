@@ -300,6 +300,7 @@ def get_codTest(test_name):
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",
         "Timestampdiff": "TIMESTAMPD",
+        "Timestampadd": "TIMESTAMPADD",
         "Timestamp": "TIMESTAMP",
         "To_timestamp": "TO_TIMESTAMP",
         "TPCH Queries": "TPCH",
