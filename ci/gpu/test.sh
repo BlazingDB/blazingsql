@@ -155,22 +155,22 @@ else
                 cd $CONDA_PREFIX
 
                 # Only for PRs
-                PR_BR="master"
+                PR_BR="blazingdb:"${TARGET_BRANCH}
                 if [ ! -z "${PR_AUTHOR}" ]; then
                     echo "PR_AUTHOR: "${PR_AUTHOR}
                     git clone --depth 1 https://github.com/${PR_AUTHOR}/blazingsql-testing-files.git --branch ${SOURCE_BRANCH} --single-branch
                     # if branch exits
                     if [ $? -eq 0 ]; then
                         echo "The fork exists"
-                        PR_BR="${SOURCE_BRANCH}"
+                        PR_BR=${PR_AUTHOR}":"${SOURCE_BRANCH}
                     else
                         echo "The fork doesn't exist"
-                        git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
+                        git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch ${TARGET_BRANCH} --single-branch
                     fi
                 fi
                 set -e
 
-                echo "The branch is "${PR_BR}
+                echo "Cloned from "${PR_BR}
                 cd blazingsql-testing-files/data
                 tar xf tpch.tar.gz
                 tar xf tpch-with-nulls.tar.gz
