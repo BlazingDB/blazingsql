@@ -49,10 +49,13 @@ public:
 	 */ 
 	size_t get_num_handles() override;
 
+protected:
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override;
+
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
   size_t estimated_table_row_count;
-  size_t batch_position;
+  size_t batch_index;
   bool table_fetch_completed;
 };
 

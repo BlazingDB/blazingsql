@@ -933,10 +933,36 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     return std::move(out_columns);
 }
 
+std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context) {
+    // We want `CURRENT_TIME` holds the same value as `CURRENT_TIMESTAMP`
+	if (expression.find("CURRENT_TIME") != expression.npos) {
+		expression = StringUtil::replace(expression, "CURRENT_TIME", "CURRENT_TIMESTAMP");
+	}
+
+	std::size_t date_pos = expression.find("CURRENT_DATE");
+	std::size_t timestamp_pos = expression.find("CURRENT_TIMESTAMP");
+
+	if (date_pos == expression.npos && timestamp_pos == expression.npos) {
+		return expression;
+	}
+
+    // CURRENT_TIMESTAMP will return a `ms` format
+	std::string	timestamp_str = context->getCurrentTimestamp().substr(0, 23);
+    std::string str_to_replace = "CURRENT_TIMESTAMP";
+
+	// In case CURRENT_DATE we want only the date value
+	if (date_pos != expression.npos) {
+		str_to_replace = "CURRENT_DATE";
+        timestamp_str = timestamp_str.substr(0, 10);
+	}
+
+	return StringUtil::replace(expression, str_to_replace, timestamp_str);
+}
+
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::Context * /*context*/) {
+  blazingdb::manager::Context * context) {
 
     std::string combined_expression = get_query_part(query_part);
 
@@ -950,6 +976,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
         expression = fill_minus_op_with_zero(expression);
         expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+        expression = get_current_date_or_timestamp(expression, context);
 
         expressions[i] = expression;
         out_column_names[i] = name;

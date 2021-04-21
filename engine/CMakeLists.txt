@@ -234,6 +234,8 @@ include_directories(
 if(MYSQL_SUPPORT)
     add_definitions(-DMYSQL_SUPPORT)
     set(MYSQL_DATABASE_SRC_FILES
+        # TODO percy in case we need custom mysql transformer
+        #${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/compatibility/MySQLTransformer.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp)
     set(MYSQL_LIBRARY libmysqlcppconn-static.a)
@@ -245,6 +247,8 @@ endif()
 if(SQLITE_SUPPORT)
     add_definitions(-DSQLITE_SUPPORT)
     set(SQLITE_DATABASE_SRC_FILES
+        # TODO percy c.gonzales
+        #${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/compatibility/SQLiteTransformer.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
     set(SQLITE_LIBRARY libsqlite3.so)
@@ -254,9 +258,11 @@ else()
 endif()
 
 if(POSTGRESQL_SUPPORT)
-    # TODO postgresql percy
+    # TODO postgresql percy c.gonzales
     add_definitions(-DPOSTGRESQL_SUPPORT)
     set(POSTGRESQL_DATABASE_SRC_FILES
+        # TODO percy c.gonzales
+        #${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/compatibility/PostgreSQLTransformer.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
         ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
     set(POSTGRESQL_LIBRARY libpq.so)
@@ -298,6 +304,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/compatibility/SQLTranspiler.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/AbstractSQLDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp

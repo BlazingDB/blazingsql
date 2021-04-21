@@ -52,7 +52,6 @@ struct sql_datasource {
   std::string query;
   std::vector<std::string> column_names;
   std::vector<std::string> column_types; // always uppercase
-  std::vector<size_t> column_bytes;
   size_t row_count;
 #ifdef MYSQL_SUPPORT
   std::shared_ptr<sql::ResultSet> mysql_resultset = nullptr;

@@ -89,7 +89,8 @@ std::shared_ptr<Context> make_context(int num_nodes) {
 	Node master_node("0");
 	std::string logicalPlan;
 	std::map<std::string, std::string> config_options;
-	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options);
+	std::string current_timestamp;
+	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options, current_timestamp);
 
 	return context;
 }

@@ -100,9 +100,25 @@ operator_type map_to_operator_type(const std::string & operator_token);
 
 bool is_null(const std::string & token);
 bool is_number(const std::string & token);
-bool is_date(const std::string & token);
 bool is_hour(const std::string & token);
+bool is_date_with_dash(const std::string & token);
+bool is_date_with_bar(const std::string & token);
+bool is_date(const std::string & token);
+bool is_timestamp_with_dash(const std::string & token);
+bool is_timestamp_with_bar(const std::string & token);
 bool is_timestamp(const std::string & token);
+bool is_timestamp_ms_with_dash(const std::string & token);
+bool is_timestamp_ms_with_bar(const std::string & token);
+bool is_timestamp_ms(const std::string & token);
+bool is_timestamp_us_with_dash(const std::string & token);
+bool is_timestamp_us_with_bar(const std::string & token);
+bool is_timestamp_us(const std::string & token);
+bool is_timestamp_ns_with_dash(const std::string & token);
+bool is_timestamp_ns_with_bar(const std::string & token);
+bool is_timestamp_ns(const std::string & token);
+bool is_timestamp_with_decimals(const std::string & token);
+bool is_timestamp_with_decimals_and_dash(const std::string & token);
+bool is_timestamp_with_decimals_and_bar(const std::string & token);
 bool is_string(const std::string & token);
 bool is_bool(const std::string & token);
 bool is_SQL_data_type(const std::string & token);
@@ -229,3 +245,5 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 std::string fill_minus_op_with_zero(std::string expression);
 
 std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
+
+const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string);

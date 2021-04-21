@@ -26,6 +26,11 @@
 #include "../io/data_provider/sql/MySQLDataProvider.h"
 #endif
 
+#ifdef POSTGRESQL_SUPPORT
+#include "../io/data_parser/sql/PostgreSQLParser.h"
+#include "../io/data_provider/sql/PostgreSQLDataProvider.h"
+#endif
+
 #ifdef SQLITE_SUPPORT
 #include "../io/data_parser/sql/SQLiteParser.h"
 #include "../io/data_provider/sql/SQLiteDataProvider.h"
@@ -89,12 +94,23 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif
-    } else if(fileType == ral::io::DataType::SQLITE) {
+    } else if(fileType == ral::io::DataType::POSTGRESQL) {
+#ifdef POSTGRESQL_SUPPORT
+		parser = std::make_shared<ral::io::postgresql_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, 0, 0);
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+    isSqlProvider = true;
+	} else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
   		parser = std::make_shared<ral::io::sqlite_parser>();
       auto sql = ral::io::getSqlInfo(args_map);
       provider = std::make_shared<ral::io::sqlite_data_provider>(sql, total_number_of_nodes, self_node_idx);
       isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     }
 		std::vector<Uri> uris;
@@ -166,7 +182,7 @@ std::string runGeneratePhysicalGraph(uint32_t masterIndex,
     for (const auto &worker_id : worker_ids) {
         contextNodes.emplace_back(worker_id);
     }
-    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}};
+    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}, ""};
 
     return get_physical_plan(query, queryContext);
 }
@@ -184,7 +200,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::string query,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
-	std::string sql)
+	std::string sql,
+	std::string current_timestamp)
 {
   using blazingdb::manager::Context;
   using blazingdb::transport::Node;
@@ -195,15 +212,14 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
   for (const auto &worker_id : worker_ids) {
     contextNodes.emplace_back(worker_id);
   }
-	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
-  auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-  int self_node_idx = queryContext.getNodeIndex(self_node);
+	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options, current_timestamp};
+  	auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+  	int self_node_idx = queryContext.getNodeIndex(self_node);
+
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values, contextNodes.size(), self_node_idx);
-
-
 
   	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 

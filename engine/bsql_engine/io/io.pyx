@@ -146,8 +146,8 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
     with nogil:
         return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except *:
-    return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp, config_options,sql)
+cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql, string current_timestamp) except *:
+    return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp, config_options, sql, current_timestamp)
 
 cdef string runGeneratePhysicalGraphPython(uint32_t masterIndex, vector[string] worker_ids, int ctxToken, string query) except *:
     return cio.runGeneratePhysicalGraph(masterIndex, worker_ids, ctxToken, query)
@@ -483,7 +483,7 @@ cpdef runGeneratePhysicalGraphCaller(uint32_t masterIndex, worker_ids, int ctxTo
     physicalPlan = runGeneratePhysicalGraphPython(masterIndex, worker_ids_c, ctxToken, query)
     return physicalPlan.decode('UTF-8')
 
-cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
+cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql, current_timestamp):
     cdef string sql_c
     sql_c = sql.encode()
     cdef string query
@@ -592,7 +592,7 @@ cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_sc
     for worker_id in worker_ids:
         worker_ids_c.push_back(worker_id.encode())
 
-    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp_all, config_options,sql_c)
+    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp_all, config_options, sql_c, current_timestamp)
     return pyGraph
 
 cpdef startExecuteGraphCaller(PyBlazingGraph graph, int ctx_token):

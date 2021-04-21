@@ -17,6 +17,11 @@
 #include "../io/data_provider/sql/MySQLDataProvider.h"
 #endif
 
+#ifdef POSTGRESQL_SUPPORT
+#include "../io/data_parser/sql/PostgreSQLParser.h"
+#include "../io/data_provider/sql/PostgreSQLDataProvider.h"
+#endif
+
 #ifdef SQLITE_SUPPORT
 #include "../io/data_parser/sql/SQLiteParser.h"
 #include "../io/data_provider/sql/SQLiteDataProvider.h"
@@ -71,6 +76,17 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::mysql_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::mysql_data_provider>(sql, 0, 0);
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
+    isSqlProvider = true;
+  } else if(fileType == ral::io::DataType::POSTGRESQL) {
+#ifdef POSTGRESQL_SUPPORT
+		parser = std::make_shared<ral::io::postgresql_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, 0, 0);
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
 #endif
     isSqlProvider = true;
   } else if(fileType == ral::io::DataType::SQLITE) {
@@ -79,6 +95,8 @@ TableSchema parseSchema(std::vector<std::string> files,
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::sqlite_data_provider>(sql, 0, 0);
     isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
   }
 
@@ -322,8 +340,8 @@ std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string fo
 	visitPartitionFolder(folder_uri, metadata, 0);
 
 	static std::regex boolean_regex{std::string(ral::parser::detail::lexer::BOOLEAN_REGEX_STR)};
-  static std::regex number_regex{std::string(ral::parser::detail::lexer::NUMBER_REGEX_STR)};
-  static std::regex timestamp_regex{std::string(ral::parser::detail::lexer::TIMESTAMP_REGEX_STR)};
+  	static std::regex number_regex{std::string(ral::parser::detail::lexer::NUMBER_REGEX_STR)};
+  	static std::regex timestamp_regex{std::string(ral::parser::detail::lexer::TIMESTAMP_D_REGEX_STR)};
 
 	for (auto &&m : metadata) {
 		m.data_type = cudf::type_id::EMPTY;
@@ -332,7 +350,7 @@ std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string fo
 		 	if (std::regex_match(value, boolean_regex)) {
 				token = {ral::parser::detail::lexer::token_type::Boolean, value};
 			} else if (std::regex_match(value, timestamp_regex)) {
-				token = {ral::parser::detail::lexer::token_type::Timestamp, value};
+				token = {ral::parser::detail::lexer::token_type::Timestamp_d, value};
 			} else if (std::regex_match(value, number_regex)) {
 				token = {ral::parser::detail::lexer::token_type::Number, value};
 			} else {

@@ -79,7 +79,14 @@ private:
 };
 
 struct operator_node : public node {
-    operator_node(const std::string& value) : node{ node_type::OPERATOR, value } {};
+    enum placement_type {
+      AUTO,
+      BEGIN,
+      MIDDLE,
+      END
+    };
+
+    operator_node(const std::string& value) : node{ node_type::OPERATOR, value }, label(value) {};
 
     node * clone() const override {
         node * ret = new operator_node(this->value);
@@ -108,6 +115,10 @@ struct operator_node : public node {
         }
         return transformer.transform(*this);
     }
+
+    placement_type placement = placement_type::AUTO;
+    std::string label;
+    bool parentheses_wrap = true;
 };
 
 namespace detail {
@@ -253,7 +264,11 @@ public:
     constexpr static char NULL_REGEX_STR[] = R"(null)";
     constexpr static char BOOLEAN_REGEX_STR[] = R"(true|false)";
     constexpr static char NUMBER_REGEX_STR[] = R"([-+]?\d*\.?\d+([eE][-+]?\d+)?)";
-    constexpr static char TIMESTAMP_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2})?)";
+    constexpr static char TIMESTAMP_D_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2})";
+    constexpr static char TIMESTAMP_S_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]?\d{2}:\d{2}:\d{2}))";
+    constexpr static char TIMESTAMP_MS_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]?\d{2}:\d{2}:\d{2}.\d{3}))";
+    constexpr static char TIMESTAMP_US_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]?\d{2}:\d{2}:\d{2}.\d{6}))";
+    constexpr static char TIMESTAMP_NS_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]?\d{2}:\d{2}:\d{2}.\d{9}))";
     constexpr static char STRING_REGEX_STR[] = R"((["'])(?:(?!\1|\\).|\\.)*?\1)";
 
     enum class token_type
@@ -266,7 +281,11 @@ public:
         Null,
         Boolean,
         Number,
-        Timestamp,
+        Timestamp_d,
+        Timestamp_s,
+        Timestamp_ms,
+        Timestamp_us,
+        Timestamp_ns,
         String,
         Identifier,
         EOF_
@@ -293,7 +312,11 @@ private:
     std::regex null_regex{"^" + std::string(lexer::NULL_REGEX_STR)};
     std::regex boolean_regex{"^" + std::string(lexer::BOOLEAN_REGEX_STR)};
     std::regex number_regex{"^" + std::string(lexer::NUMBER_REGEX_STR)};
-    std::regex timestamp_regex{"^" + std::string(lexer::TIMESTAMP_REGEX_STR)};
+    std::regex timestamp_d_regex{"^" + std::string(lexer::TIMESTAMP_D_REGEX_STR)};
+    std::regex timestamp_s_regex{"^" + std::string(lexer::TIMESTAMP_S_REGEX_STR)};
+    std::regex timestamp_ms_regex{"^" + std::string(lexer::TIMESTAMP_MS_REGEX_STR)};
+    std::regex timestamp_us_regex{"^" + std::string(lexer::TIMESTAMP_US_REGEX_STR)};
+    std::regex timestamp_ns_regex{"^" + std::string(lexer::TIMESTAMP_US_REGEX_STR)};
     std::regex string_regex{"^" + std::string(lexer::STRING_REGEX_STR)};
 };
 
