@@ -81,6 +81,7 @@ enum class operator_type {
 	BLZ_TO_DATE,
 	BLZ_TO_TIMESTAMP,
 	BLZ_STR_TRIM,
+	BLZ_IS_NOT_DISTINCT_FROM,
 };
 
 
@@ -129,7 +130,8 @@ const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
 const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
 const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
-const std::string LOGICAL_WINDOW_TEXT = "LogicalWindow";
+const std::string LOGICAL_GENERATE_OVERLAPS_TEXT = "LogicalGenerateOverlaps";
+const std::string LOGICAL_ACCUMULATE_OVERLAPS_TEXT = "LogicalAccumulateOverlaps";
 const std::string LOGICAL_COMPUTE_WINDOW_TEXT = "LogicalComputeWindow";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
@@ -158,25 +160,51 @@ bool is_merge_aggregate(std::string query_part);
 bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
-bool is_window(std::string query_part);
+bool is_window_function(std::string query_part);
+bool is_generate_overlaps(std::string query_part);
+bool is_accumulate_overlaps(std::string query_part);
 bool is_window_compute(std::string query_part);
-bool contains_window_expression(std::string query_part);
-bool window_expression_contains_partition(std::string query_part);
-bool window_expression_contains_multiple_windows(std::string query_part);
 
-std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
+bool window_expression_contains_partition_by(std::string query_part);
 
-// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
-// output: a vector, [7]
-std::vector<int> get_columns_to_apply_window_function(const std::string & query_part);
+bool window_expression_contains_order_by(std::string query_part);
 
-// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
-// output: a vector, ["MIN"]
-std::vector<std::string> get_window_function_agg(const std::string & query_part);
+bool window_expression_contains_bounds(std::string query_part);
 
-// input: window#0=[window(partition {2} order by [1] rows between 4 PRECEDING and 3 FOLLOWING aggs [FIRST_VALUE($0)])]
-// output: <4, 3>
-std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
+bool window_expression_contains_bounds_by_range(std::string query_part);
+
+bool is_lag_or_lead_aggregation(std::string expression);
+
+bool is_first_value_window(std::string expression);
+
+bool is_last_value_window(std::string expression);
+
+bool window_expression_contains_multiple_diff_over_clauses(std::string query_part);
+
+bool is_sum_window_function(std::string expression);
+
+bool is_avg_window_function(std::string expression);
+
+std::string remove_over_expr(std::string expression);
+
+std::string replace_count_expr_with_right_index(std::string expression, size_t rigt_index);
+
+std::string replace_sum0_expr_with_right_index(std::string expression, size_t rigt_index);
+
+std::string get_query_part(std::string logical_plan);
+
+std::tuple< int, int > get_bounds_from_window_expression(const std::string & logical_plan);
+
+std::string get_frame_type_from_over_clause(const std::string & logical_plan);
+
+std::string get_over_expression(std::string query_part);
+
+std::string get_first_over_expression_from_logical_plan(const std::string & logical_plan, const std::string & expr);
+
+std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
+get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & query_part);
+
+std::vector<std::string> clean_window_function_expressions(const std::vector<std::string> & expressions, size_t num_columns);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);
@@ -192,3 +220,9 @@ std::string replace_calcite_regex(const std::string & expression);
 
 //Returns the column names according to the corresponding algebra expression
 std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression);
+
+std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names);
+
+std::string fill_minus_op_with_zero(std::string expression);
+
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);

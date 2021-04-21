@@ -1,0 +1,92 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BlazingColumn.h:
+
+File BlazingColumn.h
+====================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BlazingColumn.h``)
+-----------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/column/column_view.hpp``
+
+- ``cudf/table/table.hpp``
+
+- ``cudf/table/table_view.hpp``
+
+- ``memory``
+
+- ``string``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BlazingColumnView.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_LogicalProject.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__frame`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1frame_1_1BlazingColumn`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_BlazingColumn_8h_1a9fd93e5e4b5e5951debb6eed1165557a`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_BlazingColumn_8h_1a75228f03b5f35aabdcb834653877255b`
+
+- :ref:`exhale_typedef_BlazingColumn_8h_1ad45a870019940bc469c365c91feb0d71`
+
+- :ref:`exhale_typedef_BlazingColumn_8h_1a60e6a4564eccadda544785c903200343`
+
+- :ref:`exhale_typedef_BlazingColumn_8h_1ade7b77001abe59b93f77837aa0d36a06`
+

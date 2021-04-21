@@ -11,7 +11,7 @@ project(blazingdb-ral C CXX CUDA)
 ###################################################################################################
 # - compiler options ------------------------------------------------------------------------------
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_COMPILER $ENV{CC})
 set(CMAKE_CXX_COMPILER $ENV{CXX})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -106,6 +106,10 @@ option(BUILD_BENCHMARKS "Configure CMake to build (google) benchmarks" OFF)
 
 option(GCS_SUPPORT "Enables support for GCS fileSystem" ON)
 option(S3_SUPPORT "Enables support for S3 fileSystem" ON)
+
+option(MYSQL_SUPPORT "Enables support for MySQL database" ON)
+option(SQLITE_SUPPORT "Enables support for SQLite database" ON)
+option(POSTGRESQL_SUPPORT "Enables support for Postgre database" ON)
 
 ###################################################################################################
 # - cudart options --------------------------------------------------------------------------------
@@ -227,8 +231,43 @@ include_directories(
     "${ARROW_INCLUDE_DIR}"
     )
 
+if(MYSQL_SUPPORT)
+    add_definitions(-DMYSQL_SUPPORT)
+    set(MYSQL_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp)
+    set(MYSQL_LIBRARY libmysqlcppconn-static.a)
+    message(STATUS "MySQL support is enabled!")
+else()
+    message(STATUS "MySQL support is disabled!")
+endif()
+
+if(SQLITE_SUPPORT)
+    add_definitions(-DSQLITE_SUPPORT)
+    set(SQLITE_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SQLiteDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SQLiteParser.cpp)
+    set(SQLITE_LIBRARY libsqlite3.so)
+    message(STATUS "SQLite support is enabled!")
+else()
+    message(STATUS "SQLite support is disabled!")
+endif()
+
+if(POSTGRESQL_SUPPORT)
+    # TODO postgresql percy
+    add_definitions(-DPOSTGRESQL_SUPPORT)
+    set(POSTGRESQL_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp)
+    set(POSTGRESQL_LIBRARY libpq.so)
+    message(STATUS "PostgreSQL support is enabled!")
+else()
+    message(STATUS "MyPostgreSQL support is disabled!")
+endif()
+
 ## Target source files
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheData.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
@@ -253,9 +292,11 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/AbstractSQLDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/AbstractSQLParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
@@ -297,7 +338,12 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
 
-              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp              
+              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp
+
+              # SQL
+              ${MYSQL_DATABASE_SRC_FILES}
+              ${SQLITE_DATABASE_SRC_FILES}
+              ${POSTGRESQL_DATABASE_SRC_FILES}
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
@@ -306,7 +352,12 @@ link_directories(${BSQL_BLD_PREFIX}/lib)
 link_directories($ENV{SNAPPY_INSTALL_DIR})
 link_directories($ENV{LZ4_INSTALL_DIR})
 
-add_library(blazingsql-engine SHARED ${SRC_FILES})
+add_library(blazingsql-engine SHARED
+    ${SRC_FILES}
+    ${MYSQL_DATABASE_SRC_FILES}
+    ${SQLITE_DATABASE_SRC_FILES}
+    ${POSTGRESQL_DATABASE_SRC_FILES}
+)
 
 if(GCS_SUPPORT)
     find_package(storage_client REQUIRED)
@@ -323,24 +374,7 @@ target_link_libraries(blazingsql-engine
     #Threads::Threads
     pthread
 
-    # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
-    # cudf
-    libcudf_ast.so    
-    libcudf_interop.so 
-    libcudf_partitioning.so  
-    libcudf_rolling.so
-    libcudf_base.so
-    libcudf_io.so
-    libcudf_reductions.so
-    libcudf.so
-    libcudf_comms.so
-    libcudf_join.so
-    libcudf_replace.so
-    libcudf_hash.so
-    libcudf_merge.so
-    libcudf_reshape.so
-    libcudf_transpose.so 
-    
+    cudf
     zmq
     cudart
 
@@ -367,6 +401,11 @@ target_link_libraries(blazingsql-engine
 
     # Library needed for blazing communication repository (debug)
     gcov
+
+    # TODO percy use cmake::find
+    ${MYSQL_LIBRARY}
+    ${SQLITE_LIBRARY}
+    ${POSTGRESQL_LIBRARY}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")

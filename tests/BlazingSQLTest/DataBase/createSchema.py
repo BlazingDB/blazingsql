@@ -4,6 +4,8 @@ import tempfile
 from collections import OrderedDict
 from os import listdir
 from os.path import isdir
+import glob
+from enum import IntEnum, unique
 
 import cudf
 import dask_cudf
@@ -15,6 +17,14 @@ from pyhive import hive
 
 from Configuration import Settings as Settings
 from DemoTest.chronometer import Chronometer
+
+
+SQLEngineStringDataTypeMap = {
+    DataType.MYSQL: "mysql",
+    DataType.SQLITE: "sqlite",
+    DataType.POSTGRESQL: "postgresql",
+    # TODO percy c.gonzales support for more db engines
+}
 
 # ************** READ TPCH DATA AND CREATE TABLES ON DRILL ****************
 
@@ -33,6 +43,49 @@ extraTables = ["bool_orders"]
 tableNames = tpchTables + extraTables
 
 smilesTables = ["docked", "dcoids", "smiles", "split"]
+
+
+class sql_connection:
+    def __init__(self, **kwargs):
+        hostname = kwargs.get("hostname", "")
+        port = kwargs.get("port", 0)
+        username = kwargs.get("username", "")
+        password = kwargs.get("password", "")
+        schema = kwargs.get("schema", "")
+
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.password = password
+        self.schema = schema
+
+
+def get_sql_connection(fileSchemaType: DataType):
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
+    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+        if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+    if not sql_schema: return None
+
+    ret = sql_connection(hostname = sql_hostname,
+                         port = sql_port,
+                         username = sql_username,
+                         password = sql_password,
+                         schema = sql_schema)
+    return ret
 
 
 def getFiles_to_tmp(tpch_dir, n_files, ext):
@@ -68,11 +121,16 @@ def get_spark_schema(table, nullable):
 def init_spark_schema(spark, dir_data_lc, **kwargs):
 
     smiles_test = kwargs.get("smiles_test", False)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
         table_names=smilesTables
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
         table_names=tpchTables
 
     for name in table_names:
@@ -93,7 +151,7 @@ def init_spark_schema(spark, dir_data_lc, **kwargs):
     nullable = True
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test:
+    if bool_test and testsWithNulls != "true":
         bool_orders_df = spark.read.orc(dir_data_lc + "/bool_orders_*.psv")
         bool_orders_df.createOrReplaceTempView("bool_orders")
 
@@ -263,11 +321,16 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
     timeout = 300
 
     smiles_test = kwargs.get("smiles_test", False)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
         table_names=smilesTables
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
         table_names=tpchTables
 
     for name in table_names:
@@ -281,7 +344,7 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
         dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, 'psv')
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test:
+    if bool_test and testsWithNulls != "true":
         drill.query(
             "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": "bool_orders"}, timeout
@@ -646,7 +709,7 @@ def get_dtypes(table_name, bool_column=False):
             "date64",
             "str",
             "str",
-            "str",
+            "int32",
             "str",
         ],
         "supplier": ["int64", "str", "str", "int32", "str", "float64", "str"],
@@ -686,78 +749,6 @@ def get_dtypes(table_name, bool_column=False):
     func = switcher.get(table_name, "nothing")
     # Execute the function
     return func
-
-
-def get_dtypes_wo_string(table_name):
-    switcher = {
-        "customer": [
-            "int32",
-            "int64",
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "int64",
-            "int64",
-        ],
-        "region": ["int32", "int64", "int64"],
-        "nation": ["int32", "int64", "int32", "int64"],
-        "lineitem": [
-            "int64",
-            "int64",
-            "int64",
-            "int32",
-            "float64",
-            "float64",
-            "float64",
-            "float64",
-            "int64",
-            "int64",
-            "date64",
-            "date64",
-            "date64",
-            "int64",
-            "int64",
-            "int64",
-        ],
-        "orders": [
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "date64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-        ],
-        "supplier": [
-            "int64",
-            "int64",
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "int64"
-        ],
-        "part": [
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "float32",
-            "int64",
-        ],
-        "partsupp": ["int64", "int64", "int64", "float32", "int64"],
-    }
-
-    func = switcher.get(table_name, "nothing")
-    # Execute the function
-    return func
-
 
 def get_dtypes_pandas(table_name):
     switcher = {
@@ -808,7 +799,7 @@ def get_dtypes_pandas(table_name):
             "o_orderdatetime64": "datetime64",
             "o_orderpriority": "str",
             "o_clerk": "str",
-            "o_shippriority": "str",
+            "o_shippriority": "int64",
             "o_comment": "str",
         },
         "supplier": {
@@ -882,6 +873,7 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
 
     table_pdf = None
     dataframes = []
+
     for dataFile in listdir(files_dir):
         if isdir(files_dir + "/" + dataFile):
             continue
@@ -1242,8 +1234,10 @@ def get_extension(fileSchemaType):
         DataType.JSON: "json",
         DataType.ORC: "orc",
         DataType.DASK_CUDF: "dask_cudf",
+        DataType.MYSQL: "mysql",
+        DataType.POSTGRESQL: "postgresql",
+        DataType.SQLITE: "sqlite",
     }
-
     return switcher.get(fileSchemaType)
 
 
@@ -1253,12 +1247,18 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     ext = get_extension(fileSchemaType)
 
     tables = kwargs.get("tables", tpchTables)
+    table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
+
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if tables[0] in smilesTables:
         dir_data_lc = dir_data_lc + "smiles/"
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
 
     for i, table in enumerate(tables):
         # using wildcard, note the _ after the table name
@@ -1273,20 +1273,20 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
             dtypes = get_dtypes(table, bool_orders_flag)
             col_names = get_column_names(table, bool_orders_flag)
             bc.create_table(
-                table, table_files, delimiter="|", dtype=dtypes,
+                table_names[i], table_files, delimiter="|", dtype=dtypes,
                 names=col_names
             )
         elif fileSchemaType == DataType.CUDF:
             bool_column = bool_orders_index != -1
             gdf = read_data(table, dir_data_lc, bool_column)
-            bc.create_table(table, gdf)
+            bc.create_table(table_names[i], gdf)
         elif fileSchemaType == DataType.DASK_CUDF:
-            bool_column = bool_orders_index != -1
-            gdf = read_data(table, dir_data_lc, bool_column)
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
+            bool_column = bool_orders_index != -1
+            gdf = read_data(table, dir_data_lc, bool_column)
             ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
-            bc.create_table(table, ds)
+            bc.create_table(table_names[i], ds)
         # elif fileSchemaType == DataType.DASK_CUDF:
         #     bool_column = bool_orders_index != -1
         #     table_files = ("%s/%s_[0-9]*.%s") % (dir_data_lc, table,
@@ -1294,8 +1294,36 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         #     dask_df = dask_cudf.read_parquet(table_files)
         #     dask_df = bc.unify_partitions(dask_df)
         #     t = bc.create_table(table, dask_df)
+        elif fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
+            sql_table_filter_map = kwargs.get("sql_table_filter_map", {})
+            sql_table_batch_size_map = kwargs.get("sql_table_batch_size_map", {})
+            sql = kwargs.get("sql_connection", None)
+
+            from_sql = SQLEngineStringDataTypeMap[fileSchemaType]
+            sql_hostname = sql.hostname
+            sql_port = sql.port
+            sql_username = sql.username
+            sql_password = sql.password
+            sql_schema = sql.schema
+            sql_table_filter = ""
+            sql_table_batch_size = 1000
+
+            if table in sql_table_filter_map:
+                sql_table_filter = sql_table_filter_map[table]
+            if table in sql_table_batch_size_map:
+                sql_table_batch_size = sql_table_batch_size_map[table]
+
+            bc.create_table(table_names[i], table,
+                from_sql = from_sql,
+                hostname = sql_hostname,
+                port = sql_port,
+                username = sql_username,
+                password = sql_password,
+                schema = sql_schema,
+                table_filter = sql_table_filter,
+                table_batch_size = sql_table_batch_size)
         else:
-            bc.create_table(table, table_files)
+            bc.create_table(table_names[i], table_files)
 
         # TODO percy kharoly bindings
         # if (not t.is_valid()):
@@ -1310,3 +1338,49 @@ def create_hive_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         table = bc.create_table(table, cursor)
         # table = bc.create_table(table, cursor, file_format=fileSchemaType)
         print(table)
+
+@unique
+class HiveCreateTableType(IntEnum):
+    AUTO = 0,
+    WITH_PARTITIONS = 1
+
+def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTableType, partitions,
+                                  partitions_schema, **kwargs):
+    ext = get_extension(fileSchemaType)
+
+    if fileSchemaType not in [DataType.CSV, DataType.PARQUET, DataType.ORC]:
+        raise RuntimeError("It is not a valid file format for create table hive")
+
+    tables = kwargs.get("tables", tpchTables)
+
+    if createTableType == HiveCreateTableType.AUTO:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table, dir_partitions + table, file_format=ext, delimiter="|", dtype=dtypes,
+                                names=col_names)
+
+            else:
+                bc.create_table(table, dir_partitions + table, file_format=ext)
+
+    elif createTableType == HiveCreateTableType.WITH_PARTITIONS:
+        for i, table in enumerate(tables):
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema,
+                                delimiter="|",
+                                dtype=dtypes,
+                                names=col_names)
+
+            else:
+                bc.create_table(table,
+                                dir_partitions + table,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema)

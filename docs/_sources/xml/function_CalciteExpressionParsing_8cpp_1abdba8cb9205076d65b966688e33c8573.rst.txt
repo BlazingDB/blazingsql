@@ -1,0 +1,13 @@
+.. _exhale_function_CalciteExpressionParsing_8cpp_1abdba8cb9205076d65b966688e33c8573:
+
+Function get_max_integer_scalar(cudf::data_type)
+================================================
+
+- Defined in :ref:`file_engine_src_CalciteExpressionParsing.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_max_integer_scalar(cudf::data_type)

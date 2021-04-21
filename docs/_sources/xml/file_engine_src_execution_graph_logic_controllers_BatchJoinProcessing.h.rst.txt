@@ -1,0 +1,88 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.h:
+
+File BatchJoinProcessing.h
+==========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h``)
+-----------------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``BatchProcessing.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.h`)
+
+- ``taskflow/distributing_kernel.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h`)
+
+- ``tuple``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__batch`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1batch_1_1JoinPartitionKernel`
+
+- :ref:`exhale_class_classral_1_1batch_1_1PartwiseJoin`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1a023e63d9a3fbff1b27f9662be176e9e9`
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1a6e0c355ca3625e6cc3af329feb6856b3`
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1a318f2f4a1366b504987da58211358501`
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1a88d6e2d008a6c2c9c586a29a24d712cb`
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1a7812a46b79305ac1e3c69a2046dfc30f`
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1afe34315964f2d43b8653f9657730ecea`
+
+- :ref:`exhale_variable_BatchJoinProcessing_8h_1a1df8dbe7a9c986c319228696561c167c`
+

@@ -3,15 +3,42 @@
 #include "communication/CommunicationData.h"
 #include "ExceptionHandling/BlazingThread.h"
 #include "io/data_parser/CSVParser.h"
+
+#ifdef MYSQL_SUPPORT
+#include "io/data_provider/sql/MySQLDataProvider.h"
+#endif
+
+// TODO percy
+//#include "io/data_parser/sql/PostgreSQLParser.h"
+
 #include "parser/expression_utils.hpp"
 #include "taskflow/executor.h"
 #include <cudf/types.hpp>
 #include <src/utilities/DebuggingUtils.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "io/data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace batch {
+
+// Use get_projections and if there are no projections or expression is empty
+// then returns a filled array with the sequence of all columns (0, 1, ..., n)
+std::vector<int> get_projections_wrapper(size_t num_columns, const std::string &expression = "")
+{
+  if (expression.empty()) {
+    std::vector<int> projections(num_columns);
+    std::iota(projections.begin(), projections.end(), 0);
+    return projections;
+  }
+
+  std::vector<int> projections = get_projections(expression);
+  if(projections.size() == 0){
+      projections.resize(num_columns);
+      std::iota(projections.begin(), projections.end(), 0);
+  }
+  return projections;
+}
 
 // BEGIN BatchSequence
 
@@ -96,6 +123,12 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
         } else {
             num_batches = provider->get_num_handles();
         }
+    } else if (parser->type() == ral::io::DataType::MYSQL)	{
+#ifdef MYSQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
     } else {
         num_batches = provider->get_num_handles();
     }
@@ -108,10 +141,10 @@ ral::execution::task_result TableScan::do_process(std::vector< std::unique_ptr<r
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
         output->addToCache(std::move(inputs[0]));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         //can still recover if the input was not a GPUCacheData 
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -204,6 +237,38 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
 : kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), provider(provider), parser(parser), schema(schema) {
     this->query_graph = query_graph;
     this->filtered = is_filtered_bindable_scan(expression);
+
+    if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
+        num_batches = std::max(provider->get_num_handles(), (size_t)1);
+    } else if (parser->type() == ral::io::DataType::CSV)	{
+        auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
+        num_batches = 0;
+        size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
+        if (max_bytes_chunk_size > 0) {
+            int file_idx = 0;
+            while (provider->has_next()) {
+                auto data_handle = provider->get_next();
+                int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
+                size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
+                std::vector<int> file_row_groups(num_chunks);
+                std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
+                schema.get_rowgroups()[file_idx] = std::move(file_row_groups);
+                num_batches += num_chunks;
+                file_idx++;
+            }
+            provider->reset();
+        } else {
+            num_batches = provider->get_num_handles();
+        }
+    } else if (parser->type() == ral::io::DataType::MYSQL)	{
+#ifdef MYSQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
+    } else {
+        num_batches = provider->get_num_handles();
+    }
 }
 
 ral::execution::task_result BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -221,10 +286,10 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
             input->setNames(fix_column_aliases(input->names(), expression));
             output->addToCache(std::move(input));
         }
-    }catch(rmm::bad_alloc e){
-        //can still recover if the input was not a GPUCacheData 
+    }catch(const rmm::bad_alloc& e){
+        //can still recover if the input was not a GPUCacheData
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
@@ -234,11 +299,7 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
 kstatus BindableTableScan::run() {
     CodeTimer timer;
 
-    std::vector<int> projections = get_projections(expression);
-    if(projections.size() == 0){
-        projections.resize(schema.get_num_columns());
-        std::iota(projections.begin(), projections.end(), 0);
-    }
+    std::vector<int> projections = get_projections_wrapper(schema.get_num_columns(), expression);
 
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
@@ -311,7 +372,7 @@ std::pair<bool, uint64_t> BindableTableScan::get_estimated_output_num_rows(){
     if (current_batch == 0 || num_batches == 0){
         return std::make_pair(false, 0);
     } else {
-        return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+        return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/(double)num_batches)));
     }
 }
 
@@ -333,10 +394,10 @@ ral::execution::task_result Projection::do_process(std::vector< std::unique_ptr<
         auto & input = inputs[0];
         auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
         output->addToCache(std::move(columns));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         //can still recover if the input was not a GPUCacheData 
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -346,15 +407,30 @@ kstatus Projection::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    while(cache_data != nullptr ){
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
+    RAL_EXPECTS(cache_data != nullptr, "ERROR: Projection::run() first input CacheData was nullptr");
 
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
+    // When this kernel will project all the columns (with or without aliases)
+    // we want to avoid caching and decahing for this kernel
+    bool bypassing_project, bypassing_project_with_aliases;
+    std::vector<std::string> aliases;
+    std::vector<std::string> column_names = cache_data->names();
+    std::tie(bypassing_project, bypassing_project_with_aliases, aliases) = bypassingProject(this->expression, column_names);
 
+    while(cache_data != nullptr){
+        if (bypassing_project_with_aliases) {
+            cache_data->set_names(aliases);
+            this->add_to_output_cache(std::move(cache_data));
+        } else if (bypassing_project) {
+            this->add_to_output_cache(std::move(cache_data));
+        } else {
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+        }
         cache_data = this->input_cache()->pullCacheData();
     }
 
@@ -408,9 +484,9 @@ ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral:
         auto & input = inputs[0];
         columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
         output->addToCache(std::move(columns));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
@@ -468,8 +544,8 @@ kstatus Filter::run() {
 std::pair<bool, uint64_t> Filter::get_estimated_output_num_rows(){
     std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
     if (total_in.first){
-        double out_so_far = (double)this->output_.total_bytes_added();
-        double in_so_far = (double)this->total_input_bytes_processed;
+        double out_so_far = (double)this->output_.total_rows_added();
+        double in_so_far = (double)this->total_input_rows_processed;
         if (in_so_far == 0){
             return std::make_pair(false, 0);
         } else {

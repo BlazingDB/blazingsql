@@ -15,7 +15,7 @@ namespace batch {
 std::tuple<std::string, std::string, std::string, std::string> parseExpressionToGetTypeAndCondition(const std::string & expression) {
 	std::string modified_expression, condition, filter_statement, join_type, new_join_statement;
 	modified_expression = expression;
-	StringUtil::findAndReplaceAll(modified_expression, "IS NOT DISTINCT FROM", "=");
+	StringUtil::findAndReplaceAll(modified_expression, "IS NOT DISTINCT FROM", "IS_NOT_DISTINCT_FROM");
 	split_inequality_join_into_join_and_filter(modified_expression, new_join_statement, filter_statement);
 
 	// Getting the condition and type of join
@@ -44,7 +44,7 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
 	for(std::string token : tokens) {
 		if(is_operator_token(token)) {
-			if(token == "=") {
+			if(token == "=" || token == "IS_NOT_DISTINCT_FROM") {
 				// so far only equijoins are supported in libgdf
 				operator_count++;
 			} else if(token != "AND") {
@@ -69,6 +69,46 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 		columnIndices[2 * i] = left_index;
 		columnIndices[2 * i + 1] = right_index;
 	}
+}
+
+cudf::null_equality parseJoinConditionToEqualityTypes(const std::string & condition) {
+	// TODO: right now this only works for equijoins
+	// since this is all that is implemented at the time
+
+	std::string clean_expression = clean_calcite_expression(condition);
+	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
+
+	std::vector<cudf::null_equality> joinEqualityTypes;
+
+	for(std::string token : tokens) {
+		if(is_operator_token(token)) {
+			// so far only equijoins are supported in libgdf
+			if(token == "="){
+				joinEqualityTypes.push_back(cudf::null_equality::UNEQUAL);
+			} else if(token == "IS_NOT_DISTINCT_FROM") {
+				joinEqualityTypes.push_back(cudf::null_equality::EQUAL);
+			} else if(token != "AND") {
+				throw std::runtime_error("In evaluate_join function: unsupported non-equijoins operator");
+			}
+		}
+	}
+
+	if(joinEqualityTypes.empty()){
+		throw std::runtime_error("In evaluate_join function: unrecognized joining type operators");
+	}
+
+	// TODO: There may be cases where there is a mixture of
+	// equality operators. We do not support it for now,
+	// since that is not supported in cudf.
+	// We only rely on the first equality type found.
+	// Related issue: https://github.com/BlazingDB/blazingsql/issues/1421
+
+	bool all_types_are_equal = std::all_of(joinEqualityTypes.begin(), joinEqualityTypes.end(), [&](const cudf::null_equality & elem) {return elem == joinEqualityTypes.front();});
+	if(!all_types_are_equal){
+		throw std::runtime_error("In evaluate_join function: unsupported different equijoins operators");
+	}
+
+	return joinEqualityTypes[0];
 }
 
 /*
@@ -115,14 +155,14 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 	assert(tree.root().type == ral::parser::node_type::OPERATOR or
 		tree.root().type == ral::parser::node_type::LITERAL); // condition=[true] (for cross join)
 
-	if (tree.root().value == "=") {
+	if (tree.root().value == "=" || tree.root().value == "IS_NOT_DISTINCT_FROM") {
 		// this would be a regular single equality join
 		new_join_statement_expression = condition;  // the join_out is the same as the original input
 		filter_statement_expression = "";					   // no filter out
 	} else if (tree.root().value == "AND") {
 		size_t num_equalities = 0;
 		for (auto&& c : tree.root().children) {
-			if (c->value == "=") {
+			if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 				num_equalities++;
 			}
 		}
@@ -134,7 +174,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				// and we will just have this equality as the root_
 				if (tree.root().children.size() == 2) {
 					for (auto&& c : tree.root().children) {
-						if (c->value == "=") {
+						if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 							new_join_statement_expression = ral::parser::detail::rebuild_helper(c.get());
 						} else {
 							filter_statement_expression = ral::parser::detail::rebuild_helper(c.get());
@@ -143,7 +183,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				} else {
 					auto filter_root = std::make_unique<ral::parser::operator_node>("AND");
 					for (auto&& c : tree.root().children) {
-						if (c->value == "=") {
+						if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 							new_join_statement_expression = ral::parser::detail::rebuild_helper(c.get());
 						} else {
 							filter_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
@@ -156,7 +196,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				// in the filter (without an and at the root_)
 				auto join_out_root = std::make_unique<ral::parser::operator_node>("AND");
 				for (auto&& c : tree.root().children) {
-					if (c->value == "=") {
+					if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 						join_out_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
 					} else {
 						filter_statement_expression = ral::parser::detail::rebuild_helper(c.get());
@@ -167,7 +207,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				auto join_out_root = std::make_unique<ral::parser::operator_node>("AND");
 				auto filter_root = std::make_unique<ral::parser::operator_node>("AND");
 				for (auto&& c : tree.root().children) {
-					if (c->value == "=") {
+					if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 						join_out_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
 					} else {
 						filter_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
@@ -214,6 +254,13 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 	this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, right_array_cache_name);
 
 	std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
+
+	if (this->filter_statement != "" && this->join_type != INNER_JOIN){
+		throw std::runtime_error("Outer joins with inequalities are not currently supported");
+	}
+	if (this->join_type == RIGHT_JOIN) {
+		throw std::runtime_error("Right Outer Joins are not currently supported");
+	}
 }
 
 std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_left_set(){
@@ -313,33 +360,22 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 	const ral::frame::BlazingTableView & table_right)
 {
 	std::unique_ptr<CudfTable> result_table;
-	std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
 	if (this->join_type == CROSS_JOIN) {
 		result_table = cudf::cross_join(
 			table_left.view(),
 			table_right.view());
 	} else {
+		bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+		bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 		if(this->join_type == INNER_JOIN) {
-			//Removing nulls on key columns before joining
-			std::unique_ptr<CudfTable> table_left_dropna;
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_left){
-				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
-			}
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
-
+			cudf::null_equality equalityType = parseJoinConditionToEqualityTypes(this->condition);
 			result_table = cudf::inner_join(
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
+				table_left.view(),
+				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
-
+				equalityType);
 		} else if(this->join_type == LEFT_JOIN) {
 			//Removing nulls on right key columns before joining
 			std::unique_ptr<CudfTable> table_right_dropna;
@@ -352,15 +388,14 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_left.view(),
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
 				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
+				this->right_column_indices);
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
 				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
-				columns_in_common);
+				(has_nulls_left && has_nulls_right) ? cudf::null_equality::UNEQUAL : cudf::null_equality::EQUAL);
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}
@@ -407,19 +442,19 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			this->add_to_output_cache(std::move(joined));
 		}
 
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
 	try{
 		this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
 		this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		//can still recover if the input was not a GPUCacheData
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
@@ -1051,9 +1086,9 @@ ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::uni
 
 			return {ral::execution::task_status::FAIL, std::string("In JoinPartitionKernel::do_process Invalid operation_type"), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 		}
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), input_consumed ? std::vector< std::unique_ptr<ral::frame::BlazingTable> > () : std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 	return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};

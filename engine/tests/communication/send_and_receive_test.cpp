@@ -33,7 +33,7 @@ struct SendAndReceiveTest : public BlazingUnitTest {
 
 template<class TypeParam>
 std::unique_ptr<cudf::column> make_col(cudf::size_type size) {
-    auto sequence = cudf::test::make_counting_transform_iterator(0, [](auto i) { return TypeParam(i); });
+    auto sequence = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return TypeParam(i); });
     std::vector<TypeParam> data(sequence, sequence + size);
     cudf::test::fixed_width_column_wrapper<TypeParam> col(data.begin(), data.end());
     return col.release();
@@ -156,7 +156,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveTest0) {
 
   metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
     
-  output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+  output_cache->addToCache(std::move(table),"",true,metadata, true);
 
   auto received_table = input_cache->pullFromCache();
 
@@ -198,7 +198,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveALOT) {
 
       metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
         
-      output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+      output_cache->addToCache(std::move(table),"",true,metadata, true);
       std::cout<<"output_cache->addToCache "<<i<<std::endl;
     }));
   }
@@ -248,7 +248,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveALOT) {
 
       metadata.add_value(ral::cache::MESSAGE_ID, MESSAGE_ID_CONTENT);
         
-      output_cache->addToCache(std::move(table),"",true,metadata,true, true);
+      output_cache->addToCache(std::move(table),"",true,metadata, true);
     }));
   }
 

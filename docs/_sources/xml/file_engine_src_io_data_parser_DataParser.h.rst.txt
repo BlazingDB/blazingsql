@@ -1,0 +1,90 @@
+
+.. _file_engine_src_io_data_parser_DataParser.h:
+
+File DataParser.h
+=================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_parser>` (``engine/src/io/data_parser``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_parser/DataParser.h``)
+-------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``../DataType.h``
+
+- ``../Schema.h``
+
+- ``../data_provider/DataProvider.h``
+
+- ``arrow/io/interfaces.h``
+
+- ``execution_graph/logic_controllers/LogicPrimitives.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+- ``memory``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_io_DataLoader.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`
+
+- :ref:`file_engine_src_io_data_parser_CSVParser.h`
+
+- :ref:`file_engine_src_io_data_parser_GDFParser.h`
+
+- :ref:`file_engine_src_io_data_parser_JSONParser.h`
+
+- :ref:`file_engine_src_io_data_parser_OrcParser.h`
+
+- :ref:`file_engine_src_io_data_parser_ArrowParser.h`
+
+- :ref:`file_engine_src_io_data_parser_ParquetParser.h`
+
+- :ref:`file_engine_src_io_data_parser_sql_AbstractSQLParser.h`
+
+- :ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.h`
+
+- :ref:`file_engine_src_io_data_parser_sql_SQLiteParser.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classDataParser`
+
+- :ref:`exhale_class_classral_1_1io_1_1data__parser`
+

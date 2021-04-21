@@ -5,7 +5,6 @@ from Configuration import Settings as Settings
 # from dask.distributed import Client
 from DataBase import createSchema as createSchema
 
-# from EndToEndTests import countDistincTest
 from EndToEndTests import (
     GroupByWitoutAggregations,
     aggregationsWithoutGroupByTest,
@@ -13,6 +12,7 @@ from EndToEndTests import (
     booleanTest,
     caseTest,
     castTest,
+    countDistinctTest,
 )
 from EndToEndTests import coalesceTest as coalesceTest
 from EndToEndTests import columnBasisTest as columnBasisTest
@@ -46,7 +46,6 @@ from EndToEndTests import orderbyTest as orderbyTest
 from EndToEndTests import (
     predicatesWithNulls,
     roundTest,
-    simpleDistributionTest,
     stringTests,
     substringTest,
     stringCaseTest,
@@ -65,6 +64,10 @@ from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
+from EndToEndTests import windowNoPartitionTest
+from EndToEndTests import concurrentTest
+from EndToEndTests import tablesFromSQL
+from EndToEndTests import hiveFileTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -126,15 +129,16 @@ def main():
         len(targetTestGroups) == 0
     )  # if targetTestGroups was empty the user wants to run all the tests
 
+    if runAllTests or ("hiveFileTest" in targetTestGroups):
+        hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
             dask_client, drill, dir_data_file, bc, nRals
         )
 
     if runAllTests or ("coalesceTest" in targetTestGroups):
-        coalesceTest.main(
-            dask_client, drill, dir_data_file, bc, nRals
-        )  # we are not supporting coalesce yet
+        coalesceTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("columnBasisTest" in targetTestGroups):
         columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -142,8 +146,8 @@ def main():
     if runAllTests or ("commonTableExpressionsTest" in targetTestGroups):
         commonTableExpressionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    # we are not supporting count distinct yet
-    # countDistincTest.main(dask_client, drill, dir_data_file, bc)
+    if runAllTests or ("countDistinctTest" in targetTestGroups):
+        countDistinctTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("countWithoutGroupByTest" in targetTestGroups):
         countWithoutGroupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -179,7 +183,7 @@ def main():
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
-        nonEquiJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        nonEquiJoinsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # loadDataTest.main(dask_client, bc) #check this
 
@@ -190,7 +194,7 @@ def main():
         orderbyTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("predicatesWithNulls" in targetTestGroups):
-        predicatesWithNulls.main(dask_client, drill, dir_data_file, bc, nRals)
+        predicatesWithNulls.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("stringTests" in targetTestGroups):
         stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -216,8 +220,10 @@ def main():
     if runAllTests or ("bindableAliasTest" in targetTestGroups):
         bindableAliasTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("booleanTest" in targetTestGroups):
-        booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    if testsWithNulls != "true":
+        if runAllTests or ("booleanTest" in targetTestGroups):
+            booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("caseTest" in targetTestGroups):
         caseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -232,7 +238,7 @@ def main():
         literalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("dirTest" in targetTestGroups):
-        dirTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        dirTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # HDFS is not working yet
     # fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc)
@@ -243,9 +249,6 @@ def main():
     if runAllTests or ("likeTest" in targetTestGroups):
         likeTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if runAllTests or ("simpleDistributionTest" in targetTestGroups):
-        simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
@@ -253,7 +256,7 @@ def main():
         stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
-        wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        wildCardTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("tpchQueriesTest" in targetTestGroups):
         tpchQueriesTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -262,31 +265,48 @@ def main():
         roundTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
-        fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        fileSystemLocalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if Settings.execution_mode != ExecutionMode.GPUCI:
-        if runAllTests or ("fileSystemS3Test" in targetTestGroups):
-            fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("fileSystemS3Test" in targetTestGroups):
+                fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
 
-        if runAllTests or ("fileSystemGSTest" in targetTestGroups):
-            fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
+            if runAllTests or ("fileSystemGSTest" in targetTestGroups):
+                fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("loggingTest" in targetTestGroups):
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("smilesTest" in targetTestGroups):
-        smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
+    #TODO re enable this test once we have the new version of dask
+    # https://github.com/dask/distributed/issues/4645
+    # https://github.com/rapidsai/cudf/issues/7773
+    #if runAllTests or ("smilesTest" in targetTestGroups):
+    #    smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("jsonTest" in targetTestGroups):
-        jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if runAllTests or ("jsonTest" in targetTestGroups):
+            jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("windowNoPartitionTest" in targetTestGroups):
+        windowNoPartitionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if testsWithNulls != "true":
+        if runAllTests or ("concurrentTest" in targetTestGroups):
+            concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if testsWithNulls == "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("tablesFromSQL" in targetTestGroups):
+                tablesFromSQL.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

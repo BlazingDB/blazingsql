@@ -21,7 +21,7 @@ public:
 
 	virtual ~arrow_parser();
 
-	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file,
+	void parse_schema(ral::io::data_handle /*handle*/,
 			ral::io::Schema & schema);
 
 	DataType type() const override { return DataType::ARROW; }

@@ -1,0 +1,41 @@
+
+.. _file_engine_src_utilities_scalar_timestamp_parser.hpp:
+
+File scalar_timestamp_parser.hpp
+================================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_utilities>` (``engine/src/utilities``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/utilities/scalar_timestamp_parser.hpp``)
+-----------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/scalar/scalar.hpp``
+
+- ``cudf/types.hpp``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_strings`
+

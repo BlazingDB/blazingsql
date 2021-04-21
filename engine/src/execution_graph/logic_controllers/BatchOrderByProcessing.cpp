@@ -2,6 +2,7 @@
 #include "CodeTimer.h"
 #include <src/utilities/CommonOperations.h>
 #include "taskflow/executor.h"
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace batch {
@@ -12,6 +13,16 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
     : kernel{kernel_id, queryString, context, kernel_type::PartitionSingleNodeKernel} {
     this->query_graph = query_graph;
     this->input_.add_port("input_a", "input_b");
+
+    if (is_window_function(this->expression)) {
+        if (window_expression_contains_partition_by(this->expression)){
+            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+        } else {
+            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_orders(this->expression);
+		}
+    } else {
+        std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
+    }
 }
 
 ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -21,7 +32,7 @@ ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< s
     try{
         auto & input = inputs[0];
 
-        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
+        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->sortOrderTypes, this->sortColIndices);
 
         for (std::size_t i = 0; i < partitions.size(); i++) {
             std::string cache_id = "output_" + std::to_string(i);
@@ -30,9 +41,9 @@ ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< s
                 cache_id
                 );
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     
@@ -252,7 +263,6 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
             if(sortedTable){
                 auto num_rows = sortedTable->num_rows();
                 auto num_bytes = sortedTable->sizeInBytes();
-
             }
 
             output->addToCache(std::move(sortedTable), "output_a");
@@ -260,9 +270,9 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
         else if (operation_type == "compute_partition_plan") {
             compute_partition_plan(std::move(inputs));
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -346,6 +356,16 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
         max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
     }
     set_number_of_message_trackers(max_num_order_by_partitions_per_node);
+
+    if (is_window_function(this->expression)) {
+        if (window_expression_contains_partition_by(this->expression)){
+            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+        } else {
+            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_orders(this->expression);
+		}
+    } else {
+        std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
+    }
 }
 
 ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -362,9 +382,9 @@ ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique
             "", //message_id_prefix
             part_ids
         );
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -380,9 +400,6 @@ kstatus PartitionKernel::run() {
     context->incrementQuerySubstep();
 
     std::map<std::string, std::map<int32_t, int> > node_count;
-
-    if (this->expression.find("window") != this->expression.npos) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
-	else std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
 
     auto nodes = context->getAllNodes();
 
@@ -484,9 +501,9 @@ ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::uniq
             auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
             output->addToCache(std::move(output_merge));
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -602,9 +619,9 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
             else
                 output->addToCache(std::move(limited_input));
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};

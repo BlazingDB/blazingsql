@@ -280,6 +280,7 @@ def get_codTest(test_name):
         "File System Google Storage": "FSGS",
         "Hdfs FileSystem": "FSHDFS",
         "Hive FileSystem": "FSHIVE",
+        "Hive File": "FILEHIVE",
         "File System Local": "FSLOCAL",
         "File System S3": "FSS3",
         "Full outer join": "FOUTJOIN",
@@ -295,7 +296,6 @@ def get_codTest(test_name):
         "Predicates With Nulls": "PREDWNULLS",
         "Round": "ROUND",
         "Replace": "REPLACE",
-        "Simple Distribution From Local": "SIMPLEDIST",
         "Smiles Test": "SMILES",
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",
@@ -310,11 +310,14 @@ def get_codTest(test_name):
         "Limit": "LIMIT",
         "Where clause": "WHERE",
         "Window Function": "WINDOWFUNCTION",
+        "Window Functions With No Partition": "WINDOW_NO_PARTITION",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
         "String case": "STRINGCASE",
         "Message Validation": "MESSAGEVAL",
         "Json tests": "JSON",
+        "Concurrent": "CONCUR",
+        "TablesFromSQL": "TABFROMSQL",
     }
 
     return switcher.get(test_name)
@@ -1321,6 +1324,14 @@ def get_blazingsql_query(db_name, query):
 def get_drill_query(query):
     new_query = query
     for table_name in get_table_occurrences(query):
+        # for concurrent test and tables from sql tests
+        enum_list = list(map(lambda c: c.name, DataType))
+        a = ["_"+e for e in enum_list]
+        a.remove("_UNDEFINED")
+        for dtyp in a:
+            new_query = new_query.replace(str(dtyp), "")
+
+        # patch the tables
         new_query = replace_all(
             new_query, {table_name: " dfs.tmp.`%(table)s` " % {"table": table_name}}
         )
@@ -1398,13 +1409,13 @@ def run_query(
 
     data_type = cs.get_extension(input_type)
 
-    if Settings.execution_mode != "Generator":
+    if Settings.execution_mode != "generator":
         print(
             "\n=============== New query: "
             + str(queryId)
             + " - "
             + data_type
-            + " ================="
+            + " ("+queryType+")" + "================="
         )
 
     load_time = 0
@@ -1414,6 +1425,7 @@ def run_query(
     nested_query = kwargs.get("nested_query", False)
 
     error_message = ""
+    result_gdf = None
 
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
@@ -1474,6 +1486,7 @@ def run_query(
     result_dir = Settings.data["TestSettings"]["fileResultsDirectory"]
     file_results_dir = str(result_dir)
 
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if not message_validation== "":
         print_query_results2(
@@ -1510,9 +1523,16 @@ def run_query(
                     formatResults(pdf1, pdf2, worder, orderBy)
 
                     if Settings.execution_mode == ExecutionMode.GENERATOR:
-                        file_res_drill_dir = (
-                            file_results_dir + "/" + "drill" + "/" + filename
-                        )
+
+                        file_res_drill_dir = None
+                        if testsWithNulls != "true":
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "drill" + "/" + filename
+                            )
+                        else:
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "drill-nulls" + "/" + filename
+                            )
 
                         if not os.path.exists(file_res_drill_dir):
                             save_results_parquet(file_res_drill_dir, pdf2)
@@ -1567,9 +1587,15 @@ def run_query(
 
                     if Settings.execution_mode == ExecutionMode.GENERATOR:
 
-                        file_res_drill_dir = (
-                            file_results_dir + "/" + "spark" + "/" + filename
-                        )
+                        file_res_drill_dir = None
+                        if testsWithNulls != "true":
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "spark" + "/" + filename
+                            )
+                        else:
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "spark-nulls" + "/" + filename
+                            )
 
                         if not os.path.exists(file_res_drill_dir):
                             save_results_parquet(file_res_drill_dir, pdf2)
@@ -1603,7 +1629,12 @@ def run_query(
             compareResults = Settings.data["RunSettings"]["compare_results"]
 
         if compareResults == "true":
-            resultFile = file_results_dir + "/" + str(engine) + "/" + filename
+            resultFile = None
+            if testsWithNulls != "true":
+                resultFile = file_results_dir + "/" + str(engine) + "/" + filename
+            else:
+                resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
+
             pdf2 = get_results(resultFile)
             if result_gdf is not None:
                 if result_gdf.columns is not None:

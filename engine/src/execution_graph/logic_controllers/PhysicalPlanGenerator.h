@@ -79,7 +79,7 @@ struct tree_processor {
 			table_scans.erase(table_scans.begin() + table_index);
 			schemas.erase(schemas.begin() + table_index);
 
-		}  else if (is_single_node_partition(expr)) {
+		} else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(kernel_id,expr, kernel_context, query_graph);
 
 		} else if (is_partition(expr)) {
@@ -88,6 +88,12 @@ struct tree_processor {
 		} else if (is_sort_and_sample(expr)) {
 			k = std::make_shared<SortAndSampleKernel>(kernel_id,expr, kernel_context, query_graph);
 
+		} else if (is_generate_overlaps(expr)) {
+			k = std::make_shared<OverlapGeneratorKernel>(kernel_id,expr, kernel_context, query_graph);
+		
+		} else if (is_accumulate_overlaps(expr)) {
+			k = std::make_shared<OverlapAccumulatorKernel>(kernel_id,expr, kernel_context, query_graph);
+		
 		} else if (is_window_compute(expr)) {
 			k = std::make_shared<ComputeWindowKernel>(kernel_id,expr, kernel_context, query_graph);
 
@@ -141,7 +147,7 @@ struct tree_processor {
 		return children;
 	}
 
-	void transform_json_tree(boost::property_tree::ptree &p_tree, bool is_windowed = false) {
+	void transform_json_tree(boost::property_tree::ptree &p_tree, bool first_windowed_call = true) {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		if (is_sort(expr)){
 			std::string limit_expr = expr;
@@ -149,7 +155,7 @@ struct tree_processor {
 			std::string partition_expr = expr;
 			std::string sort_and_sample_expr = expr;
 
-			if( ral::operators::has_limit_only(expr) && !contains_window_expression(expr) ){
+			if( ral::operators::has_limit_only(expr) && !is_window_function(expr) ){
 				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
 				p_tree.put("expr", limit_expr);
@@ -175,7 +181,7 @@ struct tree_processor {
 				merge_tree.put("expr", merge_expr);
 				merge_tree.add_child("children", create_array_tree(partition_tree));
 
-				if (contains_window_expression(expr)) {
+				if (is_window_function(expr)) {
 					p_tree = merge_tree;
 				} else {
 					p_tree.put("expr", limit_expr);
@@ -286,28 +292,108 @@ struct tree_processor {
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
 		}
-		else if (is_window(expr)) {
-			if (!window_expression_contains_partition(expr)) {
-				throw std::runtime_error("In Window Function: PARTITION BY clause is mandatory");
-			}
-			if (window_expression_contains_multiple_windows(expr)) {
+		else if (is_project(expr) && is_window_function(expr) && first_windowed_call) {
+			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
 				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
 			}
+
+			if (window_expression_contains_bounds_by_range(expr)) {
+                throw std::runtime_error("In Window Function: RANGE is not currently supported");
+            }
+
+			if (window_expression_contains_partition_by(expr)) {
+				std::string sort_expr = expr;
+				std::string window_expr = expr;
+
+				StringUtil::findAndReplaceAll(window_expr, LOGICAL_PROJECT_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_PROJECT_TEXT, LOGICAL_SORT_TEXT);
+
+				boost::property_tree::ptree sort_tree;
+				sort_tree.put("expr", sort_expr);
+				sort_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree window_tree;
+				window_tree.put("expr", window_expr);
+				window_tree.put_child("children", create_array_tree(sort_tree));
+
+				p_tree.put("expr", expr);
+				p_tree.put_child("children", create_array_tree(window_tree));
+
+				transform_json_tree(p_tree, false);
+				return;
+			} else {
+				std::string sort_expr = expr;
+				std::string window_expr = expr;
+				std::string overlap_generation_expr = expr;
+				std::string overlap_accumulation_expr = expr;
+
+				StringUtil::findAndReplaceAll(window_expr, LOGICAL_PROJECT_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+				StringUtil::findAndReplaceAll(overlap_accumulation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_ACCUMULATE_OVERLAPS_TEXT);
+				StringUtil::findAndReplaceAll(overlap_generation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_GENERATE_OVERLAPS_TEXT);
+				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_PROJECT_TEXT, LOGICAL_SORT_TEXT);
+
+				boost::property_tree::ptree sort_tree;
+				sort_tree.put("expr", sort_expr);
+				sort_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree overlap_generation_tree;
+				overlap_generation_tree.put("expr", overlap_generation_expr);
+				overlap_generation_tree.put_child("children", create_array_tree(sort_tree));
+
+				boost::property_tree::ptree overlap_accumulation_tree;
+				overlap_accumulation_tree.put("expr", overlap_accumulation_expr);
+				overlap_accumulation_tree.put_child("children", create_array_tree(overlap_generation_tree));
+
+				boost::property_tree::ptree window_tree;
+				window_tree.put("expr", window_expr);
+				window_tree.put_child("children", create_array_tree(overlap_accumulation_tree));
+
+				p_tree.put("expr", expr);
+				p_tree.put_child("children", create_array_tree(window_tree));
+
+				transform_json_tree(p_tree, false);
+				return;
+			}
+
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
 
-			StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
-			StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_SORT_TEXT);
+			StringUtil::findAndReplaceAll(window_expr, LOGICAL_PROJECT_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+			StringUtil::findAndReplaceAll(sort_expr, LOGICAL_PROJECT_TEXT, LOGICAL_SORT_TEXT);
 
 			boost::property_tree::ptree sort_tree;
 			sort_tree.put("expr", sort_expr);
 			sort_tree.add_child("children", p_tree.get_child("children"));
 
-			p_tree.put("expr", window_expr);
-			p_tree.put_child("children", create_array_tree(sort_tree));
+			boost::property_tree::ptree window_tree;
+			window_tree.put("expr", window_expr);
 
-			transform_json_tree(p_tree);
-			return;
+			if (window_expression_contains_partition_by(expr)) {
+				window_tree.put_child("children", create_array_tree(sort_tree));
+				
+			} else { // if the window expression does not contain a partition clause, then we need to add two extra steps
+				
+				std::string overlap_generation_expr = expr;
+				std::string overlap_accumulation_expr = expr;
+				
+				StringUtil::findAndReplaceAll(overlap_accumulation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_ACCUMULATE_OVERLAPS_TEXT);
+				StringUtil::findAndReplaceAll(overlap_generation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_GENERATE_OVERLAPS_TEXT);
+				
+				boost::property_tree::ptree overlap_generation_tree;
+				overlap_generation_tree.put("expr", overlap_generation_expr);
+				overlap_generation_tree.put_child("children", create_array_tree(sort_tree));
+
+				boost::property_tree::ptree overlap_accumulation_tree;
+				overlap_accumulation_tree.put("expr", overlap_accumulation_expr);
+				overlap_accumulation_tree.put_child("children", create_array_tree(overlap_generation_tree));
+
+				window_tree.put_child("children", create_array_tree(overlap_accumulation_tree));				
+			}
+			p_tree.put("expr", expr);
+			p_tree.put_child("children", create_array_tree(window_tree));
+
+			transform_json_tree(p_tree, false);
+			return;				
 		}
 
 		for (auto &child : p_tree.get_child("children")) {
@@ -334,6 +420,18 @@ struct tree_processor {
 		}
 
 		return str;
+	}
+
+	std::string transform_physical_plan(std::string json){
+        std::istringstream input(json);
+        boost::property_tree::ptree p_tree;
+        boost::property_tree::read_json(input, p_tree);
+
+        transform_json_tree(p_tree);
+
+        std::ostringstream output;
+        boost::property_tree::write_json(output, p_tree);
+        return output.str();
 	}
 
 	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> build_batch_graph(std::string json) {
@@ -373,6 +471,11 @@ struct tree_processor {
 			if (it != config_options.end()){
 				join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
 			}
+			int concatenating_cache_num_bytes_timeout = 100000; // 100ms
+			it = config_options.find("CONCATENATING_CACHE_NUM_BYTES_TIMEOUT");
+			if (it != config_options.end()){
+				concatenating_cache_num_bytes_timeout = std::stoi(config_options["CONCATENATING_CACHE_NUM_BYTES_TIMEOUT"]);
+			}
 			
 			auto child_kernel_type = child->kernel_unit->get_type_id();
 			auto parent_kernel_type = parent->kernel_unit->get_type_id();
@@ -388,7 +491,7 @@ struct tree_processor {
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
 					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = concat_all};
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, join_cache_machine_config));					
 
 				} else {
@@ -405,9 +508,9 @@ struct tree_processor {
 					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					cache_settings left_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = left_concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = left_concat_all};
 					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = right_concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = right_concat_all};
 					
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", left_cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", right_cache_machine_config));
@@ -420,6 +523,15 @@ struct tree_processor {
 
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", cache_machine_config));
+
+				} else if (child_kernel_type == kernel_type::OverlapGeneratorKernel && parent_kernel_type == kernel_type::OverlapAccumulatorKernel) {
+
+					cache_settings cache_machine_config;
+					cache_machine_config.context = context->clone();
+
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "batches", parent->kernel_unit, "batches", cache_machine_config));
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "preceding_overlaps", parent->kernel_unit, "preceding_overlaps", cache_machine_config));
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "following_overlaps", parent->kernel_unit, "following_overlaps", cache_machine_config));
 
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 							|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
@@ -444,7 +556,7 @@ struct tree_processor {
 					}
 					
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
+						.concat_cache_num_bytes = concat_cache_num_bytes, .num_bytes_timeout = concatenating_cache_num_bytes_timeout, .concat_all = false};
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 				} else {
 					cache_settings cache_machine_config;

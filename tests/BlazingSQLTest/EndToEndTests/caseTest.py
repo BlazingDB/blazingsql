@@ -64,7 +64,6 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: error: parallel_for failed
             queryId = "TEST_02"
             query = """SELECT l.l_shipmode, sum(case
                         when o.o_orderpriority = '1-URGENT'
@@ -77,35 +76,32 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                     AND l.l_receiptdate >= date '1994-01-01'
                     GROUP BY l.l_shipmode
                     ORDER BY l.l_shipmode"""
-            # if fileSchemaType == DataType.ORC:
-            # runTest.run_query(bc, spark, query, queryId, queryType,
-            #           worder, '', acceptable_difference, use_percentage,
-            #           fileSchemaType)
-            # else:
-            # runTest.run_query(bc, drill, query, queryId, queryType,
-            #           worder, '', acceptable_difference, use_percentage,
-            #           fileSchemaType)
-
-            queryId = "TEST_03"
-            query = """SELECT O_YEAR, SUM(CASE WHEN NATION = 'BRAZIL' THEN
-                    VOLUME ELSE 0 END)/SUM(VOLUME) AS MKT_SHARE
-                    FROM (SELECT datepart(yy,O_ORDERDATE) AS O_YEAR,
-                        L_EXTENDEDPRICE*(1-L_DISCOUNT) AS VOLUME,
-                        N2.N_NAME AS NATION
-                    FROM PART, SUPPLIER, LINEITEM, ORDERS, CUSTOMER,
-                    NATION N1, NATION N2, REGION
-                    WHERE P_PARTKEY = L_PARTKEY AND S_SUPPKEY = L_SUPPKEY
-                    AND L_ORDERKEY = O_ORDERKEY
-                    AND O_CUSTKEY = C_CUSTKEY AND C_NATIONKEY = N1.N_NATIONKEY
-                    AND N1.N_REGIONKEY = R_REGIONKEY AND R_NAME = 'AMERICA'
-                    AND S_NATIONKEY = N2.N_NATIONKEY
-                    AND O_ORDERDATE > '1995-01-01'
-                    AND P_TYPE= 'ECONOMY ANODIZED STEEL') AS ALL_NATIONS
-                    GROUP BY O_YEAR
-                    ORDER BY O_YEAR"""
-            # Doesn't work syntactically
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #  '', acceptable_difference, use_percentage, fileSchemaType)
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_04"
             query = """select r_name, (case when r_name = 'AFRICA' then
@@ -125,18 +121,6 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
-
-            # LIKE IS NOT SUPPORTED YET
-            queryId = "TEST_05"
-            query = """SELECT 100.00* SUM(CASE WHEN p.p_type LIKE 'PROMO%%'
-                    THEN l.l_extendedprice*(1-l.l_discount) ELSE 0 END)
-                    / SUM(l.l_extendedprice*(1-l.l_discount)) AS promo_revenue
-                    FROM lineitem l
-                    INNER JOIN part p ON l.l_partkey = p.p_partkey
-                    WHERE l.l_shipdate >= '1995-09-01'
-                    AND l.l_shipdate < '1995-09-01'"""
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #       '', acceptable_difference, use_percentage, fileSchemaType)
 
             queryId = "TEST_06"
             query = """select case when o_custkey > 20 then o_orderkey
@@ -303,6 +287,72 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_14"
+            query = """select CASE WHEN l_comment in ('ABC') THEN 'CDE' END S, l_quantity
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_15"
+            query = """select CASE WHEN l_comment in ('ABC') THEN l_comment END S, l_quantity
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_16"
+            query = """select CASE WHEN l_comment is null THEN 'ABC' END S, l_quantity
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
+
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_17"
+            query = """select CASE WHEN l_comment is null THEN 'ABC' END AS col_null
+                        from lineitem
+                        where l_comment is null"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+    
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break

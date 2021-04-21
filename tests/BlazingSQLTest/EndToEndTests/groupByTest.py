@@ -56,7 +56,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_02"
@@ -76,7 +75,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_03"
@@ -187,22 +185,59 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """SELECT count(distinct l_partkey, l_suppkey)
                     FROM lineitem
                     GROUP BY l_partkey, l_suppkey"""
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
 
-            if Settings.execution_mode == ExecutionMode.GENERATOR:
-                print("==============================")
-                break
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1403
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_09"
+            query = """select l_orderkey, l_extendedprice, l_shipdate
+                    from lineitem where l_orderkey < 100
+                    group by l_orderkey, l_extendedprice,
+                    l_shipdate, l_linestatus"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            # if Settings.execution_mode == ExecutionMode.GENERATOR:
+            #     print("==============================")
+            #     break
 
     executionTest()
 

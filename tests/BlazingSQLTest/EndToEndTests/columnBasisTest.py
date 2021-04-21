@@ -74,7 +74,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 nested_query=True,
                 blz_result=result_gdf,
-                print_result=True,
             )
 
             # Dropping a column
@@ -106,7 +105,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 nested_query=True,
                 blz_result=result_gdf,
-                print_result=True,
             )
 
             # Adding plus 3 to a column and dropping another
@@ -142,7 +140,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 nested_query=True,
                 blz_result=result_gdf,
-                print_result=True,
             )
 
             # Reutilizing blazinsql results twice
@@ -185,7 +182,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 nested_query=True,
                 blz_result=result_gdf,
-                print_result=True,
             )
 
             # Adding another column
@@ -216,7 +212,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 nested_query=True,
                 blz_result=result_gdf,
-                print_result=True,
             )
 
             queryId = "TEST_06"
@@ -280,7 +275,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 nested_query=True,
                 blz_result=result_gdf1,
-                print_result=True,
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:

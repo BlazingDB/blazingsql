@@ -6,6 +6,7 @@
 .idea/
 
 engine/cmake-build-debug/
+cmake-*
 
 algebra.log
 
@@ -92,3 +93,12 @@ powerpc/blazingsql.tar.gz
 powerpc/developer/requirements.txt
 powerpc/developer/core
 powerpc/developer/blazingsql.tar.gz
+
+# mac junk
+.DS_Store
+._.*
+
+# docs build folders
+docsrc/build/
+docsrc/source/doxyfiles/
+docsrc/source/xml

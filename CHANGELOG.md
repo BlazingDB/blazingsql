@@ -1,3 +1,65 @@
+# BlazingSQL 0.19.0 (April 21, 2021)
+
+## New Features
+- #1367 OverlapAccumulator Kernel
+- #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
+- #1426 Window Functions without partitioning 
+- #1349 Add e2e test for Hive Partitioned Data
+- #1396 Create tables from other RDBMS
+- #1427 Support for CONCAT alias operator
+- #1424 Add get physical plan with explain
+
+## Improvements
+- #1325 Refactored CacheMachine.h and CacheMachine.cpp 
+- #1322 Updated and enabled several E2E tests
+- #1333 Fixing build due to cudf update
+- #1344 Removed GPUCacheDataMetadata class
+- #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
+- #1430 Updating GCP to >= version
+- #1331 Added flag to enable null e2e testing
+- #1418 Adding support for docker image
+- #1434 Added documentation for C++ and Python in Sphinx
+- #1419 Added concat cache machine timeout 
+- #1444 Updating GCP to >= version
+- #1349 Add e2e test for Hive Partitioned Data
+- #1447 Improve getting estimated output num rows
+- #1473 Added Warning to Window Functions 
+- #1480 Improve dependencies script
+
+## Bug Fixes
+- #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
+- #1339 Handling properly the nulls in case conditions with strings
+- #1346 Delete allocated host chunks
+- #1348 Capturing error messages due to exceptions properly
+- #1350 Fixed bug where there are no projects in a bindable table scan
+- #1359 Avoid cuda issues when free pinned memory
+- #1365 Fixed build after sublibs changes on cudf
+- #1369 Updated java path for powerpc build 
+- #1371 Fixed e2e settings
+- #1372 Recompute `columns_to_hash` in DistributeAggregationKernel
+- #1375 Fix empty row_group_ids for parquet
+- #1380 Fixed issue with int64 literal values 
+- #1379 Remove ProjectRemoveRule
+- #1389 Fix issue when CAST a literal
+- #1387 Skip getting orc metadata for decimal type
+- #1392 Fix substrings with nulls
+- #1398 Fix performance regression
+- #1401 Fix support for minus unary operation
+- #1415 Fixed bug where num_batches was not getting set in BindableTableScan 
+- #1413 Fix for null tests 13 and 23 of windowFunctionTest
+- #1416 Fix full join when both tables contains nulls
+- #1423 Fix temporary directory for hive partition test
+- #1351 Fixed 'count distinct' related issues
+- #1425 Fix for new joins API
+- #1400 Fix for Column aliases when exists a Join op
+- #1456 Raising exceptions on Python side for RAL
+- #1466 SQL providers: update README.md
+- #1470 Fix pre compiler flags for sql parsers
+
+
+## Deprecated Features
+- #1394 Disabled support for outer joins with inequalities 
+
 # BlazingSQL 0.18.0 (February 24, 2021)
 
 ## New Features
@@ -17,6 +79,10 @@
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
 - #1313 getting and using ORC metadata
+- #1347 Fixing issue when reading orc metadata from DATE dtype
+- #1338 Window Function support for LEAD and LAG statements 
+- #1362 give useful message when file extension is not recognized
+- #1361 Supporting first_value and last_value for Window Function
 
 
 ## Improvements
@@ -38,7 +104,7 @@
 - #1314 Added unit tests to verify that OOM error handling works well
 - #1320 Revamping cache logger
 - #1323 Made progress bar update continuously and stay after query is done 
-
+- #1336 Improvements for the cache API
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
@@ -51,7 +117,6 @@
 - #1300 Fixed issue when creating tables from a local dir relative path
 - #1312 Fix progress bar for jupyterlab
 - #1318 Disabled require acknowledge 
-
 
 # BlazingSQL 0.17.0 (December 10, 2020)
 

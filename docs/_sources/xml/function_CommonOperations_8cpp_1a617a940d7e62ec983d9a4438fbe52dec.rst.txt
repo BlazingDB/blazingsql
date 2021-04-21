@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec:
+
+Function ral::utilities::checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<BlazingTable>>&)
+===================================================================================================================
+
+- Defined in :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<BlazingTable>>&)

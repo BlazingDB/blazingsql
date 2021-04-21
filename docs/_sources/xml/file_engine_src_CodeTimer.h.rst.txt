@@ -1,0 +1,75 @@
+
+.. _file_engine_src_CodeTimer.h:
+
+File CodeTimer.h
+================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/CodeTimer.h``)
+---------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``chrono``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_CalciteInterpreter.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.cpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_messageListener.cpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_protocols.cpp`
+
+- :ref:`file_engine_src_cython_engine.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_kernel.cpp`
+
+- :ref:`file_engine_src_io_DataLoader.cpp`
+
+- :ref:`file_engine_src_operators_GroupBy.cpp`
+
+- :ref:`file_engine_src_operators_OrderBy.cpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classCodeTimer`
+

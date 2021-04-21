@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 
-#include "operators/OrderBy.cpp"
-
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #include <cudf_test/column_wrapper.hpp>
@@ -14,6 +12,7 @@
 #include <cudf/detail/gather.hpp>
 #include "tests/utilities/BlazingUnitTest.h"
 #include <operators/OrderBy.h>
+#include <utilities/CommonOperations.h>
 
 template <typename T>
 struct SortTest : public BlazingUnitTest {};
@@ -64,7 +63,11 @@ TYPED_TEST(LimitTest, withoutNull) {
 
     CudfTableView cudf_table_in_view {{col1, col2}};
 
-    std::unique_ptr<cudf::table> table_out = ral::operators::logicalLimit(cudf_table_in_view, 5);
+    std::vector<std::string> col_names = {"col1","col2"};
+
+    std::unique_ptr<ral::frame::BlazingTable> table_in = std::make_unique<ral::frame::BlazingTable>(cudf_table_in_view, col_names);
+
+    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::utilities::getLimitedRows(table_in->toBlazingTableView(), 5);
 
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 3, 5, 8}};
     cudf::test::fixed_width_column_wrapper<T> expect_col2{{10, 40, 70, 5, 2}};

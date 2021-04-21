@@ -53,7 +53,13 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 
 		pq_args.set_columns(col_names);
 
-		pq_args.set_row_groups(std::vector<std::vector<cudf::size_type>>(1, row_groups));
+		// when we set `get_metadata=False` we need to send and empty full_row_groups
+		std::vector<std::vector<cudf::size_type>> full_row_groups;
+		if (row_groups.size() != 0) {
+			full_row_groups = std::vector<std::vector<cudf::size_type>>(1, row_groups);
+		}
+
+		pq_args.set_row_groups(full_row_groups);
 
 		auto result = cudf::io::read_parquet(pq_args);
 
@@ -71,8 +77,9 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 }
 
 void parquet_parser::parse_schema(
-	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
+	ral::io::data_handle handle, ral::io::Schema & schema) {
 
+  auto file = handle.file_handle;
 	auto parquet_reader = parquet::ParquetFileReader::Open(file);
 	if (parquet_reader->metadata()->num_rows() == 0) {
 		parquet_reader->Close();
@@ -98,20 +105,20 @@ void parquet_parser::parse_schema(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
-	std::vector<size_t> num_row_groups(files.size());
-	BlazingThread threads[files.size()];
-	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
-	for(size_t file_index = 0; file_index < files.size(); file_index++) {
+	std::vector<ral::io::data_handle> handles, int offset){
+	std::vector<size_t> num_row_groups(handles.size());
+	BlazingThread threads[handles.size()];
+	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(handles.size());
+	for(size_t file_index = 0; file_index < handles.size(); file_index++) {
 		threads[file_index] = BlazingThread([&, file_index]() {
 		  parquet_readers[file_index] =
-			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
+			  std::move(parquet::ParquetFileReader::Open(handles[file_index].file_handle));
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 		  num_row_groups[file_index] = file_metadata->num_row_groups();
 		});
 	}
 
-	for(size_t file_index = 0; file_index < files.size(); file_index++) {
+	for(size_t file_index = 0; file_index < handles.size(); file_index++) {
 		threads[file_index].join();
 	}
 

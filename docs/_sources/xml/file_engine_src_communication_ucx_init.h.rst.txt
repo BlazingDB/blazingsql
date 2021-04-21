@@ -1,0 +1,104 @@
+
+.. _file_engine_src_communication_ucx_init.h:
+
+File ucx_init.h
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication>` (``engine/src/communication``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/communication/ucx_init.h``)
+----------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``communication/CommunicationInterface/messageReceiver.hpp`` (:ref:`file_engine_src_communication_CommunicationInterface_messageReceiver.hpp`)
+
+- ``iostream``
+
+- ``limits``
+
+- ``memory``
+
+- ``netdb.h``
+
+- ``string``
+
+- ``ucp/api/ucp.h``
+
+- ``utility``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_cython_initialize.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__communication`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1communication_1_1AddressExchanger`
+
+- :ref:`exhale_class_classral_1_1communication_1_1AddressExchangerForReceiver`
+
+- :ref:`exhale_class_classral_1_1communication_1_1AddressExchangerForSender`
+
+- :ref:`exhale_class_classral_1_1communication_1_1ErrorHandling`
+
+- :ref:`exhale_class_classral_1_1communication_1_1UcpWorkerAddress`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_ucx__init_8h_1a4499fa0218119a4c55a6d3b63cdd1ae5`
+
+- :ref:`exhale_function_ucx__init_8h_1ab8486812a4b51e738caa24c8d1800f6a`
+
+- :ref:`exhale_function_ucx__init_8h_1ad67691c140a81b916304104c85619856`
+
+- :ref:`exhale_function_ucx__init_8h_1a147b01f6f64d5d82985cc7133a721d5f`
+
+- :ref:`exhale_function_ucx__init_8h_1a6480b48aabfed1c793e664591c646178`
+
+- :ref:`exhale_function_ucx__init_8h_1afa8e50abadeee855775e8ceb2ba342c4`
+
+- :ref:`exhale_function_ucx__init_8h_1a652269547de9c0936000e7c876f41ae1`
+
+- :ref:`exhale_function_ucx__init_8h_1a9098c52c7bc582d2afc2f38e2d5db772`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc`
+

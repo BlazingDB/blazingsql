@@ -18,7 +18,7 @@ function(configure_test TEST_NAME Tests_SRCS)
                    ${PROJECT_SOURCE_DIR}/tests/cython_errors_dummy.cpp
                    ${PROJECT_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
     link_directories($ENV{PREFIX}/lib)
-    
+
     target_link_libraries(${TEST_NAME}
         gmock_main
         gmock
@@ -30,24 +30,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         blazingdb-io
         Threads::Threads
 
-        # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
-        # cudf
-        libcudf_base.so
-        libcudf_rolling.so
-        libcudf_replace.so
-        libcudf_transpose.so
-        libcudf_reductions.so
-        libcudf_ast.so
-        libcudf_join.so
-        libcudf_reshape.so
-        libcudf_merge.so
-        libcudf_comms.so
-        libcudf_hash.so
-        libcudf_io.so
-        libcudf_interop.so
-        libcudf_partitioning.so
-
-
+        cudf
         zmq
         cudart
 
@@ -76,6 +59,11 @@ function(configure_test TEST_NAME Tests_SRCS)
         libspdlog.a
 
         cudftestutil
+
+        # TODO percy use cmake::find
+        ${MYSQL_LIBRARY}
+        ${SQLITE_LIBRARY}
+        ${POSTGRESQL_LIBRARY}
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES

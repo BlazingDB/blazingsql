@@ -1,0 +1,13 @@
+.. _exhale_function_ArgsUtil_8cpp_1a2de58bece361223056a85382ea05b926:
+
+Function ral::io::inferFileType
+===============================
+
+- Defined in :ref:`file_engine_src_io_data_parser_ArgsUtil.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::inferFileType(std::vector<std::string>, DataType, bool)

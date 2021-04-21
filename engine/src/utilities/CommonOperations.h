@@ -15,6 +15,8 @@ bool checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<B
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables);
 
+std::unique_ptr<BlazingTable> getLimitedRows(const BlazingTableView& table, cudf::size_type num_rows, bool front=true);
+
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names,
 	const std::vector<cudf::data_type> &dtypes, std::vector<size_t> column_indices = std::vector<size_t>());
 
@@ -37,7 +39,7 @@ std::unique_ptr<cudf::column> vector_to_column(std::vector<T> vect, cudf::data_t
 
 // This is only for numerics
 template<typename T>
-std::vector<T> vector_to_column(cudf::column_view column){
+std::vector<T> column_to_vector(cudf::column_view column){
 	std::vector<T> host_data(column.size());
   	CUDA_TRY(cudaMemcpy(host_data.data(), column.data<T>(), column.size() * sizeof(T), cudaMemcpyDeviceToHost));
 	return host_data;

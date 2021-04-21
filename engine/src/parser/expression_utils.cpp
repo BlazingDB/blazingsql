@@ -89,6 +89,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
@@ -172,6 +173,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_NOT:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
 		return cudf::type_id::INT32;
@@ -317,14 +319,13 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
 		{"||", operator_type::BLZ_STR_CONCAT},
+		{"CONCAT", operator_type::BLZ_STR_CONCAT}, // we want to handle CONCAT op in the same way as ||
 		{"TRIM", operator_type::BLZ_STR_TRIM},
 		{"LEFT", operator_type::BLZ_STR_LEFT},
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
+		{"IS_NOT_DISTINCT_FROM", operator_type::BLZ_IS_NOT_DISTINCT_FROM},
 	};
 
-	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
-		std::cout<<operator_token<<" is not a valid operator."<<std::endl;
-	}
 	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
 
 	return OPERATOR_MAP[operator_token];
@@ -391,6 +392,12 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 
 	std::vector<std::string> col_names = column_names;
 
+	// When Window Function exists more aliases are considered
+	// so we just want to return the same column_names
+	if (aliases_string_split.size() > col_names.size()) {
+		return col_names;
+	}
+
 	// Setting the aliases only when is not an empty set
 	for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
 		// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
@@ -402,68 +409,6 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 
 	return col_names;
 }
-
-// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
-// output: a vector [0, 0]
-std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
-	std::vector<int> column_index;
-	std::string expression_name = "aggs ";
-
-	if (query_part.find(expression_name) == query_part.npos) {
-		return column_index;
-	}
-
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("]", start_position);
-
-	// COUNT($0), $SUM0($0)
-	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
-	std::vector<std::string> column_agg_string = StringUtil::split(reduced_query_part, ",");
-
-	if (column_agg_string.size() == 1) {
-		// ROW_NUMER()  does not have indice, so we add the first indice
-		if (reduced_query_part.find("(") + 1 == reduced_query_part.find(")")) {
-			column_index.push_back(0);
-			return column_index;
-		}
-	}
-
-	for (std::size_t agg_i; agg_i < column_agg_string.size(); ++agg_i) {
-		std::size_t dolar_pos = reduced_query_part.find("$");
-		std::size_t closed_parenth_pos = reduced_query_part.find(")");
-
-		std::string indice = reduced_query_part.substr(dolar_pos + 1, closed_parenth_pos - dolar_pos - 1);
-		column_index.push_back(std::stoi(indice));
-	}
-
-	return column_index;
-}
-
-// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
-// output: a vector ["COUNT", "$SUM0"]
-std::vector<std::string> get_window_function_agg(const std::string & query_part) {
-	std::vector<std::string> aggregations;
-	std::string expression_name = "aggs ";
-
-	if (query_part.find(expression_name) == query_part.npos) {
-		return aggregations;
-	}
-
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("]", start_position);
-
-	// COUNT($0), $SUM0($0)
-	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
-	aggregations = StringUtil::split(reduced_query_part, ",");
-
-	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
-		std::size_t open_parenthesis = aggregations[agg_i].find('(');
-		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
-		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);
-	}
-	return aggregations;
-}
-
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
@@ -478,14 +423,6 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 }
 
 std::vector<int> get_projections(const std::string & query_part) {
-	std::string project_string = get_named_expression(query_part, "projects");
-	std::vector<std::string> project_string_split =
-		get_expressions_from_expression_list(project_string, true);
-
-	std::vector<int> projections;
-	for(size_t i = 0; i < project_string_split.size(); i++) {
-		projections.push_back(std::stoi(project_string_split[i]));
-	}
 
 	// On Calcite, the select count(*) case is represented with
 	// the projection list empty and the aliases list containing
@@ -496,14 +433,26 @@ std::vector<int> get_projections(const std::string & query_part) {
 	//
 	// So, in such a scenario, we will load only the first column.
 
-	std::string aliases_string = get_named_expression(query_part, "aliases");
-	std::vector<std::string> aliases_string_split =
-		get_expressions_from_expression_list(aliases_string, true);
+	if (query_part.find(" projects=[[]]") != std::string::npos){
+		std::string aliases_string = get_named_expression(query_part, "aliases");
+		std::vector<std::string> aliases_string_split =
+			get_expressions_from_expression_list(aliases_string, true);
 
-	if(projections.size() == 0 && aliases_string_split.size() == 1) {
-		projections.push_back(0);
+		std::vector<int> projections;
+		if(aliases_string_split.size() == 1) {
+			projections.push_back(0);
+		}
+		return projections;
 	}
 
+	std::string project_string = get_named_expression(query_part, "projects");
+	std::vector<std::string> project_string_split =
+		get_expressions_from_expression_list(project_string, true);
+
+	std::vector<int> projections;
+	for(size_t i = 0; i < project_string_split.size(); i++) {
+		projections.push_back(std::stoi(project_string_split[i]));
+	}
 	return projections;
 }
 
@@ -549,15 +498,334 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
+bool is_window_function(std::string query_part) { return (query_part.find("OVER") != std::string::npos); }
+
+bool is_generate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_GENERATE_OVERLAPS_TEXT) != std::string::npos); }
+
+bool is_accumulate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_ACCUMULATE_OVERLAPS_TEXT) != std::string::npos); }
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
-bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
+bool window_expression_contains_partition_by(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
 
-bool window_expression_contains_partition(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+bool window_expression_contains_order_by(std::string query_part) { return (query_part.find("ORDER BY") != std::string::npos); }
 
-bool window_expression_contains_multiple_windows(std::string query_part) { return (query_part.find("window#1") != std::string::npos); }
+bool window_expression_contains_bounds(std::string query_part) { return (query_part.find("BETWEEN") != std::string::npos); }
+
+bool window_expression_contains_bounds_by_range(std::string query_part) { return (query_part.find("RANGE") != std::string::npos); }
+
+bool is_lag_or_lead_aggregation(std::string expression) {
+	return (expression == "LAG" || expression == "LEAD");
+}
+
+bool is_first_value_window(std::string expression) {
+	return (expression == "FIRST_VALUE");
+}
+
+bool is_last_value_window(std::string expression) {
+	return (expression == "LAST_VALUE");
+}
+
+// input: LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
+//                       max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $0)])
+// output: true
+bool window_expression_contains_multiple_diff_over_clauses(std::string logical_plan) {
+	size_t num_over_clauses = StringUtil::findAndCountAllMatches(logical_plan, "OVER");
+	if (num_over_clauses < 2) return false;
+
+	std::string query_part = get_query_part(logical_plan);
+	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
+
+	std::vector<std::string> full_over_expressions;
+	for (size_t i = 0; i < project_expressions.size(); ++i) {
+		if (is_window_function(project_expressions[i])) {
+			std::string over_express = get_over_expression(project_expressions[i]);
+			full_over_expressions.push_back(over_express);
+		}
+	}
+
+	std::string same_over_clause = full_over_expressions[0];
+	for (size_t i = 1; i < full_over_expressions.size(); ++i) {
+		if (same_over_clause.compare(full_over_expressions[i]) != 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// Due to `sum` window aggregation the OVER clause is repeated two times from Calcite
+// something like:
+// CASE(>(COUNT($0) OVER (PARTITION BY $1), 0), $SUM0($0) OVER (PARTITION BY $1), null:INTEGER)
+bool is_sum_window_function(std::string expression) {
+	size_t num_over_clauses = StringUtil::findAndCountAllMatches(expression, "OVER");
+	if (num_over_clauses == 2) return true;
+	
+	return false;
+}
+
+// Due to `avg` window aggregation the OVER clause is repeated three times from Calcite
+// something like:
+// CAST(/(CASE(>(COUNT($0) OVER (PARTITION BY $1), 0), $SUM0($0) OVER (PARTITION BY $1), null:INTEGER), COUNT($0) OVER (PARTITION BY $1))):INTEGER
+bool is_avg_window_function(std::string expression) {
+	size_t num_over_clauses = StringUtil::findAndCountAllMatches(expression, "OVER");
+	if (num_over_clauses == 3) return true;
+	
+	return false;
+}
+
+// input: max_prices=[MAX($0) OVER (PARTITION BY $2 ORDER BY $0, $1)]
+// output: max_prices=[MAX($0)]
+std::string remove_over_expr(std::string expression) {
+
+	std::string over_expression = get_over_expression(expression);
+	std::string expression_to_remove = " OVER (" + over_expression + ")";
+	std::string removed_expression = StringUtil::replace(expression, expression_to_remove, "");
+
+	return removed_expression;
+}
+
+// Will replace the `COUNT($X)` expression with the right window col index
+// useful when exists an `avg` or `sum` window expression
+// input: CASE(>(COUNT($0), 0), $SUM0($0), null:INTEGER)
+// output: CASE(>($4, 0), $SUM0($0), null:INTEGER)
+std::string replace_count_expr_with_right_index(std::string expression, size_t rigt_index) {
+	std::string removed_expression, express_to_remove;
+	size_t start_index = expression.find("COUNT");
+	// When a CAST was applied to a projected column
+	if (expression.find("COUNT(CAST") != expression.npos) {
+		removed_expression = StringUtil::replace(expression, "COUNT(", "");
+		size_t end_cast_index = removed_expression.find(", 0)");
+		removed_expression.erase(removed_expression.begin() + end_cast_index - 1);
+		removed_expression = removed_expression.substr(0, removed_expression.size() - 1);
+
+		size_t new_start_index = removed_expression.find("$");
+		size_t new_end_index = removed_expression.find(")");
+		std::string old_index = removed_expression.substr(new_start_index + 1, new_end_index - new_start_index - 1);
+		removed_expression = StringUtil::replace(removed_expression, "$" + old_index, "$" + std::to_string(rigt_index));
+	} else {
+		size_t end_index = expression.find(")");
+		express_to_remove = expression.substr(start_index, end_index - start_index + 1);
+		removed_expression = StringUtil::replace(expression, express_to_remove, "$" + std::to_string(rigt_index));
+	}
+
+	return removed_expression;
+}
+
+// Will replace the `$SUM0($X)` expression with the right window col index
+// useful when exists an `avg` or `sum` window expression
+// input: CASE(>($4, 0), $SUM0($0), null:INTEGER)
+// output: CASE(>($4, 0), $5, null:INTEGER)
+std::string replace_sum0_expr_with_right_index(std::string expression, size_t rigt_index) {
+
+	std::string removed_expression;
+	size_t start_index = expression.find("$SUM0");
+	size_t end_index = expression.find("null:") - 2;
+
+	if (expression.find("$SUM0(CAST") != expression.npos) {
+		removed_expression = StringUtil::replace(expression, "$SUM0(", "");
+		size_t end_index_2 = removed_expression.find(", null:");
+		removed_expression.erase(removed_expression.begin() + end_index_2 - 1);
+		removed_expression = StringUtil::replace(removed_expression, "0), CAST($" + std::to_string(rigt_index), "0), CAST($" + std::to_string(rigt_index + 1));
+	} else {
+		std::string express_to_remove = expression.substr(start_index, end_index - start_index);
+		removed_expression = StringUtil::replace(expression, express_to_remove, "$" + std::to_string(rigt_index + 1));
+	}
+
+	return removed_expression;
+}
+
+// input: LogicalProject(sum_max_prices=[$0], o_orderkey=[$1], o_min_prices=[$2]])
+// output: sum_max_prices=[$0], o_orderkey=[$1], o_min_prices=[$2]]
+std::string get_query_part(std::string logical_plan) {
+	std::string query_part = logical_plan.substr(
+		logical_plan.find("(") + 1, logical_plan.rfind(")") - logical_plan.find("(") - 1);
+
+	return query_part;
+}
+
+// input: min_val=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1 ROWS BETWEEN 4 PRECEDING AND 3 FOLLOWING)]
+// output: < 4, 3 >
+std::tuple< int, int > get_bounds_from_window_expression(const std::string & logical_plan) {
+	int preceding_value, following_value;
+
+	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+	if (over_clause.length() == 0){
+		over_clause = get_first_over_expression_from_logical_plan(logical_plan, "ORDER BY");
+	}
+
+	// the default behavior when not bounds are passed is
+	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
+	if (over_clause.find("BETWEEN") == std::string::npos) {
+		preceding_value = -1;
+		following_value = 0;
+		return std::make_tuple(preceding_value, following_value);
+	}
+
+	// getting the first limit value
+	std::string between_expr = "BETWEEN ";
+	std::string preceding_expr = " PRECEDING";
+	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
+	size_t end_pos = over_clause.find(preceding_expr);
+	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
+	preceding_value = std::stoi(first_limit);
+
+	// getting the second limit value
+	std::string and_expr = "AND ";
+	std::string following_expr = " FOLLOWING";
+	start_pos = over_clause.find(and_expr) + and_expr.size();
+	end_pos = over_clause.find(following_expr);
+	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
+	following_value = std::stoi(second_limit);
+
+	return std::make_tuple(preceding_value, following_value);
+}
+
+std::string get_frame_type_from_over_clause(const std::string & logical_plan) {
+	std::string query_part = get_query_part(logical_plan);
+	if (is_window_function(query_part) && query_part.find("ROWS") != query_part.npos) {
+		return "ROWS";
+	}
+
+	return "RANGE";
+}
+
+// input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)]
+// output: PARTITION BY $1, $2 ORDER BY $0
+std::string get_over_expression(std::string query_part) {
+	std::string expression_name = "OVER (";
+	size_t pos = query_part.find(expression_name);
+
+	if (pos == std::string::npos) {
+		return "";
+	}
+
+	std::string reduced_query_part = query_part.substr(pos + expression_name.size(), query_part.size());
+
+	// Sometimes there are more than one OVER clause, for instance: SUM and AVG
+	if (reduced_query_part.find(expression_name) != std::string::npos) {
+		reduced_query_part = get_over_expression(reduced_query_part);
+	}
+
+	return reduced_query_part.substr(0, reduced_query_part.find(")"));
+}
+
+// input: LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)], max_keys=[MAX($0) OVER (PARTITION BY $2)])
+// output: PARTITION BY $2 ORDER BY $1
+std::string get_first_over_expression_from_logical_plan(const std::string & logical_plan, const std::string & expr) {
+	std::string over_expression;
+
+	std::string query_part = get_query_part(logical_plan);
+	if (query_part.find(expr) == query_part.npos) {
+		return over_expression;
+	}
+	// at least there is one PARTITION BY
+	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
+	size_t first_pos_with_over;
+
+	// TODO: for now all the OVER clauses MUST be the same
+	for (size_t i = 0; i < project_expressions.size(); ++i) {
+		if (project_expressions[i].find(expr) != std::string::npos) {
+			first_pos_with_over = i;
+			break;
+		}
+	}
+
+	over_expression = get_over_expression(project_expressions[first_pos_with_over]);
+
+	return over_expression;
+}
+
+// input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
+//                             max_keys=[MAX(4) OVER (PARTITION BY $2 ORDER BY $1)],
+//                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)])
+// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [3] >
+std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
+get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
+	std::vector<int> column_index;
+	std::vector<std::string> aggregations;
+	std::vector<int> agg_param_values;
+
+	std::string query_part = get_query_part(logical_plan);
+	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
+
+	// we want all expressions that contains an OVER clause
+	for (size_t i = 0; i < project_expressions.size(); ++i) {
+		if (project_expressions[i].find("OVER") != std::string::npos) {
+			std::string express_i = project_expressions[i];
+			size_t start_pos = express_i.find("[") + 1;
+			size_t end_pos = express_i.find("OVER");
+			express_i = express_i.substr(start_pos, end_pos - start_pos);
+			std::string express_i_wo_trim = StringUtil::trim(express_i);
+			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
+			if (split_parts[0] == "ROW_NUMBER()") {
+				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
+				column_index.push_back(0);
+			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
+				// we need to get the constant values
+				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
+				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
+				aggregations.push_back(split_parts[0]);
+				column_index.push_back(std::stoi(inside_parts[0]));
+				agg_param_values.push_back(std::stoi(inside_parts[1]));
+			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
+				aggregations.push_back("COUNT");
+				aggregations.push_back("$SUM0");
+				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
+				column_index.push_back(std::stoi(indice));
+				column_index.push_back(std::stoi(indice));
+			} else {
+				aggregations.push_back(split_parts[0]);
+				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
+				column_index.push_back(std::stoi(col_index));
+			}
+		}
+	}
+
+	return std::make_tuple(column_index, aggregations, agg_param_values);
+}
+
+// This function will update all the expressions that contains a window function
+// inputs:
+// expressions: [ MIN($0) OVER (PARTITION BY $2 ORDER BY $1), MAX($0) OVER (PARTITION BY $2 ORDER BY $1), $0, $2, $3 ]
+// num_columns: 6
+// output: [ $4, $5, $0, $2, $3]
+std::vector<std::string> clean_window_function_expressions(const std::vector<std::string> & expressions, size_t num_columns) {
+	// First of all, we need to know how many window columns exists
+    size_t total_wf_cols = 0;
+    std::vector<std::string> new_expressions = expressions;
+    for(size_t col_i = 0; col_i < new_expressions.size(); col_i++) {
+        if (is_window_function(new_expressions[col_i])) {
+            if (is_sum_window_function(new_expressions[col_i]) || is_avg_window_function(new_expressions[col_i])) {
+				// due to `sum` or `avg` window aggregation two columns were added (in ComputeWindowKernel)
+                total_wf_cols += 2;
+            }
+            else total_wf_cols++;
+        }
+    }
+
+    // Now let's update the expressions which contains Window functions
+    if (total_wf_cols > 0) {
+        size_t wf_count = 0;
+        for(size_t col_i = 0; col_i < new_expressions.size(); col_i++) {
+            size_t rigt_index = num_columns - total_wf_cols + wf_count;
+            if (wf_count < total_wf_cols && is_window_function(new_expressions[col_i])) {
+                if ( is_sum_window_function(new_expressions[col_i]) || is_avg_window_function(new_expressions[col_i]) ){
+                    std::string removed_expression = remove_over_expr(new_expressions[col_i]);
+                    removed_expression = replace_count_expr_with_right_index(removed_expression, rigt_index);
+                    new_expressions[col_i] = replace_sum0_expr_with_right_index(removed_expression, rigt_index);
+					// due to `sum` or `avg` window aggregation two columns were added (in ComputeWindowKernel)
+                    wf_count += 2;
+                } else {
+                    new_expressions[col_i] = "$" + std::to_string(rigt_index);
+                    wf_count++;
+                }
+            }
+        }
+    }
+
+	return new_expressions;
+}
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
@@ -668,9 +936,10 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 	static const std::regex char_re{
 		R""(:CHAR\(\d+\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, char_re, "VARCHAR");
+	ret = std::regex_replace(ret, char_re, ":VARCHAR");
 
 
+	StringUtil::findAndReplaceAll(ret, "IS NOT DISTINCT FROM", "IS_NOT_DISTINCT_FROM");
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
@@ -689,4 +958,77 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 	return ret;
+}
+
+std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names) {
+	bool by_passing_project = false, by_passing_project_with_aliases = false;
+	std::vector<std::string> aliases;
+
+	std::string combined_expression = get_query_part(logical_plan);
+	std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
+	std::vector<std::string> expressions(named_expressions.size());
+	aliases.resize(named_expressions.size());
+
+	for(size_t i = 0; i < named_expressions.size(); ++i) {
+		const std::string & named_expr = named_expressions[i];
+		aliases[i] = named_expr.substr(0, named_expr.find("=["));
+		expressions[i] = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
+	}
+
+	if (names.size() != aliases.size()) {
+		return std::make_tuple(false, false, aliases);
+	}
+	
+	for(size_t i = 0; i < expressions.size(); ++i) {
+		if (expressions[i] != "$" + std::to_string(i)) {
+			return std::make_tuple(false, false, aliases);
+		}
+	}
+
+	by_passing_project = true;
+
+	// At this step, expressions: [$0, $1, $2, $3], let's see the aliases
+	for(size_t i = 0; i < aliases.size(); ++i) {
+		if (aliases[i] != names[i]) {
+			by_passing_project_with_aliases = true;
+			break;
+		}
+	}
+
+	return std::make_tuple(by_passing_project, by_passing_project_with_aliases, aliases);
+}
+
+// input: -($3)
+// output: -(0, $3)
+std::string fill_minus_op_with_zero(std::string expression) {
+	std::size_t total_vars = StringUtil::findAndCountAllMatches(expression, "$");
+	if (expression.at(0) == '-' && total_vars == 1 && expression.find(",") == expression.npos) {
+		std::string left_expr = expression.substr(0, 2);
+		std::string right_expr = expression.substr(2, expression.size() - left_expr.size());
+		expression = left_expr + "0, " + right_expr;
+	}
+
+	return expression;
+}
+
+// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' : ', $2)
+// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' : '), $2)"
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
+	if (expression.find("CONCAT") == expression.npos) {
+		return expression;
+	}
+
+	// just to remove `CONCAT( )`
+	std::string expression_wo_concat = get_query_part(expression);
+	std::vector<std::string> expressions_to_concat = get_expressions_from_expression_list(expression_wo_concat);
+
+	if (expressions_to_concat.size() < 2) throw std::runtime_error("CONCAT operator must have at least two children, as CONCAT($0, $1) .");
+
+	std::string new_expression =  "CONCAT(" + expressions_to_concat[0] + ", " + expressions_to_concat[1] + ")";
+
+	for (size_t i = 2; i < expressions_to_concat.size(); ++i) {
+		new_expression = "CONCAT(" + new_expression + ", " + expressions_to_concat[i] + ")";
+	}
+
+	return new_expression;
 }

@@ -113,24 +113,32 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #     queryId = 'TEST_04'
-            #     query = """with ordersTemp as (
-            #         select min(orders.o_orderkey) as priorityKey,
-            #        o_custkey from orders group by o_custkey
-            #     ), ordersjoin as(
-            #         select orders.o_orderkey, orders.o_custkey
-            #    / (orders.o_custkey + 1) as o_custkey,
-            #   (ordersTemp.priorityKey + 1) as priorityKey from orders
-            #  inner join ordersTemp on
-            #   (ordersTemp.priorityKey = orders.o_orderkey)
-            #     )
-            #     select (customer.c_custkey + 1)
-            #   / (customer.c_custkey - customer.c_custkey + 1) from customer
-            #  inner join ordersjoin
-            #   on ordersjoin.o_custkey = customer.c_custkey
-            #  where (customer.c_custkey > 1 or customer.c_custkey < 100)"""
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #  '', acceptable_difference, use_percentage, fileSchemaType)
+            queryId = 'TEST_04'
+            query = """with ordersTemp as (
+                    select min(orders.o_orderkey) as priorityKey, o_custkey
+                    from orders group by o_custkey
+                    ), ordersjoin as( select orders.o_orderkey, orders.o_custkey
+                    / (orders.o_custkey + 1) as o_custkey,
+                    (ordersTemp.priorityKey + 1) as priorityKey from orders
+                    inner join ordersTemp on
+                    (ordersTemp.priorityKey = orders.o_orderkey)
+                    )
+                    select (customer.c_custkey + 1)
+                    / (customer.c_custkey - customer.c_custkey + 1) from customer
+                    inner join ordersjoin on ordersjoin.o_custkey = customer.c_custkey
+                    where (customer.c_custkey > 1 or customer.c_custkey < 100)"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

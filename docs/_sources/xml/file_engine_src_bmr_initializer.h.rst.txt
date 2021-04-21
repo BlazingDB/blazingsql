@@ -1,0 +1,47 @@
+
+.. _file_engine_src_bmr_initializer.h:
+
+File initializer.h
+==================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_bmr>` (``engine/src/bmr``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/bmr/initializer.h``)
+---------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``bmr/BlazingMemoryResource.h`` (:ref:`file_engine_src_bmr_BlazingMemoryResource.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_cython_initialize.cpp`
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_initializer_8h_1a8ef4c8918c23f9a13dd11e139c1fb618`
+
+- :ref:`exhale_function_initializer_8h_1a5fb67cee1df05fdc2fd326417bd5e832`
+

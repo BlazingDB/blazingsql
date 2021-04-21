@@ -532,6 +532,17 @@ private:
 				}	else {
 					setColumnValid(row_valids, output_position, false);
 				}
+			} else if(oper == operator_type::BLZ_IS_NOT_DISTINCT_FROM) {
+				bool result_value;
+				if(!left_valid && !right_valid) {
+					result_value = true;
+				} else if(!left_valid || !right_valid) {
+					result_value = false;
+				} else {
+					result_value = left_value == right_value;
+				}
+				store_data_in_buffer(static_cast<int64_t>(result_value), buffer, output_position);
+				setColumnValid(row_valids, output_position, true);
 			} else if (left_valid && right_valid) {
 				if(oper == operator_type::BLZ_LOGICAL_AND) {
 					store_data_in_buffer(static_cast<int64_t>(left_value && right_value), buffer, output_position);
