@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class blazing_device_memory_resource &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class blazing_device_memory_resource &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,90 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv430blazing_device_memory_resource">
-<span id="_CPPv330blazing_device_memory_resource"></span><span id="_CPPv230blazing_device_memory_resource"></span><span id="blazing_device_memory_resource"></span><span class="target" id="classblazing__device__memory__resource"></span><em class="property">class </em><code class="sig-name descname">blazing_device_memory_resource</code> : <em class="property">public</em> <a class="reference internal" href="classBlazingMemoryResource.html#_CPPv421BlazingMemoryResource" title="BlazingMemoryResource">BlazingMemoryResource</a><a class="headerlink" href="#_CPPv430blazing_device_memory_resource" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>RMM <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> class maintains the device memory manager context, including the RMM event log, configuration options, and registered streams. </p>
-<p>———————————————————————-* <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> is a singleton class, and should be accessed via <a class="reference internal" href="#classblazing__device__memory__resource_1a31735d61d23aef05666c7c3f981c86fe"><span class="std std-ref">getInstance()</span></a>. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource15get_memory_usedEv">
-<span id="_CPPv3N30blazing_device_memory_resource15get_memory_usedEv"></span><span id="_CPPv2N30blazing_device_memory_resource15get_memory_usedEv"></span><span id="blazing_device_memory_resource::get_memory_used"></span><span class="target" id="classblazing__device__memory__resource_1ae6a57a18e3a02583bb111a273d9b9467"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_memory_used</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource15get_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource19get_max_memory_usedEv">
-<span id="_CPPv3N30blazing_device_memory_resource19get_max_memory_usedEv"></span><span id="_CPPv2N30blazing_device_memory_resource19get_max_memory_usedEv"></span><span id="blazing_device_memory_resource::get_max_memory_used"></span><span class="target" id="classblazing__device__memory__resource_1aeacacda54cf9cc89b2f1bb30ad54a77d"></span>size_t <code class="sig-name descname">get_max_memory_used</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource19get_max_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource16get_total_memoryEv">
-<span id="_CPPv3N30blazing_device_memory_resource16get_total_memoryEv"></span><span id="_CPPv2N30blazing_device_memory_resource16get_total_memoryEv"></span><span id="blazing_device_memory_resource::get_total_memory"></span><span class="target" id="classblazing__device__memory__resource_1a34c81aa0fe6a5d542573739a187264bb"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_total_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource16get_total_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource27get_from_driver_used_memoryEv">
-<span id="_CPPv3N30blazing_device_memory_resource27get_from_driver_used_memoryEv"></span><span id="_CPPv2N30blazing_device_memory_resource27get_from_driver_used_memoryEv"></span><span id="blazing_device_memory_resource::get_from_driver_used_memory"></span><span class="target" id="classblazing__device__memory__resource_1ac64dc046686ed83b8f6b0f85cd79517e"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_from_driver_used_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource27get_from_driver_used_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource16get_memory_limitEv">
-<span id="_CPPv3N30blazing_device_memory_resource16get_memory_limitEv"></span><span id="_CPPv2N30blazing_device_memory_resource16get_memory_limitEv"></span><span id="blazing_device_memory_resource::get_memory_limit"></span><span class="target" id="classblazing__device__memory__resource_1a0d0e8280d74b19fdfbab855b790c872e"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_memory_limit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource16get_memory_limitEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource8get_typeEv">
-<span id="_CPPv3N30blazing_device_memory_resource8get_typeEv"></span><span id="_CPPv2N30blazing_device_memory_resource8get_typeEv"></span><span id="blazing_device_memory_resource::get_type"></span><span class="target" id="classblazing__device__memory__resource_1adcd21d872aad1620305edc061145d882"></span>std::string <code class="sig-name descname">get_type</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource8get_typeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource23get_full_memory_summaryEv">
-<span id="_CPPv3N30blazing_device_memory_resource23get_full_memory_summaryEv"></span><span id="_CPPv2N30blazing_device_memory_resource23get_full_memory_summaryEv"></span><span id="blazing_device_memory_resource::get_full_memory_summary"></span><span class="target" id="classblazing__device__memory__resource_1ac80188ecfe926a72194b98e2ad7f61e0"></span>std::string <code class="sig-name descname">get_full_memory_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource23get_full_memory_summaryEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource21reset_max_memory_usedE6size_t">
-<span id="_CPPv3N30blazing_device_memory_resource21reset_max_memory_usedE6size_t"></span><span id="_CPPv2N30blazing_device_memory_resource21reset_max_memory_usedE6size_t"></span><span id="blazing_device_memory_resource::reset_max_memory_used__s"></span><span class="target" id="classblazing__device__memory__resource_1a3d5d3b2e31f50b773e36c5b5516144c6"></span>void <code class="sig-name descname">reset_max_memory_used</code><span class="sig-paren">(</span>size_t <em>to</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource21reset_max_memory_usedE6size_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf">
-<span id="_CPPv3N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf"></span><span id="_CPPv2N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf"></span><span id="blazing_device_memory_resource::initialize__ss.std::s.std::s.ss.float"></span><span class="target" id="classblazing__device__memory__resource_1aff09e3f24d6448da5176747dbb37aa6b"></span>void <code class="sig-name descname">initialize</code><span class="sig-paren">(</span>std::string <em>allocation_mode</em>, std::size_t <em>initial_pool_size</em>, std::size_t <em>maximum_pool_size</em>, std::string <em>allocator_logging_file</em>, float <em>device_mem_resouce_consumption_thresh</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Initialize RMM options. </p>
-<p>——————————————————————–* allocator : “managed” or “default” or “existing”, where “managed” uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out, “default” uses the default Cuda allocation and “existing” assumes rmm allocator is already set and does not initialize it. “managed” is the BlazingSQL default, since it provides the most robustness against OOM errors. pool : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance. initial_pool_size : initial size of memory pool in bytes (if pool=True). if None, and pool=True, defaults to 1/2 GPU memory. maximum_pool_size : maximum size of memory pool in bytes (if pool=True). if None, and pool=True, defaults to all the GPU memory. allocator_logging_file : File that would be used by the allocator logger. If empty, then no allocator logging will be enabled. device_mem_resouce_consumption_thresh : The percent (as a decimal) of total GPU memory that the memory resource</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource8finalizeEv">
-<span id="_CPPv3N30blazing_device_memory_resource8finalizeEv"></span><span id="_CPPv2N30blazing_device_memory_resource8finalizeEv"></span><span id="blazing_device_memory_resource::finalize"></span><span class="target" id="classblazing__device__memory__resource_1ab92679fbcfe6a6075be76d3026e19b47"></span>void <code class="sig-name descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource8finalizeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>——————————————————————–* </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource13isInitializedEv">
-<span id="_CPPv3N30blazing_device_memory_resource13isInitializedEv"></span><span id="_CPPv2N30blazing_device_memory_resource13isInitializedEv"></span><span id="blazing_device_memory_resource::isInitialized"></span><span class="target" id="classblazing__device__memory__resource_1a01ae4b27062b3e30a22771edb4c625ac"></span>bool <code class="sig-name descname">isInitialized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource13isInitializedEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Check whether the <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> has been initialized. </p>
-<p>——————————————————————–* <dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>true if <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> has been initialized. </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N30blazing_device_memory_resource11getInstanceEv">
-<span id="_CPPv3N30blazing_device_memory_resource11getInstanceEv"></span><span id="_CPPv2N30blazing_device_memory_resource11getInstanceEv"></span><span id="blazing_device_memory_resource::getInstance"></span><span class="target" id="classblazing__device__memory__resource_1a31735d61d23aef05666c7c3f981c86fe"></span><em class="property">static</em> <em class="property">inline</em> <a class="reference internal" href="#_CPPv430blazing_device_memory_resource" title="blazing_device_memory_resource">blazing_device_memory_resource</a> &amp;<code class="sig-name descname">getInstance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource11getInstanceEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> instance singleton object. </p>
-<p>——————————————————————–* </p>
-</dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

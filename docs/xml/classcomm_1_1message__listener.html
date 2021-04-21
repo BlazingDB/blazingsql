@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class message_listener &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class message_listener &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4272,68 +4368,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N4comm16message_listenerE">
-<span id="_CPPv3N4comm16message_listenerE"></span><span id="_CPPv2N4comm16message_listenerE"></span><span id="comm::message_listener"></span><span class="target" id="classcomm_1_1message__listener"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">message_listener</code><a class="headerlink" href="#_CPPv4N4comm16message_listenerE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Subclassed by <a class="reference internal" href="classcomm_1_1tcp__message__listener.html#classcomm_1_1tcp__message__listener"><span class="std std-ref">comm::tcp_message_listener</span></a>, <a class="reference internal" href="classcomm_1_1ucx__message__listener.html#classcomm_1_1ucx__message__listener"><span class="std std-ref">comm::ucx_message_listener</span></a></p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N4comm16message_listener16message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE">
-<span id="_CPPv3N4comm16message_listener16message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm16message_listener16message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::message_listener::message_listener__std::map:ss.comm::node:CR.i.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1message__listener_1abe358e40ea447e4e136a06723292a4b4"></span><em class="property">inline</em> <code class="sig-name descname">message_listener</code><span class="sig-paren">(</span><em class="property">const</em> std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; &amp;<em>nodes</em>, int <em>num_threads</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>input_cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_listener16message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm16message_listenerD0Ev">
-<span id="_CPPv3N4comm16message_listenerD0Ev"></span><span id="_CPPv2N4comm16message_listenerD0Ev"></span><span id="comm::message_listener::~message_listener"></span><span class="target" id="classcomm_1_1message__listener_1a40161e8c56ca33e0d92484a4530a0aab"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~message_listener</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_listenerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm16message_listener13start_pollingEv">
-<span id="_CPPv3N4comm16message_listener13start_pollingEv"></span><span id="_CPPv2N4comm16message_listener13start_pollingEv"></span><span id="comm::message_listener::start_polling"></span><span class="target" id="classcomm_1_1message__listener_1ae9441738eec1d127db8e431e7e3d9408"></span><em class="property">virtual</em> void <code class="sig-name descname">start_polling</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4comm16message_listener13start_pollingEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm16message_listener8get_poolEv">
-<span id="_CPPv3N4comm16message_listener8get_poolEv"></span><span id="_CPPv2N4comm16message_listener8get_poolEv"></span><span id="comm::message_listener::get_pool"></span><span class="target" id="classcomm_1_1message__listener_1a8d3c1efd23d57d7aebe2afa3da5cacae"></span>ctpl::<a class="reference internal" href="classctpl_1_1thread__pool.html#_CPPv4I0EN4ctpl11thread_poolE" title="ctpl::thread_pool">thread_pool</a>&lt;BlazingThread&gt; &amp;<code class="sig-name descname">get_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_listener8get_poolEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm16message_listener12get_node_mapEv">
-<span id="_CPPv3N4comm16message_listener12get_node_mapEv"></span><span id="_CPPv2N4comm16message_listener12get_node_mapEv"></span><span id="comm::message_listener::get_node_map"></span><span class="target" id="classcomm_1_1message__listener_1a8ebc28c2a76f06ffca9c1ea0762a5444"></span>std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; <code class="sig-name descname">get_node_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_listener12get_node_mapEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm16message_listener15get_input_cacheEv">
-<span id="_CPPv3N4comm16message_listener15get_input_cacheEv"></span><span id="_CPPv2N4comm16message_listener15get_input_cacheEv"></span><span id="comm::message_listener::get_input_cache"></span><span class="target" id="classcomm_1_1message__listener_1ad295581719c46ec96282bfc927b492ea"></span><em class="property">inline</em> std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">get_input_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_listener15get_input_cacheEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
-<dl class="cpp var">
-<dt id="_CPPv4N4comm16message_listener4poolE">
-<span id="_CPPv3N4comm16message_listener4poolE"></span><span id="_CPPv2N4comm16message_listener4poolE"></span><span id="comm::message_listener::pool__ctpl::thread_pool:BlazingThread:"></span><span class="target" id="classcomm_1_1message__listener_1a6e8f1381cd7585997d1f1aee581fcc49"></span>ctpl::<a class="reference internal" href="classctpl_1_1thread__pool.html#_CPPv4I0EN4ctpl11thread_poolE" title="ctpl::thread_pool">thread_pool</a>&lt;BlazingThread&gt; <code class="sig-name descname">pool</code><a class="headerlink" href="#_CPPv4N4comm16message_listener4poolE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N4comm16message_listener15_nodes_info_mapE">
-<span id="_CPPv3N4comm16message_listener15_nodes_info_mapE"></span><span id="_CPPv2N4comm16message_listener15_nodes_info_mapE"></span><span id="comm::message_listener::_nodes_info_map__std::map:ss.comm::node:"></span><span class="target" id="classcomm_1_1message__listener_1a70b3d8a4795e455e5a29c54beeca66cd"></span>std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; <code class="sig-name descname">_nodes_info_map</code><a class="headerlink" href="#_CPPv4N4comm16message_listener15_nodes_info_mapE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N4comm16message_listener15polling_startedE">
-<span id="_CPPv3N4comm16message_listener15polling_startedE"></span><span id="_CPPv2N4comm16message_listener15polling_startedE"></span><span id="comm::message_listener::polling_started__b"></span><span class="target" id="classcomm_1_1message__listener_1ab8b2a61fd9c0095157ab189b17c81004"></span>bool <code class="sig-name descname">polling_started</code> = {false}<a class="headerlink" href="#_CPPv4N4comm16message_listener15polling_startedE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N4comm16message_listener11input_cacheE">
-<span id="_CPPv3N4comm16message_listener11input_cacheE"></span><span id="_CPPv2N4comm16message_listener11input_cacheE"></span><span id="comm::message_listener::input_cache__std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1message__listener_1a4a2db537e1dacb6d09316cc8bd275127"></span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">input_cache</code><a class="headerlink" href="#_CPPv4N4comm16message_listener11input_cacheE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

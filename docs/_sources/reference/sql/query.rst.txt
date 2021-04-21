@@ -3,7 +3,7 @@
 Querying data
 =============
 
-Query statements like :ref:`SELECT <sql_agg_avg>` scan one or more data tables registered with 
+Query statements like :ref:`SELECT <sql_select>` scan one or more data tables registered with 
 :code:`BlazingContext` and return results of the engine run. In this section we describe
 the most fundamental SQL functionality: selecting rows. 
 

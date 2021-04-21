@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class ComputeWindowKernel &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class ComputeWindowKernel &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,46 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5batch19ComputeWindowKernelE">
-<span id="_CPPv3N3ral5batch19ComputeWindowKernelE"></span><span id="_CPPv2N3ral5batch19ComputeWindowKernelE"></span><span id="ral::batch::ComputeWindowKernel"></span><span class="target" id="classral_1_1batch_1_1ComputeWindowKernel"></span><em class="property">class </em><code class="sig-prename descclassname">ral::batch<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">ComputeWindowKernel</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a><a class="headerlink" href="#_CPPv4N3ral5batch19ComputeWindowKernelE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This kernel computes the main Window Function (ROW_NUMBER, LAG, LEAD, MIN, …) to each batch already pattitioned and sorted New columns will be added to each batch. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5batch19ComputeWindowKernel19ComputeWindowKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">
-<span id="_CPPv3N3ral5batch19ComputeWindowKernel19ComputeWindowKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="_CPPv2N3ral5batch19ComputeWindowKernel19ComputeWindowKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="ral::batch::ComputeWindowKernel::ComputeWindowKernel__std::s.ssCR.std::shared_ptr:Context:.std::shared_ptr:ral::cache::graph:"></span><span class="target" id="classral_1_1batch_1_1ComputeWindowKernel_1a1feff9b400748b38a36a91d7f256cd35"></span><code class="sig-name descname">ComputeWindowKernel</code><span class="sig-paren">(</span>std::size_t <em>kernel_id</em>, <em class="property">const</em> std::string &amp;<em>queryString</em>, std::shared_ptr&lt;<a class="reference internal" href="typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6.html#_CPPv4N3ral5batch7ContextE" title="ral::batch::Context">Context</a>&gt; <em>context</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph">graph</a>&gt; <em>query_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch19ComputeWindowKernel19ComputeWindowKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5batch19ComputeWindowKernel35compute_column_from_window_functionEN4cudf10table_viewEN4cudf11column_viewENSt6size_tERi">
-<span id="_CPPv3N3ral5batch19ComputeWindowKernel35compute_column_from_window_functionEN4cudf10table_viewEN4cudf11column_viewENSt6size_tERi"></span><span id="_CPPv2N3ral5batch19ComputeWindowKernel35compute_column_from_window_functionEN4cudf10table_viewEN4cudf11column_viewENSt6size_tERi"></span><span id="ral::batch::ComputeWindowKernel::compute_column_from_window_function__cudf::table_view.cudf::column_view.std::s.iR"></span><span class="target" id="classral_1_1batch_1_1ComputeWindowKernel_1a045546d30ebc87491d69757f8547c672"></span>std::unique_ptr&lt;<a class="reference internal" href="typedef_BlazingColumn_8h_1a75228f03b5f35aabdcb834653877255b.html#_CPPv410CudfColumn" title="CudfColumn">CudfColumn</a>&gt; <code class="sig-name descname">compute_column_from_window_function</code><span class="sig-paren">(</span>cudf::table_view <em>input_cudf_view</em>, cudf::column_view <em>input_col_view</em>, std::size_t <em>pos</em>, int &amp;<em>agg_param_count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch19ComputeWindowKernel35compute_column_from_window_functionEN4cudf10table_viewEN4cudf11column_viewENSt6size_tERi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5batch19ComputeWindowKernel11kernel_nameEv">
-<span id="_CPPv3N3ral5batch19ComputeWindowKernel11kernel_nameEv"></span><span id="_CPPv2N3ral5batch19ComputeWindowKernel11kernel_nameEv"></span><span id="ral::batch::ComputeWindowKernel::kernel_name"></span><span class="target" id="classral_1_1batch_1_1ComputeWindowKernel_1a8caa7fbdb505758f1bcc465024a5cffa"></span><em class="property">inline</em> <em class="property">virtual</em> std::string <code class="sig-name descname">kernel_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch19ComputeWindowKernel11kernel_nameEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5batch19ComputeWindowKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">
-<span id="_CPPv3N3ral5batch19ComputeWindowKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral5batch19ComputeWindowKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::batch::ComputeWindowKernel::do_process__std::vector:std::unique_ptr:ral::frame::BlazingTable::.std::shared_ptr:ral::cache::CacheMachine:.cudaStream_t.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1batch_1_1ComputeWindowKernel_1a26873276168cdd25b055c313a50c0d2f"></span>ral::execution::<a class="reference internal" href="structral_1_1execution_1_1task__result.html#_CPPv4N3ral9execution11task_resultE" title="ral::execution::task_result">task_result</a> <code class="sig-name descname">do_process</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5batch19ComputeWindowKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5batch19ComputeWindowKernel3runEv">
-<span id="_CPPv3N3ral5batch19ComputeWindowKernel3runEv"></span><span id="_CPPv2N3ral5batch19ComputeWindowKernel3runEv"></span><span id="ral::batch::ComputeWindowKernel::run"></span><span class="target" id="classral_1_1batch_1_1ComputeWindowKernel_1a22a36fbcb21dad09bad9300e21dc4825"></span><em class="property">virtual</em> kstatus <code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5batch19ComputeWindowKernel3runEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>kstatus ‘stop’ to halt processing, or ‘proceed’ to continue processing. </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

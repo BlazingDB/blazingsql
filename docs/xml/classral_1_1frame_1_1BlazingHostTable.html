@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class BlazingHostTable &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class BlazingHostTable &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,85 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5frame16BlazingHostTableE">
-<span id="_CPPv3N3ral5frame16BlazingHostTableE"></span><span id="_CPPv2N3ral5frame16BlazingHostTableE"></span><span id="ral::frame::BlazingHostTable"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable"></span><em class="property">class </em><code class="sig-prename descclassname">ral::frame<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">BlazingHostTable</code><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTableE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A class that represents the <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#classral_1_1frame_1_1BlazingTable"><span class="std std-ref">BlazingTable</span></a> store in host memory. This implementation uses only raw allocations, ColumnTransports and chunked_column_infos that represent a <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#classral_1_1frame_1_1BlazingTable"><span class="std std-ref">BlazingTable</span></a>. The reference to implement this class was based on the way how <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#classral_1_1frame_1_1BlazingTable"><span class="std std-ref">BlazingTable</span></a> objects are send/received by the communication library. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE">
-<span id="_CPPv3N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE"></span><span id="_CPPv2N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE"></span><span id="ral::frame::BlazingHostTable::BlazingHostTable__std::vector:ColumnTransport:CR.std::vector:ral::memory::blazing_chunked_column_info:RR.std::vector:std::unique_ptr:ral::memory::blazing_allocation_chunk::RR"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1ad61570c773d3d83c788d1a66ef657b1f"></span><code class="sig-name descname">BlazingHostTable</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_BlazingHostTable_8h_1aa6d4bd70661380463cfd498e215223ce.html#_CPPv4N3ral5frame15ColumnTransportE" title="ral::frame::ColumnTransport">ColumnTransport</a>&gt; &amp;<em>columns_offsets</em>, std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; &amp;&amp;<em>chunked_column_infos</em>, std::vector&lt;std::unique_ptr&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt;&gt; &amp;&amp;<em>allocations</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable16BlazingHostTableERKNSt6vectorI15ColumnTransportEERRNSt6vectorIN3ral6memory27blazing_chunked_column_infoEEERRNSt6vectorINSt10unique_ptrIN3ral6memory24blazing_allocation_chunkEEEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingHostTableD0Ev">
-<span id="_CPPv3N3ral5frame16BlazingHostTableD0Ev"></span><span id="_CPPv2N3ral5frame16BlazingHostTableD0Ev"></span><span id="ral::frame::BlazingHostTable::~BlazingHostTable"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a12b8967bbc21dc6c3b9c660af6b9f42f"></span><code class="sig-name descname">~BlazingHostTable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTableD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable10get_schemaEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable10get_schemaEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable10get_schemaEv"></span><span id="ral::frame::BlazingHostTable::get_schemaC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a81bf7375e4c76c00615a141243edd891"></span>std::vector&lt;cudf::data_type&gt; <code class="sig-name descname">get_schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable10get_schemaEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable5namesEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable5namesEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable5namesEv"></span><span id="ral::frame::BlazingHostTable::namesC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1afc36b1cebafd2be252e1fe86f358c047"></span>std::vector&lt;std::string&gt; <code class="sig-name descname">names</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable5namesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE">
-<span id="_CPPv3N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE"></span><span id="ral::frame::BlazingHostTable::set_names__std::vector:ss:"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1ad48051c54ff7a7bce9261fcd58f1815c"></span>void <code class="sig-name descname">set_names</code><span class="sig-paren">(</span>std::vector&lt;std::string&gt; <em>names</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable9set_namesENSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable8num_rowsEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable8num_rowsEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable8num_rowsEv"></span><span id="ral::frame::BlazingHostTable::num_rowsC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a8c79df309ba2224a497e3ff26d22c399"></span>cudf::size_type <code class="sig-name descname">num_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable8num_rowsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable11num_columnsEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable11num_columnsEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable11num_columnsEv"></span><span id="ral::frame::BlazingHostTable::num_columnsC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a7d1f2bc7f684b2494f54af56fac94555"></span>cudf::size_type <code class="sig-name descname">num_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable11num_columnsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingHostTable11sizeInBytesEv">
-<span id="_CPPv3N3ral5frame16BlazingHostTable11sizeInBytesEv"></span><span id="_CPPv2N3ral5frame16BlazingHostTable11sizeInBytesEv"></span><span id="ral::frame::BlazingHostTable::sizeInBytes"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a55117c800b864710d6ebcc72cfec23fc"></span>std::size_t <code class="sig-name descname">sizeInBytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t">
-<span id="_CPPv3N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t"></span><span id="_CPPv2N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t"></span><span id="ral::frame::BlazingHostTable::setPartitionId__sCR"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1ad919bd6ff9ebd4601fe0171d9b1c4ca1"></span>void <code class="sig-name descname">setPartitionId</code><span class="sig-paren">(</span><em class="property">const</em> size_t &amp;<em>part_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable14setPartitionIdERK6size_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingHostTable11get_part_idEv">
-<span id="_CPPv3N3ral5frame16BlazingHostTable11get_part_idEv"></span><span id="_CPPv2N3ral5frame16BlazingHostTable11get_part_idEv"></span><span id="ral::frame::BlazingHostTable::get_part_id"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a5d5a24d3d43fc074264a88e66d544ffa"></span>size_t <code class="sig-name descname">get_part_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingHostTable11get_part_idEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable19get_columns_offsetsEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable19get_columns_offsetsEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable19get_columns_offsetsEv"></span><span id="ral::frame::BlazingHostTable::get_columns_offsetsC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a3e510befe328cce2016555fe4f6c32bc"></span><em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_BlazingHostTable_8h_1aa6d4bd70661380463cfd498e215223ce.html#_CPPv4N3ral5frame15ColumnTransportE" title="ral::frame::ColumnTransport">ColumnTransport</a>&gt; &amp;<code class="sig-name descname">get_columns_offsets</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable19get_columns_offsetsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable13get_gpu_tableEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable13get_gpu_tableEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable13get_gpu_tableEv"></span><span id="ral::frame::BlazingHostTable::get_gpu_tableC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1afc324a9367a9bd0bea7a171c782e91d2"></span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">get_gpu_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable13get_gpu_tableEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable15get_raw_buffersEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable15get_raw_buffersEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable15get_raw_buffersEv"></span><span id="ral::frame::BlazingHostTable::get_raw_buffersC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a916b3247a17306ad2a53ea032f03407a"></span>std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt; <code class="sig-name descname">get_raw_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable15get_raw_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv">
-<span id="_CPPv3NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv"></span><span id="_CPPv2NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv"></span><span id="ral::frame::BlazingHostTable::get_blazing_chunked_column_infosC"></span><span class="target" id="classral_1_1frame_1_1BlazingHostTable_1a6c8bd9f79e0f7eb27ae007a4acf8a9b4"></span><em class="property">const</em> std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; &amp;<code class="sig-name descname">get_blazing_chunked_column_infos</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingHostTable32get_blazing_chunked_column_infosEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

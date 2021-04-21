@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class MetadataDictionary &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class MetadataDictionary &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,103 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5cache18MetadataDictionaryE">
-<span id="_CPPv3N3ral5cache18MetadataDictionaryE"></span><span id="_CPPv2N3ral5cache18MetadataDictionaryE"></span><span id="ral::cache::MetadataDictionary"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">MetadataDictionary</code><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionaryE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Lightweight wrapper for a map that will one day be used for compile time checks. Currently it is just a wrapper for map but in the future the intention is for us to manage the Metadata in a struct as opposed to a map of string to string. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary9add_valueENSt6stringENSt6stringE">
-<span id="_CPPv3N3ral5cache18MetadataDictionary9add_valueENSt6stringENSt6stringE"></span><span id="_CPPv2N3ral5cache18MetadataDictionary9add_valueENSt6stringENSt6stringE"></span><span id="ral::cache::MetadataDictionary::add_value__ss.ss"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a99828bf2a71b8e06d568420e5c2b460d"></span><em class="property">inline</em> void <code class="sig-name descname">add_value</code><span class="sig-paren">(</span>std::string <em>key</em>, std::string <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary9add_valueENSt6stringENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Gets the type of <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> that was used to construct this <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">key</span></code>: The key in the map that we will be modifying. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">value</span></code>: The value that we will set the key to. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary9add_valueENSt6stringEi">
-<span id="_CPPv3N3ral5cache18MetadataDictionary9add_valueENSt6stringEi"></span><span id="_CPPv2N3ral5cache18MetadataDictionary9add_valueENSt6stringEi"></span><span id="ral::cache::MetadataDictionary::add_value__ss.i"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a5f2f0c2542ea15ca00d273df68041551"></span><em class="property">inline</em> void <code class="sig-name descname">add_value</code><span class="sig-paren">(</span>std::string <em>key</em>, int <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary9add_valueENSt6stringEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Gets the type of <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> that was used to construct this <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">key</span></code>: The key in the map that we will be modifying. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">value</span></code>: The value that we will set the key to. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary13get_kernel_idEv">
-<span id="_CPPv3N3ral5cache18MetadataDictionary13get_kernel_idEv"></span><span id="_CPPv2N3ral5cache18MetadataDictionary13get_kernel_idEv"></span><span id="ral::cache::MetadataDictionary::get_kernel_id"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a03066b3e050bf5f504613aab7604d768"></span><em class="property">inline</em> int <code class="sig-name descname">get_kernel_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary13get_kernel_idEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Gets id of creating kernel. <dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>Get the id of the kernel that created this message. </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary5printEv">
-<span id="_CPPv3N3ral5cache18MetadataDictionary5printEv"></span><span id="_CPPv2N3ral5cache18MetadataDictionary5printEv"></span><span id="ral::cache::MetadataDictionary::print"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a762943ae80571c2f5ea6dfbcea07a3bb"></span><em class="property">inline</em> void <code class="sig-name descname">print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary5printEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Print every key =&gt; value pair in the map. Only used for debugging purposes. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5cache18MetadataDictionary10get_valuesEv">
-<span id="_CPPv3NK3ral5cache18MetadataDictionary10get_valuesEv"></span><span id="_CPPv2NK3ral5cache18MetadataDictionary10get_valuesEv"></span><span id="ral::cache::MetadataDictionary::get_valuesC"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1abdc2863d96dc839565f2078471f4c9f7"></span><em class="property">inline</em> std::map&lt;std::string, std::string&gt; <code class="sig-name descname">get_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache18MetadataDictionary10get_valuesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Gets the map storing the metadata. <dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>the map storing all of the metadata. </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary10set_valuesENSt3mapINSt6stringENSt6stringEEE">
-<span id="_CPPv3N3ral5cache18MetadataDictionary10set_valuesENSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral5cache18MetadataDictionary10set_valuesENSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::cache::MetadataDictionary::set_values__std::map:ss.ss:"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a99d66a4b93ebb5f187da5c8968054a54"></span><em class="property">inline</em> void <code class="sig-name descname">set_values</code><span class="sig-paren">(</span>std::map&lt;std::string, std::string&gt; <em>new_values</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary10set_valuesENSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Erases all current metadata and sets new values. <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">new_values</span></code>: A map to copy into this-&gt;values . </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary9has_valueENSt6stringE">
-<span id="_CPPv3N3ral5cache18MetadataDictionary9has_valueENSt6stringE"></span><span id="_CPPv2N3ral5cache18MetadataDictionary9has_valueENSt6stringE"></span><span id="ral::cache::MetadataDictionary::has_value__ss"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a72ac4462583a2be4be3de19eb230b624"></span><em class="property">inline</em> bool <code class="sig-name descname">has_value</code><span class="sig-paren">(</span>std::string <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary9has_valueENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Checks if metadata has a specific key <dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>true if the key is in the metadata, otherwise return false </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">key</span></code>: The key to check if is in the metadata </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary9get_valueENSt6stringE">
-<span id="_CPPv3N3ral5cache18MetadataDictionary9get_valueENSt6stringE"></span><span id="_CPPv2N3ral5cache18MetadataDictionary9get_valueENSt6stringE"></span><span id="ral::cache::MetadataDictionary::get_value__ss"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1a50be7e17be586f17dd10228227a51a15"></span>std::string <code class="sig-name descname">get_value</code><span class="sig-paren">(</span>std::string <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary9get_valueENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache18MetadataDictionary9set_valueENSt6stringENSt6stringE">
-<span id="_CPPv3N3ral5cache18MetadataDictionary9set_valueENSt6stringENSt6stringE"></span><span id="_CPPv2N3ral5cache18MetadataDictionary9set_valueENSt6stringENSt6stringE"></span><span id="ral::cache::MetadataDictionary::set_value__ss.ss"></span><span class="target" id="classral_1_1cache_1_1MetadataDictionary_1afd9178b77c468cc390786830aba8b968"></span>void <code class="sig-name descname">set_value</code><span class="sig-paren">(</span>std::string <em>key</em>, std::string <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18MetadataDictionary9set_valueENSt6stringENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

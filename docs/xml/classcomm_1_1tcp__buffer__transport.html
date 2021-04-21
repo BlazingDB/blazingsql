@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class tcp_buffer_transport &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class tcp_buffer_transport &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,42 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N4comm20tcp_buffer_transportE">
-<span id="_CPPv3N4comm20tcp_buffer_transportE"></span><span id="_CPPv2N4comm20tcp_buffer_transportE"></span><span id="comm::tcp_buffer_transport"></span><span class="target" id="classcomm_1_1tcp__buffer__transport"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">tcp_buffer_transport</code> : <em class="property">public</em> comm::<a class="reference internal" href="classcomm_1_1buffer__transport.html#_CPPv4N4comm16buffer_transportE" title="comm::buffer_transport">buffer_transport</a><a class="headerlink" href="#_CPPv4N4comm20tcp_buffer_transportE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_buffer_transport20tcp_buffer_transportENSt6vectorI4nodeEEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEEiPN4ctpl11thread_poolI13BlazingThreadEEb">
-<span id="_CPPv3N4comm20tcp_buffer_transport20tcp_buffer_transportENSt6vectorI4nodeEEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEEiPN4ctpl11thread_poolI13BlazingThreadEEb"></span><span id="_CPPv2N4comm20tcp_buffer_transport20tcp_buffer_transportENSt6vectorI4nodeEEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEEiPN4ctpl11thread_poolI13BlazingThreadEEb"></span><span id="comm::tcp_buffer_transport::tcp_buffer_transport__std::vector:node:.ral::cache::MetadataDictionary.std::vector:s:.std::vector:blazingdb::transport::ColumnTransport:.std::vector:ral::memory::blazing_chunked_column_info:.i.ctpl::thread_pool:BlazingThread:P.b"></span><span class="target" id="classcomm_1_1tcp__buffer__transport_1a612b73b9fd1cc8fc656e6073bf25bd4e"></span><code class="sig-name descname">tcp_buffer_transport</code><span class="sig-paren">(</span>std::vector&lt;<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; <em>destinations</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1MetadataDictionary.html#_CPPv4N3ral5cache18MetadataDictionaryE" title="ral::cache::MetadataDictionary">MetadataDictionary</a> <em>metadata</em>, std::vector&lt;size_t&gt; <em>buffer_sizes</em>, std::vector&lt;blazingdb::transport::<a class="reference internal" href="structblazingdb_1_1transport_1_1ColumnTransport.html#_CPPv4N9blazingdb9transport15ColumnTransportE" title="blazingdb::transport::ColumnTransport">ColumnTransport</a>&gt; <em>column_transports</em>, std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; <em>chunked_column_infos</em>, int <em>ral_id</em>, ctpl::<a class="reference internal" href="classctpl_1_1thread__pool.html#_CPPv4I0EN4ctpl11thread_poolE" title="ctpl::thread_pool">thread_pool</a>&lt;BlazingThread&gt; *<em>allocate_copy_buffer_pool</em>, bool <em>require_acknowledge</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_buffer_transport20tcp_buffer_transportENSt6vectorI4nodeEEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEEiPN4ctpl11thread_poolI13BlazingThreadEEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_buffer_transportD0Ev">
-<span id="_CPPv3N4comm20tcp_buffer_transportD0Ev"></span><span id="_CPPv2N4comm20tcp_buffer_transportD0Ev"></span><span id="comm::tcp_buffer_transport::~tcp_buffer_transport"></span><span class="target" id="classcomm_1_1tcp__buffer__transport_1a54b7c456f0b4c226f6f5db545dded67a"></span><code class="sig-name descname">~tcp_buffer_transport</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_buffer_transportD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_buffer_transport23send_begin_transmissionEv">
-<span id="_CPPv3N4comm20tcp_buffer_transport23send_begin_transmissionEv"></span><span id="_CPPv2N4comm20tcp_buffer_transport23send_begin_transmissionEv"></span><span id="comm::tcp_buffer_transport::send_begin_transmission"></span><span class="target" id="classcomm_1_1tcp__buffer__transport_1aa2a4513884e0e8e6b9996bb800d12dcf"></span><em class="property">virtual</em> void <code class="sig-name descname">send_begin_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N4comm20tcp_buffer_transport23send_begin_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_buffer_transport9send_implEPKc6size_t">
-<span id="_CPPv3N4comm20tcp_buffer_transport9send_implEPKc6size_t"></span><span id="_CPPv2N4comm20tcp_buffer_transport9send_implEPKc6size_t"></span><span id="comm::tcp_buffer_transport::send_impl__cCP.s"></span><span class="target" id="classcomm_1_1tcp__buffer__transport_1a1b9b0e80fbdf55c5217446ad025b47bd"></span><em class="property">virtual</em> void <code class="sig-name descname">send_impl</code><span class="sig-paren">(</span><em class="property">const</em> char *<em>buffer</em>, size_t <em>buffer_size</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N4comm20tcp_buffer_transport9send_implEPKc6size_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_buffer_transport19receive_acknowledgeEv">
-<span id="_CPPv3N4comm20tcp_buffer_transport19receive_acknowledgeEv"></span><span id="_CPPv2N4comm20tcp_buffer_transport19receive_acknowledgeEv"></span><span id="comm::tcp_buffer_transport::receive_acknowledge"></span><span class="target" id="classcomm_1_1tcp__buffer__transport_1a55d958a8177cb50981ca4e615a2e5669"></span><em class="property">virtual</em> void <code class="sig-name descname">receive_acknowledge</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_buffer_transport19receive_acknowledgeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class data_provider &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class data_provider &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4273,57 +4369,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral2io13data_providerE">
-<span id="_CPPv3N3ral2io13data_providerE"></span><span id="_CPPv2N3ral2io13data_providerE"></span><span id="ral::io::data_provider"></span><span class="target" id="classral_1_1io_1_1data__provider"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">data_provider</code><a class="headerlink" href="#_CPPv4N3ral2io13data_providerE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A class we can use which will be the base for all of our data providers </p>
-<p>Subclassed by <a class="reference internal" href="classral_1_1io_1_1abstractsql__data__provider.html#classral_1_1io_1_1abstractsql__data__provider"><span class="std std-ref">ral::io::abstractsql_data_provider</span></a>, <a class="reference internal" href="classral_1_1io_1_1gdf__data__provider.html#classral_1_1io_1_1gdf__data__provider"><span class="std std-ref">ral::io::gdf_data_provider</span></a>, <a class="reference internal" href="classral_1_1io_1_1uri__data__provider.html#classral_1_1io_1_1uri__data__provider"><span class="std std-ref">ral::io::uri_data_provider</span></a></p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider5cloneEv">
-<span id="_CPPv3N3ral2io13data_provider5cloneEv"></span><span id="_CPPv2N3ral2io13data_provider5cloneEv"></span><span id="ral::io::data_provider::clone"></span><span class="target" id="classral_1_1io_1_1data__provider_1afff64b38ec3107e2e63edf6773ab7414"></span><em class="property">virtual</em> std::shared_ptr&lt;<a class="reference internal" href="#_CPPv4N3ral2io13data_providerE" title="ral::io::data_provider">data_provider</a>&gt; <code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider5cloneEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider8has_nextEv">
-<span id="_CPPv3N3ral2io13data_provider8has_nextEv"></span><span id="_CPPv2N3ral2io13data_provider8has_nextEv"></span><span id="ral::io::data_provider::has_next"></span><span class="target" id="classral_1_1io_1_1data__provider_1a92176228bbef65093853e2e2165a6d71"></span><em class="property">virtual</em> bool <code class="sig-name descname">has_next</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider8has_nextEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>tells us if this provider can generate more arrow::io::RandomAccessFile instances </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider5resetEv">
-<span id="_CPPv3N3ral2io13data_provider5resetEv"></span><span id="_CPPv2N3ral2io13data_provider5resetEv"></span><span id="ral::io::data_provider::reset"></span><span class="target" id="classral_1_1io_1_1data__provider_1ab762cbdb9fd702a61b48785c84e91536"></span><em class="property">virtual</em> void <code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider5resetEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Resets file read count to 0 for file based DataProvider </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider8get_nextEb">
-<span id="_CPPv3N3ral2io13data_provider8get_nextEb"></span><span id="_CPPv2N3ral2io13data_provider8get_nextEb"></span><span id="ral::io::data_provider::get_next__b"></span><span class="target" id="classral_1_1io_1_1data__provider_1aa49cde8c92f3bc4e9fcbe2e8f34e7ba3"></span><em class="property">virtual</em> <a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <code class="sig-name descname">get_next</code><span class="sig-paren">(</span>bool <em>open_file</em> = true<span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider8get_nextEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>gets us the next arrow::io::RandomAccessFile </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider8get_someENSt6size_tEb">
-<span id="_CPPv3N3ral2io13data_provider8get_someENSt6size_tEb"></span><span id="_CPPv2N3ral2io13data_provider8get_someENSt6size_tEb"></span><span id="ral::io::data_provider::get_some__std::s.b"></span><span class="target" id="classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548"></span><em class="property">virtual</em> std::vector&lt;<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a>&gt; <code class="sig-name descname">get_some</code><span class="sig-paren">(</span>std::size_t <em>num_files</em>, bool <em>open_file</em> = true<span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider8get_someENSt6size_tEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, trying to get too many file handles will cause a crash. Using <a class="reference internal" href="#classral_1_1io_1_1data__provider_1ae65c935f9812ac3321b0c814fa4a5548"><span class="std std-ref">get_some()</span></a> forces breaking up the process of getting file_handles. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider18close_file_handlesEv">
-<span id="_CPPv3N3ral2io13data_provider18close_file_handlesEv"></span><span id="_CPPv2N3ral2io13data_provider18close_file_handlesEv"></span><span id="ral::io::data_provider::close_file_handles"></span><span class="target" id="classral_1_1io_1_1data__provider_1afa6216bccde854b011ed098e114ba8b3"></span><em class="property">virtual</em> void <code class="sig-name descname">close_file_handles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider18close_file_handlesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Closes currently open set of file handles maintained by the provider </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io13data_provider15get_num_handlesEv">
-<span id="_CPPv3N3ral2io13data_provider15get_num_handlesEv"></span><span id="_CPPv2N3ral2io13data_provider15get_num_handlesEv"></span><span id="ral::io::data_provider::get_num_handles"></span><span class="target" id="classral_1_1io_1_1data__provider_1a00ff9cc629a869d7b7e6a67c90056749"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_num_handles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io13data_provider15get_num_handlesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the number of data_handles that will be provided. </p>
-</dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

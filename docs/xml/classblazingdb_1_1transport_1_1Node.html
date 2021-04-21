@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class Node &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class Node &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,70 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N9blazingdb9transport4NodeE">
-<span id="_CPPv3N9blazingdb9transport4NodeE"></span><span id="_CPPv2N9blazingdb9transport4NodeE"></span><span id="blazingdb::transport::Node"></span><span class="target" id="classblazingdb_1_1transport_1_1Node"></span><em class="property">class </em><code class="sig-prename descclassname">blazingdb::transport<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">Node</code><a class="headerlink" href="#_CPPv4N9blazingdb9transport4NodeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A <a class="reference internal" href="#classblazingdb_1_1transport_1_1Node"><span class="std std-ref">Node</span></a> is the representation of a RAL component used in the transport process. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N9blazingdb9transport4Node4NodeEv">
-<span id="_CPPv3N9blazingdb9transport4Node4NodeEv"></span><span id="_CPPv2N9blazingdb9transport4Node4NodeEv"></span><span id="blazingdb::transport::Node::Node"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1a4489375b3c35858893037d4f407109bc"></span><code class="sig-name descname">Node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb9transport4Node4NodeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N9blazingdb9transport4Node4NodeERKNSt6stringEb">
-<span id="_CPPv3N9blazingdb9transport4Node4NodeERKNSt6stringEb"></span><span id="_CPPv2N9blazingdb9transport4Node4NodeERKNSt6stringEb"></span><span id="blazingdb::transport::Node::Node__ssCR.b"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1a9031261dcdaabbd36bb4b6d879844ba0"></span><code class="sig-name descname">Node</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>id</em>, bool <em>isAvailable</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb9transport4Node4NodeERKNSt6stringEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK9blazingdb9transport4NodeeqERK4Node">
-<span id="_CPPv3NK9blazingdb9transport4NodeeqERK4Node"></span><span id="_CPPv2NK9blazingdb9transport4NodeeqERK4Node"></span><span id="blazingdb::transport::Node::eq-operator__NodeCRC"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1a84b3ad8cef90f48c2243042f1f5782a0"></span>bool <code class="sig-name descname">operator==</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N9blazingdb9transport4NodeE" title="blazingdb::transport::Node">Node</a> &amp;<em>rhs</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb9transport4NodeeqERK4Node" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK9blazingdb9transport4NodeneERK4Node">
-<span id="_CPPv3NK9blazingdb9transport4NodeneERK4Node"></span><span id="_CPPv2NK9blazingdb9transport4NodeneERK4Node"></span><span id="blazingdb::transport::Node::neq-operator__NodeCRC"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1ae731c7257766fe0e18404dbac40b0ad2"></span>bool <code class="sig-name descname">operator!=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N9blazingdb9transport4NodeE" title="blazingdb::transport::Node">Node</a> &amp;<em>rhs</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb9transport4NodeneERK4Node" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK9blazingdb9transport4Node2idEv">
-<span id="_CPPv3NK9blazingdb9transport4Node2idEv"></span><span id="_CPPv2NK9blazingdb9transport4Node2idEv"></span><span id="blazingdb::transport::Node::idC"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1a63a6ed9312ac6791174500920dcd7353"></span>std::string <code class="sig-name descname">id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb9transport4Node2idEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK9blazingdb9transport4Node11isAvailableEv">
-<span id="_CPPv3NK9blazingdb9transport4Node11isAvailableEv"></span><span id="_CPPv2NK9blazingdb9transport4Node11isAvailableEv"></span><span id="blazingdb::transport::Node::isAvailableC"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1ae79c5cf0ab678f0ee30d56fce23def88"></span>bool <code class="sig-name descname">isAvailable</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb9transport4Node11isAvailableEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Note: Not implemented yet. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N9blazingdb9transport4Node12setAvailableEb">
-<span id="_CPPv3N9blazingdb9transport4Node12setAvailableEb"></span><span id="_CPPv2N9blazingdb9transport4Node12setAvailableEb"></span><span id="blazingdb::transport::Node::setAvailable__b"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1abce18fdec1e622c893a33db63455bd50"></span>void <code class="sig-name descname">setAvailable</code><span class="sig-paren">(</span>bool <em>available</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb9transport4Node12setAvailableEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Note: Not implemented yet. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK9blazingdb9transport4Node5printEv">
-<span id="_CPPv3NK9blazingdb9transport4Node5printEv"></span><span id="_CPPv2NK9blazingdb9transport4Node5printEv"></span><span id="blazingdb::transport::Node::printC"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1ab032db4d837cb39faac99494423c902e"></span>void <code class="sig-name descname">print</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb9transport4Node5printEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
-<dl class="cpp var">
-<dt id="_CPPv4N9blazingdb9transport4Node3id_E">
-<span id="_CPPv3N9blazingdb9transport4Node3id_E"></span><span id="_CPPv2N9blazingdb9transport4Node3id_E"></span><span id="blazingdb::transport::Node::id___ss"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1a51b72b84fde931b439be0d8dba42c0be"></span>std::string <code class="sig-name descname">id_</code><a class="headerlink" href="#_CPPv4N9blazingdb9transport4Node3id_E" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N9blazingdb9transport4Node12isAvailable_E">
-<span id="_CPPv3N9blazingdb9transport4Node12isAvailable_E"></span><span id="_CPPv2N9blazingdb9transport4Node12isAvailable_E"></span><span id="blazingdb::transport::Node::isAvailable___b"></span><span class="target" id="classblazingdb_1_1transport_1_1Node_1a7db6157f236fac7b33b46b707ead427a"></span>bool <code class="sig-name descname">isAvailable_</code> = {false}<a class="headerlink" href="#_CPPv4N9blazingdb9transport4Node12isAvailable_E" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class AddressExchangerForSender &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class AddressExchangerForSender &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,44 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSenderE">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSenderE"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSenderE"></span><span id="ral::communication::AddressExchangerForSender"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender"></span><em class="property">class </em><code class="sig-prename descclassname">ral::communication<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">AddressExchangerForSender</code> : <em class="property">public</em> ral::communication::<a class="reference internal" href="classral_1_1communication_1_1AddressExchanger.html#_CPPv4N3ral13communication16AddressExchangerE" title="ral::communication::AddressExchanger">AddressExchanger</a><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSenderE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSenderD0Ev">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSenderD0Ev"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSenderD0Ev"></span><span id="ral::communication::AddressExchangerForSender::~AddressExchangerForSender"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender_1a63756dc5e678ef1ebd7fd4736adc9e1b"></span><em class="property">inline</em> <code class="sig-name descname">~AddressExchangerForSender</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSenderD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSender25AddressExchangerForSenderEKNSt8uint16_tE">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSender25AddressExchangerForSenderEKNSt8uint16_tE"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSender25AddressExchangerForSenderEKNSt8uint16_tE"></span><span id="ral::communication::AddressExchangerForSender::AddressExchangerForSender__std::uint16_tC"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender_1aed8329980dcfef4c782e0cd5cc23bc22"></span><em class="property">inline</em> <code class="sig-name descname">AddressExchangerForSender</code><span class="sig-paren">(</span><em class="property">const</em> std::uint16_t <em>port</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSender25AddressExchangerForSenderEKNSt8uint16_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSender10get_ip_strEPK8sockaddrPc6size_t">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSender10get_ip_strEPK8sockaddrPc6size_t"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSender10get_ip_strEPK8sockaddrPc6size_t"></span><span id="ral::communication::AddressExchangerForSender::get_ip_str__sockaddrCP.cP.s"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender_1a90dff593f2b306ceb94940e213fda0bd"></span><em class="property">inline</em> char *<code class="sig-name descname">get_ip_str</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> sockaddr *<em>sa</em>, char *<em>s</em>, size_t <em>maxlen</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSender10get_ip_strEPK8sockaddrPc6size_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSender16acceptConnectionEv">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSender16acceptConnectionEv"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSender16acceptConnectionEv"></span><span id="ral::communication::AddressExchangerForSender::acceptConnection"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender_1aca2eb6acefb439cd8d3b898d19d54d22"></span><em class="property">inline</em> bool <code class="sig-name descname">acceptConnection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSender16acceptConnectionEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSender22closeCurrentConnectionEv">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSender22closeCurrentConnectionEv"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSender22closeCurrentConnectionEv"></span><span id="ral::communication::AddressExchangerForSender::closeCurrentConnection"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender_1a5a2e5c7a53c81f6425aaaa4821f378ed"></span><em class="property">inline</em> void <code class="sig-name descname">closeCurrentConnection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSender22closeCurrentConnectionEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication25AddressExchangerForSender2fdEv">
-<span id="_CPPv3N3ral13communication25AddressExchangerForSender2fdEv"></span><span id="_CPPv2N3ral13communication25AddressExchangerForSender2fdEv"></span><span id="ral::communication::AddressExchangerForSender::fd"></span><span class="target" id="classral_1_1communication_1_1AddressExchangerForSender_1adaf94458ab22f538905644ff818be6f4"></span><em class="property">inline</em> <em class="property">virtual</em> int <code class="sig-name descname">fd</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">final</em><a class="headerlink" href="#_CPPv4N3ral13communication25AddressExchangerForSender2fdEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

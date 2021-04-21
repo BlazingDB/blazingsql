@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class CommunicationData &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class CommunicationData &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,57 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral13communication17CommunicationDataE">
-<span id="_CPPv3N3ral13communication17CommunicationDataE"></span><span id="_CPPv2N3ral13communication17CommunicationDataE"></span><span id="ral::communication::CommunicationData"></span><span class="target" id="classral_1_1communication_1_1CommunicationData"></span><em class="property">class </em><code class="sig-prename descclassname">ral::communication<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">CommunicationData</code><a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationDataE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationData10initializeERKNSt6stringERKNSt6stringE">
-<span id="_CPPv3N3ral13communication17CommunicationData10initializeERKNSt6stringERKNSt6stringE"></span><span id="_CPPv2N3ral13communication17CommunicationData10initializeERKNSt6stringERKNSt6stringE"></span><span id="ral::communication::CommunicationData::initialize__ssCR.ssCR"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a54127850ce370846d7bec8838ac5977d"></span>void <code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>worker_id</em>, <em class="property">const</em> std::string &amp;<em>cache_directory</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationData10initializeERKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationData11getSelfNodeEv">
-<span id="_CPPv3N3ral13communication17CommunicationData11getSelfNodeEv"></span><span id="_CPPv2N3ral13communication17CommunicationData11getSelfNodeEv"></span><span id="ral::communication::CommunicationData::getSelfNode"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a3760edb8d01a37ea1d2f4a22f79667c7"></span><em class="property">const</em> blazingdb::transport::<a class="reference internal" href="classblazingdb_1_1transport_1_1Node.html#_CPPv4N9blazingdb9transport4NodeE" title="blazingdb::transport::Node">Node</a> &amp;<code class="sig-name descname">getSelfNode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationData11getSelfNodeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationData19get_cache_directoryEv">
-<span id="_CPPv3N3ral13communication17CommunicationData19get_cache_directoryEv"></span><span id="_CPPv2N3ral13communication17CommunicationData19get_cache_directoryEv"></span><span id="ral::communication::CommunicationData::get_cache_directory"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a3ba22fbadc0e8ab7fa3ce3f4d2f14bde"></span>std::string <code class="sig-name descname">get_cache_directory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationData19get_cache_directoryEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationData17CommunicationDataERR17CommunicationData">
-<span id="_CPPv3N3ral13communication17CommunicationData17CommunicationDataERR17CommunicationData"></span><span id="_CPPv2N3ral13communication17CommunicationData17CommunicationDataERR17CommunicationData"></span><span id="ral::communication::CommunicationData::CommunicationData__CommunicationDataRR"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a06c1035a65f9f6732967f664c91046df"></span><code class="sig-name descname">CommunicationData</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationData17CommunicationDataERR17CommunicationData" title="ral::communication::CommunicationData::CommunicationData">CommunicationData</a>&amp;&amp;<span class="sig-paren">)</span> = delete<a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationData17CommunicationDataERR17CommunicationData" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationData17CommunicationDataERK17CommunicationData">
-<span id="_CPPv3N3ral13communication17CommunicationData17CommunicationDataERK17CommunicationData"></span><span id="_CPPv2N3ral13communication17CommunicationData17CommunicationDataERK17CommunicationData"></span><span id="ral::communication::CommunicationData::CommunicationData__CommunicationDataCR"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a921fb32cebb3abcd7b21e2100b5628c6"></span><code class="sig-name descname">CommunicationData</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationData17CommunicationDataERK17CommunicationData" title="ral::communication::CommunicationData::CommunicationData">CommunicationData</a>&amp;<span class="sig-paren">)</span> = delete<a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationData17CommunicationDataERK17CommunicationData" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationDataaSERR17CommunicationData">
-<span id="_CPPv3N3ral13communication17CommunicationDataaSERR17CommunicationData"></span><span id="_CPPv2N3ral13communication17CommunicationDataaSERR17CommunicationData"></span><span id="ral::communication::CommunicationData::assign-operator__CommunicationDataRR"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a4e2f21a1e92329d1b7352e4778785841"></span><a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationDataE" title="ral::communication::CommunicationData">CommunicationData</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationDataE" title="ral::communication::CommunicationData">CommunicationData</a>&amp;&amp;<span class="sig-paren">)</span> = delete<a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationDataaSERR17CommunicationData" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationDataaSERK17CommunicationData">
-<span id="_CPPv3N3ral13communication17CommunicationDataaSERK17CommunicationData"></span><span id="_CPPv2N3ral13communication17CommunicationDataaSERK17CommunicationData"></span><span id="ral::communication::CommunicationData::assign-operator__CommunicationDataCR"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1aa9fbd91e8d7d16b5075f037ddb01786f"></span><a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationDataE" title="ral::communication::CommunicationData">CommunicationData</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationDataE" title="ral::communication::CommunicationData">CommunicationData</a>&amp;<span class="sig-paren">)</span> = delete<a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationDataaSERK17CommunicationData" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral13communication17CommunicationData11getInstanceEv">
-<span id="_CPPv3N3ral13communication17CommunicationData11getInstanceEv"></span><span id="_CPPv2N3ral13communication17CommunicationData11getInstanceEv"></span><span id="ral::communication::CommunicationData::getInstance"></span><span class="target" id="classral_1_1communication_1_1CommunicationData_1a5924a72dfc16fa5078ff30e9d7289e94"></span><em class="property">static</em> <a class="reference internal" href="#_CPPv4N3ral13communication17CommunicationDataE" title="ral::communication::CommunicationData">CommunicationData</a> &amp;<code class="sig-name descname">getInstance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral13communication17CommunicationData11getInstanceEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

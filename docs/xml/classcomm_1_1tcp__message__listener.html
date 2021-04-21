@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class tcp_message_listener &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class tcp_message_listener &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,42 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N4comm20tcp_message_listenerE">
-<span id="_CPPv3N4comm20tcp_message_listenerE"></span><span id="_CPPv2N4comm20tcp_message_listenerE"></span><span id="comm::tcp_message_listener"></span><span class="target" id="classcomm_1_1tcp__message__listener"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">tcp_message_listener</code> : <em class="property">public</em> comm::<a class="reference internal" href="classcomm_1_1message__listener.html#_CPPv4N4comm16message_listenerE" title="comm::message_listener">message_listener</a><a class="headerlink" href="#_CPPv4N4comm20tcp_message_listenerE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_message_listener13start_pollingEv">
-<span id="_CPPv3N4comm20tcp_message_listener13start_pollingEv"></span><span id="_CPPv2N4comm20tcp_message_listener13start_pollingEv"></span><span id="comm::tcp_message_listener::start_polling"></span><span class="target" id="classcomm_1_1tcp__message__listener_1a09c9209787edf88d56958759d41bd024"></span><em class="property">virtual</em> void <code class="sig-name descname">start_polling</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N4comm20tcp_message_listener13start_pollingEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_message_listener8get_portEv">
-<span id="_CPPv3N4comm20tcp_message_listener8get_portEv"></span><span id="_CPPv2N4comm20tcp_message_listener8get_portEv"></span><span id="comm::tcp_message_listener::get_port"></span><span class="target" id="classcomm_1_1tcp__message__listener_1aa3b46d15b04020856ad8c5e3cf5634b3"></span><em class="property">inline</em> int <code class="sig-name descname">get_port</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_message_listener8get_portEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_message_listenerD0Ev">
-<span id="_CPPv3N4comm20tcp_message_listenerD0Ev"></span><span id="_CPPv2N4comm20tcp_message_listenerD0Ev"></span><span id="comm::tcp_message_listener::~tcp_message_listener"></span><span class="target" id="classcomm_1_1tcp__message__listener_1a1c48e2d11cf977cdcdfd6ac5dc68faa1"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~tcp_message_listener</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_message_listenerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_message_listener27initialize_message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiiNSt10shared_ptrIN3ral5cache12CacheMachineEEE">
-<span id="_CPPv3N4comm20tcp_message_listener27initialize_message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm20tcp_message_listener27initialize_message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::tcp_message_listener::initialize_message_listener__std::map:ss.comm::node:CR.i.i.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1tcp__message__listener_1a8381140931cdeef27cfcab33634d6048"></span><em class="property">static</em> void <code class="sig-name descname">initialize_message_listener</code><span class="sig-paren">(</span><em class="property">const</em> std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; &amp;<em>nodes</em>, int <em>port</em>, int <em>num_threads</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>input_cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_message_listener27initialize_message_listenerERKNSt3mapINSt6stringEN4comm4nodeEEEiiNSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N4comm20tcp_message_listener12get_instanceEv">
-<span id="_CPPv3N4comm20tcp_message_listener12get_instanceEv"></span><span id="_CPPv2N4comm20tcp_message_listener12get_instanceEv"></span><span id="comm::tcp_message_listener::get_instance"></span><span class="target" id="classcomm_1_1tcp__message__listener_1a4815f479af1dffacb72d59e656913306"></span><em class="property">static</em> <a class="reference internal" href="#_CPPv4N4comm20tcp_message_listenerE" title="comm::tcp_message_listener">tcp_message_listener</a> *<code class="sig-name descname">get_instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20tcp_message_listener12get_instanceEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

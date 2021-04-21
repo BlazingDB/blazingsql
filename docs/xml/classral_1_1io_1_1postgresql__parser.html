@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class postgresql_parser &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class postgresql_parser &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,44 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral2io17postgresql_parserE">
-<span id="_CPPv3N3ral2io17postgresql_parserE"></span><span id="_CPPv2N3ral2io17postgresql_parserE"></span><span id="ral::io::postgresql_parser"></span><span class="target" id="classral_1_1io_1_1postgresql__parser"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">postgresql_parser</code> : <em class="property">public</em> ral::io::<a class="reference internal" href="classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE" title="ral::io::data_parser">data_parser</a><a class="headerlink" href="#_CPPv4N3ral2io17postgresql_parserE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io17postgresql_parser17postgresql_parserEv">
-<span id="_CPPv3N3ral2io17postgresql_parser17postgresql_parserEv"></span><span id="_CPPv2N3ral2io17postgresql_parser17postgresql_parserEv"></span><span id="ral::io::postgresql_parser::postgresql_parser"></span><span class="target" id="classral_1_1io_1_1postgresql__parser_1a4c27dfd31fcccd956417c3717f65aa0d"></span><code class="sig-name descname">postgresql_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io17postgresql_parser17postgresql_parserEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io17postgresql_parserD0Ev">
-<span id="_CPPv3N3ral2io17postgresql_parserD0Ev"></span><span id="_CPPv2N3ral2io17postgresql_parserD0Ev"></span><span id="ral::io::postgresql_parser::~postgresql_parser"></span><span class="target" id="classral_1_1io_1_1postgresql__parser_1a895ce6f13d528ad35292a4682dbea0ed"></span><em class="property">virtual</em> <code class="sig-name descname">~postgresql_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io17postgresql_parserD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io17postgresql_parser11parse_batchE11data_handleRK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">
-<span id="_CPPv3N3ral2io17postgresql_parser11parse_batchE11data_handleRK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="_CPPv2N3ral2io17postgresql_parser11parse_batchE11data_handleRK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="ral::io::postgresql_parser::parse_batch__data_handle.SchemaCR.std::vector:i:.std::vector:cudf::size_type:"></span><span class="target" id="classral_1_1io_1_1postgresql__parser_1a073ba45496a353fc25db1536f1a9e0cc"></span><em class="property">virtual</em> std::unique_ptr&lt;frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">parse_batch</code><span class="sig-paren">(</span><a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, <em class="property">const</em> <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em>, std::vector&lt;int&gt; <em>column_indices</em>, std::vector&lt;cudf::size_type&gt; <em>row_groups</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io17postgresql_parser11parse_batchE11data_handleRK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io17postgresql_parser12parse_schemaE11data_handleR6Schema">
-<span id="_CPPv3N3ral2io17postgresql_parser12parse_schemaE11data_handleR6Schema"></span><span id="_CPPv2N3ral2io17postgresql_parser12parse_schemaE11data_handleR6Schema"></span><span id="ral::io::postgresql_parser::parse_schema__data_handle.SchemaR"></span><span class="target" id="classral_1_1io_1_1postgresql__parser_1a996749054f54fa339f62453bcca8bcea"></span><em class="property">virtual</em> void <code class="sig-name descname">parse_schema</code><span class="sig-paren">(</span><a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io17postgresql_parser12parse_schemaE11data_handleR6Schema" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io17postgresql_parser12get_metadataENSt6vectorI11data_handleEEi">
-<span id="_CPPv3N3ral2io17postgresql_parser12get_metadataENSt6vectorI11data_handleEEi"></span><span id="_CPPv2N3ral2io17postgresql_parser12get_metadataENSt6vectorI11data_handleEEi"></span><span id="ral::io::postgresql_parser::get_metadata__std::vector:data_handle:.i"></span><span class="target" id="classral_1_1io_1_1postgresql__parser_1a5025307ef34e8cb968ee82083112c26b"></span>std::unique_ptr&lt;frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">get_metadata</code><span class="sig-paren">(</span>std::vector&lt;<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a>&gt; <em>handles</em>, int <em>offset</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io17postgresql_parser12get_metadataENSt6vectorI11data_handleEEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral2io17postgresql_parser4typeEv">
-<span id="_CPPv3NK3ral2io17postgresql_parser4typeEv"></span><span id="_CPPv2NK3ral2io17postgresql_parser4typeEv"></span><span id="ral::io::postgresql_parser::typeC"></span><span class="target" id="classral_1_1io_1_1postgresql__parser_1a1eec1a6a6ae6060e2e21bc9fd763768f"></span><em class="property">inline</em> <em class="property">virtual</em> <a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataTypeE" title="ral::io::DataType">DataType</a> <code class="sig-name descname">type</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> <em class="property">override</em><a class="headerlink" href="#_CPPv4NK3ral2io17postgresql_parser4typeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

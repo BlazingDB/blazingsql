@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class ConcatenatingCacheMachine &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class ConcatenatingCacheMachine &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,51 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachineE">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachineE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachineE"></span><span id="ral::cache::ConcatenatingCacheMachine"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">ConcatenatingCacheMachine</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachineE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A class that represents a Cache Machine on a multi-tier cache system. Moreover, it only returns a single BlazingTable by concatenating all batches. This Cache Machine is used in the last Kernel (OutputKernel) in the ExecutionGraph. </p>
-<p>This ConcatenatingCacheMachine::pullFromCache method does not guarantee the relative order of the messages to be preserved </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE"></span><span id="ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine__std::shared_ptr:Context:.ss"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1ac63a832595832d436951d12acfb11971"></span><code class="sig-name descname">ConcatenatingCacheMachine</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <em>context</em>, std::string <em>cache_machine_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEibNSt6stringE">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEibNSt6stringE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEibNSt6stringE"></span><span id="ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine__std::shared_ptr:Context:.std::s.i.b.ss"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1aca072f31511748edde1384d10bf32373"></span><code class="sig-name descname">ConcatenatingCacheMachine</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <em>context</em>, std::size_t <em>concat_cache_num_bytes</em>, int <em>num_bytes_timeout</em>, bool <em>concat_all</em>, std::string <em>cache_machine_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEibNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachineD0Ev">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachineD0Ev"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachineD0Ev"></span><span id="ral::cache::ConcatenatingCacheMachine::~ConcatenatingCacheMachine"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a4c56cf2ad749df430c0200f490e49b24"></span><code class="sig-name descname">~ConcatenatingCacheMachine</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachineD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullFromCache"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a0dc01ef4e13b5f832d52f2d07d1f1f69"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">pullFromCache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullUnorderedFromCache"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a9c8db51d9971f78ff74134db114bb69a"></span><em class="property">inline</em> <em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">pullUnorderedFromCache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1af02b87583c465b8d90b451288e16cdc5"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt; <code class="sig-name descname">pullCacheData</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv"></span><span id="ral::cache::ConcatenatingCacheMachine::downgradeCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a04db0538230cd10cf7ae4ebc1cd62167"></span><em class="property">inline</em> <em class="property">virtual</em> size_t <code class="sig-name descname">downgradeCacheData</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class message &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class message &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,53 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5cache7messageE">
-<span id="_CPPv3N3ral5cache7messageE"></span><span id="_CPPv2N3ral5cache7messageE"></span><span id="ral::cache::message"></span><span class="target" id="classral_1_1cache_1_1message"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">message</code><a class="headerlink" href="#_CPPv4N3ral5cache7messageE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A wrapper for a <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> object with a message_id. Bundles together a String mesage_id with a <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> object. Really not very necessary as we could just as easily store this in the <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> object. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache7message7messageENSt10unique_ptrI9CacheDataEENSt6stringE">
-<span id="_CPPv3N3ral5cache7message7messageENSt10unique_ptrI9CacheDataEENSt6stringE"></span><span id="_CPPv2N3ral5cache7message7messageENSt10unique_ptrI9CacheDataEENSt6stringE"></span><span id="ral::cache::message::message__std::unique_ptr:CacheData:.ss"></span><span class="target" id="classral_1_1cache_1_1message_1a35d74ef18f61184f2597b799465972e6"></span><em class="property">inline</em> <code class="sig-name descname">message</code><span class="sig-paren">(</span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt; <em>content</em>, std::string <em>message_id</em> = &quot;&quot;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache7message7messageENSt10unique_ptrI9CacheDataEENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache7messageD0Ev">
-<span id="_CPPv3N3ral5cache7messageD0Ev"></span><span id="_CPPv2N3ral5cache7messageD0Ev"></span><span id="ral::cache::message::~message"></span><span class="target" id="classral_1_1cache_1_1message_1aaca6bb2fc2296152d79def53fb296e49"></span><code class="sig-name descname">~message</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache7messageD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5cache7message14get_message_idEv">
-<span id="_CPPv3NK3ral5cache7message14get_message_idEv"></span><span id="_CPPv2NK3ral5cache7message14get_message_idEv"></span><span id="ral::cache::message::get_message_idC"></span><span class="target" id="classral_1_1cache_1_1message_1a935ba0082352b3210a13b54faf528774"></span><em class="property">inline</em> std::string <code class="sig-name descname">get_message_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache7message14get_message_idEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5cache7message8get_dataEv">
-<span id="_CPPv3NK3ral5cache7message8get_dataEv"></span><span id="_CPPv2NK3ral5cache7message8get_dataEv"></span><span id="ral::cache::message::get_dataC"></span><span class="target" id="classral_1_1cache_1_1message_1a1eb481914a48805f5995194e011fde6d"></span><em class="property">inline</em> <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a> &amp;<code class="sig-name descname">get_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache7message8get_dataEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache7message12release_dataEv">
-<span id="_CPPv3N3ral5cache7message12release_dataEv"></span><span id="_CPPv2N3ral5cache7message12release_dataEv"></span><span id="ral::cache::message::release_data"></span><span class="target" id="classral_1_1cache_1_1message_1ab4f864c9a11b2a9a782a1bf2f90d67e2"></span><em class="property">inline</em> std::unique_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt; <code class="sig-name descname">release_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache7message12release_dataEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache7message4dataE">
-<span id="_CPPv3N3ral5cache7message4dataE"></span><span id="_CPPv2N3ral5cache7message4dataE"></span><span id="ral::cache::message::data__std::unique_ptr:CacheData:"></span><span class="target" id="classral_1_1cache_1_1message_1a16360130b0dfc4c47fda3d81acd10bcd"></span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt; <code class="sig-name descname">data</code><a class="headerlink" href="#_CPPv4N3ral5cache7message4dataE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache7message10message_idE">
-<span id="_CPPv3N3ral5cache7message10message_idE"></span><span id="_CPPv2N3ral5cache7message10message_idE"></span><span id="ral::cache::message::message_id__ssC"></span><span class="target" id="classral_1_1cache_1_1message_1a0022a3af29dbb1373e6b843d83196d4b"></span><em class="property">const</em> std::string <code class="sig-name descname">message_id</code><a class="headerlink" href="#_CPPv4N3ral5cache7message10message_idE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

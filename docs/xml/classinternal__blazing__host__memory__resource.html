@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class internal_blazing_host_memory_resource &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class internal_blazing_host_memory_resource &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,55 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv437internal_blazing_host_memory_resource">
-<span id="_CPPv337internal_blazing_host_memory_resource"></span><span id="_CPPv237internal_blazing_host_memory_resource"></span><span id="internal_blazing_host_memory_resource"></span><span class="target" id="classinternal__blazing__host__memory__resource"></span><em class="property">class </em><code class="sig-name descname">internal_blazing_host_memory_resource</code><a class="headerlink" href="#_CPPv437internal_blazing_host_memory_resource" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This class represents a custom host memory resource used in the cache system. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource37internal_blazing_host_memory_resourceEf">
-<span id="_CPPv3N37internal_blazing_host_memory_resource37internal_blazing_host_memory_resourceEf"></span><span id="_CPPv2N37internal_blazing_host_memory_resource37internal_blazing_host_memory_resourceEf"></span><span id="internal_blazing_host_memory_resource::internal_blazing_host_memory_resource__float"></span><span class="target" id="classinternal__blazing__host__memory__resource_1abbca9320ecef415e869bbdc24636ad3a"></span><code class="sig-name descname">internal_blazing_host_memory_resource</code><span class="sig-paren">(</span>float <em>custom_threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource37internal_blazing_host_memory_resourceEf" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resourceD0Ev">
-<span id="_CPPv3N37internal_blazing_host_memory_resourceD0Ev"></span><span id="_CPPv2N37internal_blazing_host_memory_resourceD0Ev"></span><span id="internal_blazing_host_memory_resource::~internal_blazing_host_memory_resource"></span><span class="target" id="classinternal__blazing__host__memory__resource_1a6b1fb321b8f164b5e7ad9d914fe0b73f"></span><em class="property">virtual</em> <code class="sig-name descname">~internal_blazing_host_memory_resource</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resourceD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource8allocateENSt6size_tE">
-<span id="_CPPv3N37internal_blazing_host_memory_resource8allocateENSt6size_tE"></span><span id="_CPPv2N37internal_blazing_host_memory_resource8allocateENSt6size_tE"></span><span id="internal_blazing_host_memory_resource::allocate__std::s"></span><span class="target" id="classinternal__blazing__host__memory__resource_1afc8bcff78a92f57cbda62da0852709d8"></span>void <code class="sig-name descname">allocate</code><span class="sig-paren">(</span>std::size_t <em>bytes</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource8allocateENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource10deallocateENSt6size_tE">
-<span id="_CPPv3N37internal_blazing_host_memory_resource10deallocateENSt6size_tE"></span><span id="_CPPv2N37internal_blazing_host_memory_resource10deallocateENSt6size_tE"></span><span id="internal_blazing_host_memory_resource::deallocate__std::s"></span><span class="target" id="classinternal__blazing__host__memory__resource_1a41519b89b20b0a85bfb1ba0c73a7b14b"></span>void <code class="sig-name descname">deallocate</code><span class="sig-paren">(</span>std::size_t <em>bytes</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource10deallocateENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource27get_from_driver_used_memoryEv">
-<span id="_CPPv3N37internal_blazing_host_memory_resource27get_from_driver_used_memoryEv"></span><span id="_CPPv2N37internal_blazing_host_memory_resource27get_from_driver_used_memoryEv"></span><span id="internal_blazing_host_memory_resource::get_from_driver_used_memory"></span><span class="target" id="classinternal__blazing__host__memory__resource_1a9c5f77b9aca90263639661fd386e1b6e"></span>size_t <code class="sig-name descname">get_from_driver_used_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource27get_from_driver_used_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource15get_memory_usedEv">
-<span id="_CPPv3N37internal_blazing_host_memory_resource15get_memory_usedEv"></span><span id="_CPPv2N37internal_blazing_host_memory_resource15get_memory_usedEv"></span><span id="internal_blazing_host_memory_resource::get_memory_used"></span><span class="target" id="classinternal__blazing__host__memory__resource_1ad9813f47ca0ab5012e3b09253296758c"></span>size_t <code class="sig-name descname">get_memory_used</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource15get_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource16get_total_memoryEv">
-<span id="_CPPv3N37internal_blazing_host_memory_resource16get_total_memoryEv"></span><span id="_CPPv2N37internal_blazing_host_memory_resource16get_total_memoryEv"></span><span id="internal_blazing_host_memory_resource::get_total_memory"></span><span class="target" id="classinternal__blazing__host__memory__resource_1a0f33381b5e7eb7969daac769f60a0dbf"></span>size_t <code class="sig-name descname">get_total_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource16get_total_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N37internal_blazing_host_memory_resource16get_memory_limitEv">
-<span id="_CPPv3N37internal_blazing_host_memory_resource16get_memory_limitEv"></span><span id="_CPPv2N37internal_blazing_host_memory_resource16get_memory_limitEv"></span><span id="internal_blazing_host_memory_resource::get_memory_limit"></span><span class="target" id="classinternal__blazing__host__memory__resource_1a75df32272daa359ee08395e943a2838c"></span>size_t <code class="sig-name descname">get_memory_limit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N37internal_blazing_host_memory_resource16get_memory_limitEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Function interops::perform_interpreter_operation &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Function interops::perform_interpreter_operation &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,28 +4346,6 @@
 </ul>
 <section id="function-documentation">
 <h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp function">
-<dt id="_CPPv4N8interops29perform_interpreter_operationERN4cudf18mutable_table_viewERKN4cudf10table_viewERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI13operator_typeEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEEN4cudf9size_typeE">
-<span id="_CPPv3N8interops29perform_interpreter_operationERN4cudf18mutable_table_viewERKN4cudf10table_viewERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI13operator_typeEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEEN4cudf9size_typeE"></span><span id="_CPPv2N8interops29perform_interpreter_operationERN4cudf18mutable_table_viewERKN4cudf10table_viewERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI13operator_typeEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEEN4cudf9size_typeE"></span><span id="interops::perform_interpreter_operation__cudf::mutable_table_viewR.cudf::table_viewCR.std::vector:column_index_type:CR.std::vector:column_index_type:CR.std::vector:column_index_type:CR.std::vector:column_index_type:CR.std::vector:operator_type:CR.std::vector:std::unique_ptr:cudf::scalar::CR.std::vector:std::unique_ptr:cudf::scalar::CR.cudf::size_type"></span><span class="target" id="interpreter__cpp_8h_1abfcc2abb2fc552dc88ada82b25ef2686"></span>void <code class="sig-prename descclassname">interops<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">perform_interpreter_operation</code><span class="sig-paren">(</span>cudf::mutable_table_view &amp;<em>out_table</em>, <em class="property">const</em> cudf::table_view &amp;<em>table</em>, <em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_interpreter__cpp_8h_1a1a3b365f4c86d28ba0afd1f235ad217a.html#_CPPv4N8interops17column_index_typeE" title="interops::column_index_type">column_index_type</a>&gt; &amp;<em>left_inputs</em>, <em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_interpreter__cpp_8h_1a1a3b365f4c86d28ba0afd1f235ad217a.html#_CPPv4N8interops17column_index_typeE" title="interops::column_index_type">column_index_type</a>&gt; &amp;<em>right_inputs</em>, <em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_interpreter__cpp_8h_1a1a3b365f4c86d28ba0afd1f235ad217a.html#_CPPv4N8interops17column_index_typeE" title="interops::column_index_type">column_index_type</a>&gt; &amp;<em>outputs</em>, <em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_interpreter__cpp_8h_1a1a3b365f4c86d28ba0afd1f235ad217a.html#_CPPv4N8interops17column_index_typeE" title="interops::column_index_type">column_index_type</a>&gt; &amp;<em>final_output_positions</em>, <em class="property">const</em> std::vector&lt;<a class="reference internal" href="enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#_CPPv413operator_type" title="operator_type">operator_type</a>&gt; &amp;<em>operators</em>, <em class="property">const</em> std::vector&lt;std::unique_ptr&lt;cudf::scalar&gt;&gt; &amp;<em>left_scalars</em>, <em class="property">const</em> std::vector&lt;std::unique_ptr&lt;cudf::scalar&gt;&gt; &amp;<em>right_scalars</em>, cudf::size_type <em>operation_num_rows</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8interops29perform_interpreter_operationERN4cudf18mutable_table_viewERKN4cudf10table_viewERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI17column_index_typeEERKNSt6vectorI13operator_typeEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEERKNSt6vectorINSt10unique_ptrIN4cudf6scalarEEEEEN4cudf9size_typeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Evaluates multiple operations encoded in a GPU friendly format in a single GPU kernel call. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">out_table</span></code>: The output table to store the results </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The input table </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">left_inputs</span></code>: The encoded left inputs indices from all the processed expressions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">right_inputs</span></code>: The encoded right inputs indices from all the processed expressions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: The encoded output indices from all the processed expressions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">final_output_positions</span></code>: The encoded final output indices for all the processed expressions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">operators</span></code>: The encoded operations from all the processed expressions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">left_scalars</span></code>: The scalars used as left inputs in the operations </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">right_scalars</span></code>: The scalars used as right inputs in the operations </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">operation_num_rows</span></code>: The output number of rows </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
 </section>
 </section>
 

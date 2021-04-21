@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class CodeTimer &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class CodeTimer &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,54 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv49CodeTimer">
-<span id="_CPPv39CodeTimer"></span><span id="_CPPv29CodeTimer"></span><span id="CodeTimer"></span><span class="target" id="classCodeTimer"></span><em class="property">class </em><code class="sig-name descname">CodeTimer</code><a class="headerlink" href="#_CPPv49CodeTimer" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N9CodeTimer9CodeTimerEb">
-<span id="_CPPv3N9CodeTimer9CodeTimerEb"></span><span id="_CPPv2N9CodeTimer9CodeTimerEb"></span><span id="CodeTimer::CodeTimer__b"></span><span class="target" id="classCodeTimer_1ac0fa5e40ff23c9546cc0e09726958f71"></span><em class="property">inline</em> <code class="sig-name descname">CodeTimer</code><span class="sig-paren">(</span>bool <em>start</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer9CodeTimerEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N9CodeTimerD0Ev">
-<span id="_CPPv3N9CodeTimerD0Ev"></span><span id="_CPPv2N9CodeTimerD0Ev"></span><span id="CodeTimer::~CodeTimer"></span><span class="target" id="classCodeTimer_1a22afd78958412a93ccc2f63248a6bd42"></span><code class="sig-name descname">~CodeTimer</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N9CodeTimerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N9CodeTimer5startEv">
-<span id="_CPPv3N9CodeTimer5startEv"></span><span id="_CPPv2N9CodeTimer5startEv"></span><span id="CodeTimer::start"></span><span class="target" id="classCodeTimer_1af0737b8b16127370eaf3da619b71e037"></span><em class="property">inline</em> void <code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer5startEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N9CodeTimer4stopEv">
-<span id="_CPPv3N9CodeTimer4stopEv"></span><span id="_CPPv2N9CodeTimer4stopEv"></span><span id="CodeTimer::stop"></span><span class="target" id="classCodeTimer_1a8575aaa3fcc732f681634ba6335800ad"></span><em class="property">inline</em> void <code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer4stopEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N9CodeTimer5resetEv">
-<span id="_CPPv3N9CodeTimer5resetEv"></span><span id="_CPPv2N9CodeTimer5resetEv"></span><span id="CodeTimer::reset"></span><span class="target" id="classCodeTimer_1a9bdeff16d0890d913125404ca1aca114"></span><em class="property">inline</em> void <code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer5resetEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv">
-<span id="_CPPv3I0EN9CodeTimer10start_timeEv"></span><span id="_CPPv2I0EN9CodeTimer10start_timeEv"></span>template&lt;typename <code class="sig-name descname">Units</code> = std::chrono::milliseconds&gt;<br /><span class="target" id="classCodeTimer_1af9bd67af986ca80d5054b7cc9a994a65"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv" title="CodeTimer::start_time::Units">Units</a>::rep <code class="sig-name descname">start_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv">
-<span id="_CPPv3I0EN9CodeTimer8end_timeEv"></span><span id="_CPPv2I0EN9CodeTimer8end_timeEv"></span>template&lt;typename <code class="sig-name descname">Units</code> = std::chrono::milliseconds&gt;<br /><span class="target" id="classCodeTimer_1abd480704f5bb9bda45f326e32062cda6"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv" title="CodeTimer::end_time::Units">Units</a>::rep <code class="sig-name descname">end_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv">
-<span id="_CPPv3I0EN9CodeTimer12elapsed_timeEv"></span><span id="_CPPv2I0EN9CodeTimer12elapsed_timeEv"></span>template&lt;typename <code class="sig-name descname">Units</code> = std::chrono::milliseconds&gt;<br /><span class="target" id="classCodeTimer_1a768a3829e64ffcee0836375ce7b92b73"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv" title="CodeTimer::elapsed_time::Units">Units</a>::rep <code class="sig-name descname">elapsed_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class gdf_parser &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class gdf_parser &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,44 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral2io10gdf_parserE">
-<span id="_CPPv3N3ral2io10gdf_parserE"></span><span id="_CPPv2N3ral2io10gdf_parserE"></span><span id="ral::io::gdf_parser"></span><span class="target" id="classral_1_1io_1_1gdf__parser"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">gdf_parser</code> : <em class="property">public</em> ral::io::<a class="reference internal" href="classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE" title="ral::io::data_parser">data_parser</a><a class="headerlink" href="#_CPPv4N3ral2io10gdf_parserE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io10gdf_parser10gdf_parserEv">
-<span id="_CPPv3N3ral2io10gdf_parser10gdf_parserEv"></span><span id="_CPPv2N3ral2io10gdf_parser10gdf_parserEv"></span><span id="ral::io::gdf_parser::gdf_parser"></span><span class="target" id="classral_1_1io_1_1gdf__parser_1ae9fdeecb13f31f6b4b758eb3a287712f"></span><code class="sig-name descname">gdf_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10gdf_parser10gdf_parserEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io10gdf_parserD0Ev">
-<span id="_CPPv3N3ral2io10gdf_parserD0Ev"></span><span id="_CPPv2N3ral2io10gdf_parserD0Ev"></span><span id="ral::io::gdf_parser::~gdf_parser"></span><span class="target" id="classral_1_1io_1_1gdf__parser_1a4dbbb81336072eb5ceff5db5db4ed144"></span><em class="property">virtual</em> <code class="sig-name descname">~gdf_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10gdf_parserD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io10gdf_parser18get_num_partitionsEv">
-<span id="_CPPv3N3ral2io10gdf_parser18get_num_partitionsEv"></span><span id="_CPPv2N3ral2io10gdf_parser18get_num_partitionsEv"></span><span id="ral::io::gdf_parser::get_num_partitions"></span><span class="target" id="classral_1_1io_1_1gdf__parser_1a3bddac0fcbb1b75ca1bfc6f6caefa793"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_num_partitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10gdf_parser18get_num_partitionsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io10gdf_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">
-<span id="_CPPv3N3ral2io10gdf_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="_CPPv2N3ral2io10gdf_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="ral::io::gdf_parser::parse_batch__ral::io::data_handle.SchemaCR.std::vector:i:.std::vector:cudf::size_type:"></span><span class="target" id="classral_1_1io_1_1gdf__parser_1af52d94871db8f8b1fee81f304a83acbf"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">parse_batch</code><span class="sig-paren">(</span>ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, <em class="property">const</em> <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em>, std::vector&lt;int&gt; <em>column_indices</em>, std::vector&lt;cudf::size_type&gt; <em>row_groups</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10gdf_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io10gdf_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE">
-<span id="_CPPv3N3ral2io10gdf_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE"></span><span id="_CPPv2N3ral2io10gdf_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE"></span><span id="ral::io::gdf_parser::parse_schema__ral::io::data_handle.ral::io::SchemaR"></span><span class="target" id="classral_1_1io_1_1gdf__parser_1acc3b83c32d26a4344f19d3f97705fdfa"></span><em class="property">virtual</em> void <code class="sig-name descname">parse_schema</code><span class="sig-paren">(</span>ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a>, ral::io::<a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10gdf_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral2io10gdf_parser4typeEv">
-<span id="_CPPv3NK3ral2io10gdf_parser4typeEv"></span><span id="_CPPv2NK3ral2io10gdf_parser4typeEv"></span><span id="ral::io::gdf_parser::typeC"></span><span class="target" id="classral_1_1io_1_1gdf__parser_1a3742f063139b4a48c62e396d7f843855"></span><em class="property">inline</em> <em class="property">virtual</em> <a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataTypeE" title="ral::io::DataType">DataType</a> <code class="sig-name descname">type</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> <em class="property">override</em><a class="headerlink" href="#_CPPv4NK3ral2io10gdf_parser4typeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

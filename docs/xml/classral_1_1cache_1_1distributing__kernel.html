@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class distributing_kernel &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class distributing_kernel &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4287,168 +4383,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5cache19distributing_kernelE">
-<span id="_CPPv3N3ral5cache19distributing_kernelE"></span><span id="_CPPv2N3ral5cache19distributing_kernelE"></span><span id="ral::cache::distributing_kernel"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">distributing_kernel</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernelE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>The <a class="reference internal" href="#classral_1_1cache_1_1distributing__kernel"><span class="std std-ref">distributing_kernel</span></a> interface allows kernels calling distributing primitives. </p>
-<p>Subclassed by <a class="reference internal" href="classral_1_1batch_1_1DistributeAggregateKernel.html#classral_1_1batch_1_1DistributeAggregateKernel"><span class="std std-ref">ral::batch::DistributeAggregateKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1JoinPartitionKernel.html#classral_1_1batch_1_1JoinPartitionKernel"><span class="std std-ref">ral::batch::JoinPartitionKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1LimitKernel.html#classral_1_1batch_1_1LimitKernel"><span class="std std-ref">ral::batch::LimitKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1OverlapAccumulatorKernel.html#classral_1_1batch_1_1OverlapAccumulatorKernel"><span class="std std-ref">ral::batch::OverlapAccumulatorKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1PartitionKernel.html#classral_1_1batch_1_1PartitionKernel"><span class="std std-ref">ral::batch::PartitionKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1SortAndSampleKernel.html#classral_1_1batch_1_1SortAndSampleKernel"><span class="std std-ref">ral::batch::SortAndSampleKernel</span></a></p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel19distributing_kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type">
-<span id="_CPPv3N3ral5cache19distributing_kernel19distributing_kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type"></span><span id="_CPPv2N3ral5cache19distributing_kernel19distributing_kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type"></span><span id="ral::cache::distributing_kernel::distributing_kernel__std::s.ss.std::shared_ptr:Context:.kernel_type"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1a7dd5d1d4ee0081e8570a893209d3c4bf"></span><code class="sig-name descname">distributing_kernel</code><span class="sig-paren">(</span>std::size_t <em>kernel_id</em>, std::string <em>expr</em>, std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <em>context</em>, <a class="reference internal" href="enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_typeE" title="ral::cache::kernel_type">kernel_type</a> <em>kernel_type_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel19distributing_kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Constructor for the <a class="reference internal" href="#classral_1_1cache_1_1distributing__kernel"><span class="std std-ref">distributing_kernel</span></a> <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">kernel_id</span></code>: Current kernel identifier. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">expr</span></code>: Original logical expression that the kernel will execute. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">context</span></code>: Shared context associated to the running query. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">kernel_type_id</span></code>: Identifier representing the kernel type. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel11kernel_nameEv">
-<span id="_CPPv3N3ral5cache19distributing_kernel11kernel_nameEv"></span><span id="_CPPv2N3ral5cache19distributing_kernel11kernel_nameEv"></span><span id="ral::cache::distributing_kernel::kernel_name"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1aacddbb29a0760b7d19cf52d3e5a4ff84"></span><em class="property">inline</em> <em class="property">virtual</em> std::string <code class="sig-name descname">kernel_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel11kernel_nameEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel30set_number_of_message_trackersENSt6size_tE">
-<span id="_CPPv3N3ral5cache19distributing_kernel30set_number_of_message_trackersENSt6size_tE"></span><span id="_CPPv2N3ral5cache19distributing_kernel30set_number_of_message_trackersENSt6size_tE"></span><span id="ral::cache::distributing_kernel::set_number_of_message_trackers__std::s"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1a6466f289452c10450861276054b751da"></span>void <code class="sig-name descname">set_number_of_message_trackers</code><span class="sig-paren">(</span>std::size_t <em>num_message_trackers</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel30set_number_of_message_trackersENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Resizes the vector of the message trackers. Keeping more than one message tracker is useful for example for joins where we must keep track of separately for left and right partitions. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">num_message_trackers</span></code>: The new number of the message trackers. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel12send_messageENSt10unique_ptrIN3ral5frame12BlazingTableEEEbNSt6stringENSt6vectorINSt6stringEEENSt6stringEbbNSt6size_tEN3ral5cache18MetadataDictionaryE">
-<span id="_CPPv3N3ral5cache19distributing_kernel12send_messageENSt10unique_ptrIN3ral5frame12BlazingTableEEEbNSt6stringENSt6vectorINSt6stringEEENSt6stringEbbNSt6size_tEN3ral5cache18MetadataDictionaryE"></span><span id="_CPPv2N3ral5cache19distributing_kernel12send_messageENSt10unique_ptrIN3ral5frame12BlazingTableEEEbNSt6stringENSt6vectorINSt6stringEEENSt6stringEbbNSt6size_tEN3ral5cache18MetadataDictionaryE"></span><span id="ral::cache::distributing_kernel::send_message__std::unique_ptr:ral::frame::BlazingTable:.b.ss.std::vector:ss:.ss.b.b.std::s.ral::cache::MetadataDictionary"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1aa2c88f7cefd4bb5eee4058c7059c277e"></span>void <code class="sig-name descname">send_message</code><span class="sig-paren">(</span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <em>table</em>, bool <em>specific_cache</em>, std::string <em>cache_id</em>, std::vector&lt;std::string&gt; <em>target_ids</em>, std::string <em>message_id_prefix</em> = &quot;&quot;, bool <em>always_add</em> = false, bool <em>wait_for</em> = false, std::size_t <em>message_tracker_idx</em> = 0, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1MetadataDictionary.html#_CPPv4N3ral5cache18MetadataDictionaryE" title="ral::cache::MetadataDictionary">MetadataDictionary</a> <em>extra_metadata</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel12send_messageENSt10unique_ptrIN3ral5frame12BlazingTableEEEbNSt6stringENSt6vectorINSt6stringEEENSt6stringEbbNSt6size_tEN3ral5cache18MetadataDictionaryE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sends a table with their corresponding metadata. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The table to be sent. If table is a nullptr, an empty table is sent anyways. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">specific_cache</span></code>: Indicates if a message should be routed to a specific cache or to the global input cache. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: Indicates what cache a message should be routed to. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">target_id</span></code>: Vector of workers that will be receiving this message. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_id_prefix</span></code>: The prefix of the identifier of this message. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">always_add</span></code>: Forces to always add the table to the output cache. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wait_for</span></code>: Indicates if this message must be registered to wait for back. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_tracker_idx</span></code>: The message tracker index. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">extra_metadata</span></code>: The cache identifier. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel7scatterENSt6vectorIN3ral5frame16BlazingTableViewEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tE">
-<span id="_CPPv3N3ral5cache19distributing_kernel7scatterENSt6vectorIN3ral5frame16BlazingTableViewEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tE"></span><span id="_CPPv2N3ral5cache19distributing_kernel7scatterENSt6vectorIN3ral5frame16BlazingTableViewEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tE"></span><span id="ral::cache::distributing_kernel::scatter__std::vector:ral::frame::BlazingTableView:.ral::cache::CacheMachineP.ss.ss.std::s"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1ae2f86983ba3baca3a1f37ad7a6fc9326"></span>void <code class="sig-name descname">scatter</code><span class="sig-paren">(</span>std::vector&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTableView.html#_CPPv4N3ral5frame16BlazingTableViewE" title="ral::frame::BlazingTableView">BlazingTableView</a>&gt; <em>partitions</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a> *<em>output</em>, std::string <em>message_id_prefix</em>, std::string <em>cache_id</em>, std::size_t <em>message_tracker_idx</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel7scatterENSt6vectorIN3ral5frame16BlazingTableViewEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sends each partition to its corresponding nodes. It is assumed that the size of the vector is the same as the number of nodes. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">partitions</span></code>: The table partitions to be sent. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: The output cache. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_id_prefix</span></code>: The prefix of the identifier of this message. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: Indicates what cache a message should be routed to. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_tracker_idx</span></code>: The message tracker index. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel12scatterPartsENSt6vectorIN3ral12distribution14NodeColumnViewEEENSt6stringENSt6vectorI7int32_tEE">
-<span id="_CPPv3N3ral5cache19distributing_kernel12scatterPartsENSt6vectorIN3ral12distribution14NodeColumnViewEEENSt6stringENSt6vectorI7int32_tEE"></span><span id="_CPPv2N3ral5cache19distributing_kernel12scatterPartsENSt6vectorIN3ral12distribution14NodeColumnViewEEENSt6stringENSt6vectorI7int32_tEE"></span><span id="ral::cache::distributing_kernel::scatterParts__std::vector:ral::distribution::NodeColumnView:.ss.std::vector:int32_t:"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1ac84717592ca882bcae7efd6a20ea2863"></span>void <code class="sig-name descname">scatterParts</code><span class="sig-paren">(</span>std::vector&lt;ral::distribution::<a class="reference internal" href="typedef_primitives_8h_1a4359b9b917882776cdd179b5b17d0f42.html#_CPPv4N3ral12distribution14NodeColumnViewE" title="ral::distribution::NodeColumnView">NodeColumnView</a>&gt; <em>partitions</em>, std::string <em>message_id_prefix</em>, std::vector&lt;int32_t&gt; <em>part_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel12scatterPartsENSt6vectorIN3ral12distribution14NodeColumnViewEEENSt6stringENSt6vectorI7int32_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sends each partition to its corresponding nodes and corresponding part_id More than one partition can belong to the same node. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">partitions</span></code>: The table partitions to be sent represented as node column views. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_id_prefix</span></code>: The prefix of the identifier of this message. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">part_ids</span></code>: A vector the same size as partitions, telling which part_id each partition corresponds to. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel9broadcastENSt10unique_ptrIN3ral5frame12BlazingTableEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tEb">
-<span id="_CPPv3N3ral5cache19distributing_kernel9broadcastENSt10unique_ptrIN3ral5frame12BlazingTableEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tEb"></span><span id="_CPPv2N3ral5cache19distributing_kernel9broadcastENSt10unique_ptrIN3ral5frame12BlazingTableEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tEb"></span><span id="ral::cache::distributing_kernel::broadcast__std::unique_ptr:ral::frame::BlazingTable:.ral::cache::CacheMachineP.ss.ss.std::s.b"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1a943284f948c1f1486b04e6b02cdc3e19"></span>void <code class="sig-name descname">broadcast</code><span class="sig-paren">(</span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <em>table</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a> *<em>output</em>, std::string <em>message_id_prefix</em>, std::string <em>cache_id</em>, std::size_t <em>message_tracker_idx</em> = 0, bool <em>always_add</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel9broadcastENSt10unique_ptrIN3ral5frame12BlazingTableEEEPN3ral5cache12CacheMachineENSt6stringENSt6stringENSt6size_tEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sends same table to all other nodes. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The table to be broadcast </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: The output cache. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_id_prefix</span></code>: The prefix of the identifier of this message. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: Indicates what cache a message should be routed to. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_tracker_idx</span></code>: The message tracker index. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">always_add</span></code>: Forces to always send the message </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel27send_total_partition_countsENSt6stringENSt6stringENSt6size_tE">
-<span id="_CPPv3N3ral5cache19distributing_kernel27send_total_partition_countsENSt6stringENSt6stringENSt6size_tE"></span><span id="_CPPv2N3ral5cache19distributing_kernel27send_total_partition_countsENSt6stringENSt6stringENSt6size_tE"></span><span id="ral::cache::distributing_kernel::send_total_partition_counts__ss.ss.std::s"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1a532f4eb42963c4e76199f9250c483a09"></span>void <code class="sig-name descname">send_total_partition_counts</code><span class="sig-paren">(</span>std::string <em>message_id_prefix</em>, std::string <em>cache_id</em>, std::size_t <em>message_tracker_idx</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel27send_total_partition_countsENSt6stringENSt6stringENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sends the partition counter to all other nodes. These sent counters represent the number of messages that each node should wait on their end. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">message_id_prefix</span></code>: The prefix of the identifier of this message. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: Indicates what cache a message should be routed to. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_tracker_idx</span></code>: The message tracker index. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel26get_total_partition_countsENSt6size_tE">
-<span id="_CPPv3N3ral5cache19distributing_kernel26get_total_partition_countsENSt6size_tE"></span><span id="_CPPv2N3ral5cache19distributing_kernel26get_total_partition_countsENSt6size_tE"></span><span id="ral::cache::distributing_kernel::get_total_partition_counts__std::s"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1ae5f1a597fc3716c344b54b6d0d6af311"></span>int <code class="sig-name descname">get_total_partition_counts</code><span class="sig-paren">(</span>std::size_t <em>message_tracker_idx</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel26get_total_partition_countsENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the total partition counters associated to a message tracker. The total counter returned by this function usually is the input for function <a class="reference internal" href="classral_1_1cache_1_1WaitingQueue.html#classral_1_1cache_1_1WaitingQueue_1abd7d9824f1b89ead2c937e1c6d64ba4f"><span class="std std-ref">WaitingQueue::wait_for_count()</span></a> that allows waiting for the arrival of a certain number of messages. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">message_tracker_idx</span></code>: The message tracker index. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernel20increment_node_countENSt6stringENSt6size_tE">
-<span id="_CPPv3N3ral5cache19distributing_kernel20increment_node_countENSt6stringENSt6size_tE"></span><span id="_CPPv2N3ral5cache19distributing_kernel20increment_node_countENSt6stringENSt6size_tE"></span><span id="ral::cache::distributing_kernel::increment_node_count__ss.std::s"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1a304a30bf1847aab1dd6a9779bbc80929"></span>void <code class="sig-name descname">increment_node_count</code><span class="sig-paren">(</span>std::string <em>node_id</em>, std::size_t <em>message_tracker_idx</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernel20increment_node_countENSt6stringENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Increments by one the corresponding node counter associated to the node identifier and the message tracker identifier. Every time data is added to a cache, the node counter must be incremented by one. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">node_id</span></code>: The node identifier. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">message_tracker_idx</span></code>: The message tracker index. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache19distributing_kernelD0Ev">
-<span id="_CPPv3N3ral5cache19distributing_kernelD0Ev"></span><span id="_CPPv2N3ral5cache19distributing_kernelD0Ev"></span><span id="ral::cache::distributing_kernel::~distributing_kernel"></span><span class="target" id="classral_1_1cache_1_1distributing__kernel_1a19afe37abf9e6a2f29f2a83d45ecf093"></span><em class="property">virtual</em> <code class="sig-name descname">~distributing_kernel</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache19distributing_kernelD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Destructor </p>
-</dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>blazingsql.BlazingContext &#8212; BlazingSQL v0.19 documentation</title>
+    <title>blazingsql.BlazingContext &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/d3.v3.min.js"></script>
-    <script src="../../../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../../../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../../../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../../sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../../xml/library_root.html">
@@ -4445,17 +4541,11 @@ is set to <code class="docutils literal notranslate"><span class="pre">'eth0'</s
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.add_remove_table.html#blazingsql.BlazingContext.add_remove_table" title="blazingsql.BlazingContext.add_remove_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_remove_table</span></code></a>(tableName, addTable[, table])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="blazingsql.BlazingContext.create_table.html#blazingsql.BlazingContext.create_table" title="blazingsql.BlazingContext.create_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_table</span></code></a>(table_name, input, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.create_table.html#blazingsql.BlazingContext.create_table" title="blazingsql.BlazingContext.create_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_table</span></code></a>(table_name, input, **kwargs)</p></td>
 <td><p>Create a BlazingSQL table.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.describe_table.html#blazingsql.BlazingContext.describe_table" title="blazingsql.BlazingContext.describe_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describe_table</span></code></a>(table_name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="blazingsql.BlazingContext.describe_table.html#blazingsql.BlazingContext.describe_table" title="blazingsql.BlazingContext.describe_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describe_table</span></code></a>(table_name)</p></td>
 <td><p>Returns a dictionary with the names of all the columns and their types for the specified table.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="blazingsql.BlazingContext.do_progress_bar.html#blazingsql.BlazingContext.do_progress_bar" title="blazingsql.BlazingContext.do_progress_bar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">do_progress_bar</span></code></a>(arg, progress_bar_fn, wait_fn)</p></td>
-<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.drop_table.html#blazingsql.BlazingContext.drop_table" title="blazingsql.BlazingContext.drop_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_table</span></code></a>(table_name)</p></td>
 <td><p>Drop table from BlazingContext memory.</p></td>
@@ -4481,14 +4571,8 @@ is set to <code class="docutils literal notranslate"><span class="pre">'eth0'</s
 <tr class="row-even"><td><p><a class="reference internal" href="blazingsql.BlazingContext.list_tables.html#blazingsql.BlazingContext.list_tables" title="blazingsql.BlazingContext.list_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list_tables</span></code></a>()</p></td>
 <td><p>Returns a list with the names of all created tables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.localfs.html#blazingsql.BlazingContext.localfs" title="blazingsql.BlazingContext.localfs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">localfs</span></code></a>(prefix, **kwargs)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="blazingsql.BlazingContext.log.html#blazingsql.BlazingContext.log" title="blazingsql.BlazingContext.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a>(query[, logs_table_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.log.html#blazingsql.BlazingContext.log" title="blazingsql.BlazingContext.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a>(query[, logs_table_name])</p></td>
 <td><p>Query BlazingSQL’s internal log (bsql_logs) that records events from all queries run.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="blazingsql.BlazingContext.partition.html#blazingsql.BlazingContext.partition" title="blazingsql.BlazingContext.partition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">partition</span></code></a>(input[, by])</p></td>
-<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="blazingsql.BlazingContext.reset_max_memory_used.html#blazingsql.BlazingContext.reset_max_memory_used" title="blazingsql.BlazingContext.reset_max_memory_used"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_max_memory_used</span></code></a>()</p></td>
 <td><p>This function resets the max memory usage counter to 0</p></td>

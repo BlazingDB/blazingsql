@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class mysql_parser &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class mysql_parser &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,122 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral2io12mysql_parserE">
-<span id="_CPPv3N3ral2io12mysql_parserE"></span><span id="_CPPv2N3ral2io12mysql_parserE"></span><span id="ral::io::mysql_parser"></span><span class="target" id="classral_1_1io_1_1mysql__parser"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">mysql_parser</code> : <em class="property">public</em> ral::io::<a class="reference internal" href="classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parserE" title="ral::io::abstractsql_parser">abstractsql_parser</a><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parserE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser12mysql_parserEv">
-<span id="_CPPv3N3ral2io12mysql_parser12mysql_parserEv"></span><span id="_CPPv2N3ral2io12mysql_parser12mysql_parserEv"></span><span id="ral::io::mysql_parser::mysql_parser"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a9126719eab16f384898143c61f43b184"></span><code class="sig-name descname">mysql_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser12mysql_parserEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parserD0Ev">
-<span id="_CPPv3N3ral2io12mysql_parserD0Ev"></span><span id="_CPPv2N3ral2io12mysql_parserD0Ev"></span><span id="ral::io::mysql_parser::~mysql_parser"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a15eb9313b520b2501300749647f49b62"></span><em class="property">virtual</em> <code class="sig-name descname">~mysql_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parserD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE">
-<span id="_CPPv3N3ral2io12mysql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE"></span><span id="_CPPv2N3ral2io12mysql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE"></span><span id="ral::io::mysql_parser::read_sql_loop__voidP.std::vector:cudf::type_id:CR.std::vector:i:CR.std::vector:voidP:R.std::vector:std::vector:cudf::bitmask_type::R"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a753c3e5adc42190fc96a03fe2e55ed49"></span><em class="property">virtual</em> void <code class="sig-name descname">read_sql_loop</code><span class="sig-paren">(</span>void *<em>src</em>, <em class="property">const</em> std::vector&lt;cudf::type_id&gt; &amp;<em>cudf_types</em>, <em class="property">const</em> std::vector&lt;int&gt; &amp;<em>column_indices</em>, std::vector&lt;void*&gt; &amp;<em>host_cols</em>, std::vector&lt;std::vector&lt;cudf::bitmask_type&gt;&gt; &amp;<em>null_masks</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser16get_cudf_type_idERKNSt6stringE">
-<span id="_CPPv3N3ral2io12mysql_parser16get_cudf_type_idERKNSt6stringE"></span><span id="_CPPv2N3ral2io12mysql_parser16get_cudf_type_idERKNSt6stringE"></span><span id="ral::io::mysql_parser::get_cudf_type_id__ssCR"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1ab0bf25fe7ab6b7451412ff5b1a8487db"></span><em class="property">virtual</em> cudf::type_id <code class="sig-name descname">get_cudf_type_id</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>sql_column_type</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser16get_cudf_type_idERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_int8__voidP.s.s.std::vector:int8_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1ad51f6254914636a27f632464377281f5"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int8</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int8_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_int16__voidP.s.s.std::vector:int16_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a64682aab9199903995b5214c22cc1377"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int16</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int16_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_int32__voidP.s.s.std::vector:int32_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a16fdac4af2a35cd0e54f0d0b4a4404ce"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int32</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int32_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_int64__voidP.s.s.std::vector:int64_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a0dce444e8af85a6d79d07202293eecbc"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int64</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int64_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_uint8__voidP.s.s.std::vector:uint8_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a74769fc2ad394ac6bfe5701f1c4b897a"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint8</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint8_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_uint16__voidP.s.s.std::vector:uint16_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a62781864fb324146d6ddbfa7d5f0f45d"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint16</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint16_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_uint32__voidP.s.s.std::vector:uint32_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1ad98e09326287129424614ac6dd4aadd6"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint32</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint32_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_uint64__voidP.s.s.std::vector:uint64_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a1d517b0bb4664b3a4aacbc437fe453fb"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint64</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint64_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE">
-<span id="_CPPv3N3ral2io12mysql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE"></span><span id="_CPPv2N3ral2io12mysql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE"></span><span id="ral::io::mysql_parser::parse_cudf_float32__voidP.s.s.std::vector:float:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a14d76b2f3407c65d34a7cad6ac3f3c51"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_float32</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;float&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE">
-<span id="_CPPv3N3ral2io12mysql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE"></span><span id="_CPPv2N3ral2io12mysql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE"></span><span id="ral::io::mysql_parser::parse_cudf_float64__voidP.s.s.std::vector:double:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a319b02c1efb5eb6d1638b995b58ee490"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_float64</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;double&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE">
-<span id="_CPPv3N3ral2io12mysql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="_CPPv2N3ral2io12mysql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="ral::io::mysql_parser::parse_cudf_bool8__voidP.s.s.std::vector:int8_t:P"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a10f54105c767b78c09d8401c9fa90e8b"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_bool8</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int8_t&gt; *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col">
-<span id="_CPPv3N3ral2io12mysql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io12mysql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::mysql_parser::parse_cudf_timestamp_days__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1abf2cc8c2d27b942f8c42b6c73279f889"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_days</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col">
-<span id="_CPPv3N3ral2io12mysql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io12mysql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::mysql_parser::parse_cudf_timestamp_seconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a469c497886e5d389c444cbf8c354a1ae"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_seconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col">
-<span id="_CPPv3N3ral2io12mysql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io12mysql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::mysql_parser::parse_cudf_timestamp_milliseconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a4bb1eec03d5ccb191b73eb9f1c2b1d52"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_milliseconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col">
-<span id="_CPPv3N3ral2io12mysql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io12mysql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::mysql_parser::parse_cudf_timestamp_microseconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1a876cbd9b05bd132f722b31a36e4df7b0"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_microseconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col">
-<span id="_CPPv3N3ral2io12mysql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io12mysql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::mysql_parser::parse_cudf_timestamp_nanoseconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1aef96e9c587ed0a71a7cce0ca6d544fc3"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_nanoseconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io12mysql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col">
-<span id="_CPPv3N3ral2io12mysql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io12mysql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::mysql_parser::parse_cudf_string__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1mysql__parser_1abc0ab5392f66915975ece2285f384f5d"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_string</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io12mysql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

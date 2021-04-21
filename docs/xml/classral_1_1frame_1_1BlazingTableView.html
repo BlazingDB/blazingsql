@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class BlazingTableView &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class BlazingTableView &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,94 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5frame16BlazingTableViewE">
-<span id="_CPPv3N3ral5frame16BlazingTableViewE"></span><span id="_CPPv2N3ral5frame16BlazingTableViewE"></span><span id="ral::frame::BlazingTableView"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView"></span><em class="property">class </em><code class="sig-prename descclassname">ral::frame<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">BlazingTableView</code><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableViewE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewEv">
-<span id="_CPPv3N3ral5frame16BlazingTableView16BlazingTableViewEv"></span><span id="_CPPv2N3ral5frame16BlazingTableView16BlazingTableViewEv"></span><span id="ral::frame::BlazingTableView::BlazingTableView"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a243aebe15262f8d70ca3581aad07cd6c"></span><code class="sig-name descname">BlazingTableView</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewE13CudfTableViewNSt6vectorINSt6stringEEE">
-<span id="_CPPv3N3ral5frame16BlazingTableView16BlazingTableViewE13CudfTableViewNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5frame16BlazingTableView16BlazingTableViewE13CudfTableViewNSt6vectorINSt6stringEEE"></span><span id="ral::frame::BlazingTableView::BlazingTableView__CudfTableView.std::vector:ss:"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1aef63d115fc7d2cadcf2e2c811388b48d"></span><code class="sig-name descname">BlazingTableView</code><span class="sig-paren">(</span><a class="reference internal" href="typedef_BlazingColumn_8h_1ade7b77001abe59b93f77837aa0d36a06.html#_CPPv413CudfTableView" title="CudfTableView">CudfTableView</a> <em>table</em>, std::vector&lt;std::string&gt; <em>columnNames</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewE13CudfTableViewNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewERK16BlazingTableView">
-<span id="_CPPv3N3ral5frame16BlazingTableView16BlazingTableViewERK16BlazingTableView"></span><span id="_CPPv2N3ral5frame16BlazingTableView16BlazingTableViewERK16BlazingTableView"></span><span id="ral::frame::BlazingTableView::BlazingTableView__BlazingTableViewCR"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1aa5395f0a1a0bda5fa44ffb36b40f6e5a"></span><code class="sig-name descname">BlazingTableView</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewERK16BlazingTableView" title="ral::frame::BlazingTableView::BlazingTableView">BlazingTableView</a> <em class="property">const</em>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewERK16BlazingTableView" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewERR16BlazingTableView">
-<span id="_CPPv3N3ral5frame16BlazingTableView16BlazingTableViewERR16BlazingTableView"></span><span id="_CPPv2N3ral5frame16BlazingTableView16BlazingTableViewERR16BlazingTableView"></span><span id="ral::frame::BlazingTableView::BlazingTableView__BlazingTableViewRR"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a3ac765c7829f2aef5d563ae24a305dea"></span><code class="sig-name descname">BlazingTableView</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewERR16BlazingTableView" title="ral::frame::BlazingTableView::BlazingTableView">BlazingTableView</a>&amp;&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableView16BlazingTableViewERR16BlazingTableView" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableViewaSERK16BlazingTableView">
-<span id="_CPPv3N3ral5frame16BlazingTableViewaSERK16BlazingTableView"></span><span id="_CPPv2N3ral5frame16BlazingTableViewaSERK16BlazingTableView"></span><span id="ral::frame::BlazingTableView::assign-operator__BlazingTableViewCR"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a67c2fada551518d1026b3bf81851b5e6"></span><a class="reference internal" href="#_CPPv4N3ral5frame16BlazingTableViewE" title="ral::frame::BlazingTableView">BlazingTableView</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral5frame16BlazingTableViewE" title="ral::frame::BlazingTableView">BlazingTableView</a> <em class="property">const</em>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableViewaSERK16BlazingTableView" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableViewaSERR16BlazingTableView">
-<span id="_CPPv3N3ral5frame16BlazingTableViewaSERR16BlazingTableView"></span><span id="_CPPv2N3ral5frame16BlazingTableViewaSERR16BlazingTableView"></span><span id="ral::frame::BlazingTableView::assign-operator__BlazingTableViewRR"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a054fa47daa382903e253d2c2963dd68a"></span><a class="reference internal" href="#_CPPv4N3ral5frame16BlazingTableViewE" title="ral::frame::BlazingTableView">BlazingTableView</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral5frame16BlazingTableViewE" title="ral::frame::BlazingTableView">BlazingTableView</a>&amp;&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableViewaSERR16BlazingTableView" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView4viewEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView4viewEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView4viewEv"></span><span id="ral::frame::BlazingTableView::viewC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a5aa2bb6c557193c1ce9ffc6f4fe11bff"></span><a class="reference internal" href="typedef_BlazingColumn_8h_1ade7b77001abe59b93f77837aa0d36a06.html#_CPPv413CudfTableView" title="CudfTableView">CudfTableView</a> <code class="sig-name descname">view</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView4viewEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView6columnEN4cudf9size_typeE">
-<span id="_CPPv3NK3ral5frame16BlazingTableView6columnEN4cudf9size_typeE"></span><span id="_CPPv2NK3ral5frame16BlazingTableView6columnEN4cudf9size_typeE"></span><span id="ral::frame::BlazingTableView::column__cudf::size_typeC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a7883b53092571ae6bdbf2994c8099686"></span><em class="property">inline</em> cudf::column_view <em class="property">const</em> &amp;<code class="sig-name descname">column</code><span class="sig-paren">(</span>cudf::size_type <em>column_index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView6columnEN4cudf9size_typeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView16toBlazingColumnsEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView16toBlazingColumnsEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView16toBlazingColumnsEv"></span><span id="ral::frame::BlazingTableView::toBlazingColumnsC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a29cd66a4f4da704e455bf34b21a1c64a"></span>std::vector&lt;std::unique_ptr&lt;<a class="reference internal" href="classral_1_1frame_1_1BlazingColumn.html#_CPPv4N3ral5frame13BlazingColumnE" title="ral::frame::BlazingColumn">BlazingColumn</a>&gt;&gt; <code class="sig-name descname">toBlazingColumns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView16toBlazingColumnsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView10get_schemaEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView10get_schemaEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView10get_schemaEv"></span><span id="ral::frame::BlazingTableView::get_schemaC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1afcebfe01ec7db42b859bf6598f65a3f5"></span>std::vector&lt;cudf::data_type&gt; <code class="sig-name descname">get_schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView10get_schemaEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView5namesEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView5namesEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView5namesEv"></span><span id="ral::frame::BlazingTableView::namesC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a6b6d93945df55aed6cc1039bcb3743b3"></span>std::vector&lt;std::string&gt; <code class="sig-name descname">names</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView5namesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableView8setNamesERKNSt6vectorINSt6stringEEE">
-<span id="_CPPv3N3ral5frame16BlazingTableView8setNamesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5frame16BlazingTableView8setNamesERKNSt6vectorINSt6stringEEE"></span><span id="ral::frame::BlazingTableView::setNames__std::vector:ss:CR"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1aff8c4df40002de33aa4b176daaa8e1c0"></span><em class="property">inline</em> void <code class="sig-name descname">setNames</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::string&gt; &amp;<em>names</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableView8setNamesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView11num_columnsEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView11num_columnsEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView11num_columnsEv"></span><span id="ral::frame::BlazingTableView::num_columnsC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1ae239be70b79bcafb195d6e8850655162"></span><em class="property">inline</em> cudf::size_type <code class="sig-name descname">num_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView11num_columnsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView8num_rowsEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView8num_rowsEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView8num_rowsEv"></span><span id="ral::frame::BlazingTableView::num_rowsC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a39ab4d3e5b6df35263e890032ca943e7"></span><em class="property">inline</em> cudf::size_type <code class="sig-name descname">num_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView8num_rowsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5frame16BlazingTableView11sizeInBytesEv">
-<span id="_CPPv3N3ral5frame16BlazingTableView11sizeInBytesEv"></span><span id="_CPPv2N3ral5frame16BlazingTableView11sizeInBytesEv"></span><span id="ral::frame::BlazingTableView::sizeInBytes"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1adf6a6ea945a422b25beb46ec7c21d863"></span>unsigned long long <code class="sig-name descname">sizeInBytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame16BlazingTableView11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5frame16BlazingTableView5cloneEv">
-<span id="_CPPv3NK3ral5frame16BlazingTableView5cloneEv"></span><span id="_CPPv2NK3ral5frame16BlazingTableView5cloneEv"></span><span id="ral::frame::BlazingTableView::cloneC"></span><span class="target" id="classral_1_1frame_1_1BlazingTableView_1a0243487937ce1de435ad96562f12f814"></span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame16BlazingTableView5cloneEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

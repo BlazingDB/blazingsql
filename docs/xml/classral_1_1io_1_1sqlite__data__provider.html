@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class sqlite_data_provider &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class sqlite_data_provider &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4271,54 +4367,6 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral2io20sqlite_data_providerE">
-<span id="_CPPv3N3ral2io20sqlite_data_providerE"></span><span id="_CPPv2N3ral2io20sqlite_data_providerE"></span><span id="ral::io::sqlite_data_provider"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">sqlite_data_provider</code> : <em class="property">public</em> ral::io::<a class="reference internal" href="classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_providerE" title="ral::io::abstractsql_data_provider">abstractsql_data_provider</a><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_providerE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>can generate a series of randomaccessfiles from uris that are provided when it goes out of scope it will close any files it opened this last point is debatable in terms of if this is the desired functionality </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_provider20sqlite_data_providerERK8sql_info6size_t6size_t">
-<span id="_CPPv3N3ral2io20sqlite_data_provider20sqlite_data_providerERK8sql_info6size_t6size_t"></span><span id="_CPPv2N3ral2io20sqlite_data_provider20sqlite_data_providerERK8sql_info6size_t6size_t"></span><span id="ral::io::sqlite_data_provider::sqlite_data_provider__sql_infoCR.s.s"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1a51b87ae7ea7c5668a87d4c5d431f4f26"></span><code class="sig-name descname">sqlite_data_provider</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_infoE" title="ral::io::sql_info">sql_info</a> &amp;<em>sql</em>, size_t <em>total_number_of_nodes</em>, size_t <em>self_node_idx</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_provider20sqlite_data_providerERK8sql_info6size_t6size_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_providerD0Ev">
-<span id="_CPPv3N3ral2io20sqlite_data_providerD0Ev"></span><span id="_CPPv2N3ral2io20sqlite_data_providerD0Ev"></span><span id="ral::io::sqlite_data_provider::~sqlite_data_provider"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1a0ce86d83f43f34e1b6ebcbf1f6631735"></span><em class="property">virtual</em> <code class="sig-name descname">~sqlite_data_provider</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_providerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_provider5cloneEv">
-<span id="_CPPv3N3ral2io20sqlite_data_provider5cloneEv"></span><span id="_CPPv2N3ral2io20sqlite_data_provider5cloneEv"></span><span id="ral::io::sqlite_data_provider::clone"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1adb25a024f654945060fb1ca998c86c0c"></span><em class="property">virtual</em> std::shared_ptr&lt;<a class="reference internal" href="classral_1_1io_1_1data__provider.html#_CPPv4N3ral2io13data_providerE" title="ral::io::data_provider">data_provider</a>&gt; <code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_provider5cloneEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_provider8has_nextEv">
-<span id="_CPPv3N3ral2io20sqlite_data_provider8has_nextEv"></span><span id="_CPPv2N3ral2io20sqlite_data_provider8has_nextEv"></span><span id="ral::io::sqlite_data_provider::has_next"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1a6ce74c5d741c2d7b920aef76383a2142"></span><em class="property">virtual</em> bool <code class="sig-name descname">has_next</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_provider8has_nextEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>tells us if this provider can generate more sql resultsets </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_provider5resetEv">
-<span id="_CPPv3N3ral2io20sqlite_data_provider5resetEv"></span><span id="_CPPv2N3ral2io20sqlite_data_provider5resetEv"></span><span id="ral::io::sqlite_data_provider::reset"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1a76965713088deb1df2f4383dfa961af5"></span><em class="property">virtual</em> void <code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_provider5resetEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Resets file read count to 0 for file based DataProvider </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_provider8get_nextEb">
-<span id="_CPPv3N3ral2io20sqlite_data_provider8get_nextEb"></span><span id="_CPPv2N3ral2io20sqlite_data_provider8get_nextEb"></span><span id="ral::io::sqlite_data_provider::get_next__b"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1a0027d4f87be7a30a37f35d9090fa8504"></span><em class="property">virtual</em> <a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <code class="sig-name descname">get_next</code><span class="sig-paren">(</span>bool = true<span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_provider8get_nextEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>gets us the next arrow::io::RandomAccessFile if open_file is false will not run te query and just returns a <a class="reference internal" href="structral_1_1io_1_1data__handle.html#structral_1_1io_1_1data__handle"><span class="std std-ref">data_handle</span></a> with columns info </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral2io20sqlite_data_provider15get_num_handlesEv">
-<span id="_CPPv3N3ral2io20sqlite_data_provider15get_num_handlesEv"></span><span id="_CPPv2N3ral2io20sqlite_data_provider15get_num_handlesEv"></span><span id="ral::io::sqlite_data_provider::get_num_handles"></span><span class="target" id="classral_1_1io_1_1sqlite__data__provider_1a1c4bd3e78d4df06187c85fbd4f5c9099"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_num_handles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io20sqlite_data_provider15get_num_handlesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the number of data_handles that will be provided. </p>
-</dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 

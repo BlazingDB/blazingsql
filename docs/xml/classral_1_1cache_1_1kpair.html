@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class kpair &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Class kpair &#8212; BlazingSQL v0.18 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,7 +32,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,8 +40,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -70,7 +67,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -392,10 +389,109 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/strings.html">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
@@ -4250,78 +4346,6 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
-<dl class="cpp class">
-<dt id="_CPPv4N3ral5cache5kpairE">
-<span id="_CPPv3N3ral5cache5kpairE"></span><span id="_CPPv2N3ral5cache5kpairE"></span><span id="ral::cache::kpair"></span><span class="target" id="classral_1_1cache_1_1kpair"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">kpair</code><a class="headerlink" href="#_CPPv4N3ral5cache5kpairE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A temporary object to represent a pair of two kernels linked into the execution graph. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERK14cache_settings">
-<span id="_CPPv3N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERK14cache_settings"></span><span id="_CPPv2N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERK14cache_settings"></span><span id="ral::cache::kpair::kpair__std::shared_ptr:kernel:.std::shared_ptr:kernel:.cache_settingsCR"></span><span class="target" id="classral_1_1cache_1_1kpair_1adfd8907b7eb849f0678c6102454b04c5"></span><em class="property">inline</em> <code class="sig-name descname">kpair</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>a</em>, std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>b</em>, <em class="property">const</em> <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a> &amp;<em>config</em> = <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a>{}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERK14cache_settings" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings">
-<span id="_CPPv3N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings"></span><span id="_CPPv2N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings"></span><span id="ral::cache::kpair::kpair__std::shared_ptr:kernel:.std::shared_ptr:kernel:.ssCR.cache_settingsCR"></span><span class="target" id="classral_1_1cache_1_1kpair_1a4e75a8cd2ae6642e08ac3edc3c6a99fa"></span><em class="property">inline</em> <code class="sig-name descname">kpair</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>a</em>, std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>b</em>, <em class="property">const</em> std::string &amp;<em>port_b</em>, <em class="property">const</em> <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a> &amp;<em>config</em> = <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a>{}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEERKNSt6stringENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings">
-<span id="_CPPv3N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEERKNSt6stringENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings"></span><span id="_CPPv2N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEERKNSt6stringENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings"></span><span id="ral::cache::kpair::kpair__std::shared_ptr:kernel:.ssCR.std::shared_ptr:kernel:.ssCR.cache_settingsCR"></span><span class="target" id="classral_1_1cache_1_1kpair_1abec39e0081da8f31ad4bc3688cf90c07"></span><em class="property">inline</em> <code class="sig-name descname">kpair</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>a</em>, <em class="property">const</em> std::string &amp;<em>port_a</em>, std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>b</em>, <em class="property">const</em> std::string &amp;<em>port_b</em>, <em class="property">const</em> <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a> &amp;<em>config</em> = <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a>{}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5kpair5kpairENSt10shared_ptrI6kernelEERKNSt6stringENSt10shared_ptrI6kernelEERKNSt6stringERK14cache_settings" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache5kpair5kpairERK5kpair">
-<span id="_CPPv3N3ral5cache5kpair5kpairERK5kpair"></span><span id="_CPPv2N3ral5cache5kpair5kpairERK5kpair"></span><span id="ral::cache::kpair::kpair__kpairCR"></span><span class="target" id="classral_1_1cache_1_1kpair_1afc0543bd566469749f17d1b95ee9f2c4"></span><code class="sig-name descname">kpair</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral5cache5kpair5kpairERK5kpair" title="ral::cache::kpair::kpair">kpair</a>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache5kpair5kpairERK5kpair" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N3ral5cache5kpair5kpairERR5kpair">
-<span id="_CPPv3N3ral5cache5kpair5kpairERR5kpair"></span><span id="_CPPv2N3ral5cache5kpair5kpairERR5kpair"></span><span id="ral::cache::kpair::kpair__kpairRR"></span><span class="target" id="classral_1_1cache_1_1kpair_1a5516e9525b807e652b1b3249e35dd579"></span><code class="sig-name descname">kpair</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N3ral5cache5kpair5kpairERR5kpair" title="ral::cache::kpair::kpair">kpair</a>&amp;&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache5kpair5kpairERR5kpair" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5cache5kpair17has_custom_sourceEv">
-<span id="_CPPv3NK3ral5cache5kpair17has_custom_sourceEv"></span><span id="_CPPv2NK3ral5cache5kpair17has_custom_sourceEv"></span><span id="ral::cache::kpair::has_custom_sourceC"></span><span class="target" id="classral_1_1cache_1_1kpair_1ace7cd04fde66e6f182b11b4811c351c5"></span><em class="property">inline</em> bool <code class="sig-name descname">has_custom_source</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache5kpair17has_custom_sourceEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4NK3ral5cache5kpair17has_custom_targetEv">
-<span id="_CPPv3NK3ral5cache5kpair17has_custom_targetEv"></span><span id="_CPPv2NK3ral5cache5kpair17has_custom_targetEv"></span><span id="ral::cache::kpair::has_custom_targetC"></span><span class="target" id="classral_1_1cache_1_1kpair_1af1f4d0a9980fa612df0517956248870b"></span><em class="property">inline</em> bool <code class="sig-name descname">has_custom_target</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache5kpair17has_custom_targetEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache5kpair3srcE">
-<span id="_CPPv3N3ral5cache5kpair3srcE"></span><span id="_CPPv2N3ral5cache5kpair3srcE"></span><span id="ral::cache::kpair::src__std::shared_ptr:kernel:"></span><span class="target" id="classral_1_1cache_1_1kpair_1aa317992d3bb0b1d2f05ad9ea23c598c2"></span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <code class="sig-name descname">src</code><a class="headerlink" href="#_CPPv4N3ral5cache5kpair3srcE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache5kpair3dstE">
-<span id="_CPPv3N3ral5cache5kpair3dstE"></span><span id="_CPPv2N3ral5cache5kpair3dstE"></span><span id="ral::cache::kpair::dst__std::shared_ptr:kernel:"></span><span class="target" id="classral_1_1cache_1_1kpair_1ab85ad0c3b409afad4f1407c025700246"></span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <code class="sig-name descname">dst</code><a class="headerlink" href="#_CPPv4N3ral5cache5kpair3dstE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache5kpair20cache_machine_configE">
-<span id="_CPPv3N3ral5cache5kpair20cache_machine_configE"></span><span id="_CPPv2N3ral5cache5kpair20cache_machine_configE"></span><span id="ral::cache::kpair::cache_machine_config__cache_settingsC"></span><span class="target" id="classral_1_1cache_1_1kpair_1a8e58e8a2968febb38c715e9631ad568d"></span><em class="property">const</em> <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a> <code class="sig-name descname">cache_machine_config</code><a class="headerlink" href="#_CPPv4N3ral5cache5kpair20cache_machine_configE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache5kpair13src_port_nameE">
-<span id="_CPPv3N3ral5cache5kpair13src_port_nameE"></span><span id="_CPPv2N3ral5cache5kpair13src_port_nameE"></span><span id="ral::cache::kpair::src_port_name__ss"></span><span class="target" id="classral_1_1cache_1_1kpair_1ae433fb160a0d262ddaeef08041e69113"></span>std::string <code class="sig-name descname">src_port_name</code><a class="headerlink" href="#_CPPv4N3ral5cache5kpair13src_port_nameE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv4N3ral5cache5kpair13dst_port_nameE">
-<span id="_CPPv3N3ral5cache5kpair13dst_port_nameE"></span><span id="_CPPv2N3ral5cache5kpair13dst_port_nameE"></span><span id="ral::cache::kpair::dst_port_name__ss"></span><span class="target" id="classral_1_1cache_1_1kpair_1afc77653f6957aede14a5d55b73b18439"></span>std::string <code class="sig-name descname">dst_port_name</code><a class="headerlink" href="#_CPPv4N3ral5cache5kpair13dst_port_nameE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 </section>
 
