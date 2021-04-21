@@ -36,73 +36,79 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             print(queryType)
             print("==============================")
 
-            # These Test still fails
-            # TODO: Create a issue to track these
-            # queryId = "TEST_01"
-            # query = """select l_shipdate, l_commitdate,
-            #             timestampdiff(DAY, l_commitdate, l_shipdate) as diff
-            #         from lineitem  limit 20"""
-            # query_spark = """select l_shipdate, l_commitdate,
-            #         datediff(l_shipdate, l_commitdate) as diff
-            #         from lineitem  limit 20"""
-            # runTest.run_query(
-            #     bc,
-            #     spark,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     query_spark=query_spark,
-            # )
+            # NOTE: All these drill results were generated using a newer version of Drill
+            # (at least 1.15). So, when using with ExecutionMode != GPUCI, is expected to
+            # crash in Drill side if you have an older version for Drill.
+            queryId = "TEST_01"
+            query = """select l_commitdate, l_shipdate, 
+                            timestampdiff(DAY, l_commitdate, l_shipdate) as diff_day_col
+                        from lineitem limit 420"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-            # queryId = "TEST_02"
-            # query = """select l_shipdate, timestampdiff(DAY,
-            #              date '1970-01-01', l_shipdate) as diff
-            #         from lineitem  limit 20"""
-            # query_spark = """select l_shipdate, datediff(l_shipdate,
-            #                 date '1970-01-01') as diff
-            #             from lineitem  limit 20"""
-            # runTest.run_query(
-            #     bc,
-            #     spark,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     query_spark=query_spark,
-            # )
+            queryId = "TEST_02"
+            query = """select l_commitdate, l_shipdate, 
+                            timestampdiff(HOUR, l_commitdate, l_shipdate) as diff_hour_col
+                        from lineitem limit 420"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-            # queryId = "TEST_03"
-            # query = """select * from orders
-            #         where timestampdiff(DAY,  date '1995-02-04',
-            #             o_orderdate) < 25"""
-            # query_spark = """select * from orders where
-            #         datediff(o_orderdate, date '1995-02-04') < 25"""
-            # runTest.run_query(
-            #     bc,
-            #     spark,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     query_spark=query_spark,
-            # )
+            queryId = "TEST_03"
+            query = """select l_commitdate, l_shipdate, 
+                            timestampdiff(MINUTE, l_commitdate, l_shipdate) as diff_minute_col
+                        from lineitem limit 420"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            # Tests: [21 - 11] are just to ensure TIMESTAMPDIFF works with constant values
             queryId = "TEST_04"
+            query = """select l_commitdate, l_shipdate, 
+                            timestampdiff(SECOND, l_commitdate, l_shipdate) as diff_second_col
+                        from lineitem limit 420"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Tests: [05 - 12] are just to ensure TIMESTAMPDIFF works with constant values
+            queryId = "TEST_05"
             query = """select TIMESTAMPDIFF(DAY, date '1995-07-06', date '1995-02-06') as constant_col
                         from nation"""
             runTest.run_query(
@@ -118,7 +124,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_05"
+            queryId = "TEST_06"
             query = """select TIMESTAMPDIFF(DAY, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
                         from nation"""
             runTest.run_query(
@@ -134,7 +140,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_06"
+            queryId = "TEST_07"
             query = """select TIMESTAMPDIFF(HOUR, date '1995-07-06', date '1995-02-06') as constant_col
                         from nation"""
             runTest.run_query(
@@ -150,7 +156,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_07"
+            queryId = "TEST_08"
             query = """select TIMESTAMPDIFF(HOUR, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
                         from nation"""
             runTest.run_query(
@@ -166,7 +172,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_08"
+            queryId = "TEST_09"
             query = """select TIMESTAMPDIFF(MINUTE, date '1995-07-06', date '1995-02-06') as constant_col
                         from nation"""
             runTest.run_query(
@@ -182,7 +188,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_09"
+            queryId = "TEST_10"
             query = """select TIMESTAMPDIFF(MINUTE, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
                         from nation"""
             runTest.run_query(
@@ -198,7 +204,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_10"
+            queryId = "TEST_11"
             query = """select TIMESTAMPDIFF(SECOND, date '1995-07-06', date '1995-02-06') as constant_col
                         from nation"""
             runTest.run_query(
@@ -214,7 +220,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_11"
+            queryId = "TEST_12"
             query = """select TIMESTAMPDIFF(SECOND, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
                         from nation"""
             runTest.run_query(
@@ -230,7 +236,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_12"
+            queryId = "TEST_13"
             query = """select o_orderdate, 
                             timestampdiff(DAY, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
                         from orders"""
@@ -247,7 +253,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_13"
+            queryId = "TEST_14"
             query = """select o_orderdate, 
                             timestampdiff(HOUR, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
                         from orders"""
@@ -264,7 +270,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_14"
+            queryId = "TEST_15"
             query = """select o_orderdate, 
                             timestampdiff(MINUTE, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
                         from orders"""
@@ -281,7 +287,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_15"
+            queryId = "TEST_16"
             query = """select o_orderdate, 
                             timestampdiff(SECOND, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
                         from orders"""
@@ -298,7 +304,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_16"
+            queryId = "TEST_17"
             query = """select o_orderdate, 
                             timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', o_orderdate) as diff
                         from orders"""
@@ -315,9 +321,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # Tests: [17 - 21] are to consider different cases
+            # Tests: [18 - 22] are to consider multiple cases
             # when using different type of TIMESTAMP unit
-            queryId = "TEST_16"
+            queryId = "TEST_18"
             query = """with date_table as (
                             select cast(o_orderdate as date) as my_date
                             from orders order by o_orderkey limit 10000
@@ -337,7 +343,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_17"
+            queryId = "TEST_19"
             query = """with date_table as (
                             select cast(o_orderdate as date) as my_date
                             from orders order by o_orderkey limit 10000
@@ -357,7 +363,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_18"
+            queryId = "TEST_20"
             query = """with date_table as (
                             select cast(o_orderdate as date) as my_date from
                             orders order by o_orderkey limit 12000
@@ -377,7 +383,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_19"
+            queryId = "TEST_21"
             query = """with date_table as (
                             select cast(o_orderdate as date) as my_date
                             from orders order by o_orderkey limit 12000
@@ -397,7 +403,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_20"
+            queryId = "TEST_22"
             query = """with date_table as (
                             select cast(o_orderdate as date) as my_date
                             from orders order by o_orderkey limit 12000

@@ -36,6 +36,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             print(queryType)
             print("==============================")
 
+            # NOTE: All these drill results were generated using a newer version of Drill
+            # (at least 1.15). So, when using with ExecutionMode != GPUCI, is expected to
+            # crash in Drill side if you have an older version for Drill.
             queryId = "TEST_01"
             query = """select o_orderdate, TIMESTAMPADD(DAY, 4, o_orderdate) as add_day_col
                         from orders order by o_orderkey limit 150"""
@@ -117,7 +120,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # Tests: [06 - 09] are to consider different cases
+            # Tests: [06 - 09] are to consider multiple cases
             # when using different type of TIMESTAMP unit
             queryId = "TEST_06"
             query = """with date_table as (
