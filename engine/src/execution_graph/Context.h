@@ -19,7 +19,8 @@ public:
                    const std::vector<Node>& taskNodes,
                    const Node& masterNode,
                    const std::string& logicalPlan,
-                   const std::map<std::string, std::string>& config_options);
+                   const std::map<std::string, std::string>& config_options,
+                   const std::string current_timestamp);
 
       // TODO Cristhian Gonzalez no copies allowed
   std::shared_ptr<Context> clone();
@@ -42,6 +43,8 @@ public:
 
   /// @deprecated: not used anymore
   std::string getLogicalPlan() const;
+
+  std::string getCurrentTimestamp() const;
 
   uint32_t getContextToken() const;
   std::string getContextCommunicationToken() const;
@@ -75,6 +78,7 @@ private:
   uint32_t kernel_id_;
   std::mutex increment_step_mutex;
   std::map<std::string, std::string> config_options_;
+  std::string current_timestamp_;
 };
 
 }  // namespace manager
