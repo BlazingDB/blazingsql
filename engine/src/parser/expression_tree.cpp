@@ -279,11 +279,17 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   if (token_value == "DATE") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
   }
-  if (token_value == "TIMESTAMP") {
-    return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
+  if (token_value == "TIMESTAMP_SECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS};
   }
   if (token_value == "TIMESTAMP_MILLISECONDS") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+  }
+  if (token_value == "TIMESTAMP_MICROSECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS};
+  }
+  if (token_value == "TIMESTAMP") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
   }
   if (token_value == "VARCHAR") {
     return cudf::data_type{cudf::type_id::STRING};

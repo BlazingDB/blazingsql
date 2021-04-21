@@ -481,7 +481,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
         break;
     }
-    case operator_type::BLZ_CAST_TIMESTAMP:
+    case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
     {
         assert(arg_tokens.size() == 1);
 
@@ -492,7 +492,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (is_type_string(column.type().id())) {
-            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
+            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}, "%Y-%m-%d %H:%M:%S");
         }
         break;
     }
@@ -508,6 +508,36 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}, "%Y-%m-%d %H:%M:%S");
+        }
+        break;
+    }
+    case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
+    {
+        assert(arg_tokens.size() == 1);
+
+        if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
+            break;
+        }
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (is_type_string(column.type().id())) {
+            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS}, "%Y-%m-%d %H:%M:%S");
+        }
+        break;
+    }
+    case operator_type::BLZ_CAST_TIMESTAMP:
+    {
+        assert(arg_tokens.size() == 1);
+
+        if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
+            break;
+        }
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (is_type_string(column.type().id())) {
+            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
         }
         break;
     }
@@ -965,7 +995,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
         expression = fill_minus_op_with_zero(expression);
         expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
-        expression = convert_ms_to_ns_units(expression); // TODO: maybe this function could be removed ...
+        expression = convert_ms_to_ns_units(expression);
         expression = reinterpret_timestamp(expression, blazing_table_in->get_schema());
         expressions[i] = expression;
         out_column_names[i] = name;

@@ -45,7 +45,9 @@ enum class operator_type {
 	BLZ_CAST_FLOAT,
 	BLZ_CAST_DOUBLE,
 	BLZ_CAST_DATE,
+	BLZ_CAST_TIMESTAMP_SECONDS,
 	BLZ_CAST_TIMESTAMP_MILLISECONDS,
+	BLZ_CAST_TIMESTAMP_MICROSECONDS,
 	BLZ_CAST_TIMESTAMP,
 	BLZ_CAST_VARCHAR,
 	BLZ_CHAR_LENGTH,
@@ -230,6 +232,10 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 std::string fill_minus_op_with_zero(std::string expression);
 
 std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
+
+bool is_cast_to_timestamp(std::string expression);
+
+bool is_cast_to_date(std::string expression);
 
 std::string convert_ms_to_ns_units(std::string expression);
 
