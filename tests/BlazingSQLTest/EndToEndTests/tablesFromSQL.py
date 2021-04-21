@@ -1,3 +1,5 @@
+import docker
+from time import sleep
 from blazingsql import DataType
 from DataBase import createSchema
 from Configuration import ExecutionMode
@@ -58,6 +60,25 @@ acceptable_difference = 0.01
 # example: {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
 datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tables)) for ds in data_types)
 
+def start_mysql(user, password, database, port):
+    client = docker.from_env()
+    container = client.containers.run(image='mysql',
+                                      detach=True,
+                                      auto_remove=True,
+                                      environment=[f"MYSQL_USER={user}",
+                                                    f"MYSQL_ROOT_PASSWORD={password}",
+                                                    f"MYSQL_PASSWORD={password}",
+                                                    f"MYSQL_DATABASE={database}"],
+                                      ports={ '3306/tcp': port },
+                                      remove=True,
+                                      command='--local-infile=1')
+    print('Starting mysql docker container for tests')
+    sleep(20)
+    container.logs()
+    return container
+
+def stop_mysql(container):
+  container.kill()
 
 def datasources(dask_client, nRals):
     for fileSchemaType in data_types:
@@ -136,6 +157,7 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
 
 def setup_test() -> bool:
     sql = createSchema.get_sql_connection(DataType.MYSQL)
+    container = start_mysql(sql.username, sql.password, sql.schema, sql.port)
     if not sql:
         print("ERROR: You cannot run tablesFromSQL test, settup your SQL connection using env vars! See tests/README.md")
         return None
@@ -143,7 +165,7 @@ def setup_test() -> bool:
     from DataBase import mysqlSchema
 
     mysqlSchema.create_and_load_tpch_schema(sql)
-    return sql
+    return sql, container
 
 
 def executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql):
@@ -160,9 +182,12 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     print(queryType)
     print("==============================")
 
-    sql = setup_test()
+    sql, container = setup_test()
     if sql:
         start_mem = gpuMemory.capture_gpu_memory_usage()
         executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
         end_mem = gpuMemory.capture_gpu_memory_usage()
         gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+    
+    if container:
+      stop_mysql(container)
