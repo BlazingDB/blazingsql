@@ -135,7 +135,8 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) 
 	std::string query_part = "LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)], max_keys=[MAX($3) OVER (PARTITION BY $2 ORDER BY $1)])";
 	std::tie(column_indices_to_agg, type_aggs_as_str, agg_param_values) = get_cols_to_apply_window_and_cols_to_apply_agg(query_part);
 
-	std::vector<int> column_indices_expect = {0, 3}, agg_param_expect;
+	std::vector<int> column_indices_expect = {0, 3};
+	std::vector<int> agg_param_expect = {0, 0};
 	std::vector<std::string> type_aggs_expect = {"MIN", "MAX"};
 
 	EXPECT_EQ(column_indices_to_agg.size(), column_indices_expect.size());
@@ -145,6 +146,7 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) 
 	for (int i = 0; i < column_indices_to_agg.size(); ++i) {
 		EXPECT_EQ(column_indices_to_agg[i], column_indices_expect[i]);
 		EXPECT_EQ(type_aggs_as_str[i], type_aggs_expect[i]);
+		EXPECT_EQ(agg_param_values[i], agg_param_expect[i]);
 	}
 }
 
