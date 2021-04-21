@@ -1,6 +1,7 @@
 #include <cudf/copying.hpp>
 
 #include <rmm/exec_policy.hpp>
+#include <rmm/cuda_stream_view.hpp>
 #include "MessageUtil.cuh"
 
 namespace ral {
@@ -27,6 +28,8 @@ namespace messages {
 		auto mutable_col = new_offsets->mutable_view();
 
 		cudf::copy_range_in_place(offsets_column, mutable_col, offset, offset + column.size() + 1, 0);
+
+		rmm::cuda_stream_view stream;
 
 		thrust::transform(rmm::exec_policy(0),
 											mutable_col.begin<int32_t>(),
