@@ -92,8 +92,9 @@ inline TableInfo ExecuteTableInfo(PGconn * connection, const sql_info & sql) {
 static inline std::string FindKeyName(PGconn * connection,
                                       const sql_info & sql) {
   // This function exists because when we get batches from table we use LIMIT
-  // clause since postgresql returns unpredictable subsets of query's rows see
-  // https://www.postgresql.org/docs/13/queries-limit.html
+  // clause and since postgresql returns unpredictable subsets of query's rows,
+  // we apply a group by a column in order to keep some order for result query
+  // see https://www.postgresql.org/docs/13/queries-limit.html
   std::ostringstream oss;
   oss << "select column_name, ordinal_position"
          " from information_schema.table_constraints tc"
@@ -112,7 +113,72 @@ static inline std::string FindKeyName(PGconn * connection,
     throw std::runtime_error("Error access for columns info");
   }
 
-  return "";
+  if (PQntuples(result)) {
+    int columnNameFn = PQfnumber(result, "column_name");
+    const std::string columnName{PQgetvalue(result, 0, columnNameFn)};
+    PQclear(result);
+    if (columnName.empty()) {
+      throw std::runtime_error("No column name into result for primary key");
+    } else {
+      return columnName;
+    }
+  } else {
+    // here table doesn't have a primary key, so we choose a column by type
+    // the primitive types like int or float have priority over other types
+    PQclear(result);
+    std::ostringstream oss;
+    oss << "select column_name, oid, case"
+           " when typname like 'int_' then 1"
+           " when typname like 'float_' then 2"
+           " else 99 end as typorder"
+           " from information_schema.tables as tables"
+           " join information_schema.columns as columns"
+           " on tables.table_name = columns.table_name"
+           " join pg_type on udt_name = typname where tables.table_catalog = '"
+        << sql.schema << "' and tables.table_name = '" << sql.table
+        << "' order by typorder, typlen desc, oid";
+
+    const std::string query = oss.str();
+    PGresult * result = PQexec(connection, query.c_str());
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+      PQclear(result);
+      PQfinish(connection);
+      throw std::runtime_error("Error access for columns info");
+    }
+
+    if (PQntuples(result)) {
+      int columnNameFn = PQfnumber(result, "column_name");
+      const std::string columnName{PQgetvalue(result, 0, columnNameFn)};
+      PQclear(result);
+      if (columnName.empty()) {
+        throw std::runtime_error("No column name into result for column type");
+      } else {
+        return columnName;
+      }
+    }
+    PQclear(result);
+  }
+  throw std::runtime_error("There is no a key name candidate");
+}
+
+static inline bool IsThereNext(PGconn * connection, const std::string & query) {
+  std::ostringstream oss;
+  oss << "select count(*) from (" << query << ") as t";
+  const std::string count = oss.str();
+  PGresult * result = PQexec(connection, count.c_str());
+  if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    PQclear(result);
+    PQfinish(connection);
+    throw std::runtime_error("Count query batch");
+  }
+
+  const char * data = PQgetvalue(result, 0, 0);
+  char * end;
+  const std::size_t value =
+      static_cast<std::size_t>(std::strtoll(data, &end, 10));
+  PQclear(result);
+
+  return value == 0;
 }
 
 postgresql_data_provider::postgresql_data_provider(
@@ -163,7 +229,9 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
 
   if (open_file == false) { return handle; }
 
-  const std::string query = build_select_query(batch_position);
+  std::ostringstream oss;
+  oss << build_select_query(batch_position, keyname);
+  const std::string query = oss.str();
   batch_position++;
 
   PGresult * result = PQexec(connection, query.c_str());
@@ -175,8 +243,17 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
   PQflush(connection);
 
   int resultNtuples = PQntuples(result);
+  {
+    std::ostringstream oss;
+    oss << "\033[32mQUERY: " << query << std::endl
+        << "COUNT: " << resultNtuples << "\033[0m" << std::endl;
+    std::cout << oss.str();
+  }
 
-  if (!resultNtuples) { table_fetch_completed = true; }
+  if (!resultNtuples ||
+      IsThereNext(connection, build_select_query(batch_position, keyname))) {
+    table_fetch_completed = true;
+  }
 
   handle.sql_handle.postgresql_result.reset(result, PQclear);
   handle.sql_handle.row_count = PQntuples(result);
