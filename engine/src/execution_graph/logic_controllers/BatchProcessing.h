@@ -202,7 +202,7 @@ private:
 	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
 	size_t file_index = 0;
 	size_t num_batches;
-	bool filtered;
+	bool filterable;
   bool predicate_pushdown_done;
 };
 

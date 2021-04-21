@@ -340,8 +340,8 @@ std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string fo
 	visitPartitionFolder(folder_uri, metadata, 0);
 
 	static std::regex boolean_regex{std::string(ral::parser::detail::lexer::BOOLEAN_REGEX_STR)};
-  static std::regex number_regex{std::string(ral::parser::detail::lexer::NUMBER_REGEX_STR)};
-  static std::regex timestamp_regex{std::string(ral::parser::detail::lexer::TIMESTAMP_REGEX_STR)};
+  	static std::regex number_regex{std::string(ral::parser::detail::lexer::NUMBER_REGEX_STR)};
+  	static std::regex timestamp_regex{std::string(ral::parser::detail::lexer::TIMESTAMP_D_REGEX_STR)};
 
 	for (auto &&m : metadata) {
 		m.data_type = cudf::type_id::EMPTY;
@@ -350,7 +350,7 @@ std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string fo
 		 	if (std::regex_match(value, boolean_regex)) {
 				token = {ral::parser::detail::lexer::token_type::Boolean, value};
 			} else if (std::regex_match(value, timestamp_regex)) {
-				token = {ral::parser::detail::lexer::token_type::Timestamp, value};
+				token = {ral::parser::detail::lexer::token_type::Timestamp_d, value};
 			} else if (std::regex_match(value, number_regex)) {
 				token = {ral::parser::detail::lexer::token_type::Number, value};
 			} else {

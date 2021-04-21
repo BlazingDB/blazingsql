@@ -13,6 +13,7 @@
 
 #include "MySQLDataProvider.h"
 #include "blazingdb/io/Util/StringUtil.h"
+#include "compatibility/SQLTranspiler.h"
 
 #include <mysql/jdbc.h>
 
@@ -20,6 +21,8 @@ using namespace fmt::literals;
 
 namespace ral {
 namespace io {
+
+// For mysql operators see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
 
 struct mysql_table_info {
   // mysql doest have exact info about partition size ... so for now we dont 
@@ -31,12 +34,6 @@ struct mysql_table_info {
 struct mysql_columns_info {
   std::vector<std::string> columns;
   std::vector<std::string> types;
-};
-
-struct mysql_operator_info {
-  std::string label;
-  ral::parser::operator_node::placement_type placement = ral::parser::operator_node::AUTO;
-  bool parentheses_wrap = true;
 };
 
 /* MySQL supports these connection properties:
@@ -156,76 +153,6 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
   return ret;
 }
 
-static std::map<operator_type, mysql_operator_info> get_mysql_operators() {
-  using ral::parser::operator_node;
-  
-  // see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
-  static std::map<operator_type, mysql_operator_info> operators;
-  if (operators.empty()) {
-    operators[operator_type::BLZ_IS_NOT_NULL] = {.label = "IS NOT NULL", .placement = operator_node::END};
-    operators[operator_type::BLZ_IS_NULL] = {.label = "IS NULL", .placement = operator_node::END};
-  }
-  return operators;
-}
-
-class mysql_predicate_transformer : public parser::node_transformer {
-public:
-  mysql_predicate_transformer(
-    const std::vector<int> &column_indices,
-    const std::vector<std::string> &column_names)
-    : column_indices(column_indices), column_names(column_names) {}
-
-  virtual ~mysql_predicate_transformer() {}
-
-  parser::node * transform(parser::operad_node& node) override {
-    auto ndir = &((ral::parser::node&)node);
-    if (this->visited.count(ndir)) {
-      return &node;
-    }
-    if (node.type == ral::parser::node_type::VARIABLE) {
-      std::string var = StringUtil::split(node.value, "$")[1];
-      size_t idx = std::atoi(var.c_str());
-      size_t col = column_indices[idx];
-      node.value = column_names[col];
-    } else if (node.type == ral::parser::node_type::LITERAL) {
-      ral::parser::literal_node &literal_node = ((ral::parser::literal_node&)node);
-      if (literal_node.type().id() == cudf::type_id::TIMESTAMP_DAYS ||
-          literal_node.type().id() == cudf::type_id::TIMESTAMP_SECONDS ||
-          literal_node.type().id() == cudf::type_id::TIMESTAMP_NANOSECONDS ||
-          literal_node.type().id() == cudf::type_id::TIMESTAMP_MICROSECONDS ||
-          literal_node.type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS)
-      {
-        node.value = "\"" + node.value + "\"";
-      }
-    }
-    this->visited[ndir] = true;
-    return &node;
-  }
-
-  parser::node * transform(parser::operator_node& node) override {
-    auto ndir = &((ral::parser::node&)node);
-    if (this->visited.count(ndir)) {
-      return &node;
-    }
-    if (!get_mysql_operators().empty()) {
-      operator_type op = map_to_operator_type(node.value);
-      if (get_mysql_operators().count(op)) {
-        auto op_obj = get_mysql_operators().at(op);
-        node.label = op_obj.label;
-        node.placement = op_obj.placement;
-        node.parentheses_wrap = op_obj.parentheses_wrap;
-      }
-    }
-    this->visited[ndir] = true;
-    return &node;
-  }
-
-private:
-  std::map<ral::parser::node*, bool> visited;
-  std::vector<int> column_indices;
-  std::vector<std::string> column_names;
-};
-
 mysql_data_provider::mysql_data_provider(
     const sql_info &sql,
     size_t total_number_of_nodes,
@@ -304,9 +231,10 @@ size_t mysql_data_provider::get_num_handles() {
 
 std::unique_ptr<ral::parser::node_transformer> mysql_data_provider::get_predicate_transformer() const
 {
-  return std::unique_ptr<ral::parser::node_transformer>(new mysql_predicate_transformer(
+  return std::unique_ptr<ral::parser::node_transformer>(new sql_tools::default_predicate_transformer(
     this->column_indices,
-    this->column_names
+    this->column_names,
+    sql_tools::get_default_operators()
   ));
 }
 
