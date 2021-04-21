@@ -1,0 +1,13 @@
+.. _exhale_enum_protocols_8hpp_1a874c084e940581650ac0852237f3c304:
+
+Enum blazing_protocol
+=====================
+
+- Defined in :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: comm::blazing_protocol

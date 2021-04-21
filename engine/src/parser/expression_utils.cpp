@@ -21,6 +21,7 @@ bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_ABS:
 	case operator_type::BLZ_FLOOR:
 	case operator_type::BLZ_CEIL:
@@ -42,6 +43,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_SECOND:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_CAST_TINYINT:
 	case operator_type::BLZ_CAST_SMALLINT:
 	case operator_type::BLZ_CAST_INTEGER:
@@ -171,8 +174,11 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_ABS:
 		return input_left_type;
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -257,7 +263,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
-		{"IS NOT TRUE", operator_type::BLZ_NOT},
+		{"IS NOT TRUE", operator_type::BLZ_IS_NOT_TRUE},
+		{"IS NOT FALSE", operator_type::BLZ_IS_NOT_FALSE},
+		{"IS TRUE", operator_type::BLZ_IS_TRUE},
 		{"SIN", operator_type::BLZ_SIN},
 		{"ASIN", operator_type::BLZ_ASIN},
 		{"COS", operator_type::BLZ_COS},
@@ -500,6 +508,10 @@ bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICA
 
 bool is_window_function(std::string query_part) { return (query_part.find("OVER") != std::string::npos); }
 
+bool is_generate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_GENERATE_OVERLAPS_TEXT) != std::string::npos); }
+
+bool is_accumulate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_ACCUMULATE_OVERLAPS_TEXT) != std::string::npos); }
+
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
 bool window_expression_contains_partition_by(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
@@ -646,6 +658,9 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 	int preceding_value, following_value;
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+	if (over_clause.length() == 0){
+		over_clause = get_first_over_expression_from_logical_plan(logical_plan, "ORDER BY");
+	}
 
 	// the default behavior when not bounds are passed is
 	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
@@ -909,7 +924,6 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 	return expressions;
 }
 
-
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
 
@@ -950,6 +964,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
+
 	return ret;
 }
 

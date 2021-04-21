@@ -49,13 +49,15 @@ public:
 
 	virtual void put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table);
 
+	virtual void put(size_t index, std::unique_ptr<ral::cache::CacheData> cacheData);
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
 
 	virtual std::unique_ptr<ral::cache::CacheData> get_or_wait_CacheData(size_t index);
 
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false, bool use_pinned = false );
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool use_pinned = false );
 
 	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "", bool always_add = false);
 
@@ -87,10 +89,13 @@ public:
 
 	bool has_messages_now(std::vector<std::string> messages);
 
+	std::unique_ptr<ral::cache::CacheData> pullAnyCacheData(const std::vector<std::string> & messages);
+
 	std::size_t get_num_batches(){
 		return cache_count;
 	}
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+
+  virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
 
@@ -132,38 +137,6 @@ protected:
     int global_index;
 };
 
-/**
-	@brief A class that represents a Host Cache Machine on a
-	multi-tier cache system, however this cache machine only stores CacheData of type CPUCacheData.
-	This class is used to by pass BatchSequences.
-*/
-class HostCacheMachine {
-public:
-	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id);
-
-	~HostCacheMachine() {}
-
-	void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "");
-
-	std::int32_t get_id() const;
-
-	void finish();
-
-	void wait_until_finished();
-
-	bool wait_for_next();
-
-	bool has_next_now();
-
-	std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache(Context * ctx = nullptr);
-
-protected:
-	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
-	std::shared_ptr<Context> ctx;
-	std::shared_ptr<spdlog::logger> cache_events_logger;
-	bool something_added;
-	const std::size_t cache_id;
-};
 
 /**
 	@brief A class that represents a Cache Machine on a

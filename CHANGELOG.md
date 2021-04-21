@@ -1,8 +1,26 @@
+# BlazingSQL 0.20.0 (Date TBS)
+
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+- #1455 Support for IS NOT FALSE condition
+
+
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
+- #1367 OverlapAccumulator Kernel
 - #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
+- #1426 Window Functions without partitioning 
 - #1349 Add e2e test for Hive Partitioned Data
+- #1396 Create tables from other RDBMS
 - #1427 Support for CONCAT alias operator
 - #1424 Add get physical plan with explain
 
@@ -12,10 +30,15 @@
 - #1333 Fixing build due to cudf update
 - #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
+- #1430 Updating GCP to >= version
 - #1331 Added flag to enable null e2e testing
 - #1418 Adding support for docker image
-- #1419 Added concat cache machine timeout
+- #1434 Added documentation for C++ and Python in Sphinx
+- #1419 Added concat cache machine timeout 
+- #1444 Updating GCP to >= version
+- #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
+- #1473 Added Warning to Window Functions
 - #1433 Adding ArrowCacheData, refactoring CacheData files
 
 ## Bug Fixes
@@ -44,6 +67,9 @@
 - #1351 Fixed 'count distinct' related issues
 - #1425 Fix for new joins API
 - #1400 Fix for Column aliases when exists a Join op
+- #1456 Raising exceptions on Python side for RAL
+- #1466 SQL providers: update README.md
+- #1470 Fix pre compiler flags for sql parsers
 
 
 ## Deprecated Features
@@ -94,6 +120,7 @@
 - #1320 Revamping cache logger
 - #1323 Made progress bar update continuously and stay after query is done 
 - #1336 Improvements for the cache API
+- #1483 Improve dependencies script
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11

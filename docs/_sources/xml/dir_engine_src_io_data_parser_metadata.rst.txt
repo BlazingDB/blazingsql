@@ -1,0 +1,25 @@
+.. _dir_engine_src_io_data_parser_metadata:
+
+
+Directory metadata
+==================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_parser>` (``engine/src/io/data_parser``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src/io/data_parser/metadata``
+
+
+Files
+-----
+
+- :ref:`file_engine_src_io_data_parser_metadata_common_metadata.cpp`
+- :ref:`file_engine_src_io_data_parser_metadata_common_metadata.h`
+- :ref:`file_engine_src_io_data_parser_metadata_orc_metadata.cpp`
+- :ref:`file_engine_src_io_data_parser_metadata_orc_metadata.h`
+- :ref:`file_engine_src_io_data_parser_metadata_parquet_metadata.cpp`
+- :ref:`file_engine_src_io_data_parser_metadata_parquet_metadata.h`
+
+

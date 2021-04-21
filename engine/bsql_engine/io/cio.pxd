@@ -78,8 +78,10 @@ cdef extern from "../include/io/io.h" nogil:
         JSON = 3,
         CUDF = 4,
         DASK_CUDF = 5,
-        ARROW = 6
-
+        ARROW = 6,
+        MYSQL = 7,
+        POSTGRESQL = 8,
+        SQLITE = 9
 
     cdef struct TableSchema:
         vector[BlazingTableView] blazingTableViews
@@ -157,7 +159,7 @@ cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" nam
             vector[string] kernel_descriptions
             vector[bool] finished
             vector[int] batches_completed
-        
+
         cdef cppclass graph:
             shared_ptr[CacheMachine] get_kernel_output_cache(size_t kernel_id, string cache_id) except +
             void set_input_and_output_caches(shared_ptr[CacheMachine] input_cache, shared_ptr[CacheMachine] output_cache)

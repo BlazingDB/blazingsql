@@ -1,0 +1,80 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_taskflow_executor.h:
+
+File executor.h
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers_taskflow>` (``engine/src/execution_graph/logic_controllers/taskflow``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/taskflow/executor.h``)
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``ExceptionHandling/BlazingThread.h``
+
+- ``execution_graph/logic_controllers/CacheMachine.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`)
+
+- ``kernel.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h`)
+
+- ``utilities/ctpl_stl.h`` (:ref:`file_engine_src_utilities_ctpl_stl.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_bmr_MemoryMonitor.cpp`
+
+- :ref:`file_engine_src_cython_initialize.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_executor.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__execution`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1execution_1_1executor`
+
+- :ref:`exhale_class_classral_1_1execution_1_1priority`
+
+- :ref:`exhale_class_classral_1_1execution_1_1task`
+

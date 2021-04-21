@@ -32,8 +32,39 @@
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 #include <arrow/table.h>
 
+#ifdef MYSQL_SUPPORT
+#include "jdbc/cppconn/resultset.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include <sqlite3.h>
+#endif
+
+#ifdef POSTGRESQL_SUPPORT
+#include <libpq-fe.h>
+#endif
+
 namespace ral {
 namespace io {
+
+struct sql_datasource {
+  std::string table;
+  std::string query;
+  std::vector<std::string> column_names;
+  std::vector<std::string> column_types; // always uppercase
+  std::vector<size_t> column_bytes;
+  size_t row_count;
+#ifdef MYSQL_SUPPORT
+  std::shared_ptr<sql::ResultSet> mysql_resultset = nullptr;
+#endif
+#ifdef SQLITE_SUPPORT
+  std::shared_ptr<sqlite3_stmt> sqlite_statement = nullptr;
+#endif
+#ifdef POSTGRESQL_SUPPORT
+  std::shared_ptr<PGresult> postgresql_result = nullptr;
+#endif
+  // TODO percy c.gonzales add other backends here
+};
 
 struct data_handle {
 	std::shared_ptr<arrow::io::RandomAccessFile> file_handle;
@@ -41,6 +72,7 @@ struct data_handle {
 	Uri uri;										  // in case the data was loaded from a file
 	frame::BlazingTableView table_view;
 	std::shared_ptr<arrow::Table> arrow_table;
+	sql_datasource sql_handle;
 	data_handle(){}
 
 	data_handle(
@@ -68,7 +100,7 @@ struct data_handle {
 class data_provider {
 public:
 
-	virtual std::shared_ptr<data_provider> clone() = 0; 
+	virtual std::shared_ptr<data_provider> clone() = 0;
 
 	/**
 	 * tells us if this provider can generate more arrow::io::RandomAccessFile instances
@@ -86,7 +118,7 @@ public:
 	virtual data_handle get_next(bool open_file = true) = 0;
 
 	/**
-	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files,
 	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
 	 */
 	virtual std::vector<data_handle> get_some(std::size_t num_files, bool open_file = true) = 0;
@@ -97,11 +129,9 @@ public:
 	virtual void close_file_handles() = 0;
 
 	/**
-	 * Get the number of data_handles that will be provided. 
-	 */ 
+	 * Get the number of data_handles that will be provided.
+	 */
 	virtual size_t get_num_handles() = 0;
-
-
 };
 
 } /* namespace io */
