@@ -13,6 +13,7 @@
 
 #include "MySQLDataProvider.h"
 #include "blazingdb/io/Util/StringUtil.h"
+#include "compatibility/SQLTranspiler.h"
 
 #include <mysql/jdbc.h>
 
@@ -20,6 +21,8 @@ using namespace fmt::literals;
 
 namespace ral {
 namespace io {
+
+// For mysql operators see https://dev.mysql.com/doc/refman/8.0/en/non-typed-operators.html
 
 struct mysql_table_info {
   // mysql doest have exact info about partition size ... so for now we dont 
@@ -31,7 +34,6 @@ struct mysql_table_info {
 struct mysql_columns_info {
   std::vector<std::string> columns;
   std::vector<std::string> types;
-  std::vector<size_t> bytes;
 };
 
 /* MySQL supports these connection properties:
@@ -79,7 +81,6 @@ sql::ConnectOptionsMap build_jdbc_mysql_connection(const std::string host,
   ret["userName"] = user;
   ret["password"] = password;
   ret["schema"] = schema;
-  // TODO percy set chunk size here
   return ret;
 }
 
@@ -96,8 +97,16 @@ std::shared_ptr<sql::ResultSet> execute_mysql_query(sql::Connection *con,
     delete pointer;
   };
 
-  std::shared_ptr<sql::Statement> stmt(con->createStatement(), stmt_deleter);
-  return std::shared_ptr<sql::ResultSet>(stmt->executeQuery(query), resultset_deleter);
+  std::shared_ptr<sql::ResultSet> ret = nullptr;
+  try {
+    std::shared_ptr<sql::Statement> stmt(con->createStatement(), stmt_deleter);
+    ret = std::shared_ptr<sql::ResultSet>(stmt->executeQuery(query), resultset_deleter);
+    // NOTE do not enable setFetchSize, we want to read by batches
+  } catch (sql::SQLException &e) {
+    throw std::runtime_error("ERROR: Could not run the MySQL query  " + query + ": " + e.what());
+  }
+
+  return ret;
 }
 
 mysql_table_info get_mysql_table_info(sql::Connection *con, const std::string &table) {
@@ -116,36 +125,10 @@ mysql_table_info get_mysql_table_info(sql::Connection *con, const std::string &t
       break; // we should not have more than 1 row here
     }
   } catch (sql::SQLException &e) {
-    // TODO percy
+    throw std::runtime_error("ERROR: Could not get table information for MySQL " + table + ": " + e.what());
   }
 
   return ret;
-}
-
-// TODO percy avoid repeated code
-bool is_string_test(const std::string &t) {
-  std::vector<std::string> mysql_string_types_hints = {
-    "CHAR",
-    "VARCHAR",
-    "BINARY",
-    "VARBINARY",
-    "TINYBLOB",
-    "TINYTEXT",
-    "TEXT",
-    "BLOB",
-    "MEDIUMTEXT",
-    "MEDIUMBLOB",
-    "LONGTEXT",
-    "LONGBLOB",
-    "ENUM",
-    "SET"
-  };
-
-  for (auto hint : mysql_string_types_hints) {
-    if (StringUtil::beginsWith(t, hint)) return true;
-  }
-
-  return false;
 }
 
 mysql_columns_info get_mysql_columns_info(sql::Connection *con,
@@ -160,21 +143,11 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
     while (res->next()) {
       std::string col_name = res->getString("COLUMN_NAME").asStdString();
       std::string col_type = StringUtil::toUpper(res->getString("COLUMN_TYPE").asStdString());
-      size_t max_bytes = 8; // max bytes date = 5+3(frac secs) = 8 ... then the largest comes from strings
-
-      if (is_string_test(col_type)) {
-        max_bytes = res->getUInt64("CHARACTER_MAXIMUM_LENGTH");
-      } else if (col_type == "DATETIME" || col_type == "TIMESTAMP") {
-        // NOTE mysql jdbc represents mysql date/datetime types as strings so is better to reserve a good amount here
-        max_bytes = 48;
-      }
-
       ret.columns.push_back(col_name);
       ret.types.push_back(col_type);
-      ret.bytes.push_back(max_bytes);
     }
   } catch (sql::SQLException &e) {
-    // TODO percy
+    throw std::runtime_error("ERROR: Could not get columns information for MySQL " + table + ": " + e.what());
   }
 
   return ret;
@@ -186,7 +159,7 @@ mysql_data_provider::mysql_data_provider(
     size_t self_node_idx)
 	: abstractsql_data_provider(sql, total_number_of_nodes, self_node_idx)
   , mysql_connection(nullptr), estimated_table_row_count(0)
-  , batch_position(0), table_fetch_completed(false)
+  , batch_index(0), table_fetch_completed(false)
 {
   sql::Driver *driver = sql::mysql::get_driver_instance();
   sql::ConnectOptionsMap options = build_jdbc_mysql_connection(this->sql.host,
@@ -202,7 +175,6 @@ mysql_data_provider::mysql_data_provider(
                                                         this->sql.table);
   this->column_names = cols_info.columns;
   this->column_types = cols_info.types;
-  this->column_bytes = cols_info.bytes;
 }
 
 mysql_data_provider::~mysql_data_provider() {
@@ -218,7 +190,7 @@ bool mysql_data_provider::has_next() {
 
 void mysql_data_provider::reset() {
   this->table_fetch_completed = false;
-  this->batch_position = 0;
+  this->batch_index = 0;
 }
 
 data_handle mysql_data_provider::get_next(bool open_file) {
@@ -231,14 +203,11 @@ data_handle mysql_data_provider::get_next(bool open_file) {
     return ret;
   }
 
-  std::string select_from = this->build_select_from();
-  std::string where = this->sql.table_filter.empty()? "" : " where ";
-  
-  size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * this->batch_position + this->self_node_idx);
-  std::string query = select_from + where + this->sql.table_filter + this->build_limit_offset(offset);
+  std::string query = this->build_select_query(this->batch_index);
+
   // DEBUG
-  //std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MYSQL QUERY:\n\n" << query << "\n\n\n";
-  ++this->batch_position;
+  //std::cout << "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MYSQL QUERY:\n\n" << query << "\n\n\n";
+  ++this->batch_index;
   auto res = execute_mysql_query(this->mysql_connection.get(), query);
 
   if (res->rowsCount() == 0) {
@@ -248,7 +217,6 @@ data_handle mysql_data_provider::get_next(bool open_file) {
   ret.sql_handle.table = this->sql.table;
   ret.sql_handle.column_names = this->column_names;
   ret.sql_handle.column_types = this->column_types;
-  ret.sql_handle.column_bytes = this->column_bytes;
   ret.sql_handle.mysql_resultset = res;
   ret.sql_handle.row_count = res->rowsCount();
   // TODO percy add columns to uri.query
@@ -259,6 +227,15 @@ data_handle mysql_data_provider::get_next(bool open_file) {
 size_t mysql_data_provider::get_num_handles() {
   size_t ret = this->estimated_table_row_count / this->sql.table_batch_size;
   return ret == 0? 1 : ret;
+}
+
+std::unique_ptr<ral::parser::node_transformer> mysql_data_provider::get_predicate_transformer() const
+{
+  return std::unique_ptr<ral::parser::node_transformer>(new sql_tools::default_predicate_transformer(
+    this->column_indices,
+    this->column_names,
+    sql_tools::get_default_operators()
+  ));
 }
 
 } /* namespace io */
