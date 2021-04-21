@@ -245,8 +245,8 @@ data_handle postgresql_data_provider::get_next(bool open_file) {
   int resultNtuples = PQntuples(result);
   {
     std::ostringstream oss;
-    oss << "\033[32mQUERY: " << query << std::endl
-        << "COUNT: " << resultNtuples << "\033[0m" << std::endl;
+    oss << "QUERY: " << query << std::endl
+        << "COUNT: " << resultNtuples << std::endl;
     std::cout << oss.str();
   }
 

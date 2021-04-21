@@ -170,10 +170,10 @@ std::string abstractsql_data_provider::build_select_query(
   if (!orderBy.empty()) { oss << " order by " << orderBy; }
 
   const size_t offset =
-      (this->sql.table_batch_size - 1) *
+      this->sql.table_batch_size *
       (this->total_number_of_nodes * batch_index + this->self_node_idx);
 
-  oss << " LIMIT " << (this->sql.table_batch_size - 1) << " OFFSET " << offset;
+  oss << " LIMIT " << this->sql.table_batch_size << " OFFSET " << offset;
 
   return oss.str();
 }

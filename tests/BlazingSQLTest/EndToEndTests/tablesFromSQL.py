@@ -57,11 +57,8 @@ samples = define_samples([
 
 data_types = [
     #DataType.MYSQL,
-    DataType.POSTGRESQL,
-    #DataType.SQLITE,
-    # TODO percy c.gonzales
     #DataType.POSTGRESQL,
-    #DataType.SQLITE,
+    DataType.SQLITE
 ]
 
 tables = [
