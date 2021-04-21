@@ -282,6 +282,9 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   if (token_value == "TIMESTAMP") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
   }
+  if (token_value == "TIMESTAMP_MILLISECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+  }
   if (token_value == "VARCHAR") {
     return cudf::data_type{cudf::type_id::STRING};
   }

@@ -45,6 +45,7 @@ enum class operator_type {
 	BLZ_CAST_FLOAT,
 	BLZ_CAST_DOUBLE,
 	BLZ_CAST_DATE,
+	BLZ_CAST_TIMESTAMP_MILLISECONDS,
 	BLZ_CAST_TIMESTAMP,
 	BLZ_CAST_VARCHAR,
 	BLZ_CHAR_LENGTH,
@@ -231,3 +232,5 @@ std::string fill_minus_op_with_zero(std::string expression);
 std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
 
 std::string convert_ms_to_ns_units(std::string expression);
+
+std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema);

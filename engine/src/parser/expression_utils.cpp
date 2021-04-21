@@ -52,6 +52,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_FLOAT:
 	case operator_type::BLZ_CAST_DOUBLE:
 	case operator_type::BLZ_CAST_DATE:
+	case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -137,6 +138,8 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::FLOAT64;
 	case operator_type::BLZ_CAST_DATE:
 		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	case operator_type::BLZ_CAST_TIMESTAMP:
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	case operator_type::BLZ_STR_LOWER:
@@ -293,6 +296,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_FLOAT", operator_type::BLZ_CAST_FLOAT},
 		{"CAST_DOUBLE", operator_type::BLZ_CAST_DOUBLE},
 		{"CAST_DATE", operator_type::BLZ_CAST_DATE},
+		{"CAST_TIMESTAMP_MILLISECONDS", operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS},
 		{"CAST_TIMESTAMP", operator_type::BLZ_CAST_TIMESTAMP},
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
@@ -1048,7 +1052,6 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 std::string convert_ms_to_ns_units(std::string expression) {
 
 	// TODO: Here apply regex      \bCAST\b\(\$[0-9]{1,6}\)\:\bTIMESTAMP\b\([0-9]\)
-	std::cout << "expression: " << expression << std::endl;
 	if (expression.find("CAST($") != expression.npos && expression.find(":TIMESTAMP") != expression.npos) {
 		// For timestampdiff
 		//continue;
@@ -1082,4 +1085,46 @@ std::string convert_ms_to_ns_units(std::string expression) {
 	}
 
 	return expression;	
+}
+
+// TODO: add an input and output
+std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema) {
+	std::string reint_express = "Reinterpret(-(";
+	size_t start_reint_pos = expression.find(reint_express);
+	if (start_reint_pos == expression.npos) {
+		return expression;
+	}
+	size_t remove_until_pos = start_reint_pos + reint_express.size();
+	std::string reduced_expr = expression.substr(remove_until_pos, expression.size() - remove_until_pos);
+	size_t start_closing_parent_pos = reduced_expr.find("))");
+	reduced_expr = reduced_expr.substr(0, start_closing_parent_pos);
+
+	std::vector<std::string> reduced_expressions = get_expressions_from_expression_list(reduced_expr);
+	std::string left_expression = reduced_expressions[0];
+	std::string right_expression = reduced_expressions[1];
+
+	// Case 1:  Reinterpret(-(1996-12-01 12:00:01, $0))
+	if (is_timestamp(left_expression) && right_expression[0] == '$') {
+		right_expression.erase(right_expression.begin());
+		int col_indice = std::stoi(right_expression);
+
+		assert(col_indice <= table_schema.size());
+
+		// TODO: improve this code ..
+		if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_SECONDS) {
+			expression = StringUtil::replace(expression, left_expression, left_expression + ":S");
+		} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			expression = StringUtil::replace(expression, left_expression, "CAST(" + left_expression + "):TIMESTAMP_MILLISECONDS");
+		} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MICROSECONDS) {
+			expression = StringUtil::replace(expression, left_expression, left_expression + ":US");
+		}
+
+	}
+
+	// Case 2:  Reinterpret(-($0, 1996-12-01 12:00:01))
+	if (is_timestamp(right_expression)) {
+		// TODO: handle the other case here
+	}
+
+	return expression;
 }
