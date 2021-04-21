@@ -45,6 +45,10 @@ Classes
 
 - :ref:`exhale_class_classral_1_1batch_1_1OutputKernel`
 
+- :ref:`exhale_class_classral_1_1batch_1_1OverlapAccumulatorKernel`
+
+- :ref:`exhale_class_classral_1_1batch_1_1OverlapGeneratorKernel`
+
 - :ref:`exhale_class_classral_1_1batch_1_1PartitionKernel`
 
 - :ref:`exhale_class_classral_1_1batch_1_1PartitionSingleNodeKernel`
@@ -66,9 +70,13 @@ Functions
 ---------
 
 
+- :ref:`exhale_function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11`
+
 - :ref:`exhale_function_BatchJoinProcessing_8cpp_1ade67fb087235e4bf129578219d5fc9ee`
 
 - :ref:`exhale_function_BatchJoinProcessing_8cpp_1a08af1d3b63504448c6807539bbc9cbf1`
+
+- :ref:`exhale_function_BatchJoinProcessing_8cpp_1a0a59fd08580e65c57d3ad38f4f62da3d`
 
 - :ref:`exhale_function_BatchJoinProcessing_8cpp_1a57e25e15fc4b52ed200ab6d2d8426b60`
 
@@ -86,7 +94,21 @@ Variables
 ---------
 
 
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a362f64188be5aec6c228cc0f69dd0cdb`
+
 - :ref:`exhale_variable_BatchJoinProcessing_8h_1a023e63d9a3fbff1b27f9662be176e9e9`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1addb756e52d468826fe4d2ebb5b1bcdd2`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a99917a232e4ec46caa409e6040c24587`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a97e82b19410ad68a80de7fe227acf90c`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a4f0140148d776c0891662317cda49808`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a091010238ede364e6f1fdc1eed343e88`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1acea0ed4ee664db21921408cb44d773ec`
 
 - :ref:`exhale_variable_BatchJoinProcessing_8h_1a6e0c355ca3625e6cc3af329feb6856b3`
 
@@ -96,6 +118,32 @@ Variables
 
 - :ref:`exhale_variable_BatchJoinProcessing_8h_1a7812a46b79305ac1e3c69a2046dfc30f`
 
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a1224aa7f88ca85a260b0851179389da2`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a2a4b87d82278c94ef4b6ea0b168bf706`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1ab656bb76fbb9a7d078a72b6216213d09`
+
 - :ref:`exhale_variable_BatchJoinProcessing_8h_1afe34315964f2d43b8653f9657730ecea`
 
 - :ref:`exhale_variable_BatchJoinProcessing_8h_1a1df8dbe7a9c986c319228696561c167c`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1af2335a23b10905a34f543998a27d7a31`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a1ef3b7cc27b7a64f39cd1ca1bfa5be72`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1ab9db7eeef6e657d71ec92d475acefc02`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a23a04b2a7df2cec935856a5f9d7443e3`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1ab4e7ce1df1375a61567c3814866e3e78`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a2c908bcf66f0bbdf6a3a7013831c55ff`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a36a1e5ed8d22f34c1023b8fed8b16ea7`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1adfd502a643a9c61131fa65756cf98ac3`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a4da1ea4521c357f879baadfc29e17c5a`
+
+- :ref:`exhale_variable_BatchWindowFunctionProcessing_8h_1a3cdb81347cd3be6e17266b3d5d583f29`

@@ -17,7 +17,7 @@ Namespaces
 ----------
 
 
-- :ref:`namespace_strings__detail__@142`
+- :ref:`namespace_strings__detail__@159`
 
 
 Functions

@@ -28,3 +28,8 @@ doxygen:
 clean:
 	@rm	-rf	"$(BUILDDIR)" "$(SOURCEDIR)/xml"
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+publish:
+	@rm -rf "../docs"
+	@cp -r "$(BUILDDIR)/html" "../docs"
+	@touch ../docs/.nojekyll

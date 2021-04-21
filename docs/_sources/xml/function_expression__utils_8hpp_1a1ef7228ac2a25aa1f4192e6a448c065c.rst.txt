@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c:
 
-Function get_frame_type_from_over_clause
-========================================
+Function get_frame_type_from_over_clause(const std::string&)
+============================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

@@ -19,6 +19,7 @@ Derived Types
 - ``public ral::batch::MergeAggregateKernel`` (:ref:`exhale_class_classral_1_1batch_1_1MergeAggregateKernel`)
 - ``public ral::batch::MergeStreamKernel`` (:ref:`exhale_class_classral_1_1batch_1_1MergeStreamKernel`)
 - ``public ral::batch::OutputKernel`` (:ref:`exhale_class_classral_1_1batch_1_1OutputKernel`)
+- ``public ral::batch::OverlapGeneratorKernel`` (:ref:`exhale_class_classral_1_1batch_1_1OverlapGeneratorKernel`)
 - ``public ral::batch::PartitionSingleNodeKernel`` (:ref:`exhale_class_classral_1_1batch_1_1PartitionSingleNodeKernel`)
 - ``public ral::batch::PartwiseJoin`` (:ref:`exhale_class_classral_1_1batch_1_1PartwiseJoin`)
 - ``public ral::batch::Print`` (:ref:`exhale_class_classral_1_1batch_1_1Print`)

@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a76bda2ebba29bae334d70942fdec351f:
+
+Function is_join(const std::string&)
+====================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_join(const std::string&)

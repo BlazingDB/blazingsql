@@ -1,0 +1,13 @@
+.. _exhale_function_sqlcommon_8h_1a67cc2d2d4088b95b4222aad45051b333:
+
+Function ral::io::build_str_cudf_col
+====================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_sqlcommon.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::build_str_cudf_col(cudf_string_col *, const std::vector<cudf::bitmask_type>&)

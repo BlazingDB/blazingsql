@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1aebb79ccbb09d16dd354a47758d73d3ad:
+
+Function is_bindable_scan(std::string)
+======================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_bindable_scan(std::string)

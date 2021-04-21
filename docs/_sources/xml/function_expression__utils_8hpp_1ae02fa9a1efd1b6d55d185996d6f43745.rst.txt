@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745:
 
-Function is_project
-===================
+Function is_project(std::string)
+================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 
