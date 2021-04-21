@@ -31,7 +31,7 @@ namespace messages {
 
 		rmm::cuda_stream_view stream;
 
-		thrust::transform(rmm::exec_policy(0),
+		thrust::transform(rmm::exec_policy(stream),
 											mutable_col.begin<int32_t>(),
 											mutable_col.end<int32_t>(),
 											mutable_col.begin<int32_t>(),
