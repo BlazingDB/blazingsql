@@ -3066,6 +3066,11 @@ class BlazingContext(object):
             result = cudf.DataFrame()  # it will return an empty DataFrame
             return result
 
+        if ") OVER (" in algebra:
+            print(
+                "WARNING: Window Functions are currently an experimental feature and not fully supported or tested"
+            )
+
         if algebra == "":
             print("Parsing Error")
             return
