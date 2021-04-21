@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a8b285991517b5466f58f9eb8311791df:
+
+Function is_sort_and_sample(std::string)
+========================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_sort_and_sample(std::string)

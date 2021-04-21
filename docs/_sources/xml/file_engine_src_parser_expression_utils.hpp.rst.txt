@@ -40,6 +40,10 @@ Included By
 -----------
 
 
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp`
@@ -52,13 +56,9 @@ Included By
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_LogicalProject.cpp`
 
-- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
-
 - :ref:`file_engine_src_operators_GroupBy.cpp`
 
 - :ref:`file_engine_src_operators_OrderBy.cpp`
-
-- :ref:`file_engine_src_parser_expression_tree.hpp`
 
 - :ref:`file_engine_src_parser_expression_utils.cpp`
 
@@ -81,6 +81,8 @@ Functions
 - :ref:`exhale_function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef`
 
 - :ref:`exhale_function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512`
+
+- :ref:`exhale_function_expression__utils_8hpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e`
 
 - :ref:`exhale_function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d`
 
@@ -114,6 +116,8 @@ Functions
 
 - :ref:`exhale_function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046`
 
+- :ref:`exhale_function_expression__utils_8hpp_1a31705d370349370602c5743126ddc79e`
+
 - :ref:`exhale_function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba`
 
 - :ref:`exhale_function_expression__utils_8hpp_1a140d8c66182d9c7237728543252c9e56`
@@ -141,6 +145,8 @@ Functions
 - :ref:`exhale_function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c`
 
 - :ref:`exhale_function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b`
+
+- :ref:`exhale_function_expression__utils_8hpp_1a9a73a20e2b1ae1125ee83383fe30d1be`
 
 - :ref:`exhale_function_expression__utils_8hpp_1a6566d1fe108173708939994b4003c605`
 
@@ -235,6 +241,8 @@ Variables
 
 - :ref:`exhale_variable_expression__utils_8hpp_1ab3738f218484b788d1acf4b23636ce5a`
 
+- :ref:`exhale_variable_expression__utils_8hpp_1a1a53bfe0e48ec7977d54934f1518a2c7`
+
 - :ref:`exhale_variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973`
 
 - :ref:`exhale_variable_expression__utils_8hpp_1ab860f78b701c5fd157599694b6530543`
@@ -244,6 +252,8 @@ Variables
 - :ref:`exhale_variable_expression__utils_8hpp_1a200aa6a816aaffa227fd7b9b9fa84641`
 
 - :ref:`exhale_variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c`
+
+- :ref:`exhale_variable_expression__utils_8hpp_1a7d5c1dac9820f316a2f637341c7f8634`
 
 - :ref:`exhale_variable_expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7`
 

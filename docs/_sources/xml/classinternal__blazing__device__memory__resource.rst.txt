@@ -12,7 +12,7 @@ Inheritance Relationships
 Base Type
 *********
 
-- ``public rmm::mr::device_memory_resource``
+- ``public device_memory_resource``
 
 
 Class Documentation

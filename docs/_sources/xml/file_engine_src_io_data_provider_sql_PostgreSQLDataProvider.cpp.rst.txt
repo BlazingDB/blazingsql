@@ -1,0 +1,56 @@
+
+.. _file_engine_src_io_data_provider_sql_PostgreSQLDataProvider.cpp:
+
+File PostgreSQLDataProvider.cpp
+===============================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_provider_sql>` (``engine/src/io/data_provider/sql``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_provider/sql/PostgreSQLDataProvider.cpp``)
+---------------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``PostgreSQLDataProvider.h`` (:ref:`file_engine_src_io_data_provider_sql_PostgreSQLDataProvider.h`)
+
+- ``netinet/in.h``
+
+- ``sstream``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_PostgreSQLDataProvider_8cpp_1aebe162a581a50180a3d5f7170bade175`
+
+- :ref:`exhale_variable_PostgreSQLDataProvider_8cpp_1a6cfe23662037bc20c86fb97a29d6b5aa`
+
+- :ref:`exhale_variable_PostgreSQLDataProvider_8cpp_1a776e765c396e9f226fe6eb5c3029d5c1`
+

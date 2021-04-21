@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba:
 
-Function is_aggregate
-=====================
+Function is_aggregate(std::string)
+==================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

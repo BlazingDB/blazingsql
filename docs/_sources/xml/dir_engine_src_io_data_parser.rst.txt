@@ -15,6 +15,7 @@ Subdirectories
 --------------
 
 - :ref:`dir_engine_src_io_data_parser_metadata`
+- :ref:`dir_engine_src_io_data_parser_sql`
 
 
 Files

@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c:
 
-Function get_cols_to_apply_window_and_cols_to_apply_agg
-=======================================================
+Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&)
+===========================================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

@@ -1,0 +1,13 @@
+.. _exhale_variable_CacheData_8h_1af88a1f1f4e6a1d4295790a12fcb28c3d:
+
+Variable ral::cache::OVERLAP_TARGET_BATCH_INDEX
+===============================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::cache::OVERLAP_TARGET_BATCH_INDEX

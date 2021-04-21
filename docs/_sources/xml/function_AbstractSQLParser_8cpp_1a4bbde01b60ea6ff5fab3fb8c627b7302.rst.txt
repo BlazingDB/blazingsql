@@ -1,0 +1,13 @@
+.. _exhale_function_AbstractSQLParser_8cpp_1a4bbde01b60ea6ff5fab3fb8c627b7302:
+
+Function ral::io::init
+======================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_AbstractSQLParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::init(size_t, const std::vector<int>&, const std::vector<cudf::type_id>&)
