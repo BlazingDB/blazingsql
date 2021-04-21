@@ -1,4 +1,4 @@
-# BlazingSQL 0.19.0 (Date TBS)
+# BlazingSQL 0.19.0 (April 21, 2021)
 
 ## New Features
 - #1367 OverlapAccumulator Kernel
