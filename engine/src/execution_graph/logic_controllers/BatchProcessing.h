@@ -203,6 +203,7 @@ private:
 	size_t file_index = 0;
 	size_t num_batches;
 	bool filtered;
+  bool predicate_pushdown_done;
 };
 
 /**

@@ -25,6 +25,11 @@
 #include "../io/data_provider/sql/MySQLDataProvider.h"
 #endif
 
+#ifdef POSTGRESQL_SUPPORT
+#include "../io/data_parser/sql/PostgreSQLParser.h"
+#include "../io/data_provider/sql/PostgreSQLDataProvider.h"
+#endif
+
 #ifdef SQLITE_SUPPORT
 #include "../io/data_parser/sql/SQLiteParser.h"
 #include "../io/data_provider/sql/SQLiteDataProvider.h"
@@ -88,12 +93,23 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif
-    } else if(fileType == ral::io::DataType::SQLITE) {
+    } else if(fileType == ral::io::DataType::POSTGRESQL) {
+#ifdef POSTGRESQL_SUPPORT
+		parser = std::make_shared<ral::io::postgresql_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, total_number_of_nodes, self_node_idx);
+	isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+	} else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
   		parser = std::make_shared<ral::io::sqlite_parser>();
       auto sql = ral::io::getSqlInfo(args_map);
       provider = std::make_shared<ral::io::sqlite_data_provider>(sql, total_number_of_nodes, self_node_idx);
       isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     }
 
@@ -184,7 +200,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 {
   using blazingdb::manager::Context;
   using blazingdb::transport::Node;
-  
+
   auto& communicationData = ral::communication::CommunicationData::getInstance();
 
   std::vector<Node> contextNodes;

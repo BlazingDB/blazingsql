@@ -8,8 +8,13 @@
 #include "io/data_provider/sql/MySQLDataProvider.h"
 #endif
 
-// TODO percy
-//#include "io/data_parser/sql/PostgreSQLParser.h"
+#ifdef POSTGRESQL_SUPPORT
+#include "io/data_provider/sql/PostgreSQLDataProvider.h"
+#endif
+
+#ifdef SQLITE_SUPPORT
+#include "io/data_provider/sql/SQLiteDataProvider.h"
+#endif
 
 #include "parser/expression_utils.hpp"
 #include "taskflow/executor.h"
@@ -129,6 +134,18 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif
+    } else if (parser->type() == ral::io::DataType::POSTGRESQL)	{
+#ifdef POSTGRESQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::postgresql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::SQLITE)	{
+#ifdef SQLITE_SUPPORT
+      ral::io::set_sql_projections<ral::io::sqlite_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
+#endif
     } else {
         num_batches = provider->get_num_handles();
     }
@@ -237,6 +254,7 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
 : kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), provider(provider), parser(parser), schema(schema) {
     this->query_graph = query_graph;
     this->filtered = is_filtered_bindable_scan(expression);
+    this->predicate_pushdown_done = false;
 
     if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
         num_batches = std::max(provider->get_num_handles(), (size_t)1);
@@ -263,8 +281,21 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
     } else if (parser->type() == ral::io::DataType::MYSQL)	{
 #ifdef MYSQL_SUPPORT
       ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
+      predicate_pushdown_done = ral::io::set_sql_predicate_pushdown<ral::io::mysql_data_provider>(provider.get(), queryString);
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::POSTGRESQL)	{
+#ifdef POSTGRESQL_SUPPORT
+      ral::io::set_sql_projections<ral::io::postgresql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+    } else if (parser->type() == ral::io::DataType::SQLITE)	{
+#ifdef SQLITE_SUPPORT
+      ral::io::set_sql_projections<ral::io::sqlite_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     } else {
         num_batches = provider->get_num_handles();
@@ -278,7 +309,7 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
     std::unique_ptr<ral::frame::BlazingTable> filtered_input;
 
     try{
-        if(this->filtered) {
+        if(this->filtered && !this->predicate_pushdown_done) {
             filtered_input = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
             filtered_input->setNames(fix_column_aliases(filtered_input->names(), expression));
             output->addToCache(std::move(filtered_input));

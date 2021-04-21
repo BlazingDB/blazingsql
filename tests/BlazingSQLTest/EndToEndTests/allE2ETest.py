@@ -305,7 +305,7 @@ def main():
     if testsWithNulls == "true":
         if Settings.execution_mode != ExecutionMode.GPUCI:
             if runAllTests or ("tablesFromSQL" in targetTestGroups):
-                tablesFromSQL.main(dask_client, drill, dir_data_file, bc, nRals)
+                tablesFromSQL.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

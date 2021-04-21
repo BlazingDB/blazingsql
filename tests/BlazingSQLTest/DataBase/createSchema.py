@@ -61,23 +61,32 @@ class sql_connection:
 
 
 def get_sql_connection(fileSchemaType: DataType):
-    sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if not sql_hostname: return None
+    if fileSchemaType is DataType.SQLITE:
+        return get_sqlite_connection()
 
-    sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if sql_port == 0: return None
+    if fileSchemaType is DataType.MYSQL:
+        return get_mysql_connection()
 
-    sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if not sql_username: return None
+    if fileSchemaType is DataType.POSTGRESQL:
+        return get_postgresql_connection()
 
-    sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if not sql_password: return None
+    raise ValueError('Unsupported data type {fileSchemaType}')
 
-    sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+
+def get_mysql_connection() -> sql_connection:
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_MYSQL_HOSTNAME", "")
+    if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_MYSQL_PORT", 0))
+    if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_MYSQL_USERNAME", "")
+    if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_MYSQL_PASSWORD", "")
+    if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_MYSQL_DATABASE", "")
     if not sql_schema: return None
 
     ret = sql_connection(hostname = sql_hostname,
@@ -86,6 +95,40 @@ def get_sql_connection(fileSchemaType: DataType):
                          password = sql_password,
                          schema = sql_schema)
     return ret
+
+
+def get_postgresql_connection() -> sql_connection:
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_HOSTNAME", "")
+    if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_POSTGRESQL_PORT", 0))
+    if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_USERNAME", "")
+    if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_PASSWORD", "")
+    if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_DATABASE", "")
+    if not sql_schema: return None
+
+    ret = sql_connection(hostname = sql_hostname,
+                         port = sql_port,
+                         username = sql_username,
+                         password = sql_password,
+                         schema = sql_schema)
+    return ret
+
+
+def get_sqlite_connection() -> sql_connection:
+    sql_schema = os.getenv("BLAZINGSQL_E2E_SQLITE_DATABASE", "")
+    if not sql_schema: return None
+    return sql_connection(hostname='',
+                          port=0,
+                          username='',
+                          password='',
+                          schema=sql_schema)
 
 
 def getFiles_to_tmp(tpch_dir, n_files, ext):
@@ -1319,7 +1362,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
                 port = sql_port,
                 username = sql_username,
                 password = sql_password,
-                schema = sql_schema,
+                database = sql_schema,
                 table_filter = sql_table_filter,
                 table_batch_size = sql_table_batch_size)
         else:
