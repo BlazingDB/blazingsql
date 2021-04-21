@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1aad5753dfce608e546bdb1c634029bfdd:
 
-Function window_expression_contains_bounds
-==========================================
+Function window_expression_contains_bounds(std::string)
+=======================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

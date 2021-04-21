@@ -34,6 +34,10 @@ Included By
 
 - :ref:`file_engine_src_CalciteInterpreter.cpp`
 
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`
+
 - :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.cpp`
 
 - :ref:`file_engine_src_communication_CommunicationInterface_messageListener.cpp`
@@ -51,10 +55,6 @@ Included By
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
-
-- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`
-
-- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_kernel.cpp`
 

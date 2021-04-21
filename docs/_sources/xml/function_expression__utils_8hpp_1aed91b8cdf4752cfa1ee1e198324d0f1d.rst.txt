@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d:
 
-Function extract_table_name
-===========================
+Function extract_table_name(std::string)
+========================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

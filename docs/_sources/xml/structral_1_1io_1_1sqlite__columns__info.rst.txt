@@ -1,0 +1,16 @@
+.. _exhale_struct_structral_1_1io_1_1sqlite__columns__info:
+
+Struct sqlite_columns_info
+==========================
+
+- Defined in :ref:`file_engine_src_io_data_provider_sql_SQLiteDataProvider.cpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: ral::io::sqlite_columns_info
+   :members:
+   :protected-members:
+   :undoc-members:

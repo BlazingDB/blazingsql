@@ -48,6 +48,8 @@ Includes
 
 - ``numeric``
 
+- ``operators/OrderBy.h`` (:ref:`file_engine_src_operators_OrderBy.h`)
+
 - ``spdlog/spdlog.h``
 
 - ``utilities/CommonOperations.h`` (:ref:`file_engine_src_utilities_CommonOperations.h`)
