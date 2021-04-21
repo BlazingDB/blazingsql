@@ -55,8 +55,7 @@ execute_sqlite_query(sqlite3 * db, const std::string & query) {
     throw std::runtime_error{oss.str()};
   }
 
-  auto sqlite_deleter = [](sqlite3_stmt * stmt) { sqlite3_finalize(stmt); };
-  return std::shared_ptr<sqlite3_stmt>{stmt, sqlite_deleter};
+  return std::shared_ptr<sqlite3_stmt>{stmt, sqlite3_finalize};
 }
 
 static inline sqlite_table_info
@@ -88,8 +87,8 @@ static inline sqlite_columns_info
 get_sqlite_columns_info(sqlite3 * db, const std::string & table) {
   sqlite_columns_info ret;
   std::string query = "PRAGMA table_info(" + table + ")";
-  auto A = execute_sqlite_query(db, query);
-  sqlite3_stmt * stmt = A.get();
+  auto stmt_ptr = execute_sqlite_query(db, query);
+  sqlite3_stmt * stmt = stmt_ptr.get();
 
   int rc = SQLITE_ERROR;
   while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -149,28 +148,15 @@ std::shared_ptr<data_provider> sqlite_data_provider::clone() {
                                                 self_node_idx);
 }
 
-static inline std::string
-make_table_query_string(const std::size_t limit,
-                        const std::size_t batch_size,
-                        const std::size_t batch_position,
-                        const std::size_t number_of_nodes,
-                        const std::size_t node_idx,
-                        const std::string & select_from) {
-  const std::size_t offset =
-      batch_size * (batch_position * number_of_nodes + node_idx);
-  std::ostringstream oss;
-  oss << select_from << " LIMIT " << limit << " OFFSET " << offset;
-  return oss.str();
-}
-
 bool sqlite_data_provider::has_next() {
-  const std::string query =
-      make_table_query_string(1,
-                              sql.table_batch_size,
-                              batch_position,
-                              total_number_of_nodes,
-                              self_node_idx,
-                              "select * from " + sql.table);
+  // We need this implementation here becuase SQLite doesn't have a method to
+  // get the length of rows into a sqlite3_statement
+  const std::size_t offset =
+      sql.table_batch_size *
+      (batch_position * total_number_of_nodes + self_node_idx);
+  std::ostringstream oss;
+  oss << "SELECT * FROM " << sql.table << " LIMIT 1 OFFSET " << offset;
+  const std::string query = oss.str();
   bool it_has = false;
   int errorCode = sqlite3_exec(
       db,
@@ -217,17 +203,20 @@ static inline std::size_t get_size_for_statement(sqlite3_stmt * stmt) {
   return nRows;
 }
 
-data_handle sqlite_data_provider::get_next(bool) {
+data_handle sqlite_data_provider::get_next(bool open_file) {
   data_handle ret;
+
+  ret.sql_handle.table = sql.table;
+  ret.sql_handle.column_names = column_names;
+  ret.sql_handle.column_types = column_types;
+
+  if (open_file == false) { return ret; }
 
   const std::string query = build_select_query(batch_position);
   batch_position++;
 
   std::shared_ptr<sqlite3_stmt> stmt = execute_sqlite_query(db, query);
 
-  ret.sql_handle.table = sql.table;
-  ret.sql_handle.column_names = column_names;
-  ret.sql_handle.column_types = column_types;
   ret.sql_handle.row_count = get_size_for_statement(stmt.get());
   ret.sql_handle.sqlite_statement = stmt;
 
