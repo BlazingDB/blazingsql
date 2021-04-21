@@ -1451,7 +1451,7 @@ ral::execution::task_result WindowAggMergerKernel::do_process(std::vector< std::
 
     try{
       
-        output->addToCache(std::move(windowed_table));
+        // output->addToCache(std::move(windowed_table));
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(const std::exception& e){
@@ -1478,8 +1478,7 @@ kstatus WindowAggMergerKernel::run() {
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
                 this->output_cache(),
-                this, 
-                task_args);
+                this);
 
         cache_data = this->input_cache()->pullCacheData();
     }
