@@ -94,12 +94,12 @@ const std::vector<SQLTranspilerTestParam> default_check_entries = {
     sql_tools::get_default_operators()
   ),
   SQLTranspilerTestParam(
-    "BindableTableScan(table=[[main, lineitem_MYSQL]], filters=[[AND(>=($10, 1995-01-01), <=($11, 1996-12-31))]], projects=[[0, 2, 5, 6, 10]], aliases=[[l_orderkey, l_suppkey, l_extendedprice, l_discount, l_shipdate]])",
+    "BindableTableScan(table=[[main, lineitem_MYSQL]], filters=[[AND(>=($10, 1995-01-01), <=($11, 1996-12-31))]], projects=[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]], aliases=[[l_orderkey, l_partkey, l_suppkey, l_linenumber, l_quantity, l_extendedprice, l_discount, l_tax, l_returnflag, l_linestatus, l_shipdate, l_commitdate]])",
     "((l_shipdate >= \"1995-01-01\") AND (l_commitdate <= \"1996-12-31\"))",
     sql_tools::get_default_operators()
   ),
   SQLTranspilerTestParam(
-    "BindableTableScan(table=[[main, lineitem_MYSQL]], filters=[[AND(<($6, $5), IS NOT NULL($0))]], projects=[[0, 11, 12]], aliases=[[l_orderkey, l_commitdate, l_receiptdate]])",
+    "BindableTableScan(table=[[main, lineitem_MYSQL]], filters=[[AND(<($6, $5), IS NOT NULL($0))]], projects=[[0, 1, 2, 3, 4, 5, 6]], aliases=[[l_orderkey, l_partkey, l_suppkey, l_linenumber, l_quantity, l_extendedprice, l_discount]])",
     "l_discount < l_extendedprice AND l_orderkey IS NOT NULL"
   )
 };
