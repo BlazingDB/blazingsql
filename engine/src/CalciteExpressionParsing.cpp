@@ -92,14 +92,14 @@ std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int64_t;
 		using ScalarType = cudf::scalar_type_t<T>;
-		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(LONG_MAX));
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(LLONG_MAX));
 		return ret;
 	}
 	if(type.id() == cudf::type_id::UINT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = uint64_t;
 		using ScalarType = cudf::scalar_type_t<T>;
-		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(LLONG_MAX));
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(ULLONG_MAX));
 		return ret;
 	}
 	assert(false);
