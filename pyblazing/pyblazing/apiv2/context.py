@@ -922,7 +922,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "port",
             "username",
             "password",
-            "schema",
+            "database",
             "table_filter",
             "table_batch_size",
         ]
@@ -3142,7 +3142,7 @@ class BlazingContext(object):
             elif (
                 query_table.fileType == DataType.MYSQL
                 or query_table.fileType == DataType.SQLITE
-                # or query_table.fileType == DataType.
+                or query_table.fileType == DataType.POSTGRESQL
             ):
                 if query_table.has_metadata():
                     currentTableNodes = self._optimize_skip_data_getSlices(

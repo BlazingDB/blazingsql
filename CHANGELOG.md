@@ -10,7 +10,7 @@
 
 
 ## Bug Fixes
-
+- #1455 Support for IS NOT FALSE condition
 
 
 # BlazingSQL 0.19.0 (Date TBS)
@@ -23,6 +23,7 @@
 - #1396 Create tables from other RDBMS
 - #1427 Support for CONCAT alias operator
 - #1424 Add get physical plan with explain
+- #1472 Implement predicate pushdown for data providers
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 

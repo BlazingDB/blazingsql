@@ -1,6 +1,6 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Cristhian Alberto Gonzales Castillo <cristhian@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
+ * Copyright 2021 Cristhian Alberto Gonzales Castillo
  */
 
 #ifndef POSTGRESQLDATAPROVIDER_H_
@@ -33,9 +33,8 @@ public:
 
 protected:
   // TODO percy c.gonzales
-  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer(
-      const std::vector<cudf::type_id> &cudf_types) const override { return nullptr; }
-  
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
+
 private:
   PGconn *connection;
   bool table_fetch_completed;

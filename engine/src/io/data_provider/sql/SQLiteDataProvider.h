@@ -1,6 +1,6 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
+ * Copyright 2021 Cristhian Alberto Gonzales Castillo
  */
 
 #ifndef SQLITEDATAPROVIDER_H_
@@ -51,8 +51,7 @@ public:
 
 protected:
   // TODO percy c.gonzales
-  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer(
-      const std::vector<cudf::type_id> &cudf_types) const override { return nullptr; }
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
 
 private:
   sqlite3* sqlite_connection;
