@@ -1063,7 +1063,7 @@ bool is_cast_to_date(std::string expression) {
 
 // Calcite by default returns units in milliseconds, as we are getting a
 // TIMESTAMP_NANOSECONDS from BLZ_TO_TIMESTAMP, we want to convert these to nanoseconds units
-// input: CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER]
+// input: CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER
 // output: CAST(/INT(Reinterpret(-(2020-11-10 12:00:01, CAST($0):TIMESTAMP(0))), 86400000000000)):INTEGER
 std::string convert_ms_to_ns_units(std::string expression) {
 	if (!is_cast_to_timestamp(expression) && !is_cast_to_date(expression) ) {
@@ -1100,6 +1100,8 @@ std::string convert_ms_to_ns_units(std::string expression) {
 // Using the `Reinterpret` clause we can get the right TIMESTAMP unit using the expression
 // expression: CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $0)), 86400000)):INTEGER
 std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema) {
+	if (table_schema.size() == 0) return expression;
+
 	std::string reint_express = "Reinterpret(-(";
 	size_t start_reint_pos = expression.find(reint_express);
 	if (start_reint_pos == expression.npos) {

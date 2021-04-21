@@ -298,7 +298,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # Tests: [16 - 19] are to consider different cases
+            queryId = "TEST_16"
+            query = """select o_orderdate, 
+                            timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', o_orderdate) as diff
+                        from orders"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Tests: [17 - 21] are to consider different cases
             # when using different type of TIMESTAMP unit
             queryId = "TEST_16"
             query = """with date_table as (
@@ -366,6 +383,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             from orders order by o_orderkey limit 12000
                         ) select my_date,
                             timestampdiff(SECOND, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_second_col
+                        from date_table limit 400"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_20"
+            query = """with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 12000
+                        ) select my_date,
+                            timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', CAST(my_date AS TIMESTAMP)) as diff_second_col
                         from date_table limit 400"""
             runTest.run_query(
                 bc,

@@ -321,4 +321,151 @@ TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
 	EXPECT_EQ(out_expression, expected_str);
 }
 
-// TODO: Add tests for convert_ms_to_ns_units function 
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_empty_expr)
+{
+	std::string expression = "";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_add_day)
+{
+	std::string expression = "+(CAST($0):TIMESTAMP, 1468800000:INTERVAL DAY)";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "+(CAST($0):TIMESTAMP, 1468800000000000:INTERVAL DAY)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_add_hour)
+{
+	std::string expression = "+(CAST($0):TIMESTAMP, 172800000:INTERVAL HOUR)";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "+(CAST($0):TIMESTAMP, 172800000000000:INTERVAL HOUR)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_add_minute)
+{
+	std::string expression = "+(CAST($0):TIMESTAMP(0), 4500000:INTERVAL MINUTE)";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "+(CAST($0):TIMESTAMP(0), 4500000000000:INTERVAL MINUTE)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_add_second)
+{
+	std::string expression = "+(CAST($0):TIMESTAMP, 150000:INTERVAL SECOND)";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "+(CAST($0):TIMESTAMP, 150000000000:INTERVAL SECOND)";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_diff_day)
+{
+	std::string expression = "CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000000000)):INTEGER";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_diff_hour)
+{
+	std::string expression = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP(0))), 3600000)):INTEGER";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP(0))), 3600000000000)):INTEGER";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_diff_minute)
+{
+	std::string expression = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP(0))), 60000)):INTEGER";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP(0))), 60000000000)):INTEGER";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_diff_second)
+{
+	std::string expression = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP(0))), 1000)):INTEGER";
+	std::string out_expression = convert_ms_to_ns_units(expression);
+	std::string expected_str = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP(0))), 1000000000)):INTEGER";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_empty_expression)
+{
+	std::string expression = "";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_empty_schema)
+{
+	std::string expression = "+(CAST($0):TIMESTAMP(0), 8000:INTERVAL SECOND)";
+	std::vector<cudf::data_type> schema;
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_s)
+{
+	std::string expression = "Reinterpret(-(1996-12-01 12:00:01, $0))";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+	std::string expected_str = "Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP_SECONDS, $0))";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ms)
+{
+	std::string expression = "Reinterpret(-(1996-12-01 12:00:01, $0))";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+	std::string expected_str = "Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP_MILLISECONDS, $0))";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_us)
+{
+	std::string expression = "Reinterpret(-(1996-12-01 12:00:01, $1))";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::INT64}, cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+	std::string expected_str = "Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP_MICROSECONDS, $1))";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ns)
+{
+	std::string expression = "Reinterpret(-(1996-12-01 12:00:01, $1))";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::INT32}, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ms_complex)
+{
+	std::string expression = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $2)), 86400000)):INTEGER";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::INT32},
+										 cudf::data_type{cudf::type_id::STRING},
+										 cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+	std::string expected_str = "CAST(/INT(Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP_MILLISECONDS, $2)), 86400000)):INTEGER";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
