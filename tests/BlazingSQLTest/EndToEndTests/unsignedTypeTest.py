@@ -240,7 +240,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                                  from table_sig where col_int16 <= col_int8"""
             bc.sql(query_col_op_6)
 
-            query_col_op_7 = """select col_int8 * col_int16, col_int32 - col_int18
+            query_col_op_7 = """select col_int8 * col_int16, col_int32 - col_int8
                                  from table_sig where col_int16 <= col_int8"""
             bc.sql(query_col_op_7)
 
