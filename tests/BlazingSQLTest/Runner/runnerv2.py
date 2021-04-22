@@ -5,6 +5,7 @@ from blazingsql import DataType
 # from Utils import gpuMemory, skip_test
 # from EndToEndTests.tpchQueries import get_tpch_query
 import sql_metadata
+import yaml
 
 def getQueries():
     return [
@@ -65,12 +66,19 @@ class e2eTest():
         for query in queries:
             self.tables.update(sql_metadata.get_query_tables(query))
 
+    def __loadTargetTestFromFile(self):
+        with open("Runner/targetTest.yml", 'r') as stream:
+            testListYaml = yaml.load(stream)
+
+        return testListYaml["test"]
+
+
     def setTargetTest(self, testList):
         self.targetTestList = testList
 
     def runE2ETest(self):
         if len(self.targetTestList) == 0:
-            self.targetTestList = __loadTargetTestFromFile()
+            self.targetTestList = self.__loadTargetTestFromFile()
 
 
     def __loadTargetTestFromFile(self):

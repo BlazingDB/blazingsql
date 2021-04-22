@@ -136,7 +136,9 @@ def runLegacyTest(bc, dask_client, drill, spark):
 def runE2ETest(bc, dask_client, drill, spark):
     # runLegacyTest(bc, dask_client, drill, spark)
     runnerTest = runnerv2.e2eTest(bc, dask_client, drill, spark)
-    runLegacyTest()
+    runnerTest.setTargetTest(Settings.data["RunSettings"]["targetTestGroups"])
+    runnerTest.runE2ETest()
+
 
 def main():
     print("**init end2end**")
