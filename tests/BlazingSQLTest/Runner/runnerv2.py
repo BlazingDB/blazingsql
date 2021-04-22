@@ -8,7 +8,7 @@ import sql_metadata
 import yaml
 import os
 
-def getQueries():
+def getAllQueries():
     return [
         "select case when o_custkey > 20 then o_orderkey else o_custkey - 20 end from orders where o_orderkey <= 50",
         "select count(p_partkey), sum(p_partkey),avg(CAST(p_partkey AS DOUBLE)), max(p_partkey), min(p_partkey) from part",
@@ -63,7 +63,7 @@ class e2eTest():
         ]
 
     def __loadTables(self):
-        queries = getQueries()
+        queries = getAllQueries()
         for query in queries:
             self.tables.update(sql_metadata.get_query_tables(query))
 
