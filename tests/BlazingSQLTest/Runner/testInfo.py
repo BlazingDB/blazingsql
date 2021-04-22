@@ -17,6 +17,11 @@ class testRunner():
         self.defaultConfig = default
         self.config = configTest()
 
+        self.bc = None
+        self.dask_client = None
+        self.drill = None
+        self.spark = None
+
         self.__loadConfig()
 
     def __loadConfig(self):
@@ -56,5 +61,10 @@ class testRunner():
 
         return configQuery
 
-    def run(self):
-        a = 10
+    def run(self, bc, dask_client, drill, spark):
+        self.bc = bc
+        self.dask_client = dask_client
+        self.drill = drill
+        self.spark = spark
+
+

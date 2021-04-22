@@ -98,4 +98,4 @@ class e2eTest():
         for test in self.targetTestList:
             if self.__existTestData(test):
                 testData = testInfo.testRunner(test, "Runner/queries.yml", self.config)
-                testData.run()
+                testData.run(self.bc, self.dask_client, self.drill, self.spark)
