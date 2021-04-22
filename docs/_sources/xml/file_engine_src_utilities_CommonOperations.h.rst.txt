@@ -38,6 +38,10 @@ Included By
 -----------
 
 
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
 - :ref:`file_engine_src_cython_io.cpp`
 
 - :ref:`file_engine_src_distribution_primitives.cpp`
@@ -54,8 +58,6 @@ Included By
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.cpp`
 
-- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
-
 - :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.cpp`
 
 - :ref:`file_engine_src_io_data_parser_metadata_common_metadata.cpp`
@@ -66,13 +68,13 @@ Included By
 
 - :ref:`file_engine_src_io_data_parser_ParquetParser.cpp`
 
+- :ref:`file_engine_src_io_data_parser_sql_SQLiteParser.cpp`
+
 - :ref:`file_engine_src_io_DataLoader.cpp`
 
 - :ref:`file_engine_src_operators_GroupBy.cpp`
 
 - :ref:`file_engine_src_operators_OrderBy.cpp`
-
-- :ref:`file_engine_src_parser_expression_tree.hpp`
 
 - :ref:`file_engine_src_utilities_CommonOperations.cpp`
 

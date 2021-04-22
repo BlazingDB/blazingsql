@@ -1,0 +1,13 @@
+.. _exhale_function_SQLiteParser_8cpp_1a5cce860014ee8527375dea0a9eea1730:
+
+Function ral::io::read_sqlite_v2
+================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_SQLiteParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::read_sqlite_v2(sqlite3_stmt *, const std::vector<int>&, const std::vector<cudf::type_id>&)

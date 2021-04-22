@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1af38bfef0c126d5c26423f15024e67c3b:
+
+Function is_join_partition(const std::string&)
+==============================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_join_partition(const std::string&)
