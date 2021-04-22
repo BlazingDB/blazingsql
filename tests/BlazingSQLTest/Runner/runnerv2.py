@@ -4,6 +4,7 @@ from blazingsql import DataType
 # from Runner import runTest
 # from Utils import gpuMemory, skip_test
 # from EndToEndTests.tpchQueries import get_tpch_query
+from Runner import testInfo
 import sql_metadata
 import yaml
 import os
@@ -37,26 +38,26 @@ class e2eTest():
         self.drill = drill
         self.spark = spark
         self.targetTestList = []
+        self.tables = set()
 
-        self.worder = None
-        self.use_percentage = None
-        self.acceptable_difference = None
-        self.orderby = None
-        self.print_result = None
-        self.tables = None
-        self.data_types = None
+        self.config = testInfo.configTest()
+        self.config.worder = None
+        self.config.use_percentage = None
+        self.config.acceptable_difference = None
+        self.config.orderby = None
+        self.config.print_result = None
+        self.config.data_types = None
 
         self.__setupTest()
         self.__loadTables()
 
     def __setupTest(self):
-        self.worder = 1
-        self.use_percentage = False
-        self.acceptable_difference = 0.01
-        self.orderby = ""
-        self.print_result = True
-        self.tables = set()
-        self.data_types = [
+        self.config.worder = 1
+        self.config.use_percentage = False
+        self.config.acceptable_difference = 0.01
+        self.config.orderby = ""
+        self.config.print_result = True
+        self.config.data_types = [
             DataType.CSV,
             DataType.PARQUET,
             DataType.ORC
