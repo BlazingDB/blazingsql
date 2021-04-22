@@ -43,10 +43,10 @@ class e2eTest():
         self.tables = None
         self.data_types = None
 
-        self.setupTest()
-        self.loadTables()
+        self.__setupTest()
+        self.__loadTables()
 
-    def setupTest(self):
+    def __setupTest(self):
         self.worder = 1
         self.use_percentage = False
         self.acceptable_difference = 0.01
@@ -59,7 +59,7 @@ class e2eTest():
             DataType.ORC
         ]
 
-    def loadTables(self):
+    def __loadTables(self):
         queries = getQueries()
         for query in queries:
             self.tables.update(sql_metadata.get_query_tables(query))
