@@ -81,9 +81,6 @@ class e2eTest():
             self.targetTestList = self.__loadTargetTestFromFile()
 
 
-    def __loadTargetTestFromFile(self):
-        return []
-
 
 # def main(dask_client, drill, dir_data_lc, bc, nRals):
 #     print("==============================")
