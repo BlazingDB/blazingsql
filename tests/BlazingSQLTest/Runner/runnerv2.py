@@ -6,6 +6,7 @@ from blazingsql import DataType
 # from EndToEndTests.tpchQueries import get_tpch_query
 import sql_metadata
 import yaml
+import os
 
 def getQueries():
     return [
@@ -67,11 +68,24 @@ class e2eTest():
             self.tables.update(sql_metadata.get_query_tables(query))
 
     def __loadTargetTestFromFile(self):
-        with open("Runner/targetTest.yml", 'r') as stream:
-            testListYaml = yaml.load(stream)
+        fileName = "Runner/targetTest.yml"
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                testListYaml = yaml.load(stream)
 
-        return testListYaml["test"]
+            return testListYaml["test"]
+        return []
 
+    def __existTestData(self, test):
+        fileName = "Runner/queries.yml"
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                queriesYaml = yaml.load(stream)
+
+            if test in queriesYaml:
+                return True
+
+        return False
 
     def setTargetTest(self, testList):
         self.targetTestList = testList
@@ -79,6 +93,11 @@ class e2eTest():
     def runE2ETest(self):
         if len(self.targetTestList) == 0:
             self.targetTestList = self.__loadTargetTestFromFile()
+
+        for test in self.targetTestList:
+            if self.__existTestData(test):
+                a = 10
+
 
 
 
