@@ -44,7 +44,7 @@ author = 'BlazingDB, Inc.'
 language = "en"
 
 # The full version, including alpha/beta/rc tags
-version = '0.18'
+version = '0.19'
 release = f'v{version}'
 
 
@@ -58,31 +58,31 @@ extensions = ['recommonmark',
                 'sphinx.ext.todo',
                 'sphinx.ext.autodoc',
                 "sphinx.ext.autosummary",
-                # 'breathe',
-                # 'exhale'
+                'breathe',
+                'exhale'
                 ]
 
 autosummary_generate = True 
 autosummary_imported_members = False
 
-# # # Setup the exhale extension
-# exhale_args = {
-#     # These arguments are required
-#     "containmentFolder":     "./xml",
-#     "rootFileName":          "library_root.rst",
-#     "rootFileTitle":         "C++ API Reference",
-#     "doxygenStripFromPath":  "..",
-#     # Suggested optional arguments
-#     "createTreeView":        True,
-#     # TIP: if using the sphinx-bootstrap-theme, you need
-#     "treeViewIsBootstrap": True
-# }
+# # Setup the exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./xml",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "C++ API Reference",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    "treeViewIsBootstrap": True
+}
 
-# # Setup the breathe extension
-# breathe_projects = {
-#     "BlazingSQL Engine": "./xml"
-# }
-# breathe_default_project = "BlazingSQL Engine"
+# Setup the breathe extension
+breathe_projects = {
+    "BlazingSQL Engine": "./xml"
+}
+breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -157,48 +157,42 @@ html_context = {
     "github_version": "feedback",
     "doc_path": "docsrc/source",
     "sql": {
-        "query": ['SELECT','SELECT_ALL','SELECT_DISTINCT']
+        "query": ['SELECT','SELECT_ALL','SELECT_DISTINCT', 'WHERE', 'ORDERBY_']
         , "operators": [
-            'OPS_RELATIONAL', 'OPS_AND','OPS_ANDNOT'
-            ,'OPS_BETWEEN','OPS_IN','OPS_ISDISTINCTFROM','OPS_ISFALSE','OPS_ISNOTDISTINCTFROM'
-            ,'OPS_ISNOTNULL','OPS_ISNOTTRUE','OPS_ISNOTUNKNOWN','OPS_ISNULL','OPS_ISTRUE','OPS_ISUNKNOWN'
-            ,'OPS_LIKE','OPS_NOTBETWEEN','OPS_NOTIN','OPS_NOTLIKE','OPS_OR','OPS_ORNOT'
+            'OPS_ARITHMETIC','OPS_COMPARISON','OPS_LOGICAL','OPS_IN','OPS_IS'
+            , 'OPS_CONCAT'
         ]
-        , "order": [
-            'ORDERBY_','ORDERBY_ASC','ORDERBY_ASCNULLSFIRST','ORDERBY_ASCNULLSLAST','ORDERBY_DESC','ORDERBY_DESCNULLSFIRST'
-            ,'ORDERBY_DESCNULLSLAST','ORDERBY_NULLSFIRST','ORDERBY_NULLSLAST'
-        ]
-        , "arithmetic": [
-            'ARITHMETIC_ABS','ARITHMETIC_ACOS','ARITHMETIC_ADD','ARITHMETIC_ASIN'
-            ,'ARITHMETIC_ATAN','ARITHMETIC_CEIL','ARITHMETIC_COS','ARITHMETIC_DIVIDE'
-            ,'ARITHMETIC_FLOOR','ARITHMETIC_GREATEST','ARITHMETIC_LEAST','ARITHMETIC_LN'
-            ,'ARITHMETIC_LOG10','ARITHMETIC_MOD','ARITHMETIC_MULTIPLY','ARITHMETIC_NEGATIVE'
-            ,'ARITHMETIC_POWER','ARITHMETIC_RAND','ARITHMETIC_ROUND','ARITHMETIC_SIN'
-            ,'ARITHMETIC_SQRT','ARITHMETIC_SUBTRACT','ARITHMETIC_TAN'
+        , "math": [
+            'MATH_ABS'
+            ,'MATH_CEIL','MATH_COS','MATH_ACOS'
+            ,'MATH_FLOOR','MATH_GREATEST','MATH_LEAST','MATH_LN'
+            ,'MATH_LOG10','MATH_MOD'
+            ,'MATH_POWER','MATH_SQRT','MATH_RAND','MATH_ROUND','MATH_SIN','MATH_ASIN'
+            ,'MATH_TAN','MATH_ATAN'
         ]
         , "strings": [
-            'STRING_CHARACTERLENGTH','STRING_CHARLENGTH','STRING_CONCAT','STRING_GREATEST','STRING_INITCAP'
-            ,'STRING_LEAST','STRING_LEFT','STRING_LOWER','STRING_LTRIM','STRING_NVL','STRING_REGEXPREPLACE','STRING_REVERSE'
-            ,'STRING_RIGHT','STRING_RTRIM','STRING_SUBSTRING','STRING_TRIM','STRING_UPPER'
+            'STRING_CHARACTERLENGTH','STRING_CHARLENGTH','STRING_CONCAT','STRING_GREATEST','STRING_LEAST'
+            ,'STRING_INITCAP','STRING_LOWER','STRING_UPPER'
+            ,'STRING_LEFT','STRING_RIGHT','STRING_LTRIM','STRING_RTRIM','STRING_TRIM'
+            ,'STRING_NVL','STRING_REGEXPREPLACE'
+            ,'STRING_REPLACE','STRING_REVERSE'
+            ,'STRING_SUBSTRING'
         ]
         , "dates": [
-            'DATE_DAYOFMONTH','DATE_DAYOFWEEK','DATE_EXTRACT','DATE_HOUR','DATE_MINUTE','DATE_MONTH','DATE_SECOND','DATE_YEAR'
+            'DATE_DAYOFMONTH','DATE_DAYOFWEEK','DATE_HOUR','DATE_MINUTE','DATE_MONTH','DATE_SECOND','DATE_YEAR','DATE_EXTRACT'
         ]
-        , "functions": [
+        , "conditional": [
             "FUNC_CASE","FUNC_COALESCE","FUNC_NULLIF"
         ]
-        , "casting": [
-            'CAST_BIGINT','CAST_BOOLEAN','CAST_CHAR','CAST_DATE','CAST_DECIMAL','CAST_DOUBLE'
-            ,'CAST_FLOAT','CAST_INT','CAST_SMALLINT','CAST_TINYINT','CAST_VARCHAR'
-        ]
         , "aggregating": [
-            'AGG_AVG','AGG_COUNT','AGG_MAX','AGG_MIN','AGG_STDDEV','AGG_STDDEVPOP','AGG_STDDEVSAMP','AGG_SUM','AGG_VARPOP','AGG_VARSAMP'            
+            'AGG_AVG','AGG_COUNT','AGG_MAX','AGG_MIN','AGG_STDDEV','AGG_STDDEVPOP','AGG_STDDEVSAMP','AGG_SUM'
+            ,'AGG_VARIANCE','AGG_VARPOP','AGG_VARSAMP'            
         ]
         , "windowing": [
-            'WINDOW_AVG','WINDOW_FIRSTVALUE','WINDOW_LAG','WINDOW_LASTVALUE','WINDOW_LEAD','WINDOW_MAX','WINDOW_MIN'
-            ,'WINDOW_ROWNUMBER','WINDOW_SUM'
+            'WINDOW_LEAD','WINDOW_LAG','WINDOW_FIRSTVALUE','WINDOW_LASTVALUE'
+            ,'WINDOW_ROWNUMBER','WINDOW_AVG','WINDOW_MAX','WINDOW_MIN','WINDOW_SUM'
         ]
-        , "joins": ['JOIN_FULL','JOIN_FULLOUTER','JOIN_LEFT','JOIN_LEFTOUTER']
+        , "joins": ['JOIN_CROSS','JOIN_INNER','JOIN_FULLOUTER','JOIN_LEFTOUTER']
     }
 }
 
