@@ -232,7 +232,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                                  from table_sig where col_int8 < 86"""
             bc.sql(query_col_op_4)
 
-            query_col_op_5 = """select col_int8 + col_int32, col_int32 - col_int16
+            query_col_op_5 = """select col_int8 + col_int32, col_int64 - col_int16
                                  from table_sig where col_int32 < col_int16"""
             bc.sql(query_col_op_5)
 
@@ -240,19 +240,19 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                                  from table_sig where col_int16 <= col_int8"""
             bc.sql(query_col_op_6)
 
-            query_col_op_7 = """select col_int8 * col_int64, col_int32 - col_int16
+            query_col_op_7 = """select col_int8 * col_int16, col_int32 - col_int18
                                  from table_sig where col_int16 <= col_int8"""
             bc.sql(query_col_op_7)
 
-            query_col_op_8 = """select col_uint8 * col_uint64, col_uint32 - col_uint16
+            query_col_op_8 = """select col_uint64 + col_uint32, col_uint32 - col_uint16
                                  from table_unsig where col_uint16 <= col_uint8"""
             bc.sql(query_col_op_8)
 
-            query_col_op_9 = """select col_uint8 * col_uint64, col_uint32 - col_uint16
+            query_col_op_9 = """select col_uint32 - col_uint64, col_uint64 - col_uint16
                                  from table_unsig where col_uint16 <= col_uint8"""
             bc.sql(query_col_op_9)
 
-            query_col_op_10 = """select col_uint8 * col_uint64, col_uint32 - col_uint16
+            query_col_op_10 = """select col_uint8 * col_uint32, col_uint8 - col_uint16
                                  from table_unsig where col_uint8 < 86"""
             bc.sql(query_col_op_10)
 
