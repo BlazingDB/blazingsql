@@ -2,7 +2,7 @@
 
 
 ## New Features
-
+- #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 
 
 ## Improvements
@@ -10,7 +10,7 @@
 
 
 ## Bug Fixes
-
+- #1455 Support for IS NOT FALSE condition
 
 
 # BlazingSQL 0.19.0 (Date TBS)
@@ -23,6 +23,7 @@
 - #1396 Create tables from other RDBMS
 - #1427 Support for CONCAT alias operator
 - #1424 Add get physical plan with explain
+- #1472 Implement predicate pushdown for data providers
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
@@ -120,6 +121,7 @@
 - #1320 Revamping cache logger
 - #1323 Made progress bar update continuously and stay after query is done 
 - #1336 Improvements for the cache API
+- #1483 Improve dependencies script
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
