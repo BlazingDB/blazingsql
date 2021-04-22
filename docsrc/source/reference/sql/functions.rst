@@ -7,5 +7,8 @@ Functions and operators
 .. toctree::
     :maxdepth: 1
 
-    math
     operators
+    conditional
+    math
+    strings
+    dates

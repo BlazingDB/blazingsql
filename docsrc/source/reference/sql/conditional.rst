@@ -1,7 +1,7 @@
 .. _sql_conditional:
 
 Conditional operators
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 {% for member in sql.conditional %}
 .. _sql_{{ member.lower() }}:
