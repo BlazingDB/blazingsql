@@ -41,6 +41,7 @@ class e2eTest():
         self.orderby = None
         self.print_result = None
         self.tables = None
+        self.data_types = None
 
         self.setupTest()
         self.loadTables()
@@ -52,6 +53,11 @@ class e2eTest():
         self.orderby = ""
         self.print_result = True
         self.tables = set()
+        self.data_types = [
+            DataType.CSV,
+            DataType.PARQUET,
+            DataType.ORC
+        ]
 
     def loadTables(self):
         queries = getQueries()
