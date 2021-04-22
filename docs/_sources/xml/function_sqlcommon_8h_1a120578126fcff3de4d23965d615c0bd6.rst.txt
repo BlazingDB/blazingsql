@@ -1,0 +1,13 @@
+.. _exhale_function_sqlcommon_8h_1a120578126fcff3de4d23965d615c0bd6:
+
+Template Function ral::io::build_fixed_width_cudf_col
+=====================================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_sqlcommon.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::build_fixed_width_cudf_col(size_t, std::vector<T> *, const std::vector<cudf::bitmask_type>&, cudf::type_id)

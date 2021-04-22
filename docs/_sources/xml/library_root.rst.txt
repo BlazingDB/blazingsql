@@ -1,6 +1,6 @@
 
-Library API
-===========
+Engine C++ API Reference
+========================
 
 .. include:: class_view_hierarchy.rst
 

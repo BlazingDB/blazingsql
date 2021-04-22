@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512:
 
-Function clean_window_function_expressions
-==========================================
+Function clean_window_function_expressions(const std::vector<std::string>&, size_t)
+===================================================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

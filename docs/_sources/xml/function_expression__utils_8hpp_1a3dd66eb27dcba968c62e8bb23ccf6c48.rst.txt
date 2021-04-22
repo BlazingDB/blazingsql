@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48:
 
-Function is_scan
-================
+Function is_scan(std::string)
+=============================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

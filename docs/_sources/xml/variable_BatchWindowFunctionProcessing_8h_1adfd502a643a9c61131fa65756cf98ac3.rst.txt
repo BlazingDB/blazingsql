@@ -1,0 +1,13 @@
+.. _exhale_variable_BatchWindowFunctionProcessing_8h_1adfd502a643a9c61131fa65756cf98ac3:
+
+Variable ral::batch::TASK_ARG_TARGET_NODE_INDEX
+===============================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::batch::TASK_ARG_TARGET_NODE_INDEX

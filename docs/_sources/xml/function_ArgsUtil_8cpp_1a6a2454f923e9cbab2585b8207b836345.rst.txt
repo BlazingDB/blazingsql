@@ -1,0 +1,13 @@
+.. _exhale_function_ArgsUtil_8cpp_1a6a2454f923e9cbab2585b8207b836345:
+
+Function ral::io::getSqlInfo
+============================
+
+- Defined in :ref:`file_engine_src_io_data_parser_ArgsUtil.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::getSqlInfo(std::map<std::string, std::string>&)

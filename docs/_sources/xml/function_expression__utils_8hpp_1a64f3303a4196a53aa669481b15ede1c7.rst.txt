@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7:
 
-Function replace_sum0_expr_with_right_index
-===========================================
+Function replace_sum0_expr_with_right_index(std::string, size_t)
+================================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

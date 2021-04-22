@@ -36,11 +36,11 @@ Included By
 
 - :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.hpp`
 
+- :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
+
 - :ref:`file_engine_src_communication_CommunicationInterface_messageSender.hpp`
 
 - :ref:`file_engine_src_communication_CommunicationInterface_node.cpp`
-
-- :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
 
 - :ref:`file_engine_src_cython_initialize.cpp`
 
