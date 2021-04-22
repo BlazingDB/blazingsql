@@ -116,15 +116,12 @@ def checkErrors(result, error_msgs):
             return True
     return False
 
-def runE2ETest(bc, dask_client, drill, spark):
+def runLegacyTest():
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
 
     runAllTests = (
         len(targetTestGroups) == 0
     )  # if targetTestGroups was empty the user wants to run all the tests
-
-    runnerTest = runnerv2.e2eTest(bc, dask_client, drill, spark)
-
 
     dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
     nRals = Settings.data["RunSettings"]["nRals"]
@@ -135,6 +132,10 @@ def runE2ETest(bc, dask_client, drill, spark):
         aggregationsWithoutGroupByTest.main(
             dask_client, drill, dir_data_file, bc, nRals
         )
+
+def runE2ETest(bc, dask_client, drill, spark):
+    runnerTest = runnerv2.e2eTest(bc, dask_client, drill, spark)
+    runLegacyTest()
 
 def main():
     print("**init end2end**")
