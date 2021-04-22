@@ -1,12 +1,11 @@
 .. _sql_functions:
 
-Conditional functions
-============================
+Functions and operators
+=======================
 
-{% for member in sql.functions %}
-.. _sql_{{ member.lower() }}:
-.. include:: syntax/functions/{{ member }}.rst
-{% endfor %} 
  
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
+
+    math
+    operators

@@ -2,20 +2,15 @@
 
 SQL API Reference
 =================
-ddasd
+Below topics cover all the SQL functionality currently supported by BlazingSQL.
 
 .. toctree::
    :maxdepth: 1
    
    dtypes
    query
-   operators
-   order
-   arithmetic
-   strings
-   dates
-   functions
    casting
    aggregating
-   windowing
+   functions
    joins
+   windowing

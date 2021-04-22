@@ -1,5 +1,5 @@
-SELECT
-------
+SELECT function
+^^^^^^^^^^^^^^^
 
 **Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
 :ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
@@ -47,7 +47,7 @@ table.
         , t.<col_2> AS <bar>
     FROM <table_name> AS t
 
-The :code:`SELECT expr` further allows for including unary and binary functions such as :ref:`arithmetic<sql_arithmetic>`,
+The :code:`SELECT expr` further allows for including unary and binary functions such as :ref:`mathematical<sql_math>`,
 :ref:`string<sql_strings>`, :ref:`timestamp<sql_dates>`, :ref:`windowing<sql_windowing>`, and :ref:`conditional<sql_functions>`.
 
 :code:`LIMIT`
