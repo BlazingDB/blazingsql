@@ -98,10 +98,9 @@ cudf::null_equality parseJoinConditionToEqualityTypes(const std::string & condit
 	}
 
 	// TODO: There may be cases where there is a mixture of
-	// equality operators. We do not support it for now,
+	// equality operators (not for IS NOT DISTINCT FROM). We do not support it for now,
 	// since that is not supported in cudf.
 	// We only rely on the first equality type found.
-	// Related issue: https://github.com/BlazingDB/blazingsql/issues/1421
 
 	bool all_types_are_equal = std::all_of(joinEqualityTypes.begin(), joinEqualityTypes.end(), [&](const cudf::null_equality & elem) {return elem == joinEqualityTypes.front();});
 	if(!all_types_are_equal){
@@ -130,6 +129,11 @@ Complex case:
 join_statement = LogicalJoin(condition=[AND(=($7, $0), OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5)))], joinType=[inner])
 new_join_statement = LogicalJoin(condition=[=($7, $0)], joinType=[inner])
 filter_statement = LogicalFilter(condition=[OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))])
+
+IS NOT DISTINCT FROM case:
+join_statement = LogicalJoin(condition=[AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))], joinType=[inner])
+new_join_statement = LogicalJoin(condition=[=($0, $3)], joinType=[inner])
+filter_statement = LogicalFilter(condition=[OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))])
 
 Error case:
 join_statement = LogicalJoin(condition=[OR(=($7, $0), AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))], joinType=[inner])
@@ -161,14 +165,22 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		filter_statement_expression = "";					   // no filter out
 	} else if (tree.root().value == "AND") {
 		size_t num_equalities = 0;
+		size_t num_equal_due_is_not_dist = 0;
 		for (auto&& c : tree.root().children) {
-			if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
+			if (c->value == "=") {
 				num_equalities++;
+			} else if (c->value == "IS_NOT_DISTINCT_FROM") {
+				num_equalities++;
+				num_equal_due_is_not_dist++;
 			}
 		}
 		if (num_equalities == tree.root().children.size()) {  // all are equalities. this would be a regular multiple equality join
-			new_join_statement_expression = condition;  // the join_out is the same as the original input
-			filter_statement_expression = "";					   // no filter out
+			if (num_equal_due_is_not_dist > 0) {
+				std::tie(new_join_statement_expression, filter_statement_expression) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+			} else {
+				new_join_statement_expression = condition;
+				filter_statement_expression = "";
+			}
 		} else if (num_equalities > 0) {			   // i can split this into an equality join and a filter
 			if (num_equalities == 1) {  // if there is only one equality, then the root_ for join_out wont be an AND,
 				// and we will just have this equality as the root_

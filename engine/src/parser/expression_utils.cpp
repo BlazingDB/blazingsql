@@ -1130,3 +1130,61 @@ const std::string remove_quotes_from_timestamp_literal(const std::string & scala
 
 	return cleaned_timestamp;
 }
+
+// Calcite translates the `col_1 IS NOT DISTINCT FROM col_3` subquery to the
+//     OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))  
+// expression. So let's do the same here
+// input: IS_NOT_DISTINCT_FROM($1, $3)
+// output: OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))
+std::string replace_is_not_distinct_as_calcite(std::string expression) {
+	if (expression.find("IS_NOT_DISTINCT_FROM") == expression.npos) {
+		return expression;
+	}
+	
+	size_t start_pos = expression.find("(") + 1;
+	size_t end_pos = expression.find(")");
+	
+	// $1, $3
+	std::string reduced_expr = expression.substr(start_pos, end_pos - start_pos);
+	std::vector<std::string> var_str = get_expressions_from_expression_list(reduced_expr);
+    
+    return "OR(AND(IS NULL(" + var_str[0] + "), IS NULL(" + var_str[1] + ")), IS TRUE(=(" + var_str[0] + " , " + var_str[1] + ")))";
+}
+
+// input: AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))
+// output: ["=($0, $3)" , "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))"]
+std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string & expression) {
+
+	std::string origin_expr = expression;
+
+	size_t total_is_not_distinct_expr = StringUtil::findAndCountAllMatches(origin_expr, "IS_NOT_DISTINCT_FROM");
+	
+	std::string left_expr = origin_expr.substr(0, 4);
+	if (!(left_expr == "AND(") || (total_is_not_distinct_expr == 0)) {
+		return std::make_tuple(origin_expr, "");
+	}
+
+	// "=($0, $3), IS_NOT_DISTINCT_FROM($1, $3)"
+	std::string reduced_expr = origin_expr.erase(0, left_expr.size());
+	reduced_expr = reduced_expr.substr(0, reduced_expr.size() - 1);
+	std::vector<std::string> all_expressions = get_expressions_from_expression_list(reduced_expr);
+	size_t total_filter_conditions = all_expressions.size() - 1;
+
+	// First expression is related to the JOIN equal condition
+	std::string new_join_statement_express = all_expressions[0], filter_statement_expression;
+	
+	assert(total_filter_conditions > 0);
+
+	if (total_filter_conditions == 1) {
+		filter_statement_expression = replace_is_not_distinct_as_calcite(all_expressions[1]);
+	} else {
+		filter_statement_expression = "AND(";
+		for (size_t i = 1; i < all_expressions.size(); ++i) {
+			filter_statement_expression += replace_is_not_distinct_as_calcite(all_expressions[i]) + ", ";
+		}
+		filter_statement_expression = filter_statement_expression.substr(0, filter_statement_expression.size()- 2);
+		filter_statement_expression += ")";
+	}
+
+	return std::make_tuple(new_join_statement_express, filter_statement_expression);
+}

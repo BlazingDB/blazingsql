@@ -330,6 +330,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # TODO: Add tests for IS NOT DISTINCT FROM ..
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
