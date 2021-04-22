@@ -128,13 +128,34 @@ def runLegacyTest(bc, dask_client, drill, spark):
 
     from EndToEndTests import aggregationsWithoutGroupByTest
 
-    if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
-        aggregationsWithoutGroupByTest.main(
-            dask_client, drill, dir_data_file, bc, nRals
-        )
+    if runAllTests or ("columnBasisTest" in targetTestGroups):
+        columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("hiveFileTest" in targetTestGroups):
+        hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    # HDFS is not working yet
+    # fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc)
+
+    # HDFS is not working yet
+    # mixedFileSystemTest.main(dask_client, drill, dir_data_file, bc)
+
+    if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
+        fileSystemLocalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    if testsWithNulls != "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("fileSystemS3Test" in targetTestGroups):
+                fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
+
+            if runAllTests or ("fileSystemGSTest" in targetTestGroups):
+                fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
 
 def runE2ETest(bc, dask_client, drill, spark):
-    # runLegacyTest(bc, dask_client, drill, spark)
+    runLegacyTest(bc, dask_client, drill, spark)
+
     runnerTest = runnerv2.e2eTest(bc, dask_client, drill, spark)
     runnerTest.setTargetTest(Settings.data["RunSettings"]["targetTestGroups"])
     runnerTest.runE2ETest()
