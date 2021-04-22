@@ -3,6 +3,15 @@
 Converting data types
 =====================
 
+The below table shows all the allowed type conversions supported by BlazingSQL.
+
+Types of conversion:
+
+* **i -** implicit cast 
+* **e -** explicit cast 
+* **x -** not allowed
+
+
 .. list-table:: Allowed data conversions
     :widths: auto
     :header-rows: 1
@@ -15,14 +24,11 @@ Converting data types
       - ``INT``
       - ``BIGINT``
       - ``DECIMAL``
-      - ``FLOAT`` OR ``REAL`` [#f1]_
+      - ``FLOAT``
       - ``DOUBLE``
-      - ``INTERVAL``
       - ``DATE``
-      - ``TIME``
       - ``TIMESTAMP``
-      - ``CHAR`` OR ``VARCHAR``
-      - ``BINARY`` OR ``VARBINARY``
+      - ``VARCHAR``
     * - ``NULL``
       - i	
       - i	
@@ -36,9 +42,6 @@ Converting data types
       - i	
       - i	
       - i	
-      - i	
-      - i	
-      - i
     * - ``BOOLEAN``
       - x
       - i
@@ -51,10 +54,7 @@ Converting data types
       - e
       - x
       - x
-      - x
-      - x
       - i
-      - x
     * - ``TINYINT``
       - x
       - e
@@ -65,12 +65,9 @@ Converting data types
       - i
       - i
       - i
-      - e
-      - x
       - x
       - e
       - i
-      - x
     * - ``SMALLINT``
       - x
       - e
@@ -81,12 +78,9 @@ Converting data types
       - i
       - i
       - i
-      - e
-      - x
       - x
       - e
       - i
-      - x
     * - ``INT``
       - x
       - e
@@ -97,12 +91,9 @@ Converting data types
       - i
       - i
       - i
-      - e
-      - x
       - x
       - e
       - i
-      - x
     * - ``BIGINT``
       - x
       - e
@@ -113,12 +104,9 @@ Converting data types
       - i
       - i
       - i
-      - e
-      - x
       - x
       - e
       - i
-      - x
     * - ``DECIMAL``
       - x
       - e
@@ -129,13 +117,10 @@ Converting data types
       - i
       - i
       - i
-      - e
-      - x
       - x
       - e
       - i
-      - x
-    * - ``FLOAT`` or ``REAL``  [#f1]_
+    * - ``FLOAT``
       - x
       - e
       - i
@@ -146,11 +131,8 @@ Converting data types
       - i
       - i
       - x
-      - x
-      - x
       - e
       - i
-      - x
     * - ``DOUBLE``
       - x
       - e
@@ -162,27 +144,8 @@ Converting data types
       - i
       - i
       - x
-      - x
-      - x
       - e
       - i
-      - x
-    * - ``INTERVAL`` [#f1]_
-      - x
-      - x
-      - e
-      - e
-      - e
-      - e
-      - e
-      - x
-      - x
-      - i
-      - x
-      - x
-      - x
-      - e
-      - x
     * - ``DATE``
       - x
       - x
@@ -193,28 +156,9 @@ Converting data types
       - x
       - x
       - x
-      - x
-      - i
-      - x
       - i
       - i
-      - x
-    * - ``TIME`` [#f1]_
-      - x
-      - x
-      - x
-      - x
-      - x
-      - x
-      - x
-      - x
-      - x
-      - x
-      - x
       - i
-      - e
-      - i
-      - x
     * - ``TIMESTAMP``
       - x
       - x
@@ -225,13 +169,10 @@ Converting data types
       - e
       - e
       - e
-      - x
-      - i
-      - e
       - i
       - i
-      - x
-    * - ``CHAR`` [#f1]_ or ``VARCHAR``
+      - i
+    * - ``VARCHAR``
       - x
       - e
       - i
@@ -244,33 +185,8 @@ Converting data types
       - i
       - i
       - i
-      - i
-      - i
-      - i
-    * - ``BINARY`` [#f1]_ or ``VARBINARY`` [#f1]_
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
-      - 
 
-**i:** implicit cast 
-**e:** explicit cast 
-**x:** not allowed
 
-.. rubric:: Footnotes
-
-.. [#f1] Currently not supported
 
 .. toctree::
     :maxdepth: 2
