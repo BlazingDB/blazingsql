@@ -99,18 +99,3 @@ class e2eTest():
             if self.__existTestData(test):
                 testData = testInfo.testRunner(test, "Runner/queries.yml", self.config)
                 testData.run()
-
-
-
-
-# def main(dask_client, drill, dir_data_lc, bc, nRals):
-#     print("==============================")
-#     print(queryType)
-#     print("==============================")
-#
-#     sql = setup_test()
-#     if sql:
-#         start_mem = gpuMemory.capture_gpu_memory_usage()
-#         executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
-#         end_mem = gpuMemory.capture_gpu_memory_usage()
-#         gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
