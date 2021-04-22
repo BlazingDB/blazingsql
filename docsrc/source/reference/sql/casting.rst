@@ -187,6 +187,61 @@ Types of conversion:
       - i
 
 
+:code:`TO_DATE` method
+----------------------
+
+Casts a string to a date, allowing for formatting options.
+Formatting can be specified by using:
+
+* ``%Y`` for year
+* ``%m`` for month
+* ``%d`` for day
+* ``%H`` for hour
+* ``%M`` for minute
+* ``%S`` for second
+
+The syntax is of the form:
+
+.. code-block:: sql
+  
+    SELECT TO_DATE(<col>, <format_str>) 
+    FROM <table>
+
+Examples
+""""""""
+
+.. code-block:: sql
+  
+    SELECT TO_DATE(<col>, '%Y-%m-%d') 
+    FROM <table>
+
+:code:`TO_TIMESTAMP` method
+---------------------------
+
+Casts a string to a timestamp, allowing for formatting options.
+Formatting can be specified by using:
+
+* ``%Y`` for year
+* ``%m`` for month
+* ``%d`` for day
+* ``%H`` for hour
+* ``%M`` for minute
+* ``%S`` for second
+
+The syntax is of the form
+
+.. code-block:: sql
+  
+    SELECT TO_TIMESTAMP(<col>, <format_str>) 
+    FROM <table>
+
+Examples
+""""""""
+
+.. code-block:: sql
+  
+    SELECT TO_DATE(<col>, '%Y-%m-%d %H:%M:%S') 
+    FROM <table>
 
 .. toctree::
     :maxdepth: 2
