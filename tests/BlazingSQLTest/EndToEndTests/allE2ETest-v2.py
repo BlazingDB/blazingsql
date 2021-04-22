@@ -6,6 +6,7 @@ from pynvml import nvmlInit
 from Utils import Execution, init_context
 from blazingsql import DataType
 from Runner import runTest
+from Runner import runnerv2
 import sys
 import time
 
@@ -122,10 +123,7 @@ def runE2ETest(bc, dask_client, drill, spark):
         len(targetTestGroups) == 0
     )  # if targetTestGroups was empty the user wants to run all the tests
 
-
-
-    #Validate Test to init
-
+    runnerTest = runnerv2.e2eTest(bc, dask_client, drill, spark)
 
 
     dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
