@@ -127,6 +127,11 @@ def runLegacyTest(bc, dask_client, drill, spark):
     nRals = Settings.data["RunSettings"]["nRals"]
 
     from EndToEndTests import aggregationsWithoutGroupByTest
+    from EndToEndTests import fileSystemGSTest
+    from EndToEndTests import fileSystemLocalTest
+    from EndToEndTests import fileSystemS3Test
+    from EndToEndTests import columnBasisTest
+    from EndToEndTests import hiveFileTest
 
     if runAllTests or ("columnBasisTest" in targetTestGroups):
         columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
