@@ -1,4 +1,4 @@
-.. _sql_windowing:
+.. _sql_joins:
 
 Joining data
 ============
