@@ -15,5 +15,48 @@ Selecting data
 .. include:: syntax/query/{{ member }}.rst
 {% endfor %} 
 
+Nested queries
+--------------
+
+BlazingSQL supports nested queries that might first apply predicates in the subquery 
+and and later join it with another table or subquery.
+
+.. code-block:: sql
+
+    SELECT A.<col_1>
+        , B.<col_3>
+    FROM (
+        SELECT <col_1>
+            , <col_2>
+        FROM <table_1>
+        WHERE <col_2> < 0
+    ) AS A
+    INNER JOIN <table_2> AS B
+        ON A.<col_2> = B.<col_2>
+
+:code:`WITH` function
+---------------------
+
+Complex queries with multiple nested subqueries can quickly become
+unreadable. BlazingSQL supports organizing complex queries with the
+:code:`WITH` qualifier.
+
+.. code-block:: sql
+
+    WITH <subquery_1> AS (
+        SELECT <col_1>
+            , <col_2>
+        FROM <table_1>
+        WHERE <col_2> < 0
+    ), <subquery_2> AS (
+        SELECT B.<col_1>
+            , A.<col_3>
+        FROM <table_2> AS A
+        INNER JOIN <subquery_1> AS B
+            ON A.<col_2> = B.<col_2>
+    )
+    SELECT *
+    FROM <subquery_2>
+
 .. toctree::
     :maxdepth: 2

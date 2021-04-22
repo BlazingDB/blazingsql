@@ -43,9 +43,9 @@ table.
 
 .. code-block:: sql
 
-    SELECT t.<col_1>
-        , t.<col_2> AS <bar>
-    FROM <table_name> AS t
+    SELECT T.<col_1>
+        , T.<col_2> AS <bar>
+    FROM <table_name> AS T
 
 The :code:`SELECT expr` further allows for including unary and binary functions such as :ref:`mathematical<sql_math>`,
 :ref:`string<sql_strings>`, :ref:`timestamp<sql_dates>`, :ref:`windowing<sql_windowing>`, and :ref:`conditional<sql_functions>`.
@@ -62,3 +62,4 @@ table.
     SELECT *
     FROM <table_name>
     LIMIT <number_of_rows>
+
