@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Struct cache_settings &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Struct cache_settings &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,63 @@
 </ul>
 <section id="struct-documentation">
 <h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp struct">
+<dt id="_CPPv4N3ral5cache14cache_settingsE">
+<span id="_CPPv3N3ral5cache14cache_settingsE"></span><span id="_CPPv2N3ral5cache14cache_settingsE"></span><span id="ral::cache::cache_settings"></span><span class="target" id="structral_1_1cache_1_1cache__settings"></span><em class="property">struct </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">cache_settings</code><a class="headerlink" href="#_CPPv4N3ral5cache14cache_settingsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>An object that represent a cache machine configuration (type and num_partitions) used in create_cache_machine and create_cache_machine functions. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings4typeE">
+<span id="_CPPv3N3ral5cache14cache_settings4typeE"></span><span id="_CPPv2N3ral5cache14cache_settings4typeE"></span><span id="ral::cache::cache_settings::type__CacheType"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a9b3e3c655751cd121cd5a6ed169c0be0"></span><a class="reference internal" href="enum_kpair_8h_1a51a0fc7db09186b523254abcf775e80d.html#_CPPv4N3ral5cache9CacheTypeE" title="ral::cache::CacheType">CacheType</a> <code class="sig-name descname">type</code> = <a class="reference internal" href="enum_kpair_8h_1a51a0fc7db09186b523254abcf775e80d.html#_CPPv4N3ral5cache9CacheTypeE" title="ral::cache::CacheType">CacheType</a>::<a class="reference internal" href="enum_kpair_8h_1a51a0fc7db09186b523254abcf775e80d.html#_CPPv4N3ral5cache9CacheType6SIMPLEE" title="ral::cache::CacheType::SIMPLE">SIMPLE</a><a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings4typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings14num_partitionsE">
+<span id="_CPPv3N3ral5cache14cache_settings14num_partitionsE"></span><span id="_CPPv2N3ral5cache14cache_settings14num_partitionsE"></span><span id="ral::cache::cache_settings::num_partitions__i"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a20bbad604695b4a4e97f0e53c4c99178"></span>int <code class="sig-name descname">num_partitions</code> = 1<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings14num_partitionsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings7contextE">
+<span id="_CPPv3N3ral5cache14cache_settings7contextE"></span><span id="_CPPv2N3ral5cache14cache_settings7contextE"></span><span id="ral::cache::cache_settings::context__std::shared_ptr:Context:"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1aa9cc6ee9667f1aaf89e03952f8a2a822"></span>std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <code class="sig-name descname">context</code><a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings7contextE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings22concat_cache_num_bytesE">
+<span id="_CPPv3N3ral5cache14cache_settings22concat_cache_num_bytesE"></span><span id="_CPPv2N3ral5cache14cache_settings22concat_cache_num_bytesE"></span><span id="ral::cache::cache_settings::concat_cache_num_bytes__std::s"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a6d157349c6a1c19fe1c4d0368814fb70"></span>std::size_t <code class="sig-name descname">concat_cache_num_bytes</code> = 400000000<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings22concat_cache_num_bytesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Applicable only for concatenating caches. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings17num_bytes_timeoutE">
+<span id="_CPPv3N3ral5cache14cache_settings17num_bytes_timeoutE"></span><span id="_CPPv2N3ral5cache14cache_settings17num_bytes_timeoutE"></span><span id="ral::cache::cache_settings::num_bytes_timeout__i"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a53b5b4767db5a401ba0ff8c1945a8958"></span>int <code class="sig-name descname">num_bytes_timeout</code> = 100<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings17num_bytes_timeoutE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Applicable only for concatenating caches. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings10concat_allE">
+<span id="_CPPv3N3ral5cache14cache_settings10concat_allE"></span><span id="_CPPv2N3ral5cache14cache_settings10concat_allE"></span><span id="ral::cache::cache_settings::concat_all__b"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1acac908087611fef1560d36be68f1e418"></span>bool <code class="sig-name descname">concat_all</code> = false<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings10concat_allE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Applicable only for concatenating caches. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings11log_timeoutE">
+<span id="_CPPv3N3ral5cache14cache_settings11log_timeoutE"></span><span id="_CPPv2N3ral5cache14cache_settings11log_timeoutE"></span><span id="ral::cache::cache_settings::log_timeout__b"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a1a405ba94a9e9f324aa342e21744c134"></span>bool <code class="sig-name descname">log_timeout</code> = true<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings11log_timeoutE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings20cache_level_overrideE">
+<span id="_CPPv3N3ral5cache14cache_settings20cache_level_overrideE"></span><span id="_CPPv2N3ral5cache14cache_settings20cache_level_overrideE"></span><span id="ral::cache::cache_settings::cache_level_override__i"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a86aef8dec19cb633c275e28fbbd1c39e"></span>int <code class="sig-name descname">cache_level_override</code> = -1<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings20cache_level_overrideE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache14cache_settings15is_array_accessE">
+<span id="_CPPv3N3ral5cache14cache_settings15is_array_accessE"></span><span id="_CPPv2N3ral5cache14cache_settings15is_array_accessE"></span><span id="ral::cache::cache_settings::is_array_access__b"></span><span class="target" id="structral_1_1cache_1_1cache__settings_1a3fc697f405b74756c7ece5418ab9d08c"></span>bool <code class="sig-name descname">is_array_access</code> = false<a class="headerlink" href="#_CPPv4N3ral5cache14cache_settings15is_array_accessE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

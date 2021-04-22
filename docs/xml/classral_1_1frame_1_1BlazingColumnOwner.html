@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class BlazingColumnOwner &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class BlazingColumnOwner &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4367,6 +4378,54 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwnerE">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwnerE"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwnerE"></span><span id="ral::frame::BlazingColumnOwner"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner"></span><em class="property">class </em><code class="sig-prename descclassname">ral::frame<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">BlazingColumnOwner</code> : <em class="property">public</em> ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingColumn.html#_CPPv4N3ral5frame13BlazingColumnE" title="ral::frame::BlazingColumn">BlazingColumn</a><a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwnerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerEv">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerEv"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerEv"></span><span id="ral::frame::BlazingColumnOwner::BlazingColumnOwner"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1aa643dfc1b01544b64162ff77c3c00cd6"></span><code class="sig-name descname">BlazingColumnOwner</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerERK13BlazingColumn">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerERK13BlazingColumn"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerERK13BlazingColumn"></span><span id="ral::frame::BlazingColumnOwner::BlazingColumnOwner__BlazingColumnCR"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1a917c09bd16079fc64a19f5b8e68a4c00"></span><code class="sig-name descname">BlazingColumnOwner</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="classral_1_1frame_1_1BlazingColumn.html#_CPPv4N3ral5frame13BlazingColumnE" title="ral::frame::BlazingColumn">BlazingColumn</a>&amp;<span class="sig-paren">)</span> = delete<a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerERK13BlazingColumn" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwneraSERK18BlazingColumnOwner">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwneraSERK18BlazingColumnOwner"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwneraSERK18BlazingColumnOwner"></span><span id="ral::frame::BlazingColumnOwner::assign-operator__BlazingColumnOwnerCR"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1a6d49038ec53dc7a35fec3727d91852fa"></span><a class="reference internal" href="#_CPPv4N3ral5frame18BlazingColumnOwnerE" title="ral::frame::BlazingColumnOwner">BlazingColumnOwner</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral5frame18BlazingColumnOwnerE" title="ral::frame::BlazingColumnOwner">BlazingColumnOwner</a>&amp;<span class="sig-paren">)</span> = delete<a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwneraSERK18BlazingColumnOwner" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerENSt10unique_ptrI10CudfColumnEE">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerENSt10unique_ptrI10CudfColumnEE"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerENSt10unique_ptrI10CudfColumnEE"></span><span id="ral::frame::BlazingColumnOwner::BlazingColumnOwner__std::unique_ptr:CudfColumn:"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1a435fa4fe80fd584647f3381ca578db88"></span><code class="sig-name descname">BlazingColumnOwner</code><span class="sig-paren">(</span>std::unique_ptr&lt;<a class="reference internal" href="typedef_BlazingColumn_8h_1a75228f03b5f35aabdcb834653877255b.html#_CPPv410CudfColumn" title="CudfColumn">CudfColumn</a>&gt; <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwner18BlazingColumnOwnerENSt10unique_ptrI10CudfColumnEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwnerD0Ev">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwnerD0Ev"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwnerD0Ev"></span><span id="ral::frame::BlazingColumnOwner::~BlazingColumnOwner"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1ab3db3845c5f2dbd0c754c54371cb980d"></span><code class="sig-name descname">~BlazingColumnOwner</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwnerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5frame18BlazingColumnOwner4viewEv">
+<span id="_CPPv3NK3ral5frame18BlazingColumnOwner4viewEv"></span><span id="_CPPv2NK3ral5frame18BlazingColumnOwner4viewEv"></span><span id="ral::frame::BlazingColumnOwner::viewC"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1ae9fc48497fb4ef45777d66c6888311f6"></span><em class="property">inline</em> <em class="property">virtual</em> <a class="reference internal" href="typedef_BlazingColumn_8h_1ad45a870019940bc469c365c91feb0d71.html#_CPPv414CudfColumnView" title="CudfColumnView">CudfColumnView</a> <code class="sig-name descname">view</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5frame18BlazingColumnOwner4viewEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwner7releaseEv">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwner7releaseEv"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwner7releaseEv"></span><span id="ral::frame::BlazingColumnOwner::release"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1aa103e63483906f95a701d83bbb94fd82"></span><em class="property">inline</em> <em class="property">virtual</em> std::unique_ptr&lt;<a class="reference internal" href="typedef_BlazingColumn_8h_1a75228f03b5f35aabdcb834653877255b.html#_CPPv410CudfColumn" title="CudfColumn">CudfColumn</a>&gt; <code class="sig-name descname">release</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwner7releaseEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5frame18BlazingColumnOwner4typeEv">
+<span id="_CPPv3N3ral5frame18BlazingColumnOwner4typeEv"></span><span id="_CPPv2N3ral5frame18BlazingColumnOwner4typeEv"></span><span id="ral::frame::BlazingColumnOwner::type"></span><span class="target" id="classral_1_1frame_1_1BlazingColumnOwner_1a9fa77ce1e4bff77a021b623e5f891833"></span><em class="property">inline</em> <em class="property">virtual</em> <a class="reference internal" href="enum_BlazingColumn_8h_1a9fd93e5e4b5e5951debb6eed1165557a.html#_CPPv4N3ral5frame19blazing_column_typeE" title="ral::frame::blazing_column_type">blazing_column_type</a> <code class="sig-name descname">type</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5frame18BlazingColumnOwner4typeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

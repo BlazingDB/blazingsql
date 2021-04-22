@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Conditional functions &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Functions and operators &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,12 +41,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/d3.v3.min.js"></script>
+    <script src="../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Converting data types" href="casting.html" />
-    <link rel="prev" title="Date and timestamp functions" href="dates.html" />
+    <link rel="next" title="Operators" href="operators.html" />
+    <link rel="prev" title="Aggregating data" href="aggregating.html" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -67,7 +69,7 @@
   <img src="../../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 current active collapsible-parent">
-      <a class="current reference internal" href="#">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="casting.html">
        Converting data types
       </a>
@@ -471,11 +428,56 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="windowing.html">
-       Window funtions
+     <li class="toctree-l3 current active collapsible-parent">
+      <a class="current reference internal" href="#">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../xml/library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4316,52 +4327,6 @@
         <!-- Table of contents -->
         <div class="d-none d-md-block col-md-2 bd-toc show">
             
-        <div class="tocsection onthispage pt-5 pb-3">
-            <i class="fas fa-list"></i>
-            Contents
-        </div>
-        <nav id="bd-toc-nav">
-            <ul class="nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#func-case">
-   FUNC CASE
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#example">
-     Example
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#func-coalesce">
-   FUNC COALESCE
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id1">
-     Example
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#func-nullif">
-   FUNC NULLIF
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id2">
-     Example
-    </a>
-   </li>
-  </ul>
- </li>
-</ul>
-
-        </nav>
-        
         </div>
     </div>
 </div>
@@ -4370,49 +4335,17 @@
         
               <div>
                 
-  <section id="conditional-functions">
-<span id="sql-functions"></span><h1>Conditional functions<a class="headerlink" href="#conditional-functions" title="Permalink to this headline">¶</a></h1>
-<section id="func-case">
-<span id="sql-func-case"></span><h2>FUNC CASE<a class="headerlink" href="#func-case" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="example">
-<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="func-coalesce">
-<span id="sql-func-coalesce"></span><h2>FUNC COALESCE<a class="headerlink" href="#func-coalesce" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id1">
-<h3>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="func-nullif">
-<span id="sql-func-nullif"></span><h2>FUNC NULLIF<a class="headerlink" href="#func-nullif" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id2">
-<h3>Example<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
-</pre></div>
-</div>
+  <section id="functions-and-operators">
+<span id="sql-functions"></span><h1>Functions and operators<a class="headerlink" href="#functions-and-operators" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conditional.html">Conditional operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math.html">Mathematical functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strings.html">String functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dates.html">Date and timestamp functions</a></li>
+</ul>
 </div>
-</section>
-</section>
 </section>
 
 
@@ -4421,8 +4354,8 @@
         
         <div class='prev-next-bottom'>
             
-    <a class='left-prev' id="prev-link" href="dates.html" title="previous page">Date and timestamp functions</a>
-    <a class='right-next' id="next-link" href="casting.html" title="next page">Converting data types</a>
+    <a class='left-prev' id="prev-link" href="aggregating.html" title="previous page">Aggregating data</a>
+    <a class='right-next' id="next-link" href="operators.html" title="next page">Operators</a>
 
         </div>
         

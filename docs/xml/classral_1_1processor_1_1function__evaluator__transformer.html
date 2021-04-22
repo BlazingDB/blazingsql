@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class function_evaluator_transformer &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class function_evaluator_transformer &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4367,6 +4378,41 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral9processor30function_evaluator_transformerE">
+<span id="_CPPv3N3ral9processor30function_evaluator_transformerE"></span><span id="_CPPv2N3ral9processor30function_evaluator_transformerE"></span><span id="ral::processor::function_evaluator_transformer"></span><span class="target" id="classral_1_1processor_1_1function__evaluator__transformer"></span><em class="property">class </em><code class="sig-prename descclassname">ral::processor<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">function_evaluator_transformer</code> : <em class="property">public</em> node_transformer<a class="headerlink" href="#_CPPv4N3ral9processor30function_evaluator_transformerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A class that traverses an expression tree and prunes nodes that can’t be evaluated by the interpreter. </p>
+<p>Any complex operation that can’t be evaluated by the interpreter (e.g. string functions) is evaluated here and its corresponding node replaced by a new node containing the result of the operation </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9processor30function_evaluator_transformer30function_evaluator_transformerERKN4cudf10table_viewE">
+<span id="_CPPv3N3ral9processor30function_evaluator_transformer30function_evaluator_transformerERKN4cudf10table_viewE"></span><span id="_CPPv2N3ral9processor30function_evaluator_transformer30function_evaluator_transformerERKN4cudf10table_viewE"></span><span id="ral::processor::function_evaluator_transformer::function_evaluator_transformer__cudf::table_viewCR"></span><span class="target" id="classral_1_1processor_1_1function__evaluator__transformer_1a3c389ffcf498cb6a76a0dcd1959c34e9"></span><em class="property">inline</em> <code class="sig-name descname">function_evaluator_transformer</code><span class="sig-paren">(</span><em class="property">const</em> cudf::table_view &amp;<em>table</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9processor30function_evaluator_transformer30function_evaluator_transformerERKN4cudf10table_viewE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9processor30function_evaluator_transformer9transformERN6parser11operad_nodeE">
+<span id="_CPPv3N3ral9processor30function_evaluator_transformer9transformERN6parser11operad_nodeE"></span><span id="_CPPv2N3ral9processor30function_evaluator_transformer9transformERN6parser11operad_nodeE"></span><span id="ral::processor::function_evaluator_transformer::transform__parser::operad_nodeR"></span><span class="target" id="classral_1_1processor_1_1function__evaluator__transformer_1a7cf33e05533d71d24ccac6510d1a35b2"></span><em class="property">inline</em> parser::node *<code class="sig-name descname">transform</code><span class="sig-paren">(</span>parser::operad_node &amp;<em>node</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral9processor30function_evaluator_transformer9transformERN6parser11operad_nodeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9processor30function_evaluator_transformer9transformERN6parser13operator_nodeE">
+<span id="_CPPv3N3ral9processor30function_evaluator_transformer9transformERN6parser13operator_nodeE"></span><span id="_CPPv2N3ral9processor30function_evaluator_transformer9transformERN6parser13operator_nodeE"></span><span id="ral::processor::function_evaluator_transformer::transform__parser::operator_nodeR"></span><span class="target" id="classral_1_1processor_1_1function__evaluator__transformer_1abc3cddc8139b9a7a8d48712cc092c19e"></span><em class="property">inline</em> parser::node *<code class="sig-name descname">transform</code><span class="sig-paren">(</span>parser::operator_node &amp;<em>node</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral9processor30function_evaluator_transformer9transformERN6parser13operator_nodeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9processor30function_evaluator_transformer21computed_columns_viewEv">
+<span id="_CPPv3N3ral9processor30function_evaluator_transformer21computed_columns_viewEv"></span><span id="_CPPv2N3ral9processor30function_evaluator_transformer21computed_columns_viewEv"></span><span id="ral::processor::function_evaluator_transformer::computed_columns_view"></span><span class="target" id="classral_1_1processor_1_1function__evaluator__transformer_1a8084c67c14a0da853c6134ca3089b6cb"></span><em class="property">inline</em> cudf::table_view <code class="sig-name descname">computed_columns_view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9processor30function_evaluator_transformer21computed_columns_viewEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9processor30function_evaluator_transformer24release_computed_columnsEv">
+<span id="_CPPv3N3ral9processor30function_evaluator_transformer24release_computed_columnsEv"></span><span id="_CPPv2N3ral9processor30function_evaluator_transformer24release_computed_columnsEv"></span><span id="ral::processor::function_evaluator_transformer::release_computed_columns"></span><span class="target" id="classral_1_1processor_1_1function__evaluator__transformer_1a89644d653fd4601d224486e82589530d"></span><em class="property">inline</em> std::vector&lt;std::unique_ptr&lt;cudf::column&gt;&gt; <code class="sig-name descname">release_computed_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9processor30function_evaluator_transformer24release_computed_columnsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

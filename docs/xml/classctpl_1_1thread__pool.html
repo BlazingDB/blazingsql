@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Template Class thread_pool &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Template Class thread_pool &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,74 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4I0EN4ctpl11thread_poolE">
+<span id="_CPPv3I0EN4ctpl11thread_poolE"></span><span id="_CPPv2I0EN4ctpl11thread_poolE"></span>template&lt;typename <code class="sig-name descname">T</code>&gt;<br /><span class="target" id="classctpl_1_1thread__pool"></span><em class="property">class </em><code class="sig-prename descclassname">ctpl<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">thread_pool</code><a class="headerlink" href="#_CPPv4I0EN4ctpl11thread_poolE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool11thread_poolEv">
+<span id="_CPPv3N4ctpl11thread_pool11thread_poolEv"></span><span id="_CPPv2N4ctpl11thread_pool11thread_poolEv"></span><span id="ctpl::thread_pool::thread_pool"></span><span class="target" id="classctpl_1_1thread__pool_1acf7c9793beb732151dbc0112af0220c4"></span><em class="property">inline</em> <code class="sig-name descname">thread_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool11thread_poolEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool11thread_poolEi">
+<span id="_CPPv3N4ctpl11thread_pool11thread_poolEi"></span><span id="_CPPv2N4ctpl11thread_pool11thread_poolEi"></span><span id="ctpl::thread_pool::thread_pool__i"></span><span class="target" id="classctpl_1_1thread__pool_1a8cbc9d02323c0494c12f2205b76cd97a"></span><em class="property">inline</em> <code class="sig-name descname">thread_pool</code><span class="sig-paren">(</span>int <em>nThreads</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool11thread_poolEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_poolD0Ev">
+<span id="_CPPv3N4ctpl11thread_poolD0Ev"></span><span id="_CPPv2N4ctpl11thread_poolD0Ev"></span><span id="ctpl::thread_pool::~thread_pool"></span><span class="target" id="classctpl_1_1thread__pool_1a732f881649013544514cccd21eca2802"></span><em class="property">inline</em> <code class="sig-name descname">~thread_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_poolD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool4sizeEv">
+<span id="_CPPv3N4ctpl11thread_pool4sizeEv"></span><span id="_CPPv2N4ctpl11thread_pool4sizeEv"></span><span id="ctpl::thread_pool::size"></span><span class="target" id="classctpl_1_1thread__pool_1a43e0d9660a610fd36d3a3ef05742c124"></span><em class="property">inline</em> int <code class="sig-name descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool4sizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool6n_idleEv">
+<span id="_CPPv3N4ctpl11thread_pool6n_idleEv"></span><span id="_CPPv2N4ctpl11thread_pool6n_idleEv"></span><span id="ctpl::thread_pool::n_idle"></span><span class="target" id="classctpl_1_1thread__pool_1afff06541d5b6d640ced059f8104c73fd"></span><em class="property">inline</em> int <code class="sig-name descname">n_idle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool6n_idleEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool10get_threadEi">
+<span id="_CPPv3N4ctpl11thread_pool10get_threadEi"></span><span id="_CPPv2N4ctpl11thread_pool10get_threadEi"></span><span id="ctpl::thread_pool::get_thread__i"></span><span class="target" id="classctpl_1_1thread__pool_1a671a47dd92273b92863d65205fb00665"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN4ctpl11thread_poolE" title="ctpl::thread_pool::T">T</a> &amp;<code class="sig-name descname">get_thread</code><span class="sig-paren">(</span>int <em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool10get_threadEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool6resizeEi">
+<span id="_CPPv3N4ctpl11thread_pool6resizeEi"></span><span id="_CPPv2N4ctpl11thread_pool6resizeEi"></span><span id="ctpl::thread_pool::resize__i"></span><span class="target" id="classctpl_1_1thread__pool_1a5616835c86ef785a07a2ca3311a93956"></span><em class="property">inline</em> void <code class="sig-name descname">resize</code><span class="sig-paren">(</span>int <em>nThreads</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool6resizeEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool11clear_queueEv">
+<span id="_CPPv3N4ctpl11thread_pool11clear_queueEv"></span><span id="_CPPv2N4ctpl11thread_pool11clear_queueEv"></span><span id="ctpl::thread_pool::clear_queue"></span><span class="target" id="classctpl_1_1thread__pool_1adf4ad2b34040beddf63b679096bb36fa"></span><em class="property">inline</em> void <code class="sig-name descname">clear_queue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool11clear_queueEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool3popEv">
+<span id="_CPPv3N4ctpl11thread_pool3popEv"></span><span id="_CPPv2N4ctpl11thread_pool3popEv"></span><span id="ctpl::thread_pool::pop"></span><span class="target" id="classctpl_1_1thread__pool_1ae21941f71d94787161b927ee66904f9a"></span><em class="property">inline</em> std::function&lt;void<span class="sig-paren">(</span>int<span class="sig-paren">)</span>&gt; <code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool3popEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4ctpl11thread_pool4stopEb">
+<span id="_CPPv3N4ctpl11thread_pool4stopEb"></span><span id="_CPPv2N4ctpl11thread_pool4stopEb"></span><span id="ctpl::thread_pool::stop__b"></span><span class="target" id="classctpl_1_1thread__pool_1a1f16a023992e5d1dfbb442cdfb640bcb"></span><em class="property">inline</em> void <code class="sig-name descname">stop</code><span class="sig-paren">(</span>bool <em>isWait</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4ctpl11thread_pool4stopEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4I0DpEN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0Esp4restEEEERR1FDpRR4Rest">
+<span id="_CPPv3I0DpEN4ctpl11thread_pool4pushERR1FDpRR4Rest"></span><span id="_CPPv2I0DpEN4ctpl11thread_pool4pushERR1FDpRR4Rest"></span>template&lt;typename <code class="sig-name descname">F</code>, typename ...<code class="sig-name descname">Rest</code>&gt;<br /><span class="target" id="classctpl_1_1thread__pool_1aefdd0e6eae5ef91b2b23878d268b43d7"></span><em class="property">inline</em> auto <code class="sig-name descname">push</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0DpEN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0Esp4restEEEERR1FDpRR4Rest" title="ctpl::thread_pool::push::F">F</a> &amp;&amp;<em>f</em>, <a class="reference internal" href="#_CPPv4I0DpEN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0Esp4restEEEERR1FDpRR4Rest" title="ctpl::thread_pool::push::Rest">Rest</a>&amp;&amp;... <em>rest</em><span class="sig-paren">)</span> -&gt; std::future&lt;decltype(<a class="reference internal" href="#_CPPv4I0DpEN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0Esp4restEEEERR1FDpRR4Rest" title="ctpl::thread_pool::push::f">f</a>(0, <a class="reference internal" href="#_CPPv4I0DpEN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0Esp4restEEEERR1FDpRR4Rest" title="ctpl::thread_pool::push::rest">rest</a>...))&gt;<a class="headerlink" href="#_CPPv4I0DpEN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0Esp4restEEEERR1FDpRR4Rest" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4I0EN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0EEEEERR1F">
+<span id="_CPPv3I0EN4ctpl11thread_pool4pushERR1F"></span><span id="_CPPv2I0EN4ctpl11thread_pool4pushERR1F"></span>template&lt;typename <code class="sig-name descname">F</code>&gt;<br /><span class="target" id="classctpl_1_1thread__pool_1a2e127b44a824f43c5d3eb96dc5fb2212"></span><em class="property">inline</em> auto <code class="sig-name descname">push</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0EEEEERR1F" title="ctpl::thread_pool::push::F">F</a> &amp;&amp;<em>f</em><span class="sig-paren">)</span> -&gt; std::future&lt;decltype(<a class="reference internal" href="#_CPPv4I0EN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0EEEEERR1F" title="ctpl::thread_pool::push::f">f</a>(0))&gt;<a class="headerlink" href="#_CPPv4I0EN4ctpl11thread_pool4pushENSt6futureIDTcl1fL0EEEEERR1F" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

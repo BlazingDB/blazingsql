@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>API Reference &#8212; BlazingSQL v0.18 documentation</title>
+    <title>API Reference &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../xml/library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4329,174 +4340,23 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="python/index.html">Python API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="python/blazing_context.html">BlazingContext()</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#constructor">Constructor</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#managing-tables">Managing tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#querying-tables">Querying tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#ancillary-methods">Ancillary methods</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="python/storage_plugins.html">Storage Plugins</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.gs.html">blazingsql.BlazingContext.gs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.hdfs.html">blazingsql.BlazingContext.hdfs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.localfs.html">blazingsql.BlazingContext.localfs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.s3.html">blazingsql.BlazingContext.s3</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.show_filesystems.html">blazingsql.BlazingContext.show_filesystems</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="python/tables.html">Create tables</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/apache-hive.html">Query Hive Tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/apache-orc.html">Query Apache ORC Files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/apache-parquet.html">Query Apache Parquet Files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/pandas-df.html">Query pandas DataFrames</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/rapidsai-cudf.html">Query cuDF DataFrames</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/rapidsai-cudf.html#query-dask-cudf-dataframes">Query dask_cudf DataFrames</a></li>
-<li class="toctree-l3"><a class="reference internal" href="python/tables/text-files.html">Query Plain Text Files</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="python/blazing_context.html">BlazingContext()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/storage_plugins.html">Storage Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/tables.html">Create tables</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sql/index.html">SQL API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="sql/dtypes.html">Data types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/query.html">Querying data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/query.html#select">SELECT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/query.html#select-distinct">SELECT DISTINCT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql/query.html">Querying data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql/casting.html">Converting data types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql/aggregating.html">Aggregating data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql/functions.html">Functions and operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql/joins.html">Joining data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql/windowing.html">Window funtions</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="sql/order.html">Ordering data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby">ORDERBY</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-asc">ORDERBY ASC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-ascnullsfirst">ORDERBY ASCNULLSFIRST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-ascnullslast">ORDERBY ASCNULLSLAST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-desc">ORDERBY DESC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-descnullsfirst">ORDERBY DESCNULLSFIRST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-descnullslast">ORDERBY DESCNULLSLAST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-nullsfirst">ORDERBY NULLSFIRST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/order.html#orderby-nullslast">ORDERBY NULLSLAST</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/arithmetic.html">Arithmetic functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-abs">ARITHMETIC ABS</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-acos">ARITHMETIC ACOS</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-add">ARITHMETIC ADD</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-asin">ARITHMETIC ASIN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-atan">ARITHMETIC ATAN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-ceil">ARITHMETIC CEIL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-cos">ARITHMETIC COS</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-divide">ARITHMETIC DIVIDE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-floor">ARITHMETIC FLOOR</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-greatest">ARITHMETIC GREATEST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-least">ARITHMETIC LEAST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-ln">ARITHMETIC LN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-log10">ARITHMETIC LOG10</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-mod">ARITHMETIC MOD</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-multiply">ARITHMETIC MULTIPLY</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-negative">ARITHMETIC NEGATIVE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-power">ARITHMETIC POWER</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-rand">ARITHMETIC RAND</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-round">ARITHMETIC ROUND</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-sin">ARITHMETIC SIN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-sqrt">ARITHMETIC SQRT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-subtract">ARITHMETIC SUBTRACT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/arithmetic.html#arithmetic-tan">ARITHMETIC TAN</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/strings.html">String functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-characterlength">STRING CHARACTERLENGTH</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-charlength">STRING CHARLENGTH</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-concat">STRING CONCAT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-greatest">STRING GREATEST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-initcap">STRING INITCAP</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-least">STRING LEAST</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-left">STRING LEFT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-lower">STRING LOWER</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-ltrim">STRING LTRIM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-nvl">STRING NVL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-regexpreplace">STRING REGEXPREPLACE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-reverse">STRING REVERSE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-right">STRING RIGHT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-rtrim">STRING RTRIM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-substring">STRING SUBSTRING</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-trim">STRING TRIM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/strings.html#string-upper">STRING UPPER</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/dates.html">Date and timestamp functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-dayofmonth">DATE DAYOFMONTH</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-dayofweek">DATE DAYOFWEEK</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-extract">DATE EXTRACT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-hour">DATE HOUR</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-minute">DATE MINUTE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-month">DATE MONTH</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-second">DATE SECOND</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/dates.html#date-year">DATE YEAR</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/functions.html">Conditional functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/functions.html#func-case">FUNC CASE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/functions.html#func-coalesce">FUNC COALESCE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/functions.html#func-nullif">FUNC NULLIF</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/casting.html">Converting data types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-bigint">CAST BIGINT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-boolean">CAST BOOLEAN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-char">CAST CHAR</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-date">CAST DATE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-decimal">CAST DECIMAL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-double">CAST DOUBLE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-float">CAST FLOAT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-int">CAST INT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-smallint">CAST SMALLINT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-tinyint">CAST TINYINT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/casting.html#cast-varchar">CAST VARCHAR</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/aggregating.html">Aggregating data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-avg">AGG AVG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-count">AGG COUNT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-max">AGG MAX</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-min">AGG MIN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-stddev">AGG STDDEV</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-stddevpop">AGG STDDEVPOP</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-stddevsamp">AGG STDDEVSAMP</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-sum">AGG SUM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-varpop">AGG VARPOP</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/aggregating.html#agg-varsamp">AGG VARSAMP</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/windowing.html">Window funtions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-avg">WINDOW AVG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-firstvalue">WINDOW FIRSTVALUE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-lag">WINDOW LAG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-lastvalue">WINDOW LASTVALUE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-lead">WINDOW LEAD</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-max">WINDOW MAX</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-min">WINDOW MIN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-rownumber">WINDOW ROWNUMBER</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/windowing.html#window-sum">WINDOW SUM</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sql/joins.html">Joining data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sql/joins.html#join-full">JOIN FULL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/joins.html#join-fullouter">JOIN FULLOUTER</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/joins.html#join-left">JOIN LEFT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sql/joins.html#join-leftouter">JOIN LEFTOUTER</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../xml/library_root.html">Engine C++ API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../xml/library_root.html#full-api">Full API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#namespaces">Namespaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#classes-and-structs">Classes and Structs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#enums">Enums</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#functions">Functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#variables">Variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#defines">Defines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#typedefs">Typedefs</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../xml/library_root.html">C++ API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../xml/library_root.html#full-api">Full API</a></li>
 </ul>
 </li>
 </ul>

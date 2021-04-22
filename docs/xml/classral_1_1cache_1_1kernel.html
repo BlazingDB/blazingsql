@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class kernel &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class kernel &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4381,6 +4392,410 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5cache6kernelE">
+<span id="_CPPv3N3ral5cache6kernelE"></span><span id="_CPPv2N3ral5cache6kernelE"></span><span id="ral::cache::kernel"></span><span class="target" id="classral_1_1cache_1_1kernel"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">kernel</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This interface represents a computation unit in the execution graph. Each kernel has basically and input and output ports and the expression asocciated to the computation unit. Each class that implements this interface should define how the computation is executed. See <code class="docutils literal notranslate"><a class="reference internal" href="#classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625"><span class="std std-ref"><span class="pre">do_process()</span></span></a></code> method. </p>
+<p>Subclassed by <a class="reference internal" href="classral_1_1batch_1_1BindableTableScan.html#classral_1_1batch_1_1BindableTableScan"><span class="std std-ref">ral::batch::BindableTableScan</span></a>, <a class="reference internal" href="classral_1_1batch_1_1ComputeAggregateKernel.html#classral_1_1batch_1_1ComputeAggregateKernel"><span class="std std-ref">ral::batch::ComputeAggregateKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1ComputeWindowKernel.html#classral_1_1batch_1_1ComputeWindowKernel"><span class="std std-ref">ral::batch::ComputeWindowKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1Filter.html#classral_1_1batch_1_1Filter"><span class="std std-ref">ral::batch::Filter</span></a>, <a class="reference internal" href="classral_1_1batch_1_1MergeAggregateKernel.html#classral_1_1batch_1_1MergeAggregateKernel"><span class="std std-ref">ral::batch::MergeAggregateKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1MergeStreamKernel.html#classral_1_1batch_1_1MergeStreamKernel"><span class="std std-ref">ral::batch::MergeStreamKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1OutputKernel.html#classral_1_1batch_1_1OutputKernel"><span class="std std-ref">ral::batch::OutputKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1OverlapGeneratorKernel.html#classral_1_1batch_1_1OverlapGeneratorKernel"><span class="std std-ref">ral::batch::OverlapGeneratorKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1PartitionSingleNodeKernel.html#classral_1_1batch_1_1PartitionSingleNodeKernel"><span class="std std-ref">ral::batch::PartitionSingleNodeKernel</span></a>, <a class="reference internal" href="classral_1_1batch_1_1PartwiseJoin.html#classral_1_1batch_1_1PartwiseJoin"><span class="std std-ref">ral::batch::PartwiseJoin</span></a>, <a class="reference internal" href="classral_1_1batch_1_1Print.html#classral_1_1batch_1_1Print"><span class="std std-ref">ral::batch::Print</span></a>, <a class="reference internal" href="classral_1_1batch_1_1Projection.html#classral_1_1batch_1_1Projection"><span class="std std-ref">ral::batch::Projection</span></a>, <a class="reference internal" href="classral_1_1batch_1_1TableScan.html#classral_1_1batch_1_1TableScan"><span class="std std-ref">ral::batch::TableScan</span></a>, <a class="reference internal" href="classral_1_1batch_1_1UnionKernel.html#classral_1_1batch_1_1UnionKernel"><span class="std std-ref">ral::batch::UnionKernel</span></a>, <a class="reference internal" href="classral_1_1cache_1_1distributing__kernel.html#classral_1_1cache_1_1distributing__kernel"><span class="std std-ref">ral::cache::distributing_kernel</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel6kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type">
+<span id="_CPPv3N3ral5cache6kernel6kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type"></span><span id="_CPPv2N3ral5cache6kernel6kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type"></span><span id="ral::cache::kernel::kernel__std::s.ss.std::shared_ptr:Context:.kernel_type"></span><span class="target" id="classral_1_1cache_1_1kernel_1a533e4ae37fc18a6c8638f30ee8459d8f"></span><code class="sig-name descname">kernel</code><span class="sig-paren">(</span>std::size_t <em>kernel_id</em>, std::string <em>expr</em>, std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <em>context</em>, <a class="reference internal" href="enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_typeE" title="ral::cache::kernel_type">kernel_type</a> <em>kernel_type_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel6kernelENSt6size_tENSt6stringENSt10shared_ptrI7ContextEE11kernel_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor for the kernel <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">kernel_id</span></code>: Current kernel identifier. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">expr</span></code>: Original logical expression that the kernel will execute. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">context</span></code>: Shared context associated to the running query. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kernel_type_id</span></code>: Identifier representing the kernel type. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel10set_parentE6size_t">
+<span id="_CPPv3N3ral5cache6kernel10set_parentE6size_t"></span><span id="_CPPv2N3ral5cache6kernel10set_parentE6size_t"></span><span id="ral::cache::kernel::set_parent__s"></span><span class="target" id="classral_1_1cache_1_1kernel_1a150ae499b8aef4669714e791f2bea9e9"></span><em class="property">inline</em> void <code class="sig-name descname">set_parent</code><span class="sig-paren">(</span>size_t <em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel10set_parentE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets its parent kernel. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: The identifier of its parent. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5cache6kernel10has_parentEv">
+<span id="_CPPv3NK3ral5cache6kernel10has_parentEv"></span><span id="_CPPv2NK3ral5cache6kernel10has_parentEv"></span><span id="ral::cache::kernel::has_parentC"></span><span class="target" id="classral_1_1cache_1_1kernel_1a21dc72f0714ddc2b4b2187592d05ba77"></span><em class="property">inline</em> bool <code class="sig-name descname">has_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache6kernel10has_parentEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Indicates if the kernel has a parent. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>true If the kernel has a parent, false otherwise. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernelD0Ev">
+<span id="_CPPv3N3ral5cache6kernelD0Ev"></span><span id="_CPPv2N3ral5cache6kernelD0Ev"></span><span id="ral::cache::kernel::~kernel"></span><span class="target" id="classral_1_1cache_1_1kernel_1a08658078acd31ec27af290f6712fa017"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~kernel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernelD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destructor </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel3runEv">
+<span id="_CPPv3N3ral5cache6kernel3runEv"></span><span id="_CPPv2N3ral5cache6kernel3runEv"></span><span id="ral::cache::kernel::run"></span><span class="target" id="classral_1_1cache_1_1kernel_1a735b081cccae9574924e74ea6d293ef7"></span><em class="property">virtual</em> <a class="reference internal" href="enum_port_8h_1a7ca88559216aa8af73fa0d60c4bb1375.html#_CPPv4N3ral5cache7kstatusE" title="ral::cache::kstatus">kstatus</a> <code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral5cache6kernel3runEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>kstatus ‘stop’ to halt processing, or ‘proceed’ to continue processing. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernelixERKNSt6stringE">
+<span id="_CPPv3N3ral5cache6kernelixERKNSt6stringE"></span><span id="_CPPv2N3ral5cache6kernelixERKNSt6stringE"></span><span id="ral::cache::kernel::subscript-operator__ssCR"></span><span class="target" id="classral_1_1cache_1_1kernel_1abb0b2c6bdc9e3379cc675e57270b207b"></span><em class="property">inline</em> <a class="reference internal" href="typedef_kernel_8h_1aebd7b546e1b8f3f28612b770c46e4a87.html#_CPPv4N3ral5cache11kernel_pairE" title="ral::cache::kernel_pair">kernel_pair</a> <code class="sig-name descname">operator[]</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>portname</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernelixERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5cache6kernel6get_idEv">
+<span id="_CPPv3NK3ral5cache6kernel6get_idEv"></span><span id="_CPPv2NK3ral5cache6kernel6get_idEv"></span><span id="ral::cache::kernel::get_idC"></span><span class="target" id="classral_1_1cache_1_1kernel_1a33ce6e9907abce1acedb01e236c6812e"></span><em class="property">inline</em> std::int32_t <code class="sig-name descname">get_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache6kernel6get_idEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the kernel identifier. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>int32_t The kernel identifier. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5cache6kernel11get_type_idEv">
+<span id="_CPPv3NK3ral5cache6kernel11get_type_idEv"></span><span id="_CPPv2NK3ral5cache6kernel11get_type_idEv"></span><span id="ral::cache::kernel::get_type_idC"></span><span class="target" id="classral_1_1cache_1_1kernel_1a146246668880ca685f22d208e638578b"></span><em class="property">inline</em> <a class="reference internal" href="enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_typeE" title="ral::cache::kernel_type">kernel_type</a> <code class="sig-name descname">get_type_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache6kernel11get_type_idEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the kernel type identifier. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>kernel_type The kernel type identifier. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel11set_type_idE11kernel_type">
+<span id="_CPPv3N3ral5cache6kernel11set_type_idE11kernel_type"></span><span id="_CPPv2N3ral5cache6kernel11set_type_idE11kernel_type"></span><span id="ral::cache::kernel::set_type_id__kernel_type"></span><span class="target" id="classral_1_1cache_1_1kernel_1ae4a8519fe026454fe5385122c1e02615"></span><em class="property">inline</em> void <code class="sig-name descname">set_type_id</code><span class="sig-paren">(</span><a class="reference internal" href="enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_typeE" title="ral::cache::kernel_type">kernel_type</a> <em>kernel_type_id_</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel11set_type_idE11kernel_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets the kernel type identifier. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>: The new kernel type identifier. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel11input_cacheEv">
+<span id="_CPPv3N3ral5cache6kernel11input_cacheEv"></span><span id="_CPPv2N3ral5cache6kernel11input_cacheEv"></span><span id="ral::cache::kernel::input_cache"></span><span class="target" id="classral_1_1cache_1_1kernel_1aac90d80ed296715da2a7736691847270"></span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">input_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel11input_cacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the input cache. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel12output_cacheENSt6stringE">
+<span id="_CPPv3N3ral5cache6kernel12output_cacheENSt6stringE"></span><span id="_CPPv2N3ral5cache6kernel12output_cacheENSt6stringE"></span><span id="ral::cache::kernel::output_cache__ss"></span><span class="target" id="classral_1_1cache_1_1kernel_1a94c3bd66b93a0e67165d0a54741c19dc"></span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">output_cache</code><span class="sig-paren">(</span>std::string <em>cache_id</em> = &quot;&quot;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel12output_cacheENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the output cache associated to an identifier. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>cache_id The identifier of the output cache. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringEb">
+<span id="_CPPv3N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringEb"></span><span id="_CPPv2N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringEb"></span><span id="ral::cache::kernel::add_to_output_cache__std::unique_ptr:ral::frame::BlazingTable:.ss.b"></span><span class="target" id="classral_1_1cache_1_1kernel_1af6b7b538f6a692393f314a4f1037d4a6"></span>bool <code class="sig-name descname">add_to_output_cache</code><span class="sig-paren">(</span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <em>table</em>, std::string <em>cache_id</em> = &quot;&quot;, bool <em>always_add</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Adds a BlazingTable into the output cache. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The table that will be added to the output cache. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: The cache identifier. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5cache9CacheDataEEENSt6stringEb">
+<span id="_CPPv3N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5cache9CacheDataEEENSt6stringEb"></span><span id="_CPPv2N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5cache9CacheDataEEENSt6stringEb"></span><span id="ral::cache::kernel::add_to_output_cache__std::unique_ptr:ral::cache::CacheData:.ss.b"></span><span class="target" id="classral_1_1cache_1_1kernel_1ad8cd102392bbece14178c0ebf9f0c6bc"></span>bool <code class="sig-name descname">add_to_output_cache</code><span class="sig-paren">(</span>std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt; <em>cache_data</em>, std::string <em>cache_id</em> = &quot;&quot;, bool <em>always_add</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5cache9CacheDataEEENSt6stringEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Adds a <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> into the output cache. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_data</span></code>: The cache_data that will be added to the output cache. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: The cache identifier. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame16BlazingHostTableEEENSt6stringE">
+<span id="_CPPv3N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame16BlazingHostTableEEENSt6stringE"></span><span id="_CPPv2N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame16BlazingHostTableEEENSt6stringE"></span><span id="ral::cache::kernel::add_to_output_cache__std::unique_ptr:ral::frame::BlazingHostTable:.ss"></span><span class="target" id="classral_1_1cache_1_1kernel_1a94e93c7bb81d9a3a7729fa84a7cf07c1"></span>bool <code class="sig-name descname">add_to_output_cache</code><span class="sig-paren">(</span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingHostTable.html#_CPPv4N3ral5frame16BlazingHostTableE" title="ral::frame::BlazingHostTable">BlazingHostTable</a>&gt; <em>host_table</em>, std::string <em>cache_id</em> = &quot;&quot;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel19add_to_output_cacheENSt10unique_ptrIN3ral5frame16BlazingHostTableEEENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Adds a BlazingHostTable into the output cache. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">host_table</span></code>: The host table that will be added to the output cache. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_id</span></code>: The cache identifier. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5cache6kernel11get_contextEv">
+<span id="_CPPv3NK3ral5cache6kernel11get_contextEv"></span><span id="_CPPv2NK3ral5cache6kernel11get_contextEv"></span><span id="ral::cache::kernel::get_contextC"></span><span class="target" id="classral_1_1cache_1_1kernel_1a6d078d50dd69a9444fcd5d73f378e2d1"></span><em class="property">inline</em> <a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a> *<code class="sig-name descname">get_context</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache6kernel11get_contextEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the current context. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel14get_message_idEv">
+<span id="_CPPv3N3ral5cache6kernel14get_message_idEv"></span><span id="_CPPv2N3ral5cache6kernel14get_message_idEv"></span><span id="ral::cache::kernel::get_message_id"></span><span class="target" id="classral_1_1cache_1_1kernel_1aa9e353759b65c2c53571cf80b0213d31"></span><em class="property">inline</em> std::string <code class="sig-name descname">get_message_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel14get_message_idEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the id message as a string. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel18input_all_finishedEv">
+<span id="_CPPv3N3ral5cache6kernel18input_all_finishedEv"></span><span id="_CPPv2N3ral5cache6kernel18input_all_finishedEv"></span><span id="ral::cache::kernel::input_all_finished"></span><span class="target" id="classral_1_1cache_1_1kernel_1aa8af91bb80e9153e307e07c3010c217a"></span><em class="property">inline</em> bool <code class="sig-name descname">input_all_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel18input_all_finishedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns true if all the caches of an input are finished. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel22total_input_rows_addedEv">
+<span id="_CPPv3N3ral5cache6kernel22total_input_rows_addedEv"></span><span id="_CPPv2N3ral5cache6kernel22total_input_rows_addedEv"></span><span id="ral::cache::kernel::total_input_rows_added"></span><span class="target" id="classral_1_1cache_1_1kernel_1a87d2048b2c50e1124eaaed09b3c18758"></span><em class="property">inline</em> uint64_t <code class="sig-name descname">total_input_rows_added</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel22total_input_rows_addedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns sum of all the rows added to all caches of the input port. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel20input_cache_finishedERKNSt6stringE">
+<span id="_CPPv3N3ral5cache6kernel20input_cache_finishedERKNSt6stringE"></span><span id="_CPPv2N3ral5cache6kernel20input_cache_finishedERKNSt6stringE"></span><span id="ral::cache::kernel::input_cache_finished__ssCR"></span><span class="target" id="classral_1_1cache_1_1kernel_1a75d3db3d361445cd14da3186b8b15036"></span><em class="property">inline</em> bool <code class="sig-name descname">input_cache_finished</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>port_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel20input_cache_finishedERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns true if a specific input cache is finished. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">port_name</span></code>: Name of the port. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel26input_cache_num_rows_addedERKNSt6stringE">
+<span id="_CPPv3N3ral5cache6kernel26input_cache_num_rows_addedERKNSt6stringE"></span><span id="_CPPv2N3ral5cache6kernel26input_cache_num_rows_addedERKNSt6stringE"></span><span id="ral::cache::kernel::input_cache_num_rows_added__ssCR"></span><span class="target" id="classral_1_1cache_1_1kernel_1a25cd1d59552733027ba6396cd9e41004"></span><em class="property">inline</em> uint64_t <code class="sig-name descname">input_cache_num_rows_added</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>port_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel26input_cache_num_rows_addedERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of rows added to a specific input cache. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">port_name</span></code>: Name of the port. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel29get_estimated_output_num_rowsEv">
+<span id="_CPPv3N3ral5cache6kernel29get_estimated_output_num_rowsEv"></span><span id="_CPPv2N3ral5cache6kernel29get_estimated_output_num_rowsEv"></span><span id="ral::cache::kernel::get_estimated_output_num_rows"></span><span class="target" id="classral_1_1cache_1_1kernel_1abf40aaa022e3bf38c261977d0c2170cb"></span><em class="property">virtual</em> std::pair&lt;bool, uint64_t&gt; <code class="sig-name descname">get_estimated_output_num_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel29get_estimated_output_num_rowsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the estimated num_rows for the output, the default is that its the same as the input (i.e. project, sort, …). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel7processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">
+<span id="_CPPv3N3ral5cache6kernel7processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral5cache6kernel7processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::cache::kernel::process__std::vector:std::unique_ptr:ral::frame::BlazingTable::.std::shared_ptr:ral::cache::CacheMachine:.cudaStream_t.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1cache_1_1kernel_1a45abece009eed9fc7555f55ecc55f5dd"></span>ral::execution::<a class="reference internal" href="structral_1_1execution_1_1task__result.html#_CPPv4N3ral9execution11task_resultE" title="ral::execution::task_result">task_result</a> <code class="sig-name descname">process</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel7processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Invokes the do_process function. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">
+<span id="_CPPv3N3ral5cache6kernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral5cache6kernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::cache::kernel::do_process__std::vector:std::unique_ptr:ral::frame::BlazingTable::.std::shared_ptr:ral::cache::CacheMachine:.cudaStream_t.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1cache_1_1kernel_1aa8d19c5f112f8965ea2f9999fb5fd625"></span><em class="property">inline</em> <em class="property">virtual</em> ral::execution::<a class="reference internal" href="structral_1_1execution_1_1task__result.html#_CPPv4N3ral9execution11task_resultE" title="ral::execution::task_result">task_result</a> <code class="sig-name descname">do_process</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt;&gt;, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt;, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a>, <em class="property">const</em> std::map&lt;std::string, std::string&gt;&amp;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Implemented by all derived classes and is the function which actually performs transformations on dataframes. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: The data being operated on </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: the output cache to write the output to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stream</span></code>: the cudastream to to use </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">args</span></code>: any additional arguments the kernel may need to perform its execution that may not be available to the kernel at instantiation. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel21estimate_output_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE">
+<span id="_CPPv3N3ral5cache6kernel21estimate_output_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE"></span><span id="_CPPv2N3ral5cache6kernel21estimate_output_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE"></span><span id="ral::cache::kernel::estimate_output_bytes__std::vector:std::unique_ptr:ral::cache::CacheData::CR"></span><span class="target" id="classral_1_1cache_1_1kernel_1a37da9a64d455f2b833e1e7576c9a17d2"></span>std::size_t <code class="sig-name descname">estimate_output_bytes</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt;&gt; &amp;<em>inputs</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel21estimate_output_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>given the inputs, estimates the number of bytes that will be necessary for holding the output after performing a transformation. For many kernels this is not an estimate but rather a certainty. For operations whose outputs are of indeterminate size it provides an estimate. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>the number of bytes that we expect to be needed to hold the output after performing this kernels transformations on the given inputs. </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: the data that would be transformed </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel24estimate_operating_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE">
+<span id="_CPPv3N3ral5cache6kernel24estimate_operating_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE"></span><span id="_CPPv2N3ral5cache6kernel24estimate_operating_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE"></span><span id="ral::cache::kernel::estimate_operating_bytes__std::vector:std::unique_ptr:ral::cache::CacheData::CR"></span><span class="target" id="classral_1_1cache_1_1kernel_1a33a881d5e40d033e53a73f3c7ede5d03"></span>std::size_t <code class="sig-name descname">estimate_operating_bytes</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt;&gt; &amp;<em>inputs</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel24estimate_operating_bytesERKNSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>given the inputs, estimates the number of bytes that will be necessary for performing the transformation. This can be thought of as the memory overhead of the actual transformations being performed. For many kernels this is not an estimate but rather a certainty. For operations that perform indeterminately sized allocations based on the contents of inputs it provides an estimate. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>the number of bytes that we expect to be needed to hold the output after performing this kernels transformations on the given inputs. </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: the data that would be transformed </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel11kernel_nameEv">
+<span id="_CPPv3N3ral5cache6kernel11kernel_nameEv"></span><span id="_CPPv2N3ral5cache6kernel11kernel_nameEv"></span><span id="ral::cache::kernel::kernel_name"></span><span class="target" id="classral_1_1cache_1_1kernel_1aafcb0f431c87f166a778a6cce0d36d51"></span><em class="property">inline</em> <em class="property">virtual</em> std::string <code class="sig-name descname">kernel_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel11kernel_nameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel15notify_completeE6size_t">
+<span id="_CPPv3N3ral5cache6kernel15notify_completeE6size_t"></span><span id="_CPPv2N3ral5cache6kernel15notify_completeE6size_t"></span><span id="ral::cache::kernel::notify_complete__s"></span><span class="target" id="classral_1_1cache_1_1kernel_1a0d4a11f11203e46edff09aafc3935688"></span>void <code class="sig-name descname">notify_complete</code><span class="sig-paren">(</span>size_t <em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel15notify_completeE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>notify the kernel that a task it dispatched was completed successfully. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel11notify_failE6size_t">
+<span id="_CPPv3N3ral5cache6kernel11notify_failE6size_t"></span><span id="_CPPv2N3ral5cache6kernel11notify_failE6size_t"></span><span id="ral::cache::kernel::notify_fail__s"></span><span class="target" id="classral_1_1cache_1_1kernel_1aacb25cb9e49377bca219769f0eb82aef"></span>void <code class="sig-name descname">notify_fail</code><span class="sig-paren">(</span>size_t <em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel11notify_failE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>notify the kernel that a task it dispatched failed. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel8add_taskE6size_t">
+<span id="_CPPv3N3ral5cache6kernel8add_taskE6size_t"></span><span id="_CPPv2N3ral5cache6kernel8add_taskE6size_t"></span><span id="ral::cache::kernel::add_task__s"></span><span class="target" id="classral_1_1cache_1_1kernel_1a9b0a80f937f10357ae62638b6f0461d4"></span>void <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>size_t <em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel8add_taskE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>add a task to the list of tasks the kernel is waiting to complete. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache6kernel14finished_tasksEv">
+<span id="_CPPv3N3ral5cache6kernel14finished_tasksEv"></span><span id="_CPPv2N3ral5cache6kernel14finished_tasksEv"></span><span id="ral::cache::kernel::finished_tasks"></span><span class="target" id="classral_1_1cache_1_1kernel_1a3c5beb224576167cd7f9488e68d8ff62"></span><em class="property">inline</em> bool <code class="sig-name descname">finished_tasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache6kernel14finished_tasksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>check and see if all the tasks were completed. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel10expressionE">
+<span id="_CPPv3N3ral5cache6kernel10expressionE"></span><span id="_CPPv2N3ral5cache6kernel10expressionE"></span><span id="ral::cache::kernel::expression__ss"></span><span class="target" id="classral_1_1cache_1_1kernel_1a0619a9c1e4952dc353dcfa079910a84a"></span>std::string <code class="sig-name descname">expression</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel10expressionE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stores the logical expression being processed. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel6input_E">
+<span id="_CPPv3N3ral5cache6kernel6input_E"></span><span id="_CPPv2N3ral5cache6kernel6input_E"></span><span id="ral::cache::kernel::input___port"></span><span class="target" id="classral_1_1cache_1_1kernel_1a014bae9051f8ae95341be2f967b135c5"></span><a class="reference internal" href="classral_1_1cache_1_1port.html#_CPPv4N3ral5cache4portE" title="ral::cache::port">port</a> <code class="sig-name descname">input_</code> = {this}<a class="headerlink" href="#_CPPv4N3ral5cache6kernel6input_E" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Represents the input cache machines and their names. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel7output_E">
+<span id="_CPPv3N3ral5cache6kernel7output_E"></span><span id="_CPPv2N3ral5cache6kernel7output_E"></span><span id="ral::cache::kernel::output___port"></span><span class="target" id="classral_1_1cache_1_1kernel_1a6eac1b9f1e6efb3bb9942ba7bbf66a94"></span><a class="reference internal" href="classral_1_1cache_1_1port.html#_CPPv4N3ral5cache4portE" title="ral::cache::port">port</a> <code class="sig-name descname">output_</code> = {this}<a class="headerlink" href="#_CPPv4N3ral5cache6kernel7output_E" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Represents the output cache machine and their name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel9kernel_idE">
+<span id="_CPPv3N3ral5cache6kernel9kernel_idE"></span><span id="_CPPv2N3ral5cache6kernel9kernel_idE"></span><span id="ral::cache::kernel::kernel_id__std::sC"></span><span class="target" id="classral_1_1cache_1_1kernel_1a2fd708656cb056a41ec635b8bdc4acfe"></span><em class="property">const</em> std::size_t <code class="sig-name descname">kernel_id</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel9kernel_idE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stores the current kernel identifier. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel10parent_id_E">
+<span id="_CPPv3N3ral5cache6kernel10parent_id_E"></span><span id="_CPPv2N3ral5cache6kernel10parent_id_E"></span><span id="ral::cache::kernel::parent_id___std::int32_t"></span><span class="target" id="classral_1_1cache_1_1kernel_1ad1b8b87c5008b3bce16fe45da84eccdd"></span>std::int32_t <code class="sig-name descname">parent_id_</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel10parent_id_E" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stores the parent kernel identifier if any. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel14execution_doneE">
+<span id="_CPPv3N3ral5cache6kernel14execution_doneE"></span><span id="_CPPv2N3ral5cache6kernel14execution_doneE"></span><span id="ral::cache::kernel::execution_done__b"></span><span class="target" id="classral_1_1cache_1_1kernel_1a8ac24c565e0d29b390d40e7ef3366486"></span>bool <code class="sig-name descname">execution_done</code> = false<a class="headerlink" href="#_CPPv4N3ral5cache6kernel14execution_doneE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Indicates whether the execution is complete. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel14kernel_type_idE">
+<span id="_CPPv3N3ral5cache6kernel14kernel_type_idE"></span><span id="_CPPv2N3ral5cache6kernel14kernel_type_idE"></span><span id="ral::cache::kernel::kernel_type_id__kernel_type"></span><span class="target" id="classral_1_1cache_1_1kernel_1a923841bcb8d995048c58d51a6c39caf7"></span><a class="reference internal" href="enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_typeE" title="ral::cache::kernel_type">kernel_type</a> <code class="sig-name descname">kernel_type_id</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel14kernel_type_idE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stores the id of the kernel type. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel11query_graphE">
+<span id="_CPPv3N3ral5cache6kernel11query_graphE"></span><span id="_CPPv2N3ral5cache6kernel11query_graphE"></span><span id="ral::cache::kernel::query_graph__std::shared_ptr:graph:"></span><span class="target" id="classral_1_1cache_1_1kernel_1a5fbb02292aff165a28ef25e75f0d89bd"></span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph">graph</a>&gt; <code class="sig-name descname">query_graph</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel11query_graphE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stores a pointer to the current execution graph. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel7contextE">
+<span id="_CPPv3N3ral5cache6kernel7contextE"></span><span id="_CPPv2N3ral5cache6kernel7contextE"></span><span id="ral::cache::kernel::context__std::shared_ptr:Context:"></span><span class="target" id="classral_1_1cache_1_1kernel_1af0347d14d678cfa7205c1387746a2e1b"></span>std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <code class="sig-name descname">context</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel7contextE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Shared context of the running query. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel10has_limit_E">
+<span id="_CPPv3N3ral5cache6kernel10has_limit_E"></span><span id="_CPPv2N3ral5cache6kernel10has_limit_E"></span><span id="ral::cache::kernel::has_limit___b"></span><span class="target" id="classral_1_1cache_1_1kernel_1a913add84b5ad4c0bb09f7a609fe8e311"></span>bool <code class="sig-name descname">has_limit_</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel10has_limit_E" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Indicates if the Logical plan only contains a LogicalTableScan (or BindableTableScan) and LogicalLimit. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel11limit_rows_E">
+<span id="_CPPv3N3ral5cache6kernel11limit_rows_E"></span><span id="_CPPv2N3ral5cache6kernel11limit_rows_E"></span><span id="ral::cache::kernel::limit_rows___int64_t"></span><span class="target" id="classral_1_1cache_1_1kernel_1a415a4613c3eac81c1f65340e0866d26e"></span>int64_t <code class="sig-name descname">limit_rows_</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel11limit_rows_E" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Specifies the maximum number of rows to return. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel6loggerE">
+<span id="_CPPv3N3ral5cache6kernel6loggerE"></span><span id="_CPPv2N3ral5cache6kernel6loggerE"></span><span id="ral::cache::kernel::logger__std::shared_ptr:spdlog::logger:"></span><span class="target" id="classral_1_1cache_1_1kernel_1ae891570bebe342865bc0f30ac369efe8"></span>std::shared_ptr&lt;spdlog::logger&gt; <code class="sig-name descname">logger</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel6loggerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel5tasksE">
+<span id="_CPPv3N3ral5cache6kernel5tasksE"></span><span id="_CPPv2N3ral5cache6kernel5tasksE"></span><span id="ral::cache::kernel::tasks__std::set:s:"></span><span class="target" id="classral_1_1cache_1_1kernel_1a24ef14f94bf23f483736043ca6f95b7e"></span>std::set&lt;size_t&gt; <code class="sig-name descname">tasks</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel5tasksE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel12kernel_mutexE">
+<span id="_CPPv3N3ral5cache6kernel12kernel_mutexE"></span><span id="_CPPv2N3ral5cache6kernel12kernel_mutexE"></span><span id="ral::cache::kernel::kernel_mutex__std::mutex"></span><span class="target" id="classral_1_1cache_1_1kernel_1a8e336a4bc07932d5fc243409324cdcc1"></span>std::mutex <code class="sig-name descname">kernel_mutex</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel12kernel_mutexE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel9kernel_cvE">
+<span id="_CPPv3N3ral5cache6kernel9kernel_cvE"></span><span id="_CPPv2N3ral5cache6kernel9kernel_cvE"></span><span id="ral::cache::kernel::kernel_cv__std::condition_variable"></span><span class="target" id="classral_1_1cache_1_1kernel_1af711082b1f602bacc21d679d318648f7"></span>std::condition_variable <code class="sig-name descname">kernel_cv</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel9kernel_cvE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel27total_input_bytes_processedE">
+<span id="_CPPv3N3ral5cache6kernel27total_input_bytes_processedE"></span><span id="_CPPv2N3ral5cache6kernel27total_input_bytes_processedE"></span><span id="ral::cache::kernel::total_input_bytes_processed__std::atomic:std::s:"></span><span class="target" id="classral_1_1cache_1_1kernel_1a57a0078f5ab3991b32e9ea92989eab42"></span>std::atomic&lt;std::size_t&gt; <code class="sig-name descname">total_input_bytes_processed</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel27total_input_bytes_processedE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache6kernel26total_input_rows_processedE">
+<span id="_CPPv3N3ral5cache6kernel26total_input_rows_processedE"></span><span id="_CPPv2N3ral5cache6kernel26total_input_rows_processedE"></span><span id="ral::cache::kernel::total_input_rows_processed__std::atomic:std::s:"></span><span class="target" id="classral_1_1cache_1_1kernel_1a05e98aed242cbd063adba284333b10dd"></span>std::atomic&lt;std::size_t&gt; <code class="sig-name descname">total_input_rows_processed</code><a class="headerlink" href="#_CPPv4N3ral5cache6kernel26total_input_rows_processedE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

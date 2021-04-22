@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Querying data &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Querying data &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,11 +41,12 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/d3.v3.min.js"></script>
+    <script src="../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Ordering data" href="order.html" />
+    <link rel="next" title="Converting data types" href="casting.html" />
     <link rel="prev" title="Data types" href="dtypes.html" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -67,7 +69,7 @@
   <img src="../../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="windowing.html">
-       Window funtions
+      <a class="reference internal" href="functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../xml/library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4323,107 +4334,214 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#select">
-   SELECT
+  <a class="reference internal nav-link" href="#selecting-data">
+   Selecting data
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#examples">
-     Examples
+    <a class="reference internal nav-link" href="#select-function">
+     SELECT function
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#examples">
+       Examples
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#select">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           SELECT
+          </span>
+          <span class="pre">
+           *
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#select-expr">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           SELECT
+          </span>
+          <span class="pre">
+           expr
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#limit">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           LIMIT
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#select-all">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           SELECT
+          </span>
+          <span class="pre">
+           ALL
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#select-distinct-function">
+     SELECT DISTINCT function
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
       <a class="reference internal nav-link" href="#id1">
-       <code class="code docutils literal notranslate">
-        <span class="pre">
-         SELECT
-        </span>
-        <span class="pre">
-         *
-        </span>
-       </code>
+       Examples
       </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#select-distinct">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           SELECT
+          </span>
+          <span class="pre">
+           DISTINCT
+          </span>
+          <span class="pre">
+           *
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#select-distinct-expr">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           SELECT
+          </span>
+          <span class="pre">
+           DISTINCT
+          </span>
+          <span class="pre">
+           expr
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
      </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#where-function">
+     WHERE function
+    </a>
+    <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#select-expr">
-       <code class="code docutils literal notranslate">
-        <span class="pre">
-         SELECT
-        </span>
-        <span class="pre">
-         expr
-        </span>
-       </code>
+      <a class="reference internal nav-link" href="#id2">
+       Examples
       </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#comparison-operators">
+         Comparison operators
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#logical-operators">
+         Logical operators
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#in-operators">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           IN
+          </span>
+         </code>
+         operators
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#is-operators">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           IS
+          </span>
+         </code>
+         operators
+        </a>
+       </li>
+      </ul>
      </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#order-by-function">
+     ORDER BY function
+    </a>
+    <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#limit">
-       <code class="code docutils literal notranslate">
-        <span class="pre">
-         LIMIT
-        </span>
-       </code>
+      <a class="reference internal nav-link" href="#id3">
+       Examples
       </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#select-all">
-       <code class="code docutils literal notranslate">
-        <span class="pre">
-         SELECT
-        </span>
-        <span class="pre">
-         ALL
-        </span>
-       </code>
-      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#order-by">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           ORDER
+          </span>
+          <span class="pre">
+           BY
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#monotonicity-qualifiers">
+         Monotonicity qualifiers
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#null-values-sorting">
+         <code class="code docutils literal notranslate">
+          <span class="pre">
+           NULL
+          </span>
+         </code>
+         values sorting
+        </a>
+       </li>
+      </ul>
      </li>
     </ul>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#select-distinct">
-   SELECT DISTINCT
+  <a class="reference internal nav-link" href="#nested-queries">
+   Nested queries
   </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id2">
-     Examples
-    </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id3">
-       <code class="code docutils literal notranslate">
-        <span class="pre">
-         SELECT
-        </span>
-        <span class="pre">
-         DISTINCT
-        </span>
-        <span class="pre">
-         *
-        </span>
-       </code>
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#select-distinct-expr">
-       <code class="code docutils literal notranslate">
-        <span class="pre">
-         SELECT
-        </span>
-        <span class="pre">
-         DISTINCT
-        </span>
-        <span class="pre">
-         expr
-        </span>
-       </code>
-      </a>
-     </li>
-    </ul>
-   </li>
-  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#with-function">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     WITH
+    </span>
+   </code>
+   function
+  </a>
  </li>
 </ul>
 
@@ -4442,15 +4560,17 @@
 <p>Query statements like <a class="reference internal" href="#sql-select"><span class="std std-ref">SELECT</span></a> scan one or more data tables registered with
 <code class="code docutils literal notranslate"><span class="pre">BlazingContext</span></code> and return results of the engine run. In this section we describe
 the most fundamental SQL functionality: selecting rows.</p>
-<section id="select">
-<span id="sql-select"></span><h2>SELECT<a class="headerlink" href="#select" title="Permalink to this headline">¶</a></h2>
+<section id="selecting-data">
+<h2>Selecting data<a class="headerlink" href="#selecting-data" title="Permalink to this headline">¶</a></h2>
+<section id="select-function">
+<span id="sql-select"></span><h3>SELECT function<a class="headerlink" href="#select-function" title="Permalink to this headline">¶</a></h3>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Returns rows and columns from a table.</p>
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
-<section id="id1">
-<h4><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">*</span></code><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<h4>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h4>
+<section id="select">
+<h5><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">*</span></code><a class="headerlink" href="#select" title="Permalink to this headline">¶</a></h5>
 <p>Selects all the data from a table, including all the columns and all the rows.</p>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
@@ -4458,7 +4578,7 @@ the most fundamental SQL functionality: selecting rows.</p>
 </div>
 </section>
 <section id="select-expr">
-<h4><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">expr</span></code><a class="headerlink" href="#select-expr" title="Permalink to this headline">¶</a></h4>
+<h5><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">expr</span></code><a class="headerlink" href="#select-expr" title="Permalink to this headline">¶</a></h5>
 <p>Allows selecting one or a subset of columns from a table. It also supports
 aliasing columns with different names using the <code class="code docutils literal notranslate"><span class="pre">AS</span></code> qualifier.</p>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
@@ -4473,16 +4593,16 @@ aliasing columns with different names using the <code class="code docutils liter
 </div>
 <p>or a subset of columns from an aliased
 table.</p>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">t</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
-    <span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="o">&lt;</span><span class="n">bar</span><span class="o">&gt;</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">t</span>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">T</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">T</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="o">&lt;</span><span class="n">bar</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">T</span>
 </pre></div>
 </div>
-<p>The <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">expr</span></code> further allows for including unary and binary functions such as <a class="reference internal" href="arithmetic.html#sql-arithmetic"><span class="std std-ref">arithmetic</span></a>,
+<p>The <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">expr</span></code> further allows for including unary and binary functions such as <a class="reference internal" href="math.html#sql-math"><span class="std std-ref">mathematical</span></a>,
 <a class="reference internal" href="strings.html#sql-strings"><span class="std std-ref">string</span></a>, <a class="reference internal" href="dates.html#sql-dates"><span class="std std-ref">timestamp</span></a>, <a class="reference internal" href="windowing.html#sql-windowing"><span class="std std-ref">windowing</span></a>, and <a class="reference internal" href="functions.html#sql-functions"><span class="std std-ref">conditional</span></a>.</p>
 </section>
 <section id="limit">
-<h4><code class="code docutils literal notranslate"><span class="pre">LIMIT</span></code><a class="headerlink" href="#limit" title="Permalink to this headline">¶</a></h4>
+<h5><code class="code docutils literal notranslate"><span class="pre">LIMIT</span></code><a class="headerlink" href="#limit" title="Permalink to this headline">¶</a></h5>
 <p>Returns only a specified number of rows, normally from the top of the table,
 or from the top of the table in the first partition in case of a distributed
 table.</p>
@@ -4493,21 +4613,21 @@ table.</p>
 </div>
 </section>
 <section id="select-all">
-<span id="sql-select-all"></span><h4><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">ALL</span></code><a class="headerlink" href="#select-all" title="Permalink to this headline">¶</a></h4>
+<span id="sql-select-all"></span><h5><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">ALL</span></code><a class="headerlink" href="#select-all" title="Permalink to this headline">¶</a></h5>
 <p>Returns all the rows from a table, including duplicated ones. Thus, <code class="code docutils literal notranslate"><span class="pre">SELECT</span></code> and <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">ALL</span></code> are
 equivalents.</p>
 </section>
 </section>
 </section>
-<section id="select-distinct">
-<span id="sql-select-distinct"></span><h2>SELECT DISTINCT<a class="headerlink" href="#select-distinct" title="Permalink to this headline">¶</a></h2>
+<section id="select-distinct-function">
+<span id="sql-select-distinct"></span><h3>SELECT DISTINCT function<a class="headerlink" href="#select-distinct-function" title="Permalink to this headline">¶</a></h3>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Returns unique rows from a table.</p>
-<section id="id2">
-<h3>Examples<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<section id="id3">
-<h4><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">*</span></code><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<section id="id1">
+<h4>Examples<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<section id="select-distinct">
+<h5><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">*</span></code><a class="headerlink" href="#select-distinct" title="Permalink to this headline">¶</a></h5>
 <p>Selects all the unique rows from the table. Uniqueness is assessed across all the columns.</p>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
@@ -4515,19 +4635,242 @@ equivalents.</p>
 </div>
 </section>
 <section id="select-distinct-expr">
-<h4><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">expr</span></code><a class="headerlink" href="#select-distinct-expr" title="Permalink to this headline">¶</a></h4>
+<h5><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">expr</span></code><a class="headerlink" href="#select-distinct-expr" title="Permalink to this headline">¶</a></h5>
 <p>Select all the non-duplicate rows as defined by a single column or multiple columns.</p>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
     <span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>The <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">expr</span></code> suports unary and binary functions such as <a class="reference internal" href="arithmetic.html#sql-arithmetic"><span class="std std-ref">arithmetic</span></a>,
+<p>The <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">expr</span></code> suports unary and binary functions such as <a class="reference internal" href="math.html#sql-math"><span class="std std-ref">mathematical</span></a>,
 <a class="reference internal" href="strings.html#sql-strings"><span class="std std-ref">string</span></a>, <a class="reference internal" href="dates.html#sql-dates"><span class="std std-ref">timestamp</span></a>, <a class="reference internal" href="windowing.html#sql-windowing"><span class="std std-ref">windowing</span></a>, and <a class="reference internal" href="functions.html#sql-functions"><span class="std std-ref">conditional</span></a>.</p>
-<div class="toctree-wrapper compound">
+</section>
+</section>
+</section>
+<section id="where-function">
+<span id="sql-where"></span><h3>WHERE function<a class="headerlink" href="#where-function" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Filter returned rows from a table. The following operators are supported in <code class="code docutils literal notranslate"><span class="pre">WHERE</span></code> statements: <a class="reference internal" href="operators.html#sql-ops-comparison"><span class="std std-ref">comparison</span></a>
+, <a class="reference internal" href="operators.html#sql-ops-logical"><span class="std std-ref">logical</span></a>, and <a class="reference internal" href="operators.html#sql-ops-in"><span class="std std-ref">IN operators</span></a> and <a class="reference internal" href="operators.html#sql-ops-comparison"><span class="std std-ref">IS operators</span></a>.</p>
+<section id="id2">
+<h4>Examples<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<section id="comparison-operators">
+<h5>Comparison operators<a class="headerlink" href="#comparison-operators" title="Permalink to this headline">¶</a></h5>
+<p>These include operators like <cite>less than</cite> or <cite>equal to</cite>. Refer to <a class="reference internal" href="operators.html#sql-ops-comparison"><span class="std std-ref">comparison operators</span></a> for a full list of supported
+syntax.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;=</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Selecting rows can also be done by comparing values in columns with comparable data types: numeric with numeric, timestamp with timestamp
+, string with string (only <code class="code docutils literal notranslate"><span class="pre">=</span></code> is supported).</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&gt;=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="logical-operators">
+<h5>Logical operators<a class="headerlink" href="#logical-operators" title="Permalink to this headline">¶</a></h5>
+<p>When using the <code class="code docutils literal notranslate"><span class="pre">WHERE</span></code> statement rows are selected where the predicate for the row
+evaluates to <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code>: in first the example above only rows where <code class="code docutils literal notranslate"><span class="pre">col_1</span></code>
+are equal to some <code class="code docutils literal notranslate"><span class="pre">number</span></code> will be selected.</p>
+<p>These statements can be further <em>chained</em> to create more complex logical statements.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">=&gt;</span> <span class="o">&lt;</span><span class="n">number_1</span><span class="o">&gt;</span>
+    <span class="k">AND</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">&lt;=</span> <span class="o">&lt;</span><span class="n">number_2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">number_1</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">number_2</span><span class="o">&gt;</span>
+    <span class="k">OR</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">&lt;=</span> <span class="o">&lt;</span><span class="n">number_3</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Refer to <a class="reference internal" href="operators.html#sql-ops-logical"><span class="std std-ref">logical operators</span></a> for a full list of supported
+syntax.</p>
+</section>
+<section id="in-operators">
+<h5><code class="code docutils literal notranslate"><span class="pre">IN</span></code> operators<a class="headerlink" href="#in-operators" title="Permalink to this headline">¶</a></h5>
+<p>Filtering data to some subset of allowed values can be achieved with
+<code class="code docutils literal notranslate"><span class="pre">IN</span></code> operators.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1_string</span><span class="o">&gt;</span> <span class="k">IN</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">string_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">string_2</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above example is an equivalent to:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1_string</span><span class="o">&gt;</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">string_1</span><span class="o">&gt;</span>
+    <span class="k">OR</span> <span class="o">&lt;</span><span class="n">col_1_string</span><span class="o">&gt;</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">string_2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>To select all the rows but those that are equal to <code class="code docutils literal notranslate"><span class="pre">string_1</span></code> or
+<code class="code docutils literal notranslate"><span class="pre">string_2</span></code>, the <code class="code docutils literal notranslate"><span class="pre">IN</span></code> statement can be negated:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1_string</span><span class="o">&gt;</span> <span class="k">NOT</span> <span class="k">IN</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">string_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">string_2</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the list of strings is long a subquery can be included within the parentheses:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">table_1</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1_string</span><span class="o">&gt;</span> <span class="k">IN</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_2_string</span><span class="o">&gt;</span>
+    <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">table_2</span><span class="o">&gt;</span>
+    <span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&gt;=</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Refer to <a class="reference internal" href="operators.html#sql-ops-in"><span class="std std-ref">IN operators</span></a> for a full list of supported
+syntax.</p>
+</section>
+<section id="is-operators">
+<h5><code class="code docutils literal notranslate"><span class="pre">IS</span></code> operators<a class="headerlink" href="#is-operators" title="Permalink to this headline">¶</a></h5>
+<p>Filtering data using <code class="code docutils literal notranslate"><span class="pre">BOOLEAN</span></code> columns can be achieved by simply passing the column itself
+(or its negation) as a predicate:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="k">NOT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The first example above code is equivalent to</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">TRUE</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">FALSE</span>
+</pre></div>
+</div>
+<p>Refer to <a class="reference internal" href="operators.html#sql-ops-is"><span class="std std-ref">IS operators</span></a> for a full list of supported
+syntax.</p>
+</section>
+</section>
+</section>
+<section id="order-by-function">
+<span id="sql-orderby"></span><h3>ORDER BY function<a class="headerlink" href="#order-by-function" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Sort the returned rows in a specified order.</p>
+<section id="id3">
+<h4>Examples<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<section id="order-by">
+<h5><code class="code docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code><a class="headerlink" href="#order-by" title="Permalink to this headline">¶</a></h5>
+<p>Ordering by columns using <code class="code docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span> <span class="pre">&lt;col&gt;</span></code></p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="monotonicity-qualifiers">
+<h5>Monotonicity qualifiers<a class="headerlink" href="#monotonicity-qualifiers" title="Permalink to this headline">¶</a></h5>
+<p>Ordering ascending or descending using <code class="code docutils literal notranslate"><span class="pre">ASC</span></code> and <code class="code docutils literal notranslate"><span class="pre">DESC</span></code> qualifiers.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">ASC</span>
+</pre></div>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">DESC</span>
+</pre></div>
+</div>
+<p>These qualifiers can also be mixed</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">ASC</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="k">DESC</span>
+</pre></div>
+</div>
+</section>
+<section id="null-values-sorting">
+<h5><code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values sorting<a class="headerlink" href="#null-values-sorting" title="Permalink to this headline">¶</a></h5>
+<p>If the columns contain <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values, by default, the rows with <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values will be placed last.
+This behavior can be changed explicitly using <code class="code docutils literal notranslate"><span class="pre">NULLS</span> <span class="pre">FIRST</span></code> or <code class="code docutils literal notranslate"><span class="pre">NULLS</span> <span class="pre">LAST</span></code> qualifiers:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="n">NULLS</span> <span class="k">LAST</span> <span class="c1">-- default</span>
+</pre></div>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+</pre></div>
+</div>
+<p>These qualifiers are also supported for multi-column sorts with monotonicity qualifiers:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">ASC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+    <span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">LAST</span>
+</pre></div>
 </div>
 </section>
 </section>
+</section>
+</section>
+<section id="nested-queries">
+<h2>Nested queries<a class="headerlink" href="#nested-queries" title="Permalink to this headline">¶</a></h2>
+<p>BlazingSQL supports nested queries that might first apply predicates in the subquery
+and and later join it with another table or subquery.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">A</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+        <span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+    <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">table_1</span><span class="o">&gt;</span>
+    <span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">&lt;</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="k">AS</span> <span class="n">A</span>
+<span class="k">INNER</span> <span class="k">JOIN</span> <span class="o">&lt;</span><span class="n">table_2</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">B</span>
+    <span class="k">ON</span> <span class="n">A</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">B</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="with-function">
+<h2><code class="code docutils literal notranslate"><span class="pre">WITH</span></code> function<a class="headerlink" href="#with-function" title="Permalink to this headline">¶</a></h2>
+<p>Complex queries with multiple nested subqueries can quickly become
+unreadable. BlazingSQL supports organizing complex queries with the
+<code class="code docutils literal notranslate"><span class="pre">WITH</span></code> qualifier.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">WITH</span> <span class="o">&lt;</span><span class="n">subquery_1</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+        <span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+    <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">table_1</span><span class="o">&gt;</span>
+    <span class="k">WHERE</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">&lt;</span> <span class="mi">0</span>
+<span class="p">),</span> <span class="o">&lt;</span><span class="n">subquery_2</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="n">B</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+        <span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">table_2</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">A</span>
+    <span class="k">INNER</span> <span class="k">JOIN</span> <span class="o">&lt;</span><span class="n">subquery_1</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">B</span>
+        <span class="k">ON</span> <span class="n">A</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">B</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">subquery_2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
 </section>
 </section>
 
@@ -4538,7 +4881,7 @@ equivalents.</p>
         <div class='prev-next-bottom'>
             
     <a class='left-prev' id="prev-link" href="dtypes.html" title="previous page">Data types</a>
-    <a class='right-next' id="next-link" href="order.html" title="next page">Ordering data</a>
+    <a class='right-next' id="next-link" href="casting.html" title="next page">Converting data types</a>
 
         </div>
         

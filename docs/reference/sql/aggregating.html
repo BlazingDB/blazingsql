@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Aggregating data &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Aggregating data &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,11 +41,12 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/d3.v3.min.js"></script>
+    <script src="../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Window funtions" href="windowing.html" />
+    <link rel="next" title="Functions and operators" href="functions.html" />
     <link rel="prev" title="Converting data types" href="casting.html" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -67,7 +69,7 @@
   <img src="../../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="windowing.html">
-       Window funtions
+      <a class="reference internal" href="functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../xml/library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4323,8 +4334,8 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-avg">
-   AGG AVG
+  <a class="reference internal nav-link" href="#avg">
+   AVG
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4335,8 +4346,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-count">
-   AGG COUNT
+  <a class="reference internal nav-link" href="#count">
+   COUNT
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4347,8 +4358,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-max">
-   AGG MAX
+  <a class="reference internal nav-link" href="#max">
+   MAX
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4359,8 +4370,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-min">
-   AGG MIN
+  <a class="reference internal nav-link" href="#min">
+   MIN
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4371,8 +4382,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-stddev">
-   AGG STDDEV
+  <a class="reference internal nav-link" href="#stddev">
+   STDDEV
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4383,8 +4394,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-stddevpop">
-   AGG STDDEVPOP
+  <a class="reference internal nav-link" href="#stddev-pop">
+   STDDEV_POP
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4395,8 +4406,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-stddevsamp">
-   AGG STDDEVSAMP
+  <a class="reference internal nav-link" href="#stddev-samp">
+   STDDEV_SAMP
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4407,8 +4418,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-sum">
-   AGG SUM
+  <a class="reference internal nav-link" href="#sum">
+   SUM
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4419,8 +4430,8 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-varpop">
-   AGG VARPOP
+  <a class="reference internal nav-link" href="#variance">
+   VARIANCE
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4431,12 +4442,24 @@
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#agg-varsamp">
-   AGG VARSAMP
+  <a class="reference internal nav-link" href="#var-pop">
+   VAR_POP
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id9">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#var-samp">
+   VAR_SAMP
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id10">
      Example
     </a>
    </li>
@@ -4456,8 +4479,8 @@
                 
   <section id="aggregating-data">
 <span id="sql-aggregating"></span><h1>Aggregating data<a class="headerlink" href="#aggregating-data" title="Permalink to this headline">¶</a></h1>
-<section id="agg-avg">
-<span id="sql-agg-avg"></span><h2>AGG AVG<a class="headerlink" href="#agg-avg" title="Permalink to this headline">¶</a></h2>
+<section id="avg">
+<span id="sql-agg-avg"></span><h2>AVG<a class="headerlink" href="#avg" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4469,8 +4492,8 @@
 </div>
 </section>
 </section>
-<section id="agg-count">
-<span id="sql-agg-count"></span><h2>AGG COUNT<a class="headerlink" href="#agg-count" title="Permalink to this headline">¶</a></h2>
+<section id="count">
+<span id="sql-agg-count"></span><h2>COUNT<a class="headerlink" href="#count" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4482,8 +4505,8 @@
 </div>
 </section>
 </section>
-<section id="agg-max">
-<span id="sql-agg-max"></span><h2>AGG MAX<a class="headerlink" href="#agg-max" title="Permalink to this headline">¶</a></h2>
+<section id="max">
+<span id="sql-agg-max"></span><h2>MAX<a class="headerlink" href="#max" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4495,8 +4518,8 @@
 </div>
 </section>
 </section>
-<section id="agg-min">
-<span id="sql-agg-min"></span><h2>AGG MIN<a class="headerlink" href="#agg-min" title="Permalink to this headline">¶</a></h2>
+<section id="min">
+<span id="sql-agg-min"></span><h2>MIN<a class="headerlink" href="#min" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4508,8 +4531,8 @@
 </div>
 </section>
 </section>
-<section id="agg-stddev">
-<span id="sql-agg-stddev"></span><h2>AGG STDDEV<a class="headerlink" href="#agg-stddev" title="Permalink to this headline">¶</a></h2>
+<section id="stddev">
+<span id="sql-agg-stddev"></span><h2>STDDEV<a class="headerlink" href="#stddev" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4521,8 +4544,8 @@
 </div>
 </section>
 </section>
-<section id="agg-stddevpop">
-<span id="sql-agg-stddevpop"></span><h2>AGG STDDEVPOP<a class="headerlink" href="#agg-stddevpop" title="Permalink to this headline">¶</a></h2>
+<section id="stddev-pop">
+<span id="sql-agg-stddevpop"></span><h2>STDDEV_POP<a class="headerlink" href="#stddev-pop" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4534,8 +4557,8 @@
 </div>
 </section>
 </section>
-<section id="agg-stddevsamp">
-<span id="sql-agg-stddevsamp"></span><h2>AGG STDDEVSAMP<a class="headerlink" href="#agg-stddevsamp" title="Permalink to this headline">¶</a></h2>
+<section id="stddev-samp">
+<span id="sql-agg-stddevsamp"></span><h2>STDDEV_SAMP<a class="headerlink" href="#stddev-samp" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4547,8 +4570,8 @@
 </div>
 </section>
 </section>
-<section id="agg-sum">
-<span id="sql-agg-sum"></span><h2>AGG SUM<a class="headerlink" href="#agg-sum" title="Permalink to this headline">¶</a></h2>
+<section id="sum">
+<span id="sql-agg-sum"></span><h2>SUM<a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4560,8 +4583,8 @@
 </div>
 </section>
 </section>
-<section id="agg-varpop">
-<span id="sql-agg-varpop"></span><h2>AGG VARPOP<a class="headerlink" href="#agg-varpop" title="Permalink to this headline">¶</a></h2>
+<section id="variance">
+<span id="sql-agg-variance"></span><h2>VARIANCE<a class="headerlink" href="#variance" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
@@ -4573,13 +4596,26 @@
 </div>
 </section>
 </section>
-<section id="agg-varsamp">
-<span id="sql-agg-varsamp"></span><h2>AGG VARSAMP<a class="headerlink" href="#agg-varsamp" title="Permalink to this headline">¶</a></h2>
+<section id="var-pop">
+<span id="sql-agg-varpop"></span><h2>VAR_POP<a class="headerlink" href="#var-pop" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
 <section id="id9">
 <h3>Example<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="var-samp">
+<span id="sql-agg-varsamp"></span><h2>VAR_SAMP<a class="headerlink" href="#var-samp" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
 </pre></div>
@@ -4597,7 +4633,7 @@
         <div class='prev-next-bottom'>
             
     <a class='left-prev' id="prev-link" href="casting.html" title="previous page">Converting data types</a>
-    <a class='right-next' id="next-link" href="windowing.html" title="next page">Window funtions</a>
+    <a class='right-next' id="next-link" href="functions.html" title="next page">Functions and operators</a>
 
         </div>
         

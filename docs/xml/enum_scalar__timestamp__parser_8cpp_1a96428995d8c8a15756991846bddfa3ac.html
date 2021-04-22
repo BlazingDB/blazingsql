@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Enum timestamp_units &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Enum timestamp_units &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,67 @@
 </ul>
 <section id="enum-documentation">
 <h2>Enum Documentation<a class="headerlink" href="#enum-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp enum">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_unitsE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_unitsE"></span><span class="target" id="scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac"></span><em class="property">enum </em><code class="sig-prename descclassname">strings::detail::<strong>[anonymous]</strong><code class="sig-prename descclassname">::</code></code><code class="sig-name descname">timestamp_units</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_unitsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Units for timestamp conversion. These are defined since there are more than what cudf supports. </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units5yearsE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units5yearsE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3aca75aeb98e5241592ad6a6c2c4c78a16ef"></span><em class="property">enumerator </em><code class="sig-name descname">years</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units5yearsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is years </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units6monthsE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units6monthsE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3acada36cfaf48b9e19896e23e1207040d1e"></span><em class="property">enumerator </em><code class="sig-name descname">months</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units6monthsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is months </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units4daysE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units4daysE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3aca44fdec47036f482b68b748f9d786801b"></span><em class="property">enumerator </em><code class="sig-name descname">days</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units4daysE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is days </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units5hoursE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units5hoursE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3aca73cdddd7730abfc13a55efb9f5685a3b"></span><em class="property">enumerator </em><code class="sig-name descname">hours</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units5hoursE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is hours </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units7minutesE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units7minutesE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3aca640fd0cc0ffa0316ae087652871f4486"></span><em class="property">enumerator </em><code class="sig-name descname">minutes</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units7minutesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is minutes </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units7secondsE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units7secondsE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3aca783e8e29e6a8c3e22baa58a19420eb4f"></span><em class="property">enumerator </em><code class="sig-name descname">seconds</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units7secondsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is seconds </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units2msE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units2msE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3acaee33e909372d935d190f4fcb2a92d542"></span><em class="property">enumerator </em><code class="sig-name descname">ms</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units2msE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is milliseconds </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units2usE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units2usE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3aca0b3b97fa66886c5688ee4ae80ec0c3c2"></span><em class="property">enumerator </em><code class="sig-name descname">us</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units2usE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is microseconds </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N7strings6detailUt3_15915timestamp_units2nsE">
+<span id="_CPPv3N7strings6detailUt3_15915timestamp_units2nsE"></span><span class="target" id="dummy_1a96428995d8c8a15756991846bddfa3acaf01a37d157918910f2035b2af81ea4e1"></span><em class="property">enumerator </em><code class="sig-name descname">ns</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_15915timestamp_units2nsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>precision is nanoseconds </p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

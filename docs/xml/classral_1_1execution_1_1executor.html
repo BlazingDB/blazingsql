@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class executor &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class executor &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,67 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral9execution8executorE">
+<span id="_CPPv3N3ral9execution8executorE"></span><span id="_CPPv2N3ral9execution8executorE"></span><span id="ral::execution::executor"></span><span class="target" id="classral_1_1execution_1_1executor"></span><em class="property">class </em><code class="sig-prename descclassname">ral::execution<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">executor</code><a class="headerlink" href="#_CPPv4N3ral9execution8executorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor7executeEv">
+<span id="_CPPv3N3ral9execution8executor7executeEv"></span><span id="_CPPv2N3ral9execution8executor7executeEv"></span><span id="ral::execution::executor::execute"></span><span class="target" id="classral_1_1execution_1_1executor_1a6e6ac943f9eaf839cc0e41eb23439072"></span>void <code class="sig-name descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor7executeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor14last_exceptionEv">
+<span id="_CPPv3N3ral9execution8executor14last_exceptionEv"></span><span id="_CPPv2N3ral9execution8executor14last_exceptionEv"></span><span id="ral::execution::executor::last_exception"></span><span class="target" id="classral_1_1execution_1_1executor_1a09da28a656f7612cc886a846bb6d64af"></span>std::exception_ptr <code class="sig-name descname">last_exception</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor14last_exceptionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor13has_exceptionEv">
+<span id="_CPPv3N3ral9execution8executor13has_exceptionEv"></span><span id="_CPPv2N3ral9execution8executor13has_exceptionEv"></span><span id="ral::execution::executor::has_exception"></span><span class="target" id="classral_1_1execution_1_1executor_1aaed7cfdaada8399996aed20602d8daa8"></span>bool <code class="sig-name descname">has_exception</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor13has_exceptionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE">
+<span id="_CPPv3N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::execution::executor::add_task__std::vector:std::unique_ptr:ral::cache::CacheData::.std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelP.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1execution_1_1executor_1aa11c54e453247b7f83d6670eea50bfcd"></span>size_t <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>kernel</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelERKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE">
+<span id="_CPPv3N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::execution::executor::add_task__std::vector:std::unique_ptr:ral::cache::CacheData::.std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelP.s.s.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1execution_1_1executor_1a77fdef46e83963032e67583e4d5392ca"></span>void <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>kernel</em>, size_t <em>attempts</em>, size_t <em>task_id</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor8add_taskENSt6vectorINSt10unique_ptrIN3ral5cache9CacheDataEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEEPN3ral5cache6kernelE6size_t6size_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE">
+<span id="_CPPv3N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE"></span><span id="_CPPv2N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE"></span><span id="ral::execution::executor::add_task__std::unique_ptr:task:"></span><span class="target" id="classral_1_1execution_1_1executor_1a2877afac758bb887955083a58f645e25"></span>void <code class="sig-name descname">add_task</code><span class="sig-paren">(</span>std::unique_ptr&lt;<a class="reference internal" href="#_CPPv4N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE" title="ral::execution::executor::add_task::task">task</a>&gt; <em>task</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor8add_taskENSt10unique_ptrI4taskEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor21remove_task_from_backEv">
+<span id="_CPPv3N3ral9execution8executor21remove_task_from_backEv"></span><span id="_CPPv2N3ral9execution8executor21remove_task_from_backEv"></span><span id="ral::execution::executor::remove_task_from_back"></span><span class="target" id="classral_1_1execution_1_1executor_1a2eee292b6f3aa81c120431cc64e155f0"></span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1execution_1_1task.html#_CPPv4N3ral9execution4taskE" title="ral::execution::task">task</a>&gt; <code class="sig-name descname">remove_task_from_back</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor21remove_task_from_backEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor23notify_memory_safety_cvEv">
+<span id="_CPPv3N3ral9execution8executor23notify_memory_safety_cvEv"></span><span id="_CPPv2N3ral9execution8executor23notify_memory_safety_cvEv"></span><span id="ral::execution::executor::notify_memory_safety_cv"></span><span class="target" id="classral_1_1execution_1_1executor_1a898f9b6d96ea8994790ea4a142ddb4f5"></span><em class="property">inline</em> void <code class="sig-name descname">notify_memory_safety_cv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor23notify_memory_safety_cvEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor12get_instanceEv">
+<span id="_CPPv3N3ral9execution8executor12get_instanceEv"></span><span id="_CPPv2N3ral9execution8executor12get_instanceEv"></span><span id="ral::execution::executor::get_instance"></span><span class="target" id="classral_1_1execution_1_1executor_1a79eb5575c98cca07b162018e50e91e4b"></span><em class="property">static</em> <em class="property">inline</em> <a class="reference internal" href="#_CPPv4N3ral9execution8executorE" title="ral::execution::executor">executor</a> *<code class="sig-name descname">get_instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor12get_instanceEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral9execution8executor13init_executorEid">
+<span id="_CPPv3N3ral9execution8executor13init_executorEid"></span><span id="_CPPv2N3ral9execution8executor13init_executorEid"></span><span id="ral::execution::executor::init_executor__i.double"></span><span class="target" id="classral_1_1execution_1_1executor_1a0bd22a4c3d346642f762193878c6395b"></span><em class="property">static</em> <em class="property">inline</em> void <code class="sig-name descname">init_executor</code><span class="sig-paren">(</span>int <em>num_threads</em>, double <em>processing_memory_limit_threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral9execution8executor13init_executorEid" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

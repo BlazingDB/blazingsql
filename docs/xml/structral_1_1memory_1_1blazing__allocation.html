@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Struct blazing_allocation &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Struct blazing_allocation &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,44 @@
 </ul>
 <section id="struct-documentation">
 <h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp struct">
+<dt id="_CPPv4N3ral6memory18blazing_allocationE">
+<span id="_CPPv3N3ral6memory18blazing_allocationE"></span><span id="_CPPv2N3ral6memory18blazing_allocationE"></span><span id="ral::memory::blazing_allocation"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation"></span><em class="property">struct </em><code class="sig-prename descclassname">ral::memory<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">blazing_allocation</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocationE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral6memory18blazing_allocation5indexE">
+<span id="_CPPv3N3ral6memory18blazing_allocation5indexE"></span><span id="_CPPv2N3ral6memory18blazing_allocation5indexE"></span><span id="ral::memory::blazing_allocation::index__std::s"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation_1a5ba48f9dbefe7e168f957ad776ba3d6a"></span>std::size_t <code class="sig-name descname">index</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocation5indexE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral6memory18blazing_allocation4sizeE">
+<span id="_CPPv3N3ral6memory18blazing_allocation4sizeE"></span><span id="_CPPv2N3ral6memory18blazing_allocation4sizeE"></span><span id="ral::memory::blazing_allocation::size__std::s"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation_1a04163d566f783651e8a093e629042cf6"></span>std::size_t <code class="sig-name descname">size</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocation4sizeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral6memory18blazing_allocation22total_number_of_chunksE">
+<span id="_CPPv3N3ral6memory18blazing_allocation22total_number_of_chunksE"></span><span id="_CPPv2N3ral6memory18blazing_allocation22total_number_of_chunksE"></span><span id="ral::memory::blazing_allocation::total_number_of_chunks__std::s"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation_1abacfe2133dc90c845045f64ebc3b03d4"></span>std::size_t <code class="sig-name descname">total_number_of_chunks</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocation22total_number_of_chunksE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral6memory18blazing_allocation4dataE">
+<span id="_CPPv3N3ral6memory18blazing_allocation4dataE"></span><span id="_CPPv2N3ral6memory18blazing_allocation4dataE"></span><span id="ral::memory::blazing_allocation::data__cP"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation_1a51939ae7368dcde54ee8b8626ff16713"></span>char *<code class="sig-name descname">data</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocation4dataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral6memory18blazing_allocation17allocation_chunksE">
+<span id="_CPPv3N3ral6memory18blazing_allocation17allocation_chunksE"></span><span id="_CPPv2N3ral6memory18blazing_allocation17allocation_chunksE"></span><span id="ral::memory::blazing_allocation::allocation_chunks__std::stack:std::unique_ptr:blazing_allocation_chunk::"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation_1a761301a5413f8aa71c24ee194a89475b"></span>std::stack&lt;std::unique_ptr&lt;<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt;&gt; <code class="sig-name descname">allocation_chunks</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocation17allocation_chunksE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral6memory18blazing_allocation4poolE">
+<span id="_CPPv3N3ral6memory18blazing_allocation4poolE"></span><span id="_CPPv2N3ral6memory18blazing_allocation4poolE"></span><span id="ral::memory::blazing_allocation::pool__allocation_poolP"></span><span class="target" id="structral_1_1memory_1_1blazing__allocation_1add70b43fb60a63a7539134cb8cffa9bd"></span><a class="reference internal" href="classral_1_1memory_1_1allocation__pool.html#_CPPv4N3ral6memory15allocation_poolE" title="ral::memory::allocation_pool">allocation_pool</a> *<code class="sig-name descname">pool</code><a class="headerlink" href="#_CPPv4N3ral6memory18blazing_allocation4poolE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

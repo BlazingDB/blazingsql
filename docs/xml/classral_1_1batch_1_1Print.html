@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class Print &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class Print &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4367,6 +4378,56 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5batch5PrintE">
+<span id="_CPPv3N3ral5batch5PrintE"></span><span id="_CPPv2N3ral5batch5PrintE"></span><span id="ral::batch::Print"></span><span class="target" id="classral_1_1batch_1_1Print"></span><em class="property">class </em><code class="sig-prename descclassname">ral::batch<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">Print</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a><a class="headerlink" href="#_CPPv4N3ral5batch5PrintE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This kernel allows printing the preceding input caches to the standard output. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch5Print5PrintEv">
+<span id="_CPPv3N3ral5batch5Print5PrintEv"></span><span id="_CPPv2N3ral5batch5Print5PrintEv"></span><span id="ral::batch::Print::Print"></span><span class="target" id="classral_1_1batch_1_1Print_1aaed27582de95fe7378e54b038ea969c4"></span><em class="property">inline</em> <code class="sig-name descname">Print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch5Print5PrintEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch5Print5PrintERNSt7ostreamE">
+<span id="_CPPv3N3ral5batch5Print5PrintERNSt7ostreamE"></span><span id="_CPPv2N3ral5batch5Print5PrintERNSt7ostreamE"></span><span id="ral::batch::Print::Print__osR"></span><span class="target" id="classral_1_1batch_1_1Print_1adb248e266c2d6c7fe879a32bd452aaaa"></span><em class="property">inline</em> <code class="sig-name descname">Print</code><span class="sig-paren">(</span>std::ostream &amp;<em>stream</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch5Print5PrintERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch5Print11kernel_nameEv">
+<span id="_CPPv3N3ral5batch5Print11kernel_nameEv"></span><span id="_CPPv2N3ral5batch5Print11kernel_nameEv"></span><span id="ral::batch::Print::kernel_name"></span><span class="target" id="classral_1_1batch_1_1Print_1a62ad2aa4fa2ed1ce619ca17e0978d560"></span><em class="property">inline</em> <em class="property">virtual</em> std::string <code class="sig-name descname">kernel_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch5Print11kernel_nameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch5Print3runEv">
+<span id="_CPPv3N3ral5batch5Print3runEv"></span><span id="_CPPv2N3ral5batch5Print3runEv"></span><span id="ral::batch::Print::run"></span><span class="target" id="classral_1_1batch_1_1Print_1aaa9c9b3999fa088344f8505fcf201721"></span><em class="property">virtual</em> kstatus <code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch5Print3runEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>kstatus ‘stop’ to halt processing, or ‘proceed’ to continue processing. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch5Print3ofsE">
+<span id="_CPPv3N3ral5batch5Print3ofsE"></span><span id="_CPPv2N3ral5batch5Print3ofsE"></span><span id="ral::batch::Print::ofs__osP"></span><span class="target" id="classral_1_1batch_1_1Print_1ac8e0a4119f3eff330f4b69bdafeb97d4"></span>std::ostream *<code class="sig-name descname">ofs</code> = nullptr<a class="headerlink" href="#_CPPv4N3ral5batch5Print3ofsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Target output stream object. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch5Print10print_lockE">
+<span id="_CPPv3N3ral5batch5Print10print_lockE"></span><span id="_CPPv2N3ral5batch5Print10print_lockE"></span><span id="ral::batch::Print::print_lock__std::mutex"></span><span class="target" id="classral_1_1batch_1_1Print_1a655fa9f15b425b603f69476e8fd0059d"></span>std::mutex <code class="sig-name descname">print_lock</code><a class="headerlink" href="#_CPPv4N3ral5batch5Print10print_lockE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Mutex for making the printing thread-safe. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

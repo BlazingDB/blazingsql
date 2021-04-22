@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class CacheDataIO &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class CacheDataIO &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4367,6 +4378,67 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5cache11CacheDataIOE">
+<span id="_CPPv3N3ral5cache11CacheDataIOE"></span><span id="_CPPv2N3ral5cache11CacheDataIOE"></span><span id="ral::cache::CacheDataIO"></span><span class="target" id="classral_1_1cache_1_1CacheDataIO"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">CacheDataIO</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a><a class="headerlink" href="#_CPPv4N3ral5cache11CacheDataIOE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> that stores is data in an ORC file. This allows us to cache onto filesystems to allow larger queries to run on limited resources. This is the least performant cache in most instances. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache11CacheDataIO11CacheDataIOEN3ral2io11data_handleENSt10shared_ptrIN3ral2io11data_parserEEEN3ral2io6SchemaEN3ral2io6SchemaENSt6vectorIiEENSt6vectorIiEE">
+<span id="_CPPv3N3ral5cache11CacheDataIO11CacheDataIOEN3ral2io11data_handleENSt10shared_ptrIN3ral2io11data_parserEEEN3ral2io6SchemaEN3ral2io6SchemaENSt6vectorIiEENSt6vectorIiEE"></span><span id="_CPPv2N3ral5cache11CacheDataIO11CacheDataIOEN3ral2io11data_handleENSt10shared_ptrIN3ral2io11data_parserEEEN3ral2io6SchemaEN3ral2io6SchemaENSt6vectorIiEENSt6vectorIiEE"></span><span id="ral::cache::CacheDataIO::CacheDataIO__ral::io::data_handle.std::shared_ptr:ral::io::data_parser:.ral::io::Schema.ral::io::Schema.std::vector:i:.std::vector:i:"></span><span class="target" id="classral_1_1cache_1_1CacheDataIO_1a1f6787bfd6d9555836423b6d3335ed73"></span><code class="sig-name descname">CacheDataIO</code><span class="sig-paren">(</span>ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, std::shared_ptr&lt;ral::io::<a class="reference internal" href="classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE" title="ral::io::data_parser">data_parser</a>&gt; <em>parser</em>, ral::io::<a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> <em>schema</em>, ral::io::<a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> <em>file_schema</em>, std::vector&lt;int&gt; <em>row_group_ids</em>, std::vector&lt;int&gt; <em>projections</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache11CacheDataIO11CacheDataIOEN3ral2io11data_handleENSt10shared_ptrIN3ral2io11data_parserEEEN3ral2io6SchemaEN3ral2io6SchemaENSt6vectorIiEENSt6vectorIiEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The BlazingTable that is converted into an ORC file and stored on disk. &#64; param orc_files_path The path where the file should be stored. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache11CacheDataIO7decacheEv">
+<span id="_CPPv3N3ral5cache11CacheDataIO7decacheEv"></span><span id="_CPPv2N3ral5cache11CacheDataIO7decacheEv"></span><span id="ral::cache::CacheDataIO::decache"></span><span class="target" id="classral_1_1cache_1_1CacheDataIO_1a7fb2dceef20a385e31508ac70edfbf58"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">decache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache11CacheDataIO7decacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The BlazingTable that is converted into an ORC file and stored on disk. &#64; param orc_files_path The path where the file should be stored. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5cache11CacheDataIO11sizeInBytesEv">
+<span id="_CPPv3NK3ral5cache11CacheDataIO11sizeInBytesEv"></span><span id="_CPPv2NK3ral5cache11CacheDataIO11sizeInBytesEv"></span><span id="ral::cache::CacheDataIO::sizeInBytesC"></span><span class="target" id="classral_1_1cache_1_1CacheDataIO_1a3364dc1069ceba37e2ffc97e5a4508aa"></span><em class="property">virtual</em> size_t <code class="sig-name descname">sizeInBytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> <em class="property">override</em><a class="headerlink" href="#_CPPv4NK3ral5cache11CacheDataIO11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the amount of GPU memory that the decached BlazingTable WOULD consume. Having this function allows us to have one api for seeing how much GPU memory is necessary to decache the file from disk. <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The number of bytes needed for the BlazingTable decache would generate. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache11CacheDataIO9set_namesERKNSt6vectorINSt6stringEEE">
+<span id="_CPPv3N3ral5cache11CacheDataIO9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5cache11CacheDataIO9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="ral::cache::CacheDataIO::set_names__std::vector:ss:CR"></span><span class="target" id="classral_1_1cache_1_1CacheDataIO_1a9f5ae6134a546813c74a2924f7567080"></span><em class="property">inline</em> <em class="property">virtual</em> void <code class="sig-name descname">set_names</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::string&gt; &amp;<em>names</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache11CacheDataIO9set_namesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the names of the columns from the schema. <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">names</span></code>: a vector of the column names. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache11CacheDataIOD0Ev">
+<span id="_CPPv3N3ral5cache11CacheDataIOD0Ev"></span><span id="_CPPv2N3ral5cache11CacheDataIOD0Ev"></span><span id="ral::cache::CacheDataIO::~CacheDataIO"></span><span class="target" id="classral_1_1cache_1_1CacheDataIO_1a335ec293cd6e3d928396ae99e3785906"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~CacheDataIO</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache11CacheDataIOD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destructor </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>SELECT DISTINCT &#8212; BlazingSQL v0.18 documentation</title>
+    <title>SELECT DISTINCT function &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/doctools.js"></script>
     <script src="../../../../_static/js/d3.v3.min.js"></script>
+    <script src="../../../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../../../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../../../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
@@ -65,7 +67,7 @@
   <img src="../../../../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
@@ -407,51 +409,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../../order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../../arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../../strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../../dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../../functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../casting.html">
        Converting data types
       </a>
@@ -470,10 +427,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../../windowing.html">
-       Window funtions
+      <a class="reference internal" href="../../functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../../operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../../conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../../math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../../strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../../dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -487,13 +489,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../../../xml/library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4326,7 +4337,7 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id1">
+    <a class="reference internal nav-link" href="#select-distinct">
      <code class="code docutils literal notranslate">
       <span class="pre">
        SELECT
@@ -4369,15 +4380,15 @@
         
               <div>
                 
-  <section id="select-distinct">
-<h1>SELECT DISTINCT<a class="headerlink" href="#select-distinct" title="Permalink to this headline">¶</a></h1>
+  <section id="select-distinct-function">
+<h1>SELECT DISTINCT function<a class="headerlink" href="#select-distinct-function" title="Permalink to this headline">¶</a></h1>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Returns unique rows from a table.</p>
 <section id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<section id="id1">
-<h3><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">*</span></code><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<section id="select-distinct">
+<h3><code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">*</span></code><a class="headerlink" href="#select-distinct" title="Permalink to this headline">¶</a></h3>
 <p>Selects all the unique rows from the table. Uniqueness is assessed across all the columns.</p>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
@@ -4392,7 +4403,7 @@
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>The <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">expr</span></code> suports unary and binary functions such as <a class="reference internal" href="../../arithmetic.html#sql-arithmetic"><span class="std std-ref">arithmetic</span></a>,
+<p>The <code class="code docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">DISTINCT</span> <span class="pre">expr</span></code> suports unary and binary functions such as <a class="reference internal" href="../../math.html#sql-math"><span class="std std-ref">mathematical</span></a>,
 <a class="reference internal" href="../../strings.html#sql-strings"><span class="std std-ref">string</span></a>, <a class="reference internal" href="../../dates.html#sql-dates"><span class="std std-ref">timestamp</span></a>, <a class="reference internal" href="../../windowing.html#sql-windowing"><span class="std std-ref">windowing</span></a>, and <a class="reference internal" href="../../functions.html#sql-functions"><span class="std std-ref">conditional</span></a>.</p>
 </section>
 </section>

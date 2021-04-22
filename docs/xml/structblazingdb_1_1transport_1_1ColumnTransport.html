@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Struct ColumnTransport &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Struct ColumnTransport &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4367,6 +4378,87 @@
 </section>
 <section id="struct-documentation">
 <h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp struct">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransportE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransportE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransportE"></span><span id="blazingdb::transport::ColumnTransport"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport"></span><em class="property">struct </em><code class="sig-prename descclassname">blazingdb::transport<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">ColumnTransport</code><a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransportE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport8metadataE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport8metadataE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport8metadataE"></span><span id="blazingdb::transport::ColumnTransport::metadata__MetaData"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1acf9500e94299bb1e6658731e6840fe16"></span><a class="reference internal" href="#_CPPv4N9blazingdb9transport15ColumnTransport8MetaDataE" title="blazingdb::transport::ColumnTransport::MetaData">MetaData</a> <code class="sig-name descname">metadata</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport8metadataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport4dataE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport4dataE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport4dataE"></span><span id="blazingdb::transport::ColumnTransport::data__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1a425f4e29b911f369487f7229d6f51847"></span>int <code class="sig-name descname">data</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport4dataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport5validE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport5validE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport5validE"></span><span id="blazingdb::transport::ColumnTransport::valid__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1ae8252232b90d35c7ef1281d37e297e82"></span>int <code class="sig-name descname">valid</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport5validE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport12strings_dataE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport12strings_dataE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport12strings_dataE"></span><span id="blazingdb::transport::ColumnTransport::strings_data__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1aab04290a0ff26b843aa944e85d4072fe"></span>int <code class="sig-name descname">strings_data</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport12strings_dataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport15strings_offsetsE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport15strings_offsetsE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport15strings_offsetsE"></span><span id="blazingdb::transport::ColumnTransport::strings_offsets__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1a82c325aab3b26ca3be341a1560137a47"></span>int <code class="sig-name descname">strings_offsets</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport15strings_offsetsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport16strings_nullmaskE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport16strings_nullmaskE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport16strings_nullmaskE"></span><span id="blazingdb::transport::ColumnTransport::strings_nullmask__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1a1756c2a5479abc9b6ba4d4f3163e1756"></span>int <code class="sig-name descname">strings_nullmask</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport16strings_nullmaskE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport17strings_data_sizeE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport17strings_data_sizeE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport17strings_data_sizeE"></span><span id="blazingdb::transport::ColumnTransport::strings_data_size__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1a83f81a9f176c37204cc357937b10ce95"></span>int <code class="sig-name descname">strings_data_size</code> = {0}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport17strings_data_sizeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport20strings_offsets_sizeE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport20strings_offsets_sizeE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport20strings_offsets_sizeE"></span><span id="blazingdb::transport::ColumnTransport::strings_offsets_size__i"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1ae70474c73ba8318eb51cb2031702847d"></span>int <code class="sig-name descname">strings_offsets_size</code> = {0}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport20strings_offsets_sizeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport13size_in_bytesE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport13size_in_bytesE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport13size_in_bytesE"></span><span id="blazingdb::transport::ColumnTransport::size_in_bytes__std::s"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1a35528b121caf111beb1a984941d358af"></span>std::size_t <code class="sig-name descname">size_in_bytes</code> = {0}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport13size_in_bytesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<dl class="cpp struct">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport8MetaDataE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport8MetaDataE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport8MetaDataE"></span><span id="blazingdb::transport::ColumnTransport::MetaData"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData"></span><em class="property">struct </em><code class="sig-name descname">MetaData</code><a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport8MetaDataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport8MetaData5dtypeE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport8MetaData5dtypeE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport8MetaData5dtypeE"></span><span id="blazingdb::transport::ColumnTransport::MetaData::dtype__int32_t"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData_1a1fba796ad75e95aeca38742d50a73a10"></span>int32_t <code class="sig-name descname">dtype</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport8MetaData5dtypeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport8MetaData4sizeE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport8MetaData4sizeE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport8MetaData4sizeE"></span><span id="blazingdb::transport::ColumnTransport::MetaData::size__int32_t"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData_1a3431dc25df5b3d664e45d0464d861248"></span>int32_t <code class="sig-name descname">size</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport8MetaData4sizeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport8MetaData10null_countE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport8MetaData10null_countE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport8MetaData10null_countE"></span><span id="blazingdb::transport::ColumnTransport::MetaData::null_count__int32_t"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData_1a3ebe197fc9e7d1e9f18217b158703056"></span>int32_t <code class="sig-name descname">null_count</code> = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport8MetaData10null_countE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N9blazingdb9transport15ColumnTransport8MetaData8col_nameE">
+<span id="_CPPv3N9blazingdb9transport15ColumnTransport8MetaData8col_nameE"></span><span id="_CPPv2N9blazingdb9transport15ColumnTransport8MetaData8col_nameE"></span><span id="blazingdb::transport::ColumnTransport::MetaData::col_name__cA"></span><span class="target" id="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData_1a58322de17d87bc7aa2407a267a237cfd"></span>char <code class="sig-name descname">col_name</code>[128] = {}<a class="headerlink" href="#_CPPv4N9blazingdb9transport15ColumnTransport8MetaData8col_nameE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

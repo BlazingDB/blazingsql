@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class message_receiver &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class message_receiver &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,76 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N4comm16message_receiverE">
+<span id="_CPPv3N4comm16message_receiverE"></span><span id="_CPPv2N4comm16message_receiverE"></span><span id="comm::message_receiver"></span><span class="target" id="classcomm_1_1message__receiver"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">message_receiver</code><a class="headerlink" href="#_CPPv4N4comm16message_receiverE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A Class used for the reconstruction of a BlazingTable from metadata and column data. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE">
+<span id="_CPPv3N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::message_receiver::message_receiver__std::map:ss.comm::node:CR.std::vector:c:CR.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1message__receiver_1ab49d04074a12b8f9ad00dc26b84a43ca"></span><code class="sig-name descname">message_receiver</code><span class="sig-paren">(</span><em class="property">const</em> std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; &amp;<em>nodes</em>, <em class="property">const</em> std::vector&lt;char&gt; &amp;<em>buffer</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>input_cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructs a <a class="reference internal" href="#classcomm_1_1message__receiver"><span class="std std-ref">message_receiver</span></a>. </p>
+<p>This is a place for a message to receive chunks. It calls the deserializer after the complete message has been assembled</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">column_transports</span></code>: This is metadata about how a column will be reconstructed used by the deserialzer </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code>: This is information about how the message was routed and payloads that are used in execution, planning, or physical optimizations. E.G. num rows in table, num partitions to be processed </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_cache</span></code>: The destination for the message being received. It is either a specific cache inbetween two kernels or it is intended for the general input cache using a mesage_id </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiverD0Ev">
+<span id="_CPPv3N4comm16message_receiverD0Ev"></span><span id="_CPPv2N4comm16message_receiverD0Ev"></span><span id="comm::message_receiver::~message_receiver"></span><span class="target" id="classcomm_1_1message__receiver_1a95eed3d851450d759b086c756a4e060c"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~message_receiver</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiverD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver11buffer_sizeE9u_int16_t">
+<span id="_CPPv3N4comm16message_receiver11buffer_sizeE9u_int16_t"></span><span id="_CPPv2N4comm16message_receiver11buffer_sizeE9u_int16_t"></span><span id="comm::message_receiver::buffer_size__u_int16_t"></span><span class="target" id="classcomm_1_1message__receiver_1a33eff32bfde13d8f0579089f297559f7"></span>size_t <code class="sig-name descname">buffer_size</code><span class="sig-paren">(</span>u_int16_t <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11buffer_sizeE9u_int16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t">
+<span id="_CPPv3N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t"></span><span id="_CPPv2N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t"></span><span id="comm::message_receiver::allocate_buffer__uint16_t.cudaStream_t"></span><span class="target" id="classcomm_1_1message__receiver_1ab45c4394a35fb0ca81f091606c0c6f9b"></span>void <code class="sig-name descname">allocate_buffer</code><span class="sig-paren">(</span>uint16_t <em>index</em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver15get_sender_nodeEv">
+<span id="_CPPv3N4comm16message_receiver15get_sender_nodeEv"></span><span id="_CPPv2N4comm16message_receiver15get_sender_nodeEv"></span><span id="comm::message_receiver::get_sender_node"></span><span class="target" id="classcomm_1_1message__receiver_1a4527d37c56a04d2b6e82a469cbd14683"></span><a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a> <code class="sig-name descname">get_sender_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver15get_sender_nodeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver11num_buffersEv">
+<span id="_CPPv3N4comm16message_receiver11num_buffersEv"></span><span id="_CPPv2N4comm16message_receiver11num_buffersEv"></span><span id="comm::message_receiver::num_buffers"></span><span class="target" id="classcomm_1_1message__receiver_1a4423b1caa4472204e5491f84f1addc65"></span>size_t <code class="sig-name descname">num_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11num_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver20confirm_transmissionEv">
+<span id="_CPPv3N4comm16message_receiver20confirm_transmissionEv"></span><span id="_CPPv2N4comm16message_receiver20confirm_transmissionEv"></span><span id="comm::message_receiver::confirm_transmission"></span><span class="target" id="classcomm_1_1message__receiver_1ab9c3bb7eb1f6b8123bbc8b2b4ef47b77"></span>void <code class="sig-name descname">confirm_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver20confirm_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver10get_bufferE8uint16_t">
+<span id="_CPPv3N4comm16message_receiver10get_bufferE8uint16_t"></span><span id="_CPPv2N4comm16message_receiver10get_bufferE8uint16_t"></span><span id="comm::message_receiver::get_buffer__uint16_t"></span><span class="target" id="classcomm_1_1message__receiver_1aac2ed6c851ace8d403721b31a99f8845"></span>void *<code class="sig-name descname">get_buffer</code><span class="sig-paren">(</span>uint16_t <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver10get_bufferE8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver11is_finishedEv">
+<span id="_CPPv3N4comm16message_receiver11is_finishedEv"></span><span id="_CPPv2N4comm16message_receiver11is_finishedEv"></span><span id="comm::message_receiver::is_finished"></span><span class="target" id="classcomm_1_1message__receiver_1a6940eb5eae53218e3c07cb1b22fb4ae5"></span>bool <code class="sig-name descname">is_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11is_finishedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16message_receiver6finishE12cudaStream_t">
+<span id="_CPPv3N4comm16message_receiver6finishE12cudaStream_t"></span><span id="_CPPv2N4comm16message_receiver6finishE12cudaStream_t"></span><span id="comm::message_receiver::finish__cudaStream_t"></span><span class="target" id="classcomm_1_1message__receiver_1a593257af754fdef710dac5e2b408fe40"></span>void <code class="sig-name descname">finish</code><span class="sig-paren">(</span><a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver6finishE12cudaStream_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

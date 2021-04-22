@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class BatchSequence &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class BatchSequence &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,75 @@
 </ul>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5batch13BatchSequenceE">
+<span id="_CPPv3N3ral5batch13BatchSequenceE"></span><span id="_CPPv2N3ral5batch13BatchSequenceE"></span><span id="ral::batch::BatchSequence"></span><span class="target" id="classral_1_1batch_1_1BatchSequence"></span><em class="property">class </em><code class="sig-prename descclassname">ral::batch<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">BatchSequence</code><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequenceE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This is the standard data sequencer that just pulls data from an input cache one batch at a time. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb">
+<span id="_CPPv3N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb"></span><span id="_CPPv2N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb"></span><span id="ral::batch::BatchSequence::BatchSequence__std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelCP.b"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a1012a9622924b621edd667400038b24d"></span><code class="sig-name descname">BatchSequence</code><span class="sig-paren">(</span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>cache</em> = nullptr, <em class="property">const</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>kernel</em> = nullptr, bool <em>ordered</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor for the <a class="reference internal" href="#classral_1_1batch_1_1BatchSequence"><span class="std std-ref">BatchSequence</span></a> <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cache</span></code>: The input cache from where the data will be pulled. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kernel</span></code>: The kernel that will actually receive the pulled data. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ordered</span></code>: Indicates whether the order should be kept at data pulling. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE">
+<span id="_CPPv3N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="ral::batch::BatchSequence::set_source__std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a92ce0d4e310caded265fceab3f4c266a"></span>void <code class="sig-name descname">set_source</code><span class="sig-paren">(</span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Updates the input cache machine. <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cache</span></code>: The pointer to the new input cache. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch13BatchSequence4nextEv">
+<span id="_CPPv3N3ral5batch13BatchSequence4nextEv"></span><span id="_CPPv2N3ral5batch13BatchSequence4nextEv"></span><span id="ral::batch::BatchSequence::next"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a5fe181e6183df338739e61eb512c23a4"></span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence4nextEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the next message as a unique pointer to a BlazingTable. If there are no more messages on the queue we get a nullptr. <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>Unique pointer to a BlazingTable containing the next decached message. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch13BatchSequence13wait_for_nextEv">
+<span id="_CPPv3N3ral5batch13BatchSequence13wait_for_nextEv"></span><span id="_CPPv2N3ral5batch13BatchSequence13wait_for_nextEv"></span><span id="ral::batch::BatchSequence::wait_for_next"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1af62f1f620ac02a018737af8a89eb4881"></span>bool <code class="sig-name descname">wait_for_next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence13wait_for_nextEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Blocks executing thread until a new message is ready or when the message queue is empty. <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>true A new message is ready. </p>
+</dd>
+<dt><strong>Return</strong></dt><dd><p>false There are no more messages on the cache. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch13BatchSequence12has_next_nowEv">
+<span id="_CPPv3N3ral5batch13BatchSequence12has_next_nowEv"></span><span id="_CPPv2N3ral5batch13BatchSequence12has_next_nowEv"></span><span id="ral::batch::BatchSequence::has_next_now"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a0ed0531f11f65b4e7391da23c2a2de12"></span>bool <code class="sig-name descname">has_next_now</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence12has_next_nowEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Indicates if the message queue is not empty at this point on time. <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>true There is at least one message in the queue. </p>
+</dd>
+<dt><strong>Return</strong></dt><dd><p>false Message queue is empty. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

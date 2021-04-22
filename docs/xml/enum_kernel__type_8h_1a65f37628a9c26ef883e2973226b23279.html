@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Enum kernel_type &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Enum kernel_type &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4346,6 +4357,117 @@
 </ul>
 <section id="enum-documentation">
 <h2>Enum Documentation<a class="headerlink" href="#enum-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp enum">
+<dt id="_CPPv4N3ral5cache11kernel_typeE">
+<span id="_CPPv3N3ral5cache11kernel_typeE"></span><span id="_CPPv2N3ral5cache11kernel_typeE"></span><span class="target" id="kernel__type_8h_1a65f37628a9c26ef883e2973226b23279"></span><em class="property">enum </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">kernel_type</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type13ProjectKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type13ProjectKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type13ProjectKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a52039c1b401351b3b7356feeca93cbac"></span><em class="property">enumerator </em><code class="sig-name descname">ProjectKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type13ProjectKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type12FilterKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type12FilterKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type12FilterKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a78b1d54d6b90aabcc1223545b00da7fd"></span><em class="property">enumerator </em><code class="sig-name descname">FilterKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type12FilterKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type11UnionKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type11UnionKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type11UnionKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a3a805bba7cbea0f0bb6107976bc008cf"></span><em class="property">enumerator </em><code class="sig-name descname">UnionKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type11UnionKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type17MergeStreamKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type17MergeStreamKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type17MergeStreamKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279af51bd49b867a4f3ce52437b6afb7a9a6"></span><em class="property">enumerator </em><code class="sig-name descname">MergeStreamKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type17MergeStreamKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type15PartitionKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type15PartitionKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type15PartitionKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279aafdff2d8608b7eb6d20f2a2e9d1f34d4"></span><em class="property">enumerator </em><code class="sig-name descname">PartitionKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type15PartitionKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type19SortAndSampleKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type19SortAndSampleKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type19SortAndSampleKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a7f8249d60d01f90b277f8e5a17491a05"></span><em class="property">enumerator </em><code class="sig-name descname">SortAndSampleKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type19SortAndSampleKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type19ComputeWindowKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type19ComputeWindowKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type19ComputeWindowKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279ac58898bb22962eb1afd6d364dcd2444b"></span><em class="property">enumerator </em><code class="sig-name descname">ComputeWindowKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type19ComputeWindowKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type22OverlapGeneratorKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type22OverlapGeneratorKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type22OverlapGeneratorKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279adafc3d6220538ec86dcc7af1089a42a8"></span><em class="property">enumerator </em><code class="sig-name descname">OverlapGeneratorKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type22OverlapGeneratorKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type24OverlapAccumulatorKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type24OverlapAccumulatorKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type24OverlapAccumulatorKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279ac14765ff94dc42243944e997f7802f55"></span><em class="property">enumerator </em><code class="sig-name descname">OverlapAccumulatorKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type24OverlapAccumulatorKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type25PartitionSingleNodeKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type25PartitionSingleNodeKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type25PartitionSingleNodeKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279aaebd84d2d47b9679255b8325f0af3058"></span><em class="property">enumerator </em><code class="sig-name descname">PartitionSingleNodeKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type25PartitionSingleNodeKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type11LimitKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type11LimitKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type11LimitKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279ac71453f175c1f629315c3e8091991282"></span><em class="property">enumerator </em><code class="sig-name descname">LimitKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type11LimitKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type22ComputeAggregateKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type22ComputeAggregateKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type22ComputeAggregateKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279ac32712d430c20e8ed9ad9ae141d2f199"></span><em class="property">enumerator </em><code class="sig-name descname">ComputeAggregateKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type22ComputeAggregateKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type25DistributeAggregateKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type25DistributeAggregateKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type25DistributeAggregateKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a18140a87196b996eb7548007c00b9c65"></span><em class="property">enumerator </em><code class="sig-name descname">DistributeAggregateKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type25DistributeAggregateKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type20MergeAggregateKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type20MergeAggregateKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type20MergeAggregateKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a3857276a82ae8103cc5e61eec71a7a34"></span><em class="property">enumerator </em><code class="sig-name descname">MergeAggregateKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type20MergeAggregateKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type15TableScanKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type15TableScanKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type15TableScanKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a49d29393c94ba86b4ba8fd856b3f7dd3"></span><em class="property">enumerator </em><code class="sig-name descname">TableScanKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type15TableScanKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type23BindableTableScanKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type23BindableTableScanKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type23BindableTableScanKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279afd905b2519ba41032bdacde066b5c0d0"></span><em class="property">enumerator </em><code class="sig-name descname">BindableTableScanKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type23BindableTableScanKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type18PartwiseJoinKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type18PartwiseJoinKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type18PartwiseJoinKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a27756bd1995c14b18a7b1aa338a6de53"></span><em class="property">enumerator </em><code class="sig-name descname">PartwiseJoinKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type18PartwiseJoinKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type19JoinPartitionKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type19JoinPartitionKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type19JoinPartitionKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a93d8ede984c03e48626264f8382010ae"></span><em class="property">enumerator </em><code class="sig-name descname">JoinPartitionKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type19JoinPartitionKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type12OutputKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type12OutputKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type12OutputKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279adeefc1f22eada0b043bc0a5b7211a40e"></span><em class="property">enumerator </em><code class="sig-name descname">OutputKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type12OutputKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type11PrintKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type11PrintKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type11PrintKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279a0d4fdc5f9f74bffc4bc68690ab3ee3d5"></span><em class="property">enumerator </em><code class="sig-name descname">PrintKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type11PrintKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral5cache11kernel_type14GenerateKernelE">
+<span id="_CPPv3N3ral5cache11kernel_type14GenerateKernelE"></span><span id="_CPPv2N3ral5cache11kernel_type14GenerateKernelE"></span><span class="target" id="dummy_1a65f37628a9c26ef883e2973226b23279ab92f382959c562816d2650968bbaf183"></span><em class="property">enumerator </em><code class="sig-name descname">GenerateKernel</code><a class="headerlink" href="#_CPPv4N3ral5cache11kernel_type14GenerateKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

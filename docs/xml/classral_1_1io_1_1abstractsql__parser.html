@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class abstractsql_parser &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class abstractsql_parser &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4378,6 +4389,148 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral2io18abstractsql_parserE">
+<span id="_CPPv3N3ral2io18abstractsql_parserE"></span><span id="_CPPv2N3ral2io18abstractsql_parserE"></span><span id="ral::io::abstractsql_parser"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">abstractsql_parser</code> : <em class="property">public</em> ral::io::<a class="reference internal" href="classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE" title="ral::io::data_parser">data_parser</a><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parserE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Subclassed by <a class="reference internal" href="classral_1_1io_1_1mysql__parser.html#classral_1_1io_1_1mysql__parser"><span class="std std-ref">ral::io::mysql_parser</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser18abstractsql_parserE8DataType">
+<span id="_CPPv3N3ral2io18abstractsql_parser18abstractsql_parserE8DataType"></span><span id="_CPPv2N3ral2io18abstractsql_parser18abstractsql_parserE8DataType"></span><span id="ral::io::abstractsql_parser::abstractsql_parser__DataType"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a543c6c39aec6d4161393f27293c0e808"></span><code class="sig-name descname">abstractsql_parser</code><span class="sig-paren">(</span><a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataTypeE" title="ral::io::DataType">DataType</a> <em>sql_datatype</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser18abstractsql_parserE8DataType" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parserD0Ev">
+<span id="_CPPv3N3ral2io18abstractsql_parserD0Ev"></span><span id="_CPPv2N3ral2io18abstractsql_parserD0Ev"></span><span id="ral::io::abstractsql_parser::~abstractsql_parser"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1ad26460a514c2ab6d9a20418240dd2c55"></span><em class="property">virtual</em> <code class="sig-name descname">~abstractsql_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parserD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="ral::io::abstractsql_parser::parse_batch__ral::io::data_handle.SchemaCR.std::vector:i:.std::vector:cudf::size_type:"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1af961d661ec231fb0689214617ab178f9"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">parse_batch</code><span class="sig-paren">(</span>ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, <em class="property">const</em> <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em>, std::vector&lt;int&gt; <em>column_indices</em>, std::vector&lt;cudf::size_type&gt; <em>row_groups</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser12parse_schemaEN3ral2io11data_handleER6Schema">
+<span id="_CPPv3N3ral2io18abstractsql_parser12parse_schemaEN3ral2io11data_handleER6Schema"></span><span id="_CPPv2N3ral2io18abstractsql_parser12parse_schemaEN3ral2io11data_handleER6Schema"></span><span id="ral::io::abstractsql_parser::parse_schema__ral::io::data_handle.SchemaR"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1abb8d7072305727c845f4823ced441e6a"></span><em class="property">virtual</em> void <code class="sig-name descname">parse_schema</code><span class="sig-paren">(</span>ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser12parse_schemaEN3ral2io11data_handleER6Schema" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi">
+<span id="_CPPv3N3ral2io18abstractsql_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi"></span><span id="_CPPv2N3ral2io18abstractsql_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi"></span><span id="ral::io::abstractsql_parser::get_metadata__std::vector:ral::io::data_handle:.i"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a2fdf66304a852dccd5544f07dcff8a1e"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">get_metadata</code><span class="sig-paren">(</span>std::vector&lt;ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a>&gt; <em>handles</em>, int <em>offset</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral2io18abstractsql_parser4typeEv">
+<span id="_CPPv3NK3ral2io18abstractsql_parser4typeEv"></span><span id="_CPPv2NK3ral2io18abstractsql_parser4typeEv"></span><span id="ral::io::abstractsql_parser::typeC"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a7c9ef6f9a361aa95193348ffcdff214a"></span><em class="property">inline</em> <em class="property">virtual</em> <a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataTypeE" title="ral::io::DataType">DataType</a> <code class="sig-name descname">type</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> <em class="property">override</em><a class="headerlink" href="#_CPPv4NK3ral2io18abstractsql_parser4typeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE"></span><span id="ral::io::abstractsql_parser::read_sql_loop__voidP.std::vector:cudf::type_id:CR.std::vector:i:CR.std::vector:voidP:R.std::vector:std::vector:cudf::bitmask_type::R"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a6876a49ef5ff403448a6ad81ee54cff1"></span><em class="property">virtual</em> void <code class="sig-name descname">read_sql_loop</code><span class="sig-paren">(</span>void *<em>src</em>, <em class="property">const</em> std::vector&lt;cudf::type_id&gt; &amp;<em>cudf_types</em>, <em class="property">const</em> std::vector&lt;int&gt; &amp;<em>column_indices</em>, std::vector&lt;void*&gt; &amp;<em>host_cols</em>, std::vector&lt;std::vector&lt;cudf::bitmask_type&gt;&gt; &amp;<em>null_masks</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser16get_cudf_type_idERKNSt6stringE">
+<span id="_CPPv3N3ral2io18abstractsql_parser16get_cudf_type_idERKNSt6stringE"></span><span id="_CPPv2N3ral2io18abstractsql_parser16get_cudf_type_idERKNSt6stringE"></span><span id="ral::io::abstractsql_parser::get_cudf_type_id__ssCR"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a1a0f06b629635972108a51a3d89baab6"></span><em class="property">virtual</em> cudf::type_id <code class="sig-name descname">get_cudf_type_id</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>sql_column_type</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser16get_cudf_type_idERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_int8__voidP.s.s.std::vector:int8_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a38eaf0d92d3e7ae38e37a918b4d5485a"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int8</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int8_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_int16__voidP.s.s.std::vector:int16_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a64a3a1a90d6354379854dec88a2bec85"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int16</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int16_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_int32__voidP.s.s.std::vector:int32_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a13c0cea988c09f20e15be27997ded9fb"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int32</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int32_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_int64__voidP.s.s.std::vector:int64_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a353cfa99cabc4955df6ec2d60ba0432a"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_int64</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int64_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_uint8__voidP.s.s.std::vector:uint8_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a0bf72f9af3d7eb25f3c1ce92c474afcc"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint8</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint8_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_uint16__voidP.s.s.std::vector:uint16_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1ac6e61978a11ec309e527de5d33487c6b"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint16</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint16_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_uint32__voidP.s.s.std::vector:uint32_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a652dcf45e169a45615dc7b31eb3d9895"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint32</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint32_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_uint64__voidP.s.s.std::vector:uint64_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1ad3a77277a529feb74aeef71fe8ce5b1d"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_uint64</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;uint64_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_float32__voidP.s.s.std::vector:float:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a291faba9050e62bb0d53afde387e5744"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_float32</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;float&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_float64__voidP.s.s.std::vector:double:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a6225517f6e231cd2342c2528b0d8bea0"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_float64</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;double&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE"></span><span id="ral::io::abstractsql_parser::parse_cudf_bool8__voidP.s.s.std::vector:int8_t:P"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a0938b69cd8bf7e79ef27536375bfdb8e"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_bool8</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, std::vector&lt;int8_t&gt; *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col">
+<span id="_CPPv3N3ral2io18abstractsql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io18abstractsql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::abstractsql_parser::parse_cudf_timestamp_days__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1ac0a10f3e064664b60bc45aed760c84ed"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_days</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col">
+<span id="_CPPv3N3ral2io18abstractsql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io18abstractsql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::abstractsql_parser::parse_cudf_timestamp_seconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a02e8ff21cf695f1dcfbfdc7c30927761"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_seconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col">
+<span id="_CPPv3N3ral2io18abstractsql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io18abstractsql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::abstractsql_parser::parse_cudf_timestamp_milliseconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1ae64425066683d58ddc374b94ba182f64"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_milliseconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col">
+<span id="_CPPv3N3ral2io18abstractsql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io18abstractsql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::abstractsql_parser::parse_cudf_timestamp_microseconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a2be4a23bbfc6d92a2c03e98e0d35f684"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_microseconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col">
+<span id="_CPPv3N3ral2io18abstractsql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io18abstractsql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::abstractsql_parser::parse_cudf_timestamp_nanoseconds__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1aa2d9a678954004e379019f5d70ea9a5a"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_timestamp_nanoseconds</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col">
+<span id="_CPPv3N3ral2io18abstractsql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col"></span><span id="_CPPv2N3ral2io18abstractsql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col"></span><span id="ral::io::abstractsql_parser::parse_cudf_string__voidP.s.s.cudf_string_colP"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1ab77b009dc75273aa130754ca1678ed1c"></span><em class="property">virtual</em> uint8_t <code class="sig-name descname">parse_cudf_string</code><span class="sig-paren">(</span>void *<em>src</em>, size_t <em>col</em>, size_t <em>row</em>, <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE" title="ral::io::cudf_string_col">cudf_string_col</a> *<em>v</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral2io18abstractsql_parser9parse_sqlEPvRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE6size_tRNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE">
+<span id="_CPPv3N3ral2io18abstractsql_parser9parse_sqlEPvRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE6size_tRNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE"></span><span id="_CPPv2N3ral2io18abstractsql_parser9parse_sqlEPvRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE6size_tRNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE"></span><span id="ral::io::abstractsql_parser::parse_sql__voidP.std::vector:i:CR.std::vector:cudf::type_id:CR.s.std::vector:voidP:R.std::vector:std::vector:cudf::bitmask_type::R"></span><span class="target" id="classral_1_1io_1_1abstractsql__parser_1a48c59ad0a22fbfb4abf318e09e7ae573"></span>void <code class="sig-name descname">parse_sql</code><span class="sig-paren">(</span>void *<em>src</em>, <em class="property">const</em> std::vector&lt;int&gt; &amp;<em>column_indices</em>, <em class="property">const</em> std::vector&lt;cudf::type_id&gt; &amp;<em>cudf_types</em>, size_t <em>row</em>, std::vector&lt;void*&gt; &amp;<em>host_cols</em>, std::vector&lt;std::vector&lt;cudf::bitmask_type&gt;&gt; &amp;<em>null_masks</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io18abstractsql_parser9parse_sqlEPvRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE6size_tRNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

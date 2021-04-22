@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Class buffer_transport &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Class buffer_transport &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,6 +41,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4368,6 +4379,157 @@
 </section>
 <section id="class-documentation">
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N4comm16buffer_transportE">
+<span id="_CPPv3N4comm16buffer_transportE"></span><span id="_CPPv2N4comm16buffer_transportE"></span><span id="comm::buffer_transport"></span><span class="target" id="classcomm_1_1buffer__transport"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">buffer_transport</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transportE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Base class used to send a chunk of bytes throught a transport protocol e.g. TCP, UCP, etc. </p>
+<p>Subclassed by <a class="reference internal" href="classcomm_1_1tcp__buffer__transport.html#classcomm_1_1tcp__buffer__transport"><span class="std std-ref">comm::tcp_buffer_transport</span></a>, <a class="reference internal" href="classcomm_1_1ucx__buffer__transport.html#classcomm_1_1ucx__buffer__transport"><span class="std std-ref">comm::ucx_buffer_transport</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport16buffer_transportEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEENSt6vectorI4nodeEEb">
+<span id="_CPPv3N4comm16buffer_transport16buffer_transportEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEENSt6vectorI4nodeEEb"></span><span id="_CPPv2N4comm16buffer_transport16buffer_transportEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEENSt6vectorI4nodeEEb"></span><span id="comm::buffer_transport::buffer_transport__ral::cache::MetadataDictionary.std::vector:s:.std::vector:blazingdb::transport::ColumnTransport:.std::vector:ral::memory::blazing_chunked_column_info:.std::vector:node:.b"></span><span class="target" id="classcomm_1_1buffer__transport_1a012bb1c7d1f7a2e9512815cafd95ef80"></span><code class="sig-name descname">buffer_transport</code><span class="sig-paren">(</span>ral::cache::<a class="reference internal" href="classral_1_1cache_1_1MetadataDictionary.html#_CPPv4N3ral5cache18MetadataDictionaryE" title="ral::cache::MetadataDictionary">MetadataDictionary</a> <em>metadata</em>, std::vector&lt;size_t&gt; <em>buffer_sizes</em>, std::vector&lt;blazingdb::transport::<a class="reference internal" href="structblazingdb_1_1transport_1_1ColumnTransport.html#_CPPv4N9blazingdb9transport15ColumnTransportE" title="blazingdb::transport::ColumnTransport">ColumnTransport</a>&gt; <em>column_transports</em>, std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; <em>chunked_column_infos</em>, std::vector&lt;<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; <em>destinations</em>, bool <em>require_acknowledge</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transport16buffer_transportEN3ral5cache18MetadataDictionaryENSt6vectorI6size_tEENSt6vectorIN9blazingdb9transport15ColumnTransportEEENSt6vectorIN3ral6memory27blazing_chunked_column_infoEEENSt6vectorI4nodeEEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructs a <a class="reference internal" href="#classcomm_1_1buffer__transport"><span class="std std-ref">buffer_transport</span></a>. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code>: This is information about how the message was routed and payloads that are used in execution, planning, or physical optimizations. E.G. num rows in table, num partitions to be processed </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buffer_sizes</span></code>: A vector containing the sizes of the buffer </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">column_transports</span></code>: A vector of ColumnTransport representing column metadata </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunked_column_infos</span></code>: A vector of blazing_chunked_column_info representing how the raw buffers are chunked </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">destinations</span></code>: A vector of destination nodes </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">require_acknowledge</span></code>: A boolean stating if acknowledgement of a message is required </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transportD0Ev">
+<span id="_CPPv3N4comm16buffer_transportD0Ev"></span><span id="_CPPv2N4comm16buffer_transportD0Ev"></span><span id="comm::buffer_transport::~buffer_transport"></span><span class="target" id="classcomm_1_1buffer__transport_1a26262247b49fe649d2b1c62e4b7dfb90"></span><em class="property">virtual</em> <code class="sig-name descname">~buffer_transport</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transportD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport23send_begin_transmissionEv">
+<span id="_CPPv3N4comm16buffer_transport23send_begin_transmissionEv"></span><span id="_CPPv2N4comm16buffer_transport23send_begin_transmissionEv"></span><span id="comm::buffer_transport::send_begin_transmission"></span><span class="target" id="classcomm_1_1buffer__transport_1a0ea6dd0f6412b2422cc47706ad34dad9"></span><em class="property">virtual</em> void <code class="sig-name descname">send_begin_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4comm16buffer_transport23send_begin_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport4sendEPKc6size_t">
+<span id="_CPPv3N4comm16buffer_transport4sendEPKc6size_t"></span><span id="_CPPv2N4comm16buffer_transport4sendEPKc6size_t"></span><span id="comm::buffer_transport::send__cCP.s"></span><span class="target" id="classcomm_1_1buffer__transport_1a0a7ae6691d0a182c4567f3001f96aefe"></span>void <code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="property">const</em> char *<em>buffer</em>, size_t <em>buffer_size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transport4sendEPKc6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sends a chunk of bytes throught a transport protocol. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code>: Pointer to the byte buffer that will be send </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buffer_size</span></code>: The buffer size </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport19wait_until_completeEv">
+<span id="_CPPv3N4comm16buffer_transport19wait_until_completeEv"></span><span id="_CPPv2N4comm16buffer_transport19wait_until_completeEv"></span><span id="comm::buffer_transport::wait_until_complete"></span><span class="target" id="classcomm_1_1buffer__transport_1aef710177ed4367311b1d8e70acead7c2"></span>void <code class="sig-name descname">wait_until_complete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transport19wait_until_completeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Waits until all the data is sents. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport27wait_for_begin_transmissionEv">
+<span id="_CPPv3N4comm16buffer_transport27wait_for_begin_transmissionEv"></span><span id="_CPPv2N4comm16buffer_transport27wait_for_begin_transmissionEv"></span><span id="comm::buffer_transport::wait_for_begin_transmission"></span><span class="target" id="classcomm_1_1buffer__transport_1a6388e67a79f9a5c2e80ed45b23e6327c"></span>void <code class="sig-name descname">wait_for_begin_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transport27wait_for_begin_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport28increment_frame_transmissionEv">
+<span id="_CPPv3N4comm16buffer_transport28increment_frame_transmissionEv"></span><span id="_CPPv2N4comm16buffer_transport28increment_frame_transmissionEv"></span><span id="comm::buffer_transport::increment_frame_transmission"></span><span class="target" id="classcomm_1_1buffer__transport_1a3b921d1808fb74d95f83146de5269cb6"></span><em class="property">virtual</em> void <code class="sig-name descname">increment_frame_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transport28increment_frame_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport28increment_begin_transmissionEv">
+<span id="_CPPv3N4comm16buffer_transport28increment_begin_transmissionEv"></span><span id="_CPPv2N4comm16buffer_transport28increment_begin_transmissionEv"></span><span id="comm::buffer_transport::increment_begin_transmission"></span><span class="target" id="classcomm_1_1buffer__transport_1a81080122f0355dae745d7bf6453152a8"></span><em class="property">virtual</em> void <code class="sig-name descname">increment_begin_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16buffer_transport28increment_begin_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport9send_implEPKc6size_t">
+<span id="_CPPv3N4comm16buffer_transport9send_implEPKc6size_t"></span><span id="_CPPv2N4comm16buffer_transport9send_implEPKc6size_t"></span><span id="comm::buffer_transport::send_impl__cCP.s"></span><span class="target" id="classcomm_1_1buffer__transport_1a7c4d1651a8af5965619c9e37b225859d"></span><em class="property">virtual</em> void <code class="sig-name descname">send_impl</code><span class="sig-paren">(</span><em class="property">const</em> char *<em>buffer</em>, size_t <em>buffer_size</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4comm16buffer_transport9send_implEPKc6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N4comm16buffer_transport19receive_acknowledgeEv">
+<span id="_CPPv3N4comm16buffer_transport19receive_acknowledgeEv"></span><span id="_CPPv2N4comm16buffer_transport19receive_acknowledgeEv"></span><span id="comm::buffer_transport::receive_acknowledge"></span><span class="target" id="classcomm_1_1buffer__transport_1a6aa1fb3a4543ace7e5c06914252a02e4"></span><em class="property">virtual</em> void <code class="sig-name descname">receive_acknowledge</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4comm16buffer_transport19receive_acknowledgeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport17column_transportsE">
+<span id="_CPPv3N4comm16buffer_transport17column_transportsE"></span><span id="_CPPv2N4comm16buffer_transport17column_transportsE"></span><span id="comm::buffer_transport::column_transports__std::vector:blazingdb::transport::ColumnTransport:"></span><span class="target" id="classcomm_1_1buffer__transport_1ad5104419e3ecfca874534e12804b48fc"></span>std::vector&lt;blazingdb::transport::<a class="reference internal" href="structblazingdb_1_1transport_1_1ColumnTransport.html#_CPPv4N9blazingdb9transport15ColumnTransportE" title="blazingdb::transport::ColumnTransport">ColumnTransport</a>&gt; <code class="sig-name descname">column_transports</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport17column_transportsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport20chunked_column_infosE">
+<span id="_CPPv3N4comm16buffer_transport20chunked_column_infosE"></span><span id="_CPPv2N4comm16buffer_transport20chunked_column_infosE"></span><span id="comm::buffer_transport::chunked_column_infos__std::vector:ral::memory::blazing_chunked_column_info:"></span><span class="target" id="classcomm_1_1buffer__transport_1aa02f7f37ea5c8c4343e3289d6b9e132c"></span>std::vector&lt;ral::memory::<a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html#_CPPv4N3ral6memory27blazing_chunked_column_infoE" title="ral::memory::blazing_chunked_column_info">blazing_chunked_column_info</a>&gt; <code class="sig-name descname">chunked_column_infos</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport20chunked_column_infosE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport8metadataE">
+<span id="_CPPv3N4comm16buffer_transport8metadataE"></span><span id="_CPPv2N4comm16buffer_transport8metadataE"></span><span id="comm::buffer_transport::metadata__ral::cache::MetadataDictionary"></span><span class="target" id="classcomm_1_1buffer__transport_1a0b3c07ac433f3c7b114e677f399e3210"></span>ral::cache::<a class="reference internal" href="classral_1_1cache_1_1MetadataDictionary.html#_CPPv4N3ral5cache18MetadataDictionaryE" title="ral::cache::MetadataDictionary">MetadataDictionary</a> <code class="sig-name descname">metadata</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport8metadataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport12buffer_sizesE">
+<span id="_CPPv3N4comm16buffer_transport12buffer_sizesE"></span><span id="_CPPv2N4comm16buffer_transport12buffer_sizesE"></span><span id="comm::buffer_transport::buffer_sizes__std::vector:s:"></span><span class="target" id="classcomm_1_1buffer__transport_1ae01314b9b03cd1278a20996dafc4dcb0"></span>std::vector&lt;size_t&gt; <code class="sig-name descname">buffer_sizes</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport12buffer_sizesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport11buffer_sentE">
+<span id="_CPPv3N4comm16buffer_transport11buffer_sentE"></span><span id="_CPPv2N4comm16buffer_transport11buffer_sentE"></span><span id="comm::buffer_transport::buffer_sent__s"></span><span class="target" id="classcomm_1_1buffer__transport_1a3bf404422bf786f01a45066f48a751c6"></span>size_t <code class="sig-name descname">buffer_sent</code> = 0<a class="headerlink" href="#_CPPv4N4comm16buffer_transport11buffer_sentE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport24transmitted_begin_framesE">
+<span id="_CPPv3N4comm16buffer_transport24transmitted_begin_framesE"></span><span id="_CPPv2N4comm16buffer_transport24transmitted_begin_framesE"></span><span id="comm::buffer_transport::transmitted_begin_frames__std::atomic:s:"></span><span class="target" id="classcomm_1_1buffer__transport_1af9c04a8af736e05980d62b7448142b30"></span>std::atomic&lt;size_t&gt; <code class="sig-name descname">transmitted_begin_frames</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport24transmitted_begin_framesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The number of begin_transmission messages sent </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport18transmitted_framesE">
+<span id="_CPPv3N4comm16buffer_transport18transmitted_framesE"></span><span id="_CPPv2N4comm16buffer_transport18transmitted_framesE"></span><span id="comm::buffer_transport::transmitted_frames__std::atomic:s:"></span><span class="target" id="classcomm_1_1buffer__transport_1a1c8254316bfcb05204a196bece986f68"></span>std::atomic&lt;size_t&gt; <code class="sig-name descname">transmitted_frames</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport18transmitted_framesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The number of frames transmitted </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport5mutexE">
+<span id="_CPPv3N4comm16buffer_transport5mutexE"></span><span id="_CPPv2N4comm16buffer_transport5mutexE"></span><span id="comm::buffer_transport::mutex__std::mutex"></span><span class="target" id="classcomm_1_1buffer__transport_1aaef40e35a9a214ecb83d44493937449e"></span>std::mutex <code class="sig-name descname">mutex</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport5mutexE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport29completion_condition_variableE">
+<span id="_CPPv3N4comm16buffer_transport29completion_condition_variableE"></span><span id="_CPPv2N4comm16buffer_transport29completion_condition_variableE"></span><span id="comm::buffer_transport::completion_condition_variable__std::condition_variable"></span><span class="target" id="classcomm_1_1buffer__transport_1a57085a949db7cafedccdd6ce8db29b9e"></span>std::condition_variable <code class="sig-name descname">completion_condition_variable</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport29completion_condition_variableE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport12destinationsE">
+<span id="_CPPv3N4comm16buffer_transport12destinationsE"></span><span id="_CPPv2N4comm16buffer_transport12destinationsE"></span><span id="comm::buffer_transport::destinations__std::vector:node:"></span><span class="target" id="classcomm_1_1buffer__transport_1a625bc455a5fc03c79cb4501c6b993aa8"></span>std::vector&lt;<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; <code class="sig-name descname">destinations</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport12destinationsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport28transmitted_acknowledgementsE">
+<span id="_CPPv3N4comm16buffer_transport28transmitted_acknowledgementsE"></span><span id="_CPPv2N4comm16buffer_transport28transmitted_acknowledgementsE"></span><span id="comm::buffer_transport::transmitted_acknowledgements__std::map:ss.b:"></span><span class="target" id="classcomm_1_1buffer__transport_1a22e84756f6b66324df67bdd556600c19"></span>std::map&lt;std::string, bool&gt; <code class="sig-name descname">transmitted_acknowledgements</code><a class="headerlink" href="#_CPPv4N4comm16buffer_transport28transmitted_acknowledgementsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N4comm16buffer_transport19require_acknowledgeE">
+<span id="_CPPv3N4comm16buffer_transport19require_acknowledgeE"></span><span id="_CPPv2N4comm16buffer_transport19require_acknowledgeE"></span><span id="comm::buffer_transport::require_acknowledge__b"></span><span class="target" id="classcomm_1_1buffer__transport_1a089d28bc6f8f3eac8a89705bd7391a30"></span>bool <code class="sig-name descname">require_acknowledge</code> = false<a class="headerlink" href="#_CPPv4N4comm16buffer_transport19require_acknowledgeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 </section>
 

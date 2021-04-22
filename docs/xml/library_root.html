@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Engine C++ API Reference &#8212; BlazingSQL v0.18 documentation</title>
+    <title>C++ API Reference &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,12 +41,13 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Namespace blazingdb" href="namespace_blazingdb.html" />
-    <link rel="prev" title="Joining data" href="../reference/sql/joins.html" />
+    <link rel="prev" title="Window funtions" href="../reference/sql/windowing.html" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -67,7 +69,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -409,51 +411,6 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/order.html">
-       Ordering data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/arithmetic.html">
-       Arithmetic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/strings.html">
-       String functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/dates.html">
-       Date and timestamp functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Conditional functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../reference/sql/casting.html">
        Converting data types
       </a>
@@ -472,10 +429,55 @@
       </i>
      </li>
      <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Window funtions
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
       </a>
-      <ul class="simple collapse-ul">
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
       </ul>
       <i class="fas fa-chevron-down">
       </i>
@@ -489,13 +491,22 @@
       <i class="fas fa-chevron-down">
       </i>
      </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
     </ul>
     <i class="fas fa-chevron-down">
     </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="current reference internal" href="#">
-     Engine C++ API Reference
+     C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4390,8 +4401,8 @@
         
               <div>
                 
-  <section id="engine-c-api-reference">
-<h1>Engine C++ API Reference<a class="headerlink" href="#engine-c-api-reference" title="Permalink to this headline">¶</a></h1>
+  <section id="c-api-reference">
+<h1>C++ API Reference<a class="headerlink" href="#c-api-reference" title="Permalink to this headline">¶</a></h1>
 <section id="full-api">
 <h2>Full API<a class="headerlink" href="#full-api" title="Permalink to this headline">¶</a></h2>
 <section id="namespaces">
@@ -10728,7 +10739,66 @@
 </li>
 </ul>
 </div>
-</section>
+<script type="text/javascript">
+    /* NOTE: if you are reading this, Exhale generated this directly. */
+    $(document).ready(function() {
+        /* Inspired by very informative answer to get color of links:
+           https://stackoverflow.com/a/2707837/3814202 */
+        var $fake_link = $('<a href="#"></a>').hide().appendTo("body");
+        var linkColor = $fake_link.css("color");
+        $fake_link.remove();
+
+        var $fake_p = $('<p class="text-muted"></p>').hide().appendTo("body");
+        var iconColor = $fake_p.css("color");
+        $fake_p.remove();
+
+        /* After much deliberation, using JavaScript directly to enforce that the
+         * link and glyphicon receive different colors is fruitless, because the
+         * bootstrap treeview library will overwrite the style every time.  Instead,
+         * leaning on the library code itself to append some styling to the head,
+         * I choose to mix a couple of things:
+         *
+         * 1. Set the `color` property of bootstrap treeview globally, this would
+         *    normally affect the color of both the link text and the icon.
+         * 2. Apply custom forced styling of the glyphicon itself in order to make
+         *    it a little more clear to the user (via different colors) that the
+         *    act of clicking the icon and the act of clicking the link text perform
+         *    different actions.  The icon expands, the text navigates to the page.
+         */
+         // Part 1: use linkColor as a parameter to bootstrap treeview
+
+         // apply the class view hierarchy
+         $("#class-treeView").treeview({
+             data: getClassHierarchyTree(),
+             enableLinks: true,
+             color: linkColor,
+             showTags: true,
+             collapseIcon: "glyphicon glyphicon-minus",
+             expandIcon: "glyphicon glyphicon-plus",
+             levels: 1,
+             onhoverColor: "#F5F5F5"
+         });
+
+         // apply the file view hierarchy
+         $("#file-treeView").treeview({
+             data: getFileHierarchyTree(),
+             enableLinks: true,
+             color: linkColor,
+             showTags: true,
+             collapseIcon: "glyphicon glyphicon-minus",
+             expandIcon: "glyphicon glyphicon-plus",
+             levels: 1,
+             onhoverColor: "#F5F5F5"
+         });
+
+         // Part 2: override the style of the glyphicons by injecting some CSS
+         $('<style type="text/css" id="exhaleTreeviewOverride">' +
+           '    .treeview span[class~=icon] { '                 +
+           '        color: ' + iconColor + ' ! important;'       +
+           '    }'                                              +
+           '</style>').appendTo('head');
+    });
+</script></section>
 </section>
 </section>
 
@@ -10738,7 +10808,7 @@
         
         <div class='prev-next-bottom'>
             
-    <a class='left-prev' id="prev-link" href="../reference/sql/joins.html" title="previous page">Joining data</a>
+    <a class='left-prev' id="prev-link" href="../reference/sql/windowing.html" title="previous page">Window funtions</a>
     <a class='right-next' id="next-link" href="namespace_blazingdb.html" title="next page">Namespace blazingdb</a>
 
         </div>
