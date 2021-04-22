@@ -1,0 +1,61 @@
+test:
+  - aggregationsWithoutGroupByTest
+  - allPerformanceTest
+  - bindableAliasTest
+  - booleanTest
+  - caseTest
+  - castTest
+  - coalesceTest
+#  - columnBasisTest #Not supported yet
+  - commonTableExpressionsTest
+  - concatTest
+  - concurrentTest
+  - configOptionsTest
+  - countDistinctTest
+  - countWithoutGroupByTest
+  - crossJoinsTest
+  - dateTest
+  - dayOfWeekTest
+  - dirTest
+#  - fileSystemGSTest #Not supported yet
+#  - fileSystemHdfsTest #Not supported yet
+#  - fileSystemHiveTest #Not supported yet
+#  - fileSystemLocalTest #Not supported yet
+#  - fileSystemS3Test #Not supported yet
+  - fullOuterJoinsTest
+  - groupByTest
+#  - hiveFileTest #Not supported yet
+  - innerJoinsTest
+  - jsonTest
+  - leftOuterJoinsTest
+  - likeTest
+  - literalTest
+  - loadDataTest
+  - loggingTest
+  - messageValidationTest
+  - mixedFileSystemTest
+  - nestedQueriesTest
+  - nonEquiJoinsTest
+  - notPassTmpTest
+  - orderbyTest
+  - performanceTest
+  - roundTest
+  - smilesTest
+  - stringCaseTest
+  - stringTests
+  - substringTest
+  - sum0Test
+  - tablesFromPandasTest
+  - templateTest
+  - timestampdiffTest
+  - timestampTest
+  - toTimestampTest
+  - tpchQueriesTest
+  - unaryOpsTest
+  - unifyTablesTest
+  - unionTest
+  - useLimitTest
+  - whereClauseTest
+  - wildCardTest
+  - windowFunctionTest
+  - windowNoPartitionTest
