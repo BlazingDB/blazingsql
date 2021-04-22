@@ -50,6 +50,8 @@ release = f'v{version}'
 
 # -- General configuration ---------------------------------------------------
 
+generate_cpp = False  ## SPEEDS UP docs generation as we don't read xml each time
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -58,31 +60,32 @@ extensions = ['recommonmark',
                 'sphinx.ext.todo',
                 'sphinx.ext.autodoc',
                 "sphinx.ext.autosummary",
-                'breathe',
-                'exhale'
                 ]
 
 autosummary_generate = True 
 autosummary_imported_members = False
 
-# # Setup the exhale extension
-exhale_args = {
-    # These arguments are required
-    "containmentFolder":     "./xml",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "C++ API Reference",
-    "doxygenStripFromPath":  "..",
-    # Suggested optional arguments
-    "createTreeView":        True,
-    # TIP: if using the sphinx-bootstrap-theme, you need
-    "treeViewIsBootstrap": True
-}
+if generate_cpp:
+    extensions = extensions + ['breathe', 'exhale']
+    
+    # Setup the exhale extension
+    exhale_args = {
+        # These arguments are required
+        "containmentFolder":     "./xml",
+        "rootFileName":          "library_root.rst",
+        "rootFileTitle":         "C++ API Reference",
+        "doxygenStripFromPath":  "..",
+        # Suggested optional arguments
+        "createTreeView":        True,
+        # TIP: if using the sphinx-bootstrap-theme, you need
+        "treeViewIsBootstrap": True
+    }
 
-# Setup the breathe extension
-breathe_projects = {
-    "BlazingSQL Engine": "./xml"
-}
-breathe_default_project = "BlazingSQL Engine"
+    # Setup the breathe extension
+    breathe_projects = {
+        "BlazingSQL Engine": "./xml"
+    }
+    breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
