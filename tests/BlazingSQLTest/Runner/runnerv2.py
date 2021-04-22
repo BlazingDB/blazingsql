@@ -97,7 +97,8 @@ class e2eTest():
 
         for test in self.targetTestList:
             if self.__existTestData(test):
-                a = 10
+                testData = testInfo.testInfo(test, "Runner/queries.yml", self.config)
+                testData.run()
 
 
 
