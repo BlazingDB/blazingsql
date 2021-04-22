@@ -62,7 +62,7 @@ datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tab
 
 def start_mysql(user, password, database, port):
     client = docker.from_env()
-    container = client.containers.run(image='mysql',
+    container = client.containers.run(image='mysql:8.0.24',
                                       detach=True,
                                       auto_remove=True,
                                       environment=[f"MYSQL_USER={user}",
@@ -72,12 +72,27 @@ def start_mysql(user, password, database, port):
                                       ports={ '3306/tcp': port },
                                       remove=True,
                                       command='--local-infile=1')
-    print('Starting mysql docker container for tests')
+    print('Starting mysql docker container for tests...')
     sleep(20)
     container.logs()
     return container
 
-def stop_mysql(container):
+def start_postgres(user, password, database, port):
+    client = docker.from_env()
+    container = client.containers.run(image='postgres:9.6.21',
+                                      detach=True,
+                                      auto_remove=True,
+                                      environment=[f"POSTGRES_USER={user}",
+                                                    f"POSTGRES_PASSWORD={password}",
+                                                    f"POSTGRES_DB={database}"],
+                                      ports={ '5432/tcp': port },
+                                      remove=True,
+    print('Starting postgres docker container for tests...')
+    sleep(20)
+    container.logs()
+    return container
+
+def stop_container(container):
   container.kill()
 
 def datasources(dask_client, nRals):
@@ -154,19 +169,28 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
         )
         currrentFileSchemaType = fileSchemaType
 
-
-def setup_test() -> bool:
-    sql = createSchema.get_sql_connection(DataType.MYSQL)
-    container = start_mysql(sql.username, sql.password, sql.schema, sql.port)
+def setup_test(data_type: DataType) -> createSchema.sql_connection, None:
+    sql = createSchema.get_sql_connection(data_type)
     if not sql:
-        print("ERROR: You cannot run tablesFromSQL test, settup your SQL connection using env vars! See tests/README.md")
+        print(f"ERROR: You cannot run tablesFromSQL test, setup your SQL connection for {data_type}using env vars! See tests/README.md")
         return None
 
-    from DataBase import mysqlSchema
+    if data_type is DataType.MYSQL:
+      from DataBase import mysqlSchema
+      mysql_container = start_mysql(sql.username, sql.password, sql.database, sql.port)
+      mysqlSchema.create_and_load_tpch_schema(sql)
+      return sql, mysql_container
 
-    mysqlSchema.create_and_load_tpch_schema(sql)
-    return sql, container
+    if data_type is DataType.SQLITE:
+      from DataBase import sqliteSchema
+      sqliteSchema.create_and_load_tpch_schema(sql)
+      return sql
 
+    if data_type is DataType.POSTGRESQL:
+      from DataBase import postgreSQLSchema
+      postgres_container = start_postgres(sql.username, sql.password, sql.database, sql.port)
+      postgreSQLSchema.create_and_load_tpch_schema(sql)
+      return sql, postgres_container
 
 def executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql):
     extra_args = {
@@ -182,12 +206,18 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     print(queryType)
     print("==============================")
 
-    sql, container = setup_test()
-    if sql:
-        start_mem = gpuMemory.capture_gpu_memory_usage()
-        executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
-        end_mem = gpuMemory.capture_gpu_memory_usage()
-        gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
-    
-    if container:
-      stop_mysql(container)
+    for data_type in data_types:
+        sql = None
+        is_file_ds = False
+        # we can change the datatype for these tests and it should works just fine
+        if data_type not in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
+            is_file_ds = True
+        else:
+            sql, container = setup_test(data_type)
+        if sql or is_file_ds:
+            start_mem = gpuMemory.capture_gpu_memory_usage()
+            executionTest(dask_client, drill, spark, dir_data_lc, bc, nRals, sql)
+            end_mem = gpuMemory.capture_gpu_memory_usage()
+            gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+        if container:
+          stop_container(container)
