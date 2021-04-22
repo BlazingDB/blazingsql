@@ -34,6 +34,7 @@ class e2eTest():
         self.dask_client = dask_client
         self.drill = drill
         self.spark = spark
+        self.targetTestList = []
 
         self.worder = None
         self.use_percentage = None
@@ -64,8 +65,16 @@ class e2eTest():
         for query in queries:
             self.tables.update(sql_metadata.get_query_tables(query))
 
+    def setTargetTest(self, testList):
+        self.targetTestList = testList
+
+    def runE2ETest(self):
+        if len(self.targetTestList) == 0:
+            self.targetTestList = __loadTargetTestFromFile()
 
 
+    def __loadTargetTestFromFile(self):
+        return []
 
 
 # def main(dask_client, drill, dir_data_lc, bc, nRals):
