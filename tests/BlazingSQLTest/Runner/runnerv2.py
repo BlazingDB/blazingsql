@@ -72,7 +72,7 @@ class e2eTest():
         fileName = "Runner/targetTest.yml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
-                testListYaml = yaml.load(stream)
+                testListYaml = yaml.safe_load(stream)
 
             return testListYaml["test"]
         return []
@@ -81,7 +81,7 @@ class e2eTest():
         fileName = "Runner/queries.yml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
-                queriesYaml = yaml.load(stream)
+                queriesYaml = yaml.safe_load(stream)
 
             if test in queriesYaml:
                 return True

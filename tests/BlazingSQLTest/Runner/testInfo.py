@@ -22,7 +22,7 @@ class testRunner():
     def __loadConfig(self):
         if os.path.isfile(self.configFile):
             with open(self.configFile, 'r') as stream:
-                self.data = yaml.load(stream)[self.name]
+                self.data = yaml.safe_load(stream)[self.name]
 
         if "config" in self.data:
             if "worder" in self.data["config"]:
