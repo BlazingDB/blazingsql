@@ -9,7 +9,7 @@ class configTest():
     print_result = None
     data_types = None
 
-class testInfo():
+class testRunner():
     def __init__(self, name, configFile, default):
         self.name = name
         self.configFile = configFile
