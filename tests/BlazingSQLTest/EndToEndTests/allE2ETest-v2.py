@@ -116,7 +116,7 @@ def checkErrors(result, error_msgs):
             return True
     return False
 
-def runLegacyTest():
+def runLegacyTest(bc, dask_client, drill, spark):
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
 
     runAllTests = (
@@ -134,6 +134,7 @@ def runLegacyTest():
         )
 
 def runE2ETest(bc, dask_client, drill, spark):
+    # runLegacyTest(bc, dask_client, drill, spark)
     runnerTest = runnerv2.e2eTest(bc, dask_client, drill, spark)
     runLegacyTest()
 
