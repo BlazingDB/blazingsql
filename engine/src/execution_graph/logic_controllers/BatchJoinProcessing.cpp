@@ -176,7 +176,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		}
 		if (num_equalities == tree.root().children.size()) {  // all are equalities. this would be a regular multiple equality join
 			if (num_equal_due_is_not_dist > 0) {
-				std::tie(new_join_statement_expression, filter_statement_expression) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+				std::tie(new_join_statement_expression, filter_statement_expression) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
 			} else {
 				new_join_statement_expression = condition;
 				filter_statement_expression = "";
@@ -215,6 +215,11 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 					}
 				}
 				new_join_statement_expression = ral::parser::detail::rebuild_helper(join_out_root.get());
+
+				// Now that we support IS_NOT_DISTINCT_FROM for join let's update if it is needed
+				if (new_join_statement_expression.find("IS_NOT_DISTINCT_FROM") != new_join_statement_expression.npos) {
+					std::tie(new_join_statement_expression, filter_statement_expression) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+				}
 			} else {
 				auto join_out_root = std::make_unique<ral::parser::operator_node>("AND");
 				auto filter_root = std::make_unique<ral::parser::operator_node>("AND");

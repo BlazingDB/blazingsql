@@ -1147,6 +1147,10 @@ std::string replace_is_not_distinct_as_calcite(std::string expression) {
 	// $1, $3
 	std::string reduced_expr = expression.substr(start_pos, end_pos - start_pos);
 	std::vector<std::string> var_str = get_expressions_from_expression_list(reduced_expr);
+
+	if (var_str.size() != 2) {
+		throw std::runtime_error("IS_NOT_DISTINCT_FROM must contains only 2 variables.");
+	}
     
     return "OR(AND(IS NULL(" + var_str[0] + "), IS NULL(" + var_str[1] + ")), IS TRUE(=(" + var_str[0] + " , " + var_str[1] + ")))";
 }
@@ -1156,7 +1160,6 @@ std::string replace_is_not_distinct_as_calcite(std::string expression) {
 std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string & expression) {
 
 	std::string origin_expr = expression;
-
 	size_t total_is_not_distinct_expr = StringUtil::findAndCountAllMatches(origin_expr, "IS_NOT_DISTINCT_FROM");
 	
 	std::string left_expr = origin_expr.substr(0, 4);
@@ -1170,19 +1173,38 @@ std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_
 	std::vector<std::string> all_expressions = get_expressions_from_expression_list(reduced_expr);
 	size_t total_filter_conditions = all_expressions.size() - 1;
 
-	// First expression is related to the JOIN equal condition
-	std::string new_join_statement_express = all_expressions[0], filter_statement_expression;
+	// Let's get the index of the join condition (=)
+	size_t join_pos_operation;
+	bool contains_join_express = false;
+	for (size_t i = 0; i < all_expressions.size(); ++i) {
+		if (all_expressions[i].at(0) == '=') {
+			join_pos_operation = i;
+			contains_join_express = true;
+			break;
+		}
+	}
+
+	if (!contains_join_express) {
+		return std::make_tuple(origin_expr, "");
+	}
+
+	std::string new_join_statement_express = all_expressions[join_pos_operation];
+	
+	std::string filter_statement_expression;
 	
 	assert(total_filter_conditions > 0);
 
 	if (total_filter_conditions == 1) {
-		filter_statement_expression = replace_is_not_distinct_as_calcite(all_expressions[1]);
+		size_t not_join_pos = (join_pos_operation == 0) ? 1 : 0;
+		filter_statement_expression = replace_is_not_distinct_as_calcite(all_expressions[not_join_pos]);
 	} else {
 		filter_statement_expression = "AND(";
-		for (size_t i = 1; i < all_expressions.size(); ++i) {
-			filter_statement_expression += replace_is_not_distinct_as_calcite(all_expressions[i]) + ", ";
+		for (size_t i = 0; i < all_expressions.size(); ++i) {
+			if (i != join_pos_operation) {
+				filter_statement_expression += replace_is_not_distinct_as_calcite(all_expressions[i]) + ", ";
+			}
 		}
-		filter_statement_expression = filter_statement_expression.substr(0, filter_statement_expression.size()- 2);
+		filter_statement_expression = filter_statement_expression.substr(0, filter_statement_expression.size() - 2);
 		filter_statement_expression += ")";
 	}
 

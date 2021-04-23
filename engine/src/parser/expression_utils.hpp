@@ -248,4 +248,6 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 
 const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string);
 
+std::string replace_is_not_distinct_as_calcite(std::string expression);
+
 std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string & expression);
