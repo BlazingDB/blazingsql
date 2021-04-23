@@ -1,61 +1,61 @@
 test:
-  - aggregationsWithoutGroupByTest
-  - allPerformanceTest
-  - bindableAliasTest
-  - booleanTest
-  - caseTest
-  - castTest
-  - coalesceTest
-#  - columnBasisTest #Not supported yet
-  - commonTableExpressionsTest
-  - concatTest
-  - concurrentTest
-  - configOptionsTest
-  - countDistinctTest
-  - countWithoutGroupByTest
-  - crossJoinsTest
-  - dateTest
-  - dayOfWeekTest
-  - dirTest
-#  - fileSystemGSTest #Not supported yet
-#  - fileSystemHdfsTest #Not supported yet
-#  - fileSystemHiveTest #Not supported yet
-#  - fileSystemLocalTest #Not supported yet
-#  - fileSystemS3Test #Not supported yet
-  - fullOuterJoinsTest
-  - groupByTest
-#  - hiveFileTest #Not supported yet
-  - innerJoinsTest
-  - jsonTest
-  - leftOuterJoinsTest
-  - likeTest
-  - literalTest
-  - loadDataTest
-  - loggingTest
-  - messageValidationTest
-  - mixedFileSystemTest
-  - nestedQueriesTest
-  - nonEquiJoinsTest
-  - notPassTmpTest
-  - orderbyTest
-  - performanceTest
-  - roundTest
-  - smilesTest
-  - stringCaseTest
-  - stringTests
-  - substringTest
-  - sum0Test
-  - tablesFromPandasTest
-  - templateTest
-  - timestampdiffTest
-  - timestampTest
-  - toTimestampTest
-  - tpchQueriesTest
-  - unaryOpsTest
-  - unifyTablesTest
-  - unionTest
-  - useLimitTest
-  - whereClauseTest
-  - wildCardTest
-  - windowFunctionTest
-  - windowNoPartitionTest
+  - aggregationsWithoutGroupBySuite
+  - allPerformanceSuite
+  - bindableAliasSuite
+  - booleanSuite
+  - caseSuite
+  - castSuite
+  - coalesceSuite
+#  - columnBasisSuite #Not supported yet
+  - commonTableExpressionsSuite
+  - concatSuite
+  - concurrentSuite
+  - configOptionsSuite
+  - countDistinctSuite
+  - countWithoutGroupBySuite
+  - crossJoinsSuite
+  - dateSuite
+  - dayOfWeekSuite
+  - dirSuite
+#  - fileSystemGSSuite #Not supported yet
+#  - fileSystemHdfsSuite #Not supported yet
+#  - fileSystemHiveSuite #Not supported yet
+#  - fileSystemLocalSuite #Not supported yet
+#  - fileSystemS3Suite #Not supported yet
+  - fullOuterJoinsSuite
+  - groupBySuite
+#  - hiveFileSuite #Not supported yet
+  - innerJoinsSuite
+  - jsonSuite
+  - leftOuterJoinsSuite
+  - likeSuite
+  - literalSuite
+  - loadDataSuite
+  - loggingSuite
+  - messageValidationSuite
+  - mixedFileSystemSuite
+  - nestedQueriesSuite
+  - nonEquiJoinsSuite
+  - notPassTmpSuite
+  - orderbySuite
+  - performanceSuite
+  - roundSuite
+  - smilesSuite
+  - stringCaseSuite
+  - stringSuites
+  - substringSuite
+  - sum0Suite
+  - tablesFromPandasSuite
+  - templateSuite
+  - timestampdiffSuite
+  - timestampSuite
+  - toTimestampSuite
+  - tpchQueriesSuite
+  - unaryOpsSuite
+  - unifyTablesSuite
+  - unionSuite
+  - useLimitSuite
+  - whereClauseSuite
+  - wildCardSuite
+  - windowFunctionSuite
+  - windowNoPartitionSuite

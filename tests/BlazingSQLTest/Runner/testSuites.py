@@ -68,13 +68,12 @@ class testSuites():
         return []
 
     def __existTestData(self, test):
-        fileName = "Runner/queries.yml"
+        fileName = "EndToEndTests/TestSuites/" + test + ".yaml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
                 queriesYaml = yaml.safe_load(stream)
 
-            if test in queriesYaml:
-                return True
+            return True
 
         return False
 
@@ -87,5 +86,5 @@ class testSuites():
 
         for test in self.targetTestList:
             if self.__existTestData(test):
-                testData = testSuite.testSuite(test, "Runner/queries.yml", self.config)
+                testData = testSuite.testSuite(test, "EndToEndTests/TestSuites/" + test + ".yaml", self.config)
                 testData.run(self.bc, self.dask_client, self.drill, self.spark)

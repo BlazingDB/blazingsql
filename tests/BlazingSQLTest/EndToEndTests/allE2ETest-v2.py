@@ -159,7 +159,7 @@ def runLegacyTest(bc, dask_client, drill, spark):
 
 
 def runE2ETest(bc, dask_client, drill, spark):
-    runLegacyTest(bc, dask_client, drill, spark)
+    # runLegacyTest(bc, dask_client, drill, spark)
 
     runnerTest = testSuites.testSuites(bc, dask_client, drill, spark)
     runnerTest.setTargetTest(Settings.data["RunSettings"]["targetTestGroups"])
