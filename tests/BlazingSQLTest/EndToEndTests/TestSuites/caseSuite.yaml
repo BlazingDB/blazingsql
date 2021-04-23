@@ -1,0 +1,55 @@
+# caseSuit.yaml file
+
+TABLAS:
+
+  - nation
+  - nation
+  - customer
+  - lineitem
+  - orders
+  - supplier
+
+TEST_SUITE: # CASE TESTS
+
+  TEST_01:
+    SQL: |
+        select case when o_custkey > 20 then o_orderkey
+                    else o_custkey - 20 end
+                    from orders where o_orderkey <= 50
+    ORDER: 1
+    USE_PERCENTAJE: false
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill # values: drill, spark
+    SKIP_WITH: ORC
+
+  TEST_02:
+    SQL: |
+        SELECT l.l_shipmode, sum(case
+                        when o.o_orderpriority = '1-URGENT'
+                        OR o.o_orderpriority = '2-HIGH' then 1
+                        else 0 end) as high_line_count
+                    FROM orders o
+                    inner join lineitem l on o.o_orderkey = l.l_orderkey
+                    WHERE l.l_commitdate < l.l_receiptdate
+                    AND l.l_shipdate < l.l_commitdate
+                    AND l.l_receiptdate >= date '1994-01-01'
+                    GROUP BY l.l_shipmode
+                    ORDER BY l.l_shipmode
+    ORDER: 1
+    USE_PERCENTAJE: false
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill # values: drill, spark
+    SKIP_WITH: ORC
+
+  TEST_03:
+    SQL: |
+        select r_name, (case when r_name = 'AFRICA' then
+                    r_name  else 'AFROBEAT' end) as n_rname
+                    from region
+                    where ( case when r_name = 'AFRICA' then
+                    r_name  else 'AFROBEAT' end ) = 'AFROBEAT'
+    ORDER: 1
+    USE_PERCENTAJE: false
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill # values: drill, spark
+    SKIP_WITH: ORC

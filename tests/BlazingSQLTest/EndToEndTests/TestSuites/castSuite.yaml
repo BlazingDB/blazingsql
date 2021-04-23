@@ -1,0 +1,45 @@
+# caseSuit.yaml file
+
+TABLAS:
+
+  - nation
+  - region
+  - customer
+  - supplier
+  - lineitem
+  - orders
+  - part 
+
+TEST_SUITE: # CAST TESTS
+
+  TEST_01:
+    SQL: |
+        select p_partkey, p_retailprice,
+                    cast(cast(p_retailprice as VARCHAR) as DOUBLE)
+                    from part order by p_partkey limit 10
+    ORDER: 1
+    USE_PERCENTAJE: false
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill # values: drill, spark
+    SKIP_WITH: ORC
+
+  TEST_02:
+    SQL: |
+        select CAST(c_custkey as BIGINT), c_acctbal
+                    from customer order by c_acctbal desc, c_custkey
+    ORDER: 1
+    USE_PERCENTAJE: false
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill # values: drill, spark
+    SKIP_WITH: ORC
+
+  TEST_03:
+    SQL: |
+        select SUM(c_custkey), CAST(c_custkey as VARCHAR)
+                    from customer where c_custkey between 123 and 125
+                    group by c_custkey
+    ORDER: 1
+    USE_PERCENTAJE: false
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill # values: drill, spark
+    SKIP_WITH: ORC
