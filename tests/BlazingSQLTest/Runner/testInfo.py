@@ -1,3 +1,6 @@
+from Configuration import Settings
+from Utils import gpuMemory
+
 import os
 import yaml
 
@@ -66,5 +69,13 @@ class testRunner():
         self.dask_client = dask_client
         self.drill = drill
         self.spark = spark
+
+        dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
+        nRals = Settings.data["RunSettings"]["nRals"]
+
+        start_mem = gpuMemory.capture_gpu_memory_usage()
+        # executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
+        end_mem = gpuMemory.capture_gpu_memory_usage()
+        gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
 
 
