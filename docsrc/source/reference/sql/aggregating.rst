@@ -5,6 +5,8 @@ Aggregating data
 
 Aggregating data using SQL is done using :code:`GROUP BY` function.
 
+.. seealso:: :ref:`sql_windowing`
+
 GROUP BY function
 -----------------
 

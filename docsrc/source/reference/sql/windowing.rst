@@ -1,7 +1,7 @@
 .. _sql_windowing:
 
-Window funtions
-===============
+Window functions
+================
 
 {% for member in sql.windowing %}
 .. _sql_{{ member.lower() }}:
