@@ -22,9 +22,16 @@ Concatenate two text columns.
     SELECT <col_1> || <col_2>
     FROM <table_name>
 
-Concatenate a columns with a string.
+Concatenate a column with a string.
 
 .. code-block:: sql
 
     SELECT <col_1> || <string_literal>
+    FROM <table_name>
+
+Add underscore between text values in two columns.
+
+.. code-block:: sql
+
+    SELECT <col_1> || '_' || <col_2>
     FROM <table_name>
