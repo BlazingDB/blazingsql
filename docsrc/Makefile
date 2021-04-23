@@ -10,6 +10,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
+BUILD_CPP     = $(build_cpp)
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -20,14 +21,15 @@ help:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@export SPHINX_NO_CPP=$(BUILD_CPP); $(SPHINXBUILD) -M $@ -j 2 "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 doxygen:
 	@doxygen "$(SOURCEDIR)/Doxyfile"
 
 clean:
+	@echo One $(ARGS)
 	@rm	-rf	"$(BUILDDIR)" "$(SOURCEDIR)/xml"
-	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@export SPHINX_BUILD_CPP=$(BUILD_CPP); $(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 publish:
 	@rm -rf "../docs"
