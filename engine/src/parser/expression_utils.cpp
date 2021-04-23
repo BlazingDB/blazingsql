@@ -1171,7 +1171,6 @@ std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_
 	std::string reduced_expr = origin_expr.erase(0, left_expr.size());
 	reduced_expr = reduced_expr.substr(0, reduced_expr.size() - 1);
 	std::vector<std::string> all_expressions = get_expressions_from_expression_list(reduced_expr);
-	size_t total_filter_conditions = all_expressions.size() - 1;
 
 	// Let's get the index of the join condition (=)
 	size_t join_pos_operation;
@@ -1185,13 +1184,13 @@ std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_
 	}
 
 	if (!contains_join_express) {
-		return std::make_tuple(origin_expr, "");
+		return std::make_tuple(expression, "");
 	}
 
-	std::string new_join_statement_express = all_expressions[join_pos_operation];
-	
-	std::string filter_statement_expression;
-	
+	size_t total_filter_conditions = all_expressions.size() - 1;
+
+	std::string new_join_statement_express = all_expressions[join_pos_operation], filter_statement_expression;
+
 	assert(total_filter_conditions > 0);
 
 	if (total_filter_conditions == 1) {
