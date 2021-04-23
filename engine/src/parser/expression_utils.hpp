@@ -121,6 +121,7 @@ bool is_timestamp_with_decimals_and_dash(const std::string & token);
 bool is_timestamp_with_decimals_and_bar(const std::string & token);
 bool is_string(const std::string & token);
 bool is_bool(const std::string & token);
+bool is_join_expression(const std::string & token);
 bool is_SQL_data_type(const std::string & token);
 bool is_operator_token(const std::string & token);
 bool is_literal(const std::string & token);

@@ -445,6 +445,12 @@ bool is_timestamp_with_decimals_and_bar(const std::string & token) {
 
 bool is_bool(const std::string & token) { return (token == "true" || token == "false"); }
 
+bool is_join_expression(const std::string & token) {
+	static const std::regex re("=[/(][/$][0-9]{1,4},[ ][/$][0-9]{1,4}[/)]");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
 bool is_SQL_data_type(const std::string & token) {
 	static std::vector<std::string> CALCITE_DATA_TYPES = {
 		"TINYINT", "SMALLINT", "INTEGER", "BIGINT", "FLOAT", "DOUBLE", "DATE", "TIMESTAMP", "VARCHAR"
@@ -1172,11 +1178,11 @@ std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_
 	reduced_expr = reduced_expr.substr(0, reduced_expr.size() - 1);
 	std::vector<std::string> all_expressions = get_expressions_from_expression_list(reduced_expr);
 
-	// Let's get the index of the join condition (=)
+	// Let's get the index of the join condition (using regex) if exists
 	size_t join_pos_operation;
 	bool contains_join_express = false;
 	for (size_t i = 0; i < all_expressions.size(); ++i) {
-		if (all_expressions[i].at(0) == '=') {
+		if (is_join_expression(all_expressions[i])) {
 			join_pos_operation = i;
 			contains_join_express = true;
 			break;

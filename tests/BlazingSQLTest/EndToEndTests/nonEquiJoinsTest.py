@@ -416,7 +416,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         and l.l_partkey IS NOT DISTINCT FROM o.o_custkey """
             runTest.run_query(
                 bc,
-                drill,
+                spark,
                 query,
                 queryId,
                 queryType,
