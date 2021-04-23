@@ -68,6 +68,7 @@ const std::string TASK_ARG_OVERLAP_SIZE="overlap_size";
 const std::string TASK_ARG_SOURCE_BATCH_INDEX="source_batch_index";
 const std::string TASK_ARG_TARGET_BATCH_INDEX="target_batch_index";
 const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
+const std::string TASK_ARG_BATCH_INDEX="batch_index";
 
 const std::string PRECEDING_OVERLAP_TYPE="preceding";
 const std::string FOLLOWING_OVERLAP_TYPE="following";
@@ -76,6 +77,8 @@ const std::string PRECEDING_REQUEST="preceding_request";
 const std::string FOLLOWING_REQUEST="following_request";
 const std::string PRECEDING_RESPONSE="preceding_response";
 const std::string FOLLOWING_RESPONSE="following_response";
+const std::string MERGE_EXPRESSIONS="merge_expressions";
+const std::string MERGE_AGGREGATION="merge_aggregation";
 
 
 /**
@@ -262,6 +265,12 @@ public:
 	kstatus run() override;
 
 private:
+
+	std::vector<std::vector<std::string>> get_merge_expressions_per_batch(
+    	const std::vector<std::vector<std::string>> & cumulative_aggregations_str);
+
+	std::vector<std::vector<std::string>> get_cumulative_aggregations_as_strings(cudf::table_view cumulative_aggregations_view);
+
 	// WindowAggMergerKernel(min_keys=[MIN($0) OVER (ORDER BY $3 DESC)], lag_col=[MAX($0) OVER (PARTITION BY $1)], n_name=[$2])
 	std::vector<int> column_indices_partitioned;   // column indices to be partitioned: [1]
 	std::vector<int> column_indices_ordered;   	   // column indices to be ordered: [3]

@@ -4,6 +4,7 @@
 
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/CacheData.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
 #include "taskflow/executor.h"
 #include "CodeTimer.h"
 
@@ -1446,66 +1447,99 @@ ral::execution::task_result WindowAggMergerKernel::do_process(std::vector< std::
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
-        
     if (inputs.size() == 0) {
         return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
-
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+    
+    auto& operation_type = args.at(TASK_ARG_OP_TYPE);    
+    if (operation_type == MERGE_EXPRESSIONS) {
 
-    try{
-        std::unique_ptr<ral::frame::BlazingTable> merged_aggs = std::make_unique<ral::frame::BlazingTable>(
-            ral::processor::evaluate_expressions(input->view(), merge_expressions), input->names());
-        output->addToCache(std::move(merged_aggs));
-    }catch(const rmm::bad_alloc& e){
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(const std::exception& e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        try{
+            std::vector<std::vector<std::string>> cumulative_aggregations_str = get_cumulative_aggregations_as_strings(input->view());
+
+            RAL_EXPECTS(cumulative_aggregations_str.size() == this->aggs_wind_func.size(), 
+                "In WindowAggMergerKernel the number of aggregation window functions did not match the number of cumulative aggregation values received");
+
+            this->merge_expressions_per_batch = get_merge_expressions_per_batch(cumulative_aggregations_str);
+        }catch(const rmm::bad_alloc& e){
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+        }catch(const std::exception& e){
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        }
+
+    } else if (operation_type == MERGE_AGGREGATION) {
+        auto batch_index_string = args.at(TASK_ARG_BATCH_INDEX);
+        int batch_index = std::stoi(args.at(TASK_ARG_BATCH_INDEX));
+
+        std::vector<std::string> merge_expressions = this->merge_expressions_per_batch[batch_index];
+
+        try{
+            std::unique_ptr<ral::frame::BlazingTable> merged_aggs = std::make_unique<ral::frame::BlazingTable>(
+                ral::processor::evaluate_expressions(input->view(), merge_expressions), input->names());
+            output->addToCache(std::move(merged_aggs));
+        }catch(const rmm::bad_alloc& e){
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+        }catch(const std::exception& e){
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        }
+    } else {
+        throw std::runtime_error("WindowAggMergerKernel::do_process received unexpected operation type");
     }
 
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 
-// WSM TODO: make this a task
-std::vector<std::vector<std::string>> WindowAggMergerKernel::get_cumulative_aggregations_as_strings(){
+std::vector<std::vector<std::string>> WindowAggMergerKernel::get_cumulative_aggregations_as_strings(
+    cudf::table_view cumulative_aggregations_view){
+    
+    std::vector<std::vector<std::string>> cumulative_aggregations_str;
     const std::string DELIM = "{|]~";        
-    std::unique_ptr<ral::frame::BlazingTable> cumulative_aggregations_table = this->input_cache("cumulative_aggregations")->pullFromCache();
-    auto cumulative_aggregations_view = cumulative_aggregations_table->view();
-    for (auto col_idx = 0; col_idx < cumulative_aggregations_table->num_columns(); col_idx++){
+    for (auto col_idx = 0; col_idx < cumulative_aggregations_view.num_columns(); col_idx++){
         std::string col_string = cudf::test::to_string(cumulative_aggregations_view.column(col_idx), DELIM);
         cumulative_aggregations_str.push_back(StringUtil::split(col_string, DELIM) );
-    }   
+    }
+    return cumulative_aggregations_str;
 }
 
 std::vector<std::vector<std::string>> WindowAggMergerKernel::get_merge_expressions_per_batch(
     const std::vector<std::vector<std::string>> & cumulative_aggregations_str){
 
-    std::vector<std::vector<std::string>> merge_expressions_per_batch(this->aggs_wind_func.size());
+    std::vector<std::vector<std::string>> merge_expressions_per_batch(cumulative_aggregations_str[0].size());
+    for (auto row_idx = 0; merge_expressions_per_batch.size(); row_idx++){
+        merge_expressions_per_batch[row_idx].resize(cumulative_aggregations_str.size());
+    }
+
     for (auto col_idx = 0; col_idx < this->aggs_wind_func.size(); col_idx++){
-        merge_expressions_per_batch[col_idx].resize(cumulative_aggregations_str[col_idx].size());
-        auto agg_func : this->aggs_wind_func[col_idx];
-        for (auto row_idx = 0; cumulative_aggregations_str[col_idx].size(); row_idx++){
-            if (cumulative_aggregations_str[col_idx][row_idx] == "null"){
-                // if the cumulative_aggregation is null, we will just take the window function value (nothing to merge)
-                merge_expressions_per_batch[col_idx][row_idx] = "$" + std::to_string(col_idx); 
-            } else {
-                if(agg_func == AggregateKind::SUM || agg_func == AggregateKind::SUM0 ||
+        
+        auto agg_func = this->aggs_wind_func[col_idx];
+        if(agg_func == AggregateKind::SUM || agg_func == AggregateKind::SUM0 ||
                     agg_func == AggregateKind::COUNT_VALID || agg_func == AggregateKind::COUNT_ALL ||
-                    agg_func == AggregateKind::ROW_NUMBER || agg_func == AggregateKind::COUNT_DISTINCT){
-                    // +($0, agg)
-                    merge_expressions_per_batch[col_idx][row_idx] = 
-                        "+($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
-                }else if(agg_func == AggregateKind::MIN){
-                    // CASE(<($0, agg),$0,agg)
-                    merge_expressions_per_batch[col_idx][row_idx] =                         
-                        "CASE(<($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+                    agg_func == AggregateKind::ROW_NUMBER || agg_func == AggregateKind::COUNT_DISTINCT ||
+                    agg_func == AggregateKind::MIN || agg_func == AggregateKind::MAX){ 
+            for (auto row_idx = 0; cumulative_aggregations_str[col_idx].size(); row_idx++){
+                if (cumulative_aggregations_str[col_idx][row_idx] == "null"){
+                    // if the cumulative_aggregation is null, we will just take the window function value (nothing to merge)
+                    merge_expressions_per_batch[row_idx][col_idx] = "$" + std::to_string(col_idx); 
+                } else {
+                    if(agg_func == AggregateKind::SUM || agg_func == AggregateKind::SUM0 ||
+                        agg_func == AggregateKind::COUNT_VALID || agg_func == AggregateKind::COUNT_ALL ||
+                        agg_func == AggregateKind::ROW_NUMBER || agg_func == AggregateKind::COUNT_DISTINCT){
+                        // +($0, agg)
+                        merge_expressions_per_batch[row_idx][col_idx] = 
+                            "+($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+                    }else if(agg_func == AggregateKind::MIN){
+                        // CASE(<($0, agg),$0,agg)
+                        merge_expressions_per_batch[row_idx][col_idx] =                         
+                            "CASE(<($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
 
-                }else if(agg_func == AggregateKind::MAX){
-                    // CASE(>($0, agg),$0,agg)
-                    merge_expressions_per_batch[col_idx][row_idx] =                         
-                        "CASE(>($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+                    }else if(agg_func == AggregateKind::MAX){
+                        // CASE(>($0, agg),$0,agg)
+                        merge_expressions_per_batch[row_idx][col_idx] =                         
+                            "CASE(>($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
 
+                    }
                 }
             }
        
@@ -1517,6 +1551,7 @@ std::vector<std::vector<std::string>> WindowAggMergerKernel::get_merge_expressio
             // WSM TODO ERROR
         }
     }
+    return merge_expressions_per_batch;
 }
 
 kstatus WindowAggMergerKernel::run() {
@@ -1525,26 +1560,43 @@ kstatus WindowAggMergerKernel::run() {
     int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
     int num_nodes = context->getTotalNodes();
 
-    std::vector<std::vector<std::string>> cumulative_aggregations_str = get_cumulative_aggregations_as_strings();
-    
-    RAL_EXPECTS(cumulative_aggregations_str.size() == this->aggs_wind_func.size(), 
-        "In WindowAggMergerKernel the number of aggregation window functions did not match the number of cumulative aggregation values received");
+    std::unique_ptr<ral::cache::CacheData> cumulative_aggregations_data = this->input_cache("cumulative_aggregations")->pullCacheData();
 
+    std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+			inputs.push_back(std::move(cumulative_aggregations_data));
+
+    ral::execution::executor::get_instance()->add_task(
+										std::move(inputs),
+										this->output_cache(),
+										this,
+										{{TASK_ARG_OP_TYPE, MERGE_EXPRESSIONS}});
+                                        
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
+    
+    size_t batch_index = 0;
     std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache("batches")->pullCacheData();
 
     while (cache_data != nullptr ){
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
+        std::vector<std::unique_ptr <ral::cache::CacheData> > batch_inputs;
+        batch_inputs.push_back(std::move(cache_data));
+
+        if (batch_index >= this->merge_expressions_per_batch.size()){
+            throw std::runtime_error("ERROR in WindowAggMergerKernel: Received more batches of data than expected from the number of cumulative aggregations");
+        }
 
         ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
+            std::move(batch_inputs),
+            this->output_cache(),
+            this,
+            {{TASK_ARG_OP_TYPE, MERGE_AGGREGATION},{TASK_ARG_BATCH_INDEX, std::to_string(batch_index)}});
 
         cache_data = this->input_cache()->pullCacheData();
+        batch_index++;
     }
     
-    std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
         return this->tasks.empty();
     });
