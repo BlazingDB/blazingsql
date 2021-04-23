@@ -43,6 +43,7 @@
     <script src="../../../../_static/js/d3.v3.min.js"></script>
     <script src="../../../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../../../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="../../../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
@@ -491,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window funtions
+       Window functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4332,8 +4333,140 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example">
-   Example
+  <a class="reference internal nav-link" href="#id1">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     &lt;
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id2">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     &lt;=
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id3">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id4">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     &gt;
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id5">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id6">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     &gt;=
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id7">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id8">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     =
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id9">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id10">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     &lt;&gt;
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id11">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#between">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     BETWEEN
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#examples">
+     Examples
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#like">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     LIKE
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id12">
+     Examples
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#in">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     IN
+    </span>
+   </code>
   </a>
  </li>
 </ul>
@@ -4352,13 +4485,129 @@
 <h1>Comparison operators<a class="headerlink" href="#comparison-operators" title="Permalink to this headline">¶</a></h1>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
+<p>Comparison operators compare two values and return a truth value: either <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code> or <code class="code docutils literal notranslate"><span class="pre">FALSE</span></code>. These normally
+require columns or literals with comparable data types.</p>
+<section id="id1">
+<h2><code class="code docutils literal notranslate"><span class="pre">&lt;</span></code><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in one column are less than the values in another, or a literal.</p>
 <section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+</section>
+</section>
+<section id="id2">
+<h2><code class="code docutils literal notranslate"><span class="pre">&lt;=</span></code><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in one column are less than or equal to the values in another, or a literal.</p>
+<section id="id3">
+<h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id4">
+<h2><code class="code docutils literal notranslate"><span class="pre">&gt;</span></code><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in one column are more than the values in another, or a literal.</p>
+<section id="id5">
+<h3>Example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id6">
+<h2><code class="code docutils literal notranslate"><span class="pre">&gt;=</span></code><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in one column are more than or equal to the values in another, or a literal.</p>
+<section id="id7">
+<h3>Example<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&gt;=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id8">
+<h2><code class="code docutils literal notranslate"><span class="pre">=</span></code><a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in one column are equal to the values in another, or a literal.</p>
+<section id="id9">
+<h3>Example<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id10">
+<h2><code class="code docutils literal notranslate"><span class="pre">&lt;&gt;</span></code><a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in one column are not equal to the values in another, or a literal.</p>
+<section id="id11">
+<h3>Example<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;&gt;</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="between">
+<h2><code class="code docutils literal notranslate"><span class="pre">BETWEEN</span></code><a class="headerlink" href="#between" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in a column lay in or outside a specified range, specified by either literals or columns.</p>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>The range can be specified by literals.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">number_1</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">number_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The range can also be specified by columns.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>To check if values lay outside of the range use <code class="code docutils literal notranslate"><span class="pre">NOT</span></code> qualifier.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">NOT</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">number_1</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">number_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="like">
+<h2><code class="code docutils literal notranslate"><span class="pre">LIKE</span></code><a class="headerlink" href="#like" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a></p>
+<p>Operator to check if a string matches a pattern specified in the second operand. The <code class="code docutils literal notranslate"><span class="pre">%</span></code> sign matches
+any number of characters while the <code class="code docutils literal notranslate"><span class="pre">_</span></code> matches only a single character. To match either
+<code class="code docutils literal notranslate"><span class="pre">%</span></code>, <code class="code docutils literal notranslate"><span class="pre">_</span></code>, or the <code class="code docutils literal notranslate"><span class="pre">\</span> </code> you need to prefix the pattern with another <code class="code docutils literal notranslate"><span class="pre">\</span> </code> thus resulting
+in <code class="code docutils literal notranslate"><span class="pre">\%</span></code> to match a percent sign, <code class="code docutils literal notranslate"><span class="pre">\_</span></code> to match underscore, and <code class="code docutils literal notranslate"><span class="pre">\\</span></code> to match a
+backslash.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">LIKE</span></code> operator is case-sensitive so to match strings with different casing
+all strings need to be normalized. See <a class="reference internal" href="../../strings.html#sql-string-lower"><span class="std std-ref">LOWER</span></a>,
+<a class="reference internal" href="../../strings.html#sql-string-upper"><span class="std std-ref">UPPER</span></a> or <a class="reference internal" href="../../strings.html#sql-string-initcap"><span class="std std-ref">INITCAP</span></a>.</p>
+</div>
+<section id="id12">
+<h3>Examples<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>Check, if the word finishes with the word <cite>WORK</cite>.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">LIKE</span> <span class="s1">&#39;%WORK&#39;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Check, if the string matches a phone number pattern.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">LIKE</span> <span class="s1">&#39;(___) ___-____&#39;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="in">
+<h2><code class="code docutils literal notranslate"><span class="pre">IN</span></code><a class="headerlink" href="#in" title="Permalink to this headline">¶</a></h2>
+<p>Operator to check if values in a column are found on a specified list. The list can be literals
+or a subquery.
+Check the dedicated section on <a class="reference internal" href="../../operators.html#sql-ops-in"><span class="std std-ref">IN operators</span></a>.</p>
 </section>
 </section>
 

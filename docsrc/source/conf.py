@@ -50,7 +50,7 @@ release = f'v{version}'
 
 # -- General configuration ---------------------------------------------------
 
-generate_cpp = False  ## SPEEDS UP docs generation as we don't read xml each time
+generate_cpp = True  ## SPEEDS UP docs generation as we don't read xml each time
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom

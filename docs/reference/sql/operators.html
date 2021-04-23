@@ -43,6 +43,7 @@
     <script src="../../_static/js/d3.v3.min.js"></script>
     <script src="../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -493,7 +494,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="windowing.html">
-       Window funtions
+       Window functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4334,14 +4335,74 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#order-of-precedence">
+   Order of precedence
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#arithmetic-operators">
    Arithmetic operators
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#example">
-     Example
+    <a class="reference internal nav-link" href="#addition">
+     Addition
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#examples">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#subtraction">
+     Subtraction
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id1">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#multiplication">
+     Multiplication
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id2">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#division">
+     Division
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id3">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#negation">
+     Negation
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id4">
+       Examples
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -4351,8 +4412,140 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id1">
-     Example
+    <a class="reference internal nav-link" href="#id5">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       &lt;
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#example">
+       Example
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id6">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       &lt;=
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id7">
+       Example
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id8">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       &gt;
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id9">
+       Example
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id10">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       &gt;=
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id11">
+       Example
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id12">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       =
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id13">
+       Example
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id14">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       &lt;&gt;
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id15">
+       Example
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#between">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       BETWEEN
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id16">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#like">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       LIKE
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id17">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#in">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       IN
+      </span>
+     </code>
     </a>
    </li>
   </ul>
@@ -4363,9 +4556,16 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id2">
-     Example
+    <a class="reference internal nav-link" href="#sdfsdf">
+     sdfsdf
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id18">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -4380,9 +4580,16 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id3">
-     Example
+    <a class="reference internal nav-link" href="#vvv">
+     vvv
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id19">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -4397,9 +4604,16 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id4">
-     Example
+    <a class="reference internal nav-link" href="#asdsad">
+     asdsad
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id20">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -4414,9 +4628,16 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id5">
-     Example
+    <a class="reference internal nav-link" href="#www">
+     www
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id21">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -4434,42 +4655,298 @@
                 
   <section id="operators">
 <span id="sql-operators"></span><h1>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h1>
+<p>Operators normally use special characters or keywords to manipulate single or multiple operands
+(either scalar, columns, or subqueries). They are a kind of a binary type function that
+requires a minimum of two (or more) operands to return results.</p>
+<section id="order-of-precedence">
+<h2>Order of precedence<a class="headerlink" href="#order-of-precedence" title="Permalink to this headline">¶</a></h2>
+<p>The table below shows the order of precedence for the operators.</p>
+<table class="colwidths-given table" id="id22">
+<caption><span class="caption-text">Order of precedence for operators</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Order</p></th>
+<th class="head"><p>Operators</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>parentheses</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>multiplication, addition, string concatenation</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>addition, subtraction</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>comparison operators,</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">[NOT]</span> <span class="pre">LIKE</span></code>, <code class="code docutils literal notranslate"><span class="pre">[NOT]</span> <span class="pre">BETWEEN</span></code>, <code class="code docutils literal notranslate"><span class="pre">[NOT]</span> <span class="pre">IN</span></code>,</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">IS</span> <span class="pre">[NOT]</span> <span class="pre">NULL</span></code>, <code class="code docutils literal notranslate"><span class="pre">IS</span> <span class="pre">[NOT]</span> <span class="pre">TRUE</span></code>, <code class="code docutils literal notranslate"><span class="pre">IS</span> <span class="pre">[NOT]</span> <span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NOT</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">AND</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">OR</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>In case if the operators have the same precedence they are evaluated left-to-right.</p>
+</section>
 <section id="arithmetic-operators">
 <span id="sql-ops-arithmetic"></span><h2>Arithmetic operators<a class="headerlink" href="#arithmetic-operators" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="example">
-<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a></p>
+<p>Arithmetic operators provide the capability to perform
+arithmetic operations on columns or numbers.</p>
+<section id="addition">
+<h3>Addition<a class="headerlink" href="#addition" title="Permalink to this headline">¶</a></h3>
+<p>The addition operator performs a sum of two numeric columns or numbers.</p>
+<section id="examples">
+<h4>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h4>
+<p>Perform addition of elements in two columns.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">+</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+<p>It can also add a number to a column</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">+</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>or add two or more numbers and columns together.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">+</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">+</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="subtraction">
+<h3>Subtraction<a class="headerlink" href="#subtraction" title="Permalink to this headline">¶</a></h3>
+<p>The subtraction operator subtracts number in one column from the values in another one
+or a number.</p>
+<section id="id1">
+<h4>Examples<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<p>Subtract values in one column from another one.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">-</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Subtract a number from a column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">-</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="multiplication">
+<h3>Multiplication<a class="headerlink" href="#multiplication" title="Permalink to this headline">¶</a></h3>
+<p>The multiplication operator multiplies values between two or more columns or numbers.</p>
+<section id="id2">
+<h4>Examples<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<p>Multiply values between two columns.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">*</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Mutliply the values in one column and a number.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">*</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="division">
+<h3>Division<a class="headerlink" href="#division" title="Permalink to this headline">¶</a></h3>
+<p>The division operator takes values from one column and divides them by the values in
+another or a number.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the divisor column contains <code class="code docutils literal notranslate"><span class="pre">0</span></code> or <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> BlazingSQL will return <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+</div>
+<section id="id3">
+<h4>Examples<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<p>Divide values from one column by the values in another column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">/</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Divide values from one column by the a number.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Dividing explicitly by a literal <code class="code docutils literal notranslate"><span class="pre">0</span></code> will throw a <code class="code docutils literal notranslate"><span class="pre">RunExecuteGraphError</span></code> exception.</p>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">*</span> <span class="o">&lt;</span><span class="nb">number</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="negation">
+<h3>Negation<a class="headerlink" href="#negation" title="Permalink to this headline">¶</a></h3>
+<p>The negation operator returns a negative of a value in a column or of a number.</p>
+<section id="id4">
+<h4>Examples<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<p>Negate values in a column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">-&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 <section id="comparison-operators">
 <span id="sql-ops-comparison"></span><h2>Comparison operators<a class="headerlink" href="#comparison-operators" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id1">
-<h3>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Comparison operators compare two values and return a truth value: either <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code> or <code class="code docutils literal notranslate"><span class="pre">FALSE</span></code>. These normally
+require columns or literals with comparable data types.</p>
+<section id="id5">
+<h3><code class="code docutils literal notranslate"><span class="pre">&lt;</span></code><a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in one column are less than the values in another, or a literal.</p>
+<section id="example">
+<h4>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+</section>
+</section>
+<section id="id6">
+<h3><code class="code docutils literal notranslate"><span class="pre">&lt;=</span></code><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in one column are less than or equal to the values in another, or a literal.</p>
+<section id="id7">
+<h4>Example<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id8">
+<h3><code class="code docutils literal notranslate"><span class="pre">&gt;</span></code><a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in one column are more than the values in another, or a literal.</p>
+<section id="id9">
+<h4>Example<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id10">
+<h3><code class="code docutils literal notranslate"><span class="pre">&gt;=</span></code><a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in one column are more than or equal to the values in another, or a literal.</p>
+<section id="id11">
+<h4>Example<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&gt;=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id12">
+<h3><code class="code docutils literal notranslate"><span class="pre">=</span></code><a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in one column are equal to the values in another, or a literal.</p>
+<section id="id13">
+<h4>Example<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id14">
+<h3><code class="code docutils literal notranslate"><span class="pre">&lt;&gt;</span></code><a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in one column are not equal to the values in another, or a literal.</p>
+<section id="id15">
+<h4>Example<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="o">&lt;&gt;</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="between">
+<h3><code class="code docutils literal notranslate"><span class="pre">BETWEEN</span></code><a class="headerlink" href="#between" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in a column lay in or outside a specified range, specified by either literals or columns.</p>
+<section id="id16">
+<h4>Examples<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h4>
+<p>The range can be specified by literals.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">number_1</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">number_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The range can also be specified by columns.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>To check if values lay outside of the range use <code class="code docutils literal notranslate"><span class="pre">NOT</span></code> qualifier.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">NOT</span> <span class="k">BETWEEN</span> <span class="o">&lt;</span><span class="n">number_1</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">number_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="like">
+<h3><code class="code docutils literal notranslate"><span class="pre">LIKE</span></code><a class="headerlink" href="#like" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a></p>
+<p>Operator to check if a string matches a pattern specified in the second operand. The <code class="code docutils literal notranslate"><span class="pre">%</span></code> sign matches
+any number of characters while the <code class="code docutils literal notranslate"><span class="pre">_</span></code> matches only a single character. To match either
+<code class="code docutils literal notranslate"><span class="pre">%</span></code>, <code class="code docutils literal notranslate"><span class="pre">_</span></code>, or the <code class="code docutils literal notranslate"><span class="pre">\</span> </code> you need to prefix the pattern with another <code class="code docutils literal notranslate"><span class="pre">\</span> </code> thus resulting
+in <code class="code docutils literal notranslate"><span class="pre">\%</span></code> to match a percent sign, <code class="code docutils literal notranslate"><span class="pre">\_</span></code> to match underscore, and <code class="code docutils literal notranslate"><span class="pre">\\</span></code> to match a
+backslash.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">LIKE</span></code> operator is case-sensitive so to match strings with different casing
+all strings need to be normalized. See <a class="reference internal" href="strings.html#sql-string-lower"><span class="std std-ref">LOWER</span></a>,
+<a class="reference internal" href="strings.html#sql-string-upper"><span class="std std-ref">UPPER</span></a> or <a class="reference internal" href="strings.html#sql-string-initcap"><span class="std std-ref">INITCAP</span></a>.</p>
+</div>
+<section id="id17">
+<h4>Examples<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
+<p>Check, if the word finishes with the word <cite>WORK</cite>.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">LIKE</span> <span class="s1">&#39;%WORK&#39;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Check, if the string matches a phone number pattern.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">LIKE</span> <span class="s1">&#39;(___) ___-____&#39;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="in">
+<h3><code class="code docutils literal notranslate"><span class="pre">IN</span></code><a class="headerlink" href="#in" title="Permalink to this headline">¶</a></h3>
+<p>Operator to check if values in a column are found on a specified list. The list can be literals
+or a subquery.
+Check the dedicated section on <a class="reference internal" href="#sql-ops-in"><span class="std std-ref">IN operators</span></a>.</p>
 </section>
 </section>
 <section id="logical-operators">
 <span id="sql-ops-logical"></span><h2>Logical operators<a class="headerlink" href="#logical-operators" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<section id="id2">
-<h3>Example<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<section id="sdfsdf">
+<h3>sdfsdf<a class="headerlink" href="#sdfsdf" title="Permalink to this headline">¶</a></h3>
+<section id="id18">
+<h4>Example<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 <section id="in-operators">
@@ -4477,12 +4954,15 @@
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
-<section id="id3">
-<h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<section id="vvv">
+<h3>vvv<a class="headerlink" href="#vvv" title="Permalink to this headline">¶</a></h3>
+<section id="id19">
+<h4>Example<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 <section id="is-operators">
@@ -4490,12 +4970,15 @@
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
-<section id="id4">
-<h3>Example<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<section id="asdsad">
+<h3>asdsad<a class="headerlink" href="#asdsad" title="Permalink to this headline">¶</a></h3>
+<section id="id20">
+<h4>Example<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 <section id="concat-operator">
@@ -4503,14 +4986,17 @@
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
 <p>Lorem ipsum</p>
-<section id="id5">
-<h3>Example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<section id="www">
+<h3>www<a class="headerlink" href="#www" title="Permalink to this headline">¶</a></h3>
+<section id="id21">
+<h4>Example<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <div class="toctree-wrapper compound">
 </div>
+</section>
 </section>
 </section>
 </section>
