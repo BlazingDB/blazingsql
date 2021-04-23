@@ -25,6 +25,10 @@
 #include <cudf/join.hpp>
 #include <cudf/sorting.hpp>
 
+
+// WSM this could be a problematic dependency
+#include <cudf_test/column_utilities.hpp> 
+
 namespace ral {
 namespace batch {
 
@@ -1450,8 +1454,9 @@ ral::execution::task_result WindowAggMergerKernel::do_process(std::vector< std::
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
     try{
-      
-        // output->addToCache(std::move(windowed_table));
+        std::unique_ptr<ral::frame::BlazingTable> merged_aggs = std::make_unique<ral::frame::BlazingTable>(
+            ral::processor::evaluate_expressions(input->view(), merge_expressions), input->names());
+        output->addToCache(std::move(merged_aggs));
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(const std::exception& e){
@@ -1461,14 +1466,70 @@ ral::execution::task_result WindowAggMergerKernel::do_process(std::vector< std::
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
+
+// WSM TODO: make this a task
+std::vector<std::vector<std::string>> WindowAggMergerKernel::get_cumulative_aggregations_as_strings(){
+    const std::string DELIM = "{|]~";        
+    std::unique_ptr<ral::frame::BlazingTable> cumulative_aggregations_table = this->input_cache("cumulative_aggregations")->pullFromCache();
+    auto cumulative_aggregations_view = cumulative_aggregations_table->view();
+    for (auto col_idx = 0; col_idx < cumulative_aggregations_table->num_columns(); col_idx++){
+        std::string col_string = cudf::test::to_string(cumulative_aggregations_view.column(col_idx), DELIM);
+        cumulative_aggregations_str.push_back(StringUtil::split(col_string, DELIM) );
+    }   
+}
+
+std::vector<std::vector<std::string>> WindowAggMergerKernel::get_merge_expressions_per_batch(
+    const std::vector<std::vector<std::string>> & cumulative_aggregations_str){
+
+    std::vector<std::vector<std::string>> merge_expressions_per_batch(this->aggs_wind_func.size());
+    for (auto col_idx = 0; col_idx < this->aggs_wind_func.size(); col_idx++){
+        merge_expressions_per_batch[col_idx].resize(cumulative_aggregations_str[col_idx].size());
+        auto agg_func : this->aggs_wind_func[col_idx];
+        for (auto row_idx = 0; cumulative_aggregations_str[col_idx].size(); row_idx++){
+            if (cumulative_aggregations_str[col_idx][row_idx] == "null"){
+                // if the cumulative_aggregation is null, we will just take the window function value (nothing to merge)
+                merge_expressions_per_batch[col_idx][row_idx] = "$" + std::to_string(col_idx); 
+            } else {
+                if(agg_func == AggregateKind::SUM || agg_func == AggregateKind::SUM0 ||
+                    agg_func == AggregateKind::COUNT_VALID || agg_func == AggregateKind::COUNT_ALL ||
+                    agg_func == AggregateKind::ROW_NUMBER || agg_func == AggregateKind::COUNT_DISTINCT){
+                    // +($0, agg)
+                    merge_expressions_per_batch[col_idx][row_idx] = 
+                        "+($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+                }else if(agg_func == AggregateKind::MIN){
+                    // CASE(<($0, agg),$0,agg)
+                    merge_expressions_per_batch[col_idx][row_idx] =                         
+                        "CASE(<($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+
+                }else if(agg_func == AggregateKind::MAX){
+                    // CASE(>($0, agg),$0,agg)
+                    merge_expressions_per_batch[col_idx][row_idx] =                         
+                        "CASE(>($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+
+                }
+            }
+       
+        }else if(agg_func == AggregateKind::NTH_ELEMENT && this->agg_param_values[col_idx] == 0){ //FIRST_VALUE
+        // WSM TODO
+        }else if(agg_func == AggregateKind::NTH_ELEMENT && this->agg_param_values[col_idx] == -1){ //LAST_VALUE
+        // WSM TODO
+        } else {
+            // WSM TODO ERROR
+        }
+    }
+}
+
 kstatus WindowAggMergerKernel::run() {
     CodeTimer timer;
 
     int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
     int num_nodes = context->getTotalNodes();
 
+    std::vector<std::vector<std::string>> cumulative_aggregations_str = get_cumulative_aggregations_as_strings();
     
-    cumulative_aggregations = this->input_cache("cumulative_aggregations")->pullFromCache();
+    RAL_EXPECTS(cumulative_aggregations_str.size() == this->aggs_wind_func.size(), 
+        "In WindowAggMergerKernel the number of aggregation window functions did not match the number of cumulative aggregation values received");
+
     std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache("batches")->pullCacheData();
 
     while (cache_data != nullptr ){

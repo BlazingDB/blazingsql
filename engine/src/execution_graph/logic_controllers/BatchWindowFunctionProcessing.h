@@ -273,11 +273,7 @@ private:
 	std::vector<std::string> type_aggs_as_str;     // ["MIN", "MAX"]
 	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::MAX]
 
-
-	// WSM TODO. Do we really want this to be a BlazingTable member? 
-	// It should always be pretty small, so it should not be a memory burden of any note, but it goes against the pattern
-	// We can always figure out a host representation that we would be more comfortable being left as a member
-	std::unique_ptr<ral::frame::BlazingTable> cumulative_aggregations;  
+	std::vector<std::vector<std::string>> merge_expressions_per_batch;
 
 };
 
