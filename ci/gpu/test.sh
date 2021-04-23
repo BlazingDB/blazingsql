@@ -184,11 +184,9 @@ else
 
             cd ${WORKSPACE}/tests/BlazingSQLTest/
             SECONDS=0
-            if [ "$E2E_TEST_GROUP" == "" ]; then
-                python -m EndToEndTests.allE2ETest
-            else
-                python -m EndToEndTests.$E2E_TEST_GROUP
-            fi
+
+            python -m EndToEndTests.allE2ETest-v2
+
             duration=$SECONDS
             logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 
@@ -204,11 +202,9 @@ else
                 export BLAZINGSQL_E2E_TEST_WITH_NULLS=$include_nulls
                 cd ${WORKSPACE}/tests/BlazingSQLTest/
                 SECONDS=0
-                if [ "$E2E_TEST_GROUP" == "" ]; then
-                    python -m EndToEndTests.allE2ETest
-                else
-                    python -m EndToEndTests.$E2E_TEST_GROUP
-                fi
+
+                python -m EndToEndTests.allE2ETest-v2
+
                 duration=$SECONDS
                 logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
                 logger "End to end tests DISTRIBUTED (nrals=2), including nulls: $include_nulls ... DONE!"

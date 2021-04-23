@@ -1,10 +1,6 @@
 from blazingsql import DataType
-# from DataBase import createSchema
-# from Configuration import ExecutionMode, Settings
-# from Runner import runTest
-# from Utils import gpuMemory, skip_test
-# from EndToEndTests.tpchQueries import get_tpch_query
-from Runner import testInfo
+from Runner import testSuite
+
 import sql_metadata
 import yaml
 import os
@@ -29,7 +25,7 @@ def getAllQueries():
         "select l.l_orderkey, l.l_linenumber from lineitem as l inner join orders as o on l.l_orderkey = o.o_orderkey and l.l_commitdate < o.o_orderdate and l.l_receiptdate > o.o_orderdate"
     ]
 
-class e2eTest():
+class testSuites():
     # compareEngine
 
     def __init__(self, bc, dask_client, drill, spark):
@@ -40,13 +36,7 @@ class e2eTest():
         self.targetTestList = []
         self.tables = set()
 
-        self.config = testInfo.configTest()
-        self.config.worder = None
-        self.config.use_percentage = None
-        self.config.acceptable_difference = None
-        self.config.orderby = None
-        self.config.print_result = None
-        self.config.data_types = None
+        self.config = testSuite.configTest()
 
         self.__setupTest()
         self.__loadTables()
@@ -97,5 +87,5 @@ class e2eTest():
 
         for test in self.targetTestList:
             if self.__existTestData(test):
-                testData = testInfo.testRunner(test, "Runner/queries.yml", self.config)
+                testData = testSuite.testSuite(test, "Runner/queries.yml", self.config)
                 testData.run(self.bc, self.dask_client, self.drill, self.spark)

@@ -1,5 +1,6 @@
 from Configuration import Settings
 from Utils import gpuMemory
+from Runner import runner
 
 import os
 import yaml
@@ -12,7 +13,7 @@ class configTest():
     print_result = None
     data_types = None
 
-class testRunner():
+class testSuite():
     def __init__(self, name, configFile, default):
         self.name = name
         self.configFile = configFile
@@ -74,8 +75,8 @@ class testRunner():
         nRals = Settings.data["RunSettings"]["nRals"]
 
         start_mem = gpuMemory.capture_gpu_memory_usage()
-        # executionTest(dask_client, drill, dir_data_lc, bc, nRals, sql)
+        runner.executionTest(bc, dask_client, drill, spark, nRals, dir_data_file, self.name)
         end_mem = gpuMemory.capture_gpu_memory_usage()
-        gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+        gpuMemory.log_memory_usage(self.name, start_mem, end_mem)
 
 

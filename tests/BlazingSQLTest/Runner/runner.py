@@ -1,12 +1,12 @@
-import pyyaml
+import yaml
 
 from DataBase import createSchema as cs
 from Runner import runTest
 from blazingsql import DataType
 
 class TestCase:
-	
-	def __init__(self, testcase_id, sql, acceptable_difference, compare_with, order, **kwargs):
+
+    def __init__(self, testcase_id, sql, acceptable_difference, compare_with, order, **kwargs):
         self.testcase_id = testcase_id
         self.sql = sql
         self.acceptable_difference = acceptable_difference
@@ -15,16 +15,16 @@ class TestCase:
         self.del_dtype = kwargs.get("del_dtype", "")
 
 class Runner:
-	
-	def __init__(self, testSuite, dir_data, nrals, **kwargs):
+
+    def __init__(self, testSuite, dir_data, nrals, **kwargs):
         self.testSuite = testSuite
         self.dir_data = dir_data
         self.nrals = nrals
         self.drill = kwargs.get("drill", "")
         self.spark = kwargs.get("spark", "")
         
-	def get_test_cases(testSuite):
-		with open(r'../EndToEndTests/TestSuites/'+testSuite+'.yaml') as file:
+    def get_test_cases(testSuite):
+        with open(r'../EndToEndTests/TestSuites/'+testSuite+'.yaml') as file:
             yaml_dict = yaml.load(file, Loader=yaml.FullLoader)
         
         testSuite_dict = yaml_dict["TEST_SUITE"]
@@ -36,10 +36,10 @@ class Runner:
             testCases_list.append(TestCase(testCase_id,
                                   testcase_dict["SQL"],
                                   testcase_dict["ACCEPTABLE_DIFFERENCE"],
-                                  testcase_dict["COMPARE_WITH"]
+                                  testcase_dict["COMPARE_WITH"],
                                   testcase_dict["ORDER"]))
 
-		return testCases_list
+        return testCases_list
 
     def datasources(dask_client, nRals):
         for fileSchemaType in data_types:
@@ -62,18 +62,18 @@ class Runner:
         
         return data_types
 
-	def run_queries(bc, dask_client, drill, spark, queryType, **kwargs):
-		
-		test_cases_list = get_test_cases(self.testSuite)
+    def run_queries(bc, dask_client, drill, spark, queryType, **kwargs):
 
-		print("######## Starting queries ...########")
-		
-		data_types = datasources(sel.nrals, self.del_dtype)
+        test_cases_list = get_test_cases(self.testSuite)
 
-        for n in range(0,len(data_types):
+        print("######## Starting queries ...########")
+
+        data_types = datasources(sel.nrals, self.del_dtype)
+
+        for n in range(0,len(data_types)):
 
             fileSchemaType = data_types[n]
-		
+
             cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
 
             for x in range(0,len(test_cases_list)):
@@ -114,51 +114,8 @@ class Runner:
 
 
 
-def executionTest(bc, dask_client, drill, spark, nRals, dir_data, queryType):
-	
-	runner = Runner(nrals, testSuite, dir_data)
-	
-	runner.run_queries(bc, dask_client, drill, spark, queryType)
-	
-	
-def init_engines()
+def executionTest(bc, dask_client, drill, spark, nRals, dir_data, testSuite):
 
-	drill = "drill"
-    spark = "spark"
-    
-    compareResults = True
-    if "compare_results" in Settings.data["RunSettings"]:
-        compareResults = Settings.data["RunSettings"]["compare_results"]
+    runner = Runner(nRals, testSuite, dir_data)
 
-    if (
-        Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
-    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
-
-        # Create Table Drill -----------------------------------------
-        from pydrill.client import PyDrill
-
-        drill = PyDrill(host="localhost", port=8047)
-        createSchema.init_drill_schema(
-            drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
-        )
-        createSchema.init_drill_schema(
-            drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
-        )
-
-        # Create Table Spark -------------------------------------------------
-        from pyspark.sql import SparkSession
-
-        spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
-        createSchema.init_spark_schema(
-            spark, Settings.data["TestSettings"]["dataDirectory"]
-        )
-        createSchema.init_spark_schema(
-            spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
-        )
-			
-		bc, dask_client = init_context()
-
-        return bc, dask_client, drill, spark 
-	
-	
-        
+    runner.run_queries(bc, dask_client, drill, spark, testSuite)
