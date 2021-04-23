@@ -1,18 +1,30 @@
 :code:`CONCAT` operator
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
-:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
+**Supported datatypes:**  :ref:`VARCHAR<sql_dtypes>`
 
-Lorem ipsum 
+The concatenation operator joins two or more string type values into one. 
 
-www
-~~~
+.. seealso:: :ref:`sql_string_concat`
+
+:code:`||` operator
+~~~~~~~~~~~~~~~~~~~
+
+Combines two or more string type values (columns or literals) into one.
 
 Example
 """""""
 
+Concatenate two text columns.
+
 .. code-block:: sql
 
-    SELECT *
-    FROM <foo>
+    SELECT <col_1> || <col_2>
+    FROM <table_name>
+
+Concatenate a columns with a string.
+
+.. code-block:: sql
+
+    SELECT <col_1> || <string_literal>
+    FROM <table_name>
