@@ -1,3 +1,6 @@
+import os
+import docker
+from time import sleep
 from blazingsql import DataType, S3EncryptionType
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
@@ -12,6 +15,28 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     queryType = "File System S3"
+    def start_s3mock(access_key_id, secret_access_key):
+        print("Start Minio server")
+        client = docker.from_env()
+        conda_prefix = os.getenv("CONDA_PREFIX", "/data")
+        mount_path = conda_prefix + "/blazingsql-testing-files/data"
+        container = client.containers.run(image='minio/minio',
+                                        detach=True,
+                                        auto_remove=True,
+                                        environment=[f"MINIO_ROOT_USER=={access_key_id}",
+                                                     f"MINIO_ROOT_PASSWORD={secret_access_key}"],
+                                        ports={ '9000/tcp': 9000 },
+                                        remove=True,
+                                        volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
+                                        command='server /data')
+        print('Starting minio docker container for tests...')
+        sleep(20)
+        container.logs()
+        return container
+
+    def stop_s3mock(container):
+        if container:
+            container.kill()
 
     def executionTest(queryType):
         # Read Data TPCH------------------------------------------------------
@@ -20,6 +45,11 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         awsS3BucketName = Settings.data["TestSettings"]["awsS3BucketName"]
         awsS3AccessKeyId = Settings.data["TestSettings"]["awsS3AccessKeyId"]
         awsS3SecretKey = Settings.data["TestSettings"]["awsS3SecretKey"]
+        awsS3OverrideEndpoint = None
+
+        if not awsS3BucketName:
+            awsS3BucketName = "tpch"
+            awsS3OverrideEndpoint = "http://127.0.0.1:9000"
 
         bc.s3(
             authority,
@@ -27,15 +57,18 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             encryption_type=S3EncryptionType.NONE,
             access_key_id=awsS3AccessKeyId,
             secret_key=awsS3SecretKey,
+            endpoint_override=awsS3OverrideEndpoint
         )
 
         # dir_df = dir_data_lc[dir_data_lc.find("DataSet"):len(dir_data_lc)]
 
-        dir_data_lc = "s3://" + authority + "/" + "DataSet100Mb2part/"
+        dir_data_lc = "s3://" + authority + "/" + "tpch/"
 
         tables = ["nation", "region", "supplier", "customer",
                   "lineitem", "orders"]
         data_types = [DataType.CSV, DataType.PARQUET]  # TODO json
+        
+        mock_server = start_s3mock(awsS3AccessKeyId, awsS3SecretKey)
 
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
@@ -441,6 +474,9 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
+
+            if mock_server:
+                stop_s3mock(mock_server)
 
     executionTest(queryType)
 

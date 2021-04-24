@@ -86,7 +86,7 @@ def start_postgres(user, password, database, port):
                                                     f"POSTGRES_PASSWORD={password}",
                                                     f"POSTGRES_DB={database}"],
                                       ports={ '5432/tcp': port },
-                                      remove=True,
+                                      remove=True)
     print('Starting postgres docker container for tests...')
     sleep(20)
     container.logs()
@@ -169,7 +169,7 @@ def run_queries(bc, dask_client, nRals, drill, dir_data_lc, tables, **kwargs):
         )
         currrentFileSchemaType = fileSchemaType
 
-def setup_test(data_type: DataType) -> createSchema.sql_connection, None:
+def setup_test(data_type: DataType) -> createSchema.sql_connection:
     sql = createSchema.get_sql_connection(data_type)
     if not sql:
         print(f"ERROR: You cannot run tablesFromSQL test, setup your SQL connection for {data_type}using env vars! See tests/README.md")
