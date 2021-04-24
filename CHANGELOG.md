@@ -199,6 +199,7 @@
 - #1225 Fixed issue due to change in gather API 
 - #1254 Fixing support of nightly and stable on localhost
 - #1258 Fixing gtest version issue
+- #1504 Fixing some conflicts in Dockerfile
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
