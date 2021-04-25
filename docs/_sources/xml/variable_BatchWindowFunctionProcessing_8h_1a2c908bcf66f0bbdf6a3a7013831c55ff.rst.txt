@@ -1,0 +1,13 @@
+.. _exhale_variable_BatchWindowFunctionProcessing_8h_1a2c908bcf66f0bbdf6a3a7013831c55ff:
+
+Variable ral::batch::TASK_ARG_SOURCE_BATCH_INDEX
+================================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::batch::TASK_ARG_SOURCE_BATCH_INDEX

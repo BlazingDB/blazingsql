@@ -1,9 +1,10 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
  */
 
 #include "AbstractSQLDataProvider.h"
+
+#include "compatibility/SQLTranspiler.h"
 
 namespace ral {
 namespace io {
@@ -15,7 +16,7 @@ abstractsql_data_provider::abstractsql_data_provider(
 	: data_provider(), sql(sql), total_number_of_nodes(total_number_of_nodes), self_node_idx(self_node_idx) {}
 
 abstractsql_data_provider::~abstractsql_data_provider() {
-	this->close_file_handles(); 
+	this->close_file_handles();
 }
 
 std::vector<data_handle> abstractsql_data_provider::get_some(std::size_t batch_count, bool){
@@ -38,8 +39,20 @@ void abstractsql_data_provider::close_file_handles() {
   // NOTE we don't use any file handle for this provider so nothing to do here
 }
 
-std::string abstractsql_data_provider::build_select_from() const {
+bool abstractsql_data_provider::set_predicate_pushdown(const std::string &queryString)
+{
+  // DEBUG
+  //std::cout << "\nORIGINAL query part for the predicate pushdown:\n" << queryString << "\n\n";
+  auto predicate_transformer = this->get_predicate_transformer();
+  this->where = sql_tools::transpile_predicate(queryString, predicate_transformer.get());
+  // DEBUG
+  //std::cout << "\nWHERE stmt for the predicate pushdown:\n" << this->where << "\n\n";
+  return !this->where.empty();
+}
+
+std::string abstractsql_data_provider::build_select_query(size_t batch_index) const {
   std::string cols;
+
   if (this->column_indices.empty()) {
     cols = "* ";
   } else {
@@ -53,11 +66,24 @@ std::string abstractsql_data_provider::build_select_from() const {
       }
     }
   }
-  return "SELECT " + cols + "FROM " + this->sql.table;
-}
 
-std::string abstractsql_data_provider::build_limit_offset(size_t offset) const {
-  return " LIMIT " + std::to_string(this->sql.table_batch_size) + " OFFSET " + std::to_string(offset);
+  const size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * batch_index + this->self_node_idx);
+  std::string limit = " LIMIT " + std::to_string(this->sql.table_batch_size) + " OFFSET " + std::to_string(offset);
+  auto ret = "SELECT " + cols + "FROM " + this->sql.table;
+
+  if(!sql.table_filter.empty() && !this->where.empty()) {
+    ret += " where " + sql.table_filter + " AND " + this->where;
+  } else {
+    if (sql.table_filter.empty()) {
+      if (!this->where.empty()) { // then the filter is from the predicate pushdown{
+        ret += " where " + this->where;
+      }
+    } else {
+      ret += " where " + sql.table_filter;
+    }
+  }
+
+  return ret + limit;
 }
 
 } /* namespace io */

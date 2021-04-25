@@ -1,0 +1,4296 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>Function is_union(std::string) &#8212; BlazingSQL v0.19 documentation</title>
+    
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.e7340bb3dbd8dde6db86f25597f54a1b.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Function is_union(std::string)" href="function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html" />
+    <link rel="prev" title="Function is_unary_operator(operator_type)" href="function_expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
+  
+</a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search BlazingSQL Docs" aria-label="Search BlazingSQL Docs" autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <p>
+ <span class="caption-text">
+  Contents:
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 collapsible-parent">
+  <a class="reference internal" href="../getting_started/index.html">
+   Getting started
+  </a>
+  <ul class="simple collapse-ul">
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+ <li class="toctree-l1 collapsible-parent">
+  <a class="reference internal" href="../engine/index.html">
+   BlazingSQL Engine
+  </a>
+  <ul class="collapse-ul">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/arch.html">
+     Technology Stack
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/pyblazing.html">
+     Python User Interface
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/relational_algebra.html">
+     Relational algebra
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/graph.html">
+     BlazingSQL Execution Graph
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/kernels.html">
+     Kernels
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/caches.html">
+     Caches
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/executor.html">
+     Task Executor
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/memory_management.html">
+     Memory Management
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/communication.html">
+     Communication
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/interops.html">
+     Interops
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/io.html">
+     I/O
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../engine/data_structures.html">
+     Data Structures
+    </a>
+   </li>
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+ <li class="toctree-l1 collapsible-parent">
+  <a class="reference internal" href="../use_cases/index.html">
+   Use cases
+  </a>
+  <ul class="collapse-ul">
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../use_cases/industry_solutions/index.html">
+     Industry solutions
+    </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../use_cases/industry_solutions/urban_planning.html">
+       Urban planning
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../use_cases/industry_solutions/healthcare.html">
+       Healthcare
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../use_cases/data_science/index.html">
+     Data science solutions
+    </a>
+    <ul class="simple collapse-ul">
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../use_cases/webinars/index.html">
+     GPU Accelerated Data Science
+    </a>
+    <ul class="simple collapse-ul">
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+ <li class="toctree-l1 current active collapsible-parent">
+  <a class="reference internal" href="../reference/index.html">
+   API Reference
+  </a>
+  <ul class="current collapse-ul">
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../reference/python/index.html">
+     Python API Reference
+    </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/python/blazing_context.html">
+       BlazingContext()
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.html">
+         blazingsql.BlazingContext
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.create_table.html">
+         blazingsql.BlazingContext.create_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.drop_table.html">
+         blazingsql.BlazingContext.drop_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.describe_table.html">
+         blazingsql.BlazingContext.describe_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.list_tables.html">
+         blazingsql.BlazingContext.list_tables
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.partition.html">
+         blazingsql.BlazingContext.partition
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.add_remove_table.html">
+         blazingsql.BlazingContext.add_remove_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.sql.html">
+         blazingsql.BlazingContext.sql
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.explain.html">
+         blazingsql.BlazingContext.explain
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.fetch.html">
+         blazingsql.BlazingContext.fetch
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.status.html">
+         blazingsql.BlazingContext.status
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.do_progress_bar.html">
+         blazingsql.BlazingContext.do_progress_bar
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.get_free_memory.html">
+         blazingsql.BlazingContext.get_free_memory
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.get_max_memory_used.html">
+         blazingsql.BlazingContext.get_max_memory_used
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.reset_max_memory_used.html">
+         blazingsql.BlazingContext.reset_max_memory_used
+        </a>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/python/storage_plugins.html">
+       Storage Plugins
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.gs.html">
+         blazingsql.BlazingContext.gs
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.hdfs.html">
+         blazingsql.BlazingContext.hdfs
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.localfs.html">
+         blazingsql.BlazingContext.localfs
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.s3.html">
+         blazingsql.BlazingContext.s3
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/api/blazingsql.BlazingContext.show_filesystems.html">
+         blazingsql.BlazingContext.show_filesystems
+        </a>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/python/tables.html">
+       Create tables
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/apache-hive.html">
+         Query Hive Tables
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/apache-orc.html">
+         Query Apache ORC Files
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/apache-parquet.html">
+         Query Apache Parquet Files
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/pandas-df.html">
+         Query pandas DataFrames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/rapidsai-cudf.html">
+         Query cuDF DataFrames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/rapidsai-cudf.html#query-dask-cudf-dataframes">
+         Query dask_cudf DataFrames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../reference/python/tables/text-files.html">
+         Query Plain Text Files
+        </a>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/sql/index.html">
+     SQL API Reference
+    </a>
+   </li>
+   <li class="toctree-l2 current active collapsible-parent">
+    <a class="reference internal" href="library_root.html">
+     Engine C++ API Reference
+    </a>
+    <ul class="current collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_blazingdb.html">
+       Namespace blazingdb
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_blazingdb__manager.html">
+       Namespace blazingdb::manager
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_blazingdb__transport.html">
+       Namespace blazingdb::transport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_comm.html">
+       Namespace comm
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_comm__detail.html">
+       Namespace comm::detail
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ctpl.html">
+       Namespace ctpl
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ctpl__detail.html">
+       Namespace ctpl::detail
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_dbg_macro.html">
+       Namespace dbg_macro
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_dbg_macro__detail_detector.html">
+       Namespace dbg_macro::detail_detector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_fmt__literals.html">
+       Namespace fmt::literals
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_interops.html">
+       Namespace interops
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_io.html">
+       Namespace io
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral.html">
+       Namespace ral
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__batch.html">
+       Namespace ral::batch
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__cache.html">
+       Namespace ral::cache
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__communication.html">
+       Namespace ral::communication
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__communication__messages.html">
+       Namespace ral::communication::messages
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__distribution.html">
+       Namespace ral::distribution
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__distribution__%4040.html">
+       Namespace ral::distribution::@40
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__execution.html">
+       Namespace ral::execution
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__frame.html">
+       Namespace ral::frame
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__io.html">
+       Namespace ral::io
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__io__%40125.html">
+       Namespace ral::io::@125
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__io__%40132.html">
+       Namespace ral::io::@132
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__memory.html">
+       Namespace ral::memory
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__operators.html">
+       Namespace ral::operators
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__operators__%40139.html">
+       Namespace ral::operators::@139
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__parser.html">
+       Namespace ral::parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__parser__detail.html">
+       Namespace ral::parser::detail
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__processor.html">
+       Namespace ral::processor
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__processor__%4066.html">
+       Namespace ral::processor::@66
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__processor__strings.html">
+       Namespace ral::processor::strings
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__skip_data.html">
+       Namespace ral::skip_data
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__skip_data__%40144.html">
+       Namespace ral::skip_data::@144
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__utilities.html">
+       Namespace ral::utilities
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_std__chrono_literals.html">
+       Namespace std::chrono_literals
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_strings.html">
+       Namespace strings
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_strings__detail.html">
+       Namespace strings::detail
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_strings__detail__%40159.html">
+       Namespace strings::detail::@159
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structblazingdb_1_1transport_1_1ColumnTransport.html">
+       Struct ColumnTransport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData.html">
+       Struct ColumnTransport::MetaData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structBlazingMissingMetadataException.html">
+       Struct BlazingMissingMetadataException
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structcomm_1_1blazing__ucp__tag.html">
+       Struct blazing_ucp_tag
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structcomm_1_1ucp__progress__manager_1_1request__struct.html">
+       Struct ucp_progress_manager::request_struct
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structcomm_1_1ucx__request.html">
+       Struct ucx_request
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structdbg__macro_1_1detail__detector_1_1detector.html">
+       Template Struct detector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structdbg__macro_1_1detail__detector_1_1detector_3_01Default_00_01void__t_3_01Op_3_01Args_8_8_8_7a587da40c906bd309ce2dec06959c4d.html">
+       Template Struct detector&lt; Default, void_t&lt; Op&lt; Args… &gt; &gt;, Op, Args… &gt;
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structdbg__macro_1_1detail__detector_1_1nonesuch.html">
+       Struct nonesuch
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structdbg__macro_1_1has__begin__end__size.html">
+       Template Struct has_begin_end_size
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1batch_1_1node.html">
+       Struct node
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1batch_1_1tree__processor.html">
+       Struct tree_processor
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html">
+       Struct cache_settings
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1cache_1_1graph_1_1Edge.html">
+       Struct graph::Edge
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1cache_1_1graph__progress.html">
+       Struct graph_progress
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1cache_1_1port__helper.html">
+       Template Struct port_helper
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1cache_1_1port__helper_3_01PORT_01_4.html">
+       Template Struct port_helper&lt; PORT &gt;
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1cache_1_1port__helper_3_01PORT_00_01PORTNAME_00_01PORTNAMES_8_8_8_01_4.html">
+       Template Struct port_helper&lt; PORT, PORTNAME, PORTNAMES… &gt;
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1execution_1_1task__result.html">
+       Struct task_result
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1callb.html">
+       Struct callb
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html">
+       Struct cudf_string_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1data__handle.html">
+       Struct data_handle
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1mysql__columns__info.html">
+       Struct mysql_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1mysql__table__info.html">
+       Struct mysql_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sql__datasource.html">
+       Struct sql_datasource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sql__info.html">
+       Struct sql_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sqlite__columns__info.html">
+       Struct sqlite_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sqlite__table__info.html">
+       Struct sqlite_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1memory_1_1blazing__allocation.html">
+       Struct blazing_allocation
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html">
+       Struct blazing_allocation_chunk
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1memory_1_1blazing__chunked__column__info.html">
+       Struct blazing_chunked_column_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1processor_1_1expr__output__type__visitor.html">
+       Struct expr_output_type_visitor
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1processor_1_1strings_1_1cast__to__str__functor.html">
+       Struct cast_to_str_functor
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazing__context__ref__counter.html">
+       Class blazing_context_ref_counter
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazing__device__memory__resource.html">
+       Class blazing_device_memory_resource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazing__disk__memory__resource.html">
+       Class blazing_disk_memory_resource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazing__host__memory__resource.html">
+       Class blazing_host_memory_resource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazingdb_1_1manager_1_1Context.html">
+       Class Context
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazingdb_1_1transport_1_1Node.html">
+       Class Node
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classblazingdb_1_1transport_1_1Status.html">
+       Class Status
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classBlazingMemoryResource.html">
+       Class BlazingMemoryResource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classCodeTimer.html">
+       Class CodeTimer
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1buffer__transport.html">
+       Class buffer_transport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1graphs__info.html">
+       Class graphs_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1message__listener.html">
+       Class message_listener
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1message__receiver.html">
+       Class message_receiver
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1message__sender.html">
+       Class message_sender
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1node.html">
+       Class node
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1tcp__buffer__transport.html">
+       Class tcp_buffer_transport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1tcp__message__listener.html">
+       Class tcp_message_listener
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1ucp__progress__manager.html">
+       Class ucp_progress_manager
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1ucx__buffer__transport.html">
+       Class ucx_buffer_transport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classcomm_1_1ucx__message__listener.html">
+       Class ucx_message_listener
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classctpl_1_1detail_1_1Queue.html">
+       Template Class Queue
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classctpl_1_1thread__pool.html">
+       Template Class thread_pool
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classDataParser.html">
+       Class DataParser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classdbg__macro_1_1DebugOutput.html">
+       Class DebugOutput
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classinternal__blazing__device__memory__resource.html">
+       Class internal_blazing_device_memory_resource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classinternal__blazing__host__memory__resource.html">
+       Class internal_blazing_host_memory_resource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1BatchSequence.html">
+       Class BatchSequence
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1BatchSequenceBypass.html">
+       Class BatchSequenceBypass
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1BindableTableScan.html">
+       Class BindableTableScan
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1ComputeAggregateKernel.html">
+       Class ComputeAggregateKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1ComputeWindowKernel.html">
+       Class ComputeWindowKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1DistributeAggregateKernel.html">
+       Class DistributeAggregateKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1Filter.html">
+       Class Filter
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1JoinPartitionKernel.html">
+       Class JoinPartitionKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1LimitKernel.html">
+       Class LimitKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1MergeAggregateKernel.html">
+       Class MergeAggregateKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1MergeStreamKernel.html">
+       Class MergeStreamKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1OutputKernel.html">
+       Class OutputKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1OverlapAccumulatorKernel.html">
+       Class OverlapAccumulatorKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1OverlapGeneratorKernel.html">
+       Class OverlapGeneratorKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1PartitionKernel.html">
+       Class PartitionKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1PartitionSingleNodeKernel.html">
+       Class PartitionSingleNodeKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1PartwiseJoin.html">
+       Class PartwiseJoin
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1Print.html">
+       Class Print
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1Projection.html">
+       Class Projection
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1SortAndSampleKernel.html">
+       Class SortAndSampleKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1TableScan.html">
+       Class TableScan
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1UnionKernel.html">
+       Class UnionKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1CacheData.html">
+       Class CacheData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1CacheDataIO.html">
+       Class CacheDataIO
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1CacheDataLocalFile.html">
+       Class CacheDataLocalFile
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html">
+       Class CacheMachine
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1ConcatCacheData.html">
+       Class ConcatCacheData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1ConcatenatingCacheMachine.html">
+       Class ConcatenatingCacheMachine
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1CPUCacheData.html">
+       Class CPUCacheData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1distributing__kernel.html">
+       Class distributing_kernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1GPUCacheData.html">
+       Class GPUCacheData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1graph.html">
+       Class graph
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1kernel.html">
+       Class kernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1kpair.html">
+       Class kpair
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1message.html">
+       Class message
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1MetadataDictionary.html">
+       Class MetadataDictionary
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1port.html">
+       Class port
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1cache_1_1WaitingQueue.html">
+       Template Class WaitingQueue
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1communication_1_1AddressExchanger.html">
+       Class AddressExchanger
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1communication_1_1AddressExchangerForReceiver.html">
+       Class AddressExchangerForReceiver
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1communication_1_1AddressExchangerForSender.html">
+       Class AddressExchangerForSender
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1communication_1_1CommunicationData.html">
+       Class CommunicationData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1communication_1_1ErrorHandling.html">
+       Class ErrorHandling
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1communication_1_1UcpWorkerAddress.html">
+       Class UcpWorkerAddress
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1execution_1_1executor.html">
+       Class executor
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1execution_1_1priority.html">
+       Class priority
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1execution_1_1task.html">
+       Class task
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1frame_1_1BlazingColumn.html">
+       Class BlazingColumn
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1frame_1_1BlazingColumnOwner.html">
+       Class BlazingColumnOwner
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1frame_1_1BlazingColumnView.html">
+       Class BlazingColumnView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1frame_1_1BlazingHostTable.html">
+       Class BlazingHostTable
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html">
+       Class BlazingTable
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1frame_1_1BlazingTableView.html">
+       Class BlazingTableView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1abstractsql__data__provider.html">
+       Class abstractsql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1abstractsql__parser.html">
+       Class abstractsql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1arrow__parser.html">
+       Class arrow_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1csv__parser.html">
+       Class csv_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1data__loader.html">
+       Class data_loader
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1data__parser.html">
+       Class data_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1data__provider.html">
+       Class data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1gdf__data__provider.html">
+       Class gdf_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1gdf__parser.html">
+       Class gdf_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1json__parser.html">
+       Class json_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1mysql__data__provider.html">
+       Class mysql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1mysql__parser.html">
+       Class mysql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1orc__parser.html">
+       Class orc_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1parquet__parser.html">
+       Class parquet_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1postgresql__data__provider.html">
+       Class postgresql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1postgresql__parser.html">
+       Class postgresql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1Schema.html">
+       Class Schema
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1sqlite__data__provider.html">
+       Class sqlite_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1sqlite__parser.html">
+       Class sqlite_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1uri__data__provider.html">
+       Class uri_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1memory_1_1allocation__pool.html">
+       Class allocation_pool
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1memory_1_1base__allocator.html">
+       Class base_allocator
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1memory_1_1buffer__providers.html">
+       Class buffer_providers
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1memory_1_1host__allocator.html">
+       Class host_allocator
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1memory_1_1pinned__allocator.html">
+       Class pinned_allocator
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1MemoryMonitor.html">
+       Class MemoryMonitor
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1processor_1_1function__evaluator__transformer.html">
+       Class function_evaluator_transformer
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_error_8hpp_1a43b1a8391d990a85e89d3ad398e7aa3a.html">
+       Enum _error
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_GroupBy_8h_1ac8bfc4c26d1861a70e765e84d7d3603f.html">
+       Enum AggregateKind
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_protocols_8hpp_1a874c084e940581650ac0852237f3c304.html">
+       Enum blazing_protocol
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_protocols_8hpp_1a5e4fda95f678d6d0597522281c71799c.html">
+       Enum status_code
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_interpreter__cpp_8h_1acef14b90ee696e64c8b61f86df944585.html">
+       Enum column_index
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html">
+       Enum operator_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_CacheData_8h_1ade29b85c2552b60c19a21969d5b9f8cb.html">
+       Enum CacheDataType
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_kpair_8h_1a51a0fc7db09186b523254abcf775e80d.html">
+       Enum CacheType
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html">
+       Enum kernel_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_port_8h_1a7ca88559216aa8af73fa0d60c4bb1375.html">
+       Enum kstatus
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_kernel_8h_1a1e7e99bcfa8ea15b795acd117776bec7.html">
+       Enum task_status
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_BlazingColumn_8h_1a9fd93e5e4b5e5951debb6eed1165557a.html">
+       Enum blazing_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html">
+       Enum DataType
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_scalar__timestamp__parser_8cpp_1a0dad018c848102504b1bfde687e465eb.html">
+       Enum format_char_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_scalar__timestamp__parser_8cpp_1a0bbf7c9dc9b27381f2c180e411796b01.html">
+       Enum timestamp_parse_component
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html">
+       Enum timestamp_units
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initializer_8h_1a8ef4c8918c23f9a13dd11e139c1fb618.html">
+       Function BlazingRMMFinalize
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initializer_8h_1a5fb67cee1df05fdc2fd326417bd5e832.html">
+       Function BlazingRMMInitialize
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aeb1417d8928ac4574cd35044c8f384ef.html">
+       Function bypassingProject(std::string, std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef.html">
+       Function bypassingProject(std::string, std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a774174506cadfc9987816e9d95df05d7.html">
+       Function clean_calcite_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a774174506cadfc9987816e9d95df05d7.html">
+       Function clean_calcite_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html">
+       Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html">
+       Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a4ea46f0f71a561ab21588ebdce6f08c3.html">
+       Function clear_graphs
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_serializer_8cpp_1a7fd15c31dc49df173a59a475f63760b4.html">
+       Function comm::deserialize_from_gpu_raw_buffers
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_bufferTransport_8hpp_1a3a6dfbc4fa670cc4cccf7a722dc16185.html">
+       Template Function comm::detail::from_byte_vector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_bufferTransport_8cpp_1a4a4eab7cb88bc66f0543639744b9c8ca.html">
+       Function comm::detail::get_metadata_and_transports_and_buffer_sizes_from_bytes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_bufferTransport_8cpp_1ab28928f84da603ccc901dfae405a6bf3.html">
+       Function comm::detail::serialize_metadata_and_transports_and_buffer_sizes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_bufferTransport_8hpp_1a20bc35320f8caba006ffd1c7ddef056f.html">
+       Template Function comm::detail::to_byte_vector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_bufferTransport_8hpp_1ae91d1a57d61a289594eaffef6d1a7575.html">
+       Template Function comm::detail::vector_from_byte_vector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_bufferTransport_8hpp_1ab26ede7aa2c808e59a4011644fa8df23.html">
+       Template Function comm::detail::vector_to_byte_vector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_messageListener_8cpp_1a96dfaea2cc9f8a538e7cc90931d52772.html">
+       Function comm::poll_for_frames
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_messageListener_8cpp_1a1395c8882256f25cb816090f4ef57276.html">
+       Function comm::recv_begin_callback_c
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a61842c811e058f656a82826436a9cb43.html">
+       Function concat_strings
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html">
+       Function convert_concat_expression_into_multiple_binary_concat_ops(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html">
+       Function convert_concat_expression_into_multiple_binary_concat_ops(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1aaffe8adbb74cbdedf9c6313029e5d7ca.html">
+       Function count_string_occurrence(std::string, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1aaffe8adbb74cbdedf9c6313029e5d7ca.html">
+       Function count_string_occurrence(std::string, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a0043898e3818fad9b88911bdd920fc28.html">
+       Function create_logger
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a8cd9706dcf99965377842446769f3527.html">
+       Template Function dbg_macro::prettyPrint(std::ostream&amp;, const T&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1ae827cdc8b6fe9b66cc015cdcb17f89ac.html">
+       Function dbg_macro::prettyPrint(std::ostream&amp;, const bool&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a7d2713ea440a6f885567be1f4b983e98.html">
+       Function dbg_macro::prettyPrint(std::ostream&amp;, const char&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a4f8125f57f1a6411a815ff14b0585d25.html">
+       Template Function dbg_macro::prettyPrint(std::ostream&amp;, P *const&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1aead8b7b31ac4e59314cb6dd0559cc199.html">
+       Template Function dbg_macro::prettyPrint(std::ostream&amp;, const char(&amp;))
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1aa9fdf7314d3ed417ce417e2d54d94b3e.html">
+       Function dbg_macro::prettyPrint(std::ostream&amp;, const char *const&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a47085a02f3d4771e8a32b62147566d1c.html">
+       Template Function dbg_macro::prettyPrint(std::ostream&amp;, Container const&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a6fdcf2651bcb47e3d703dccd86e14ad7.html">
+       Function dbg_macro::prettyPrint(std::ostream&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a829df0c4b81fd3769d3712023397964e.html">
+       Template Function dbg_macro::type_name
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a655d7497da1e6d375b19ac6e1a5e8293.html">
+       Function dbg_macro::type_name&lt; std::string &gt;
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_dbg_8hpp_1a4166480f854c53ec062cf61c871087fb.html">
+       Template Function dbg_macro::type_name_impl
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a16ab6f33339b397615c5fd7380bbfc55.html">
+       Function expand_if_logical_op(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a16ab6f33339b397615c5fd7380bbfc55.html">
+       Function expand_if_logical_op(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html">
+       Function extract_table_name(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html">
+       Function extract_table_name(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a6a7604747742d1add660479363811c83.html">
+       Function fill_minus_op_with_zero(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a6a7604747742d1add660479363811c83.html">
+       Function fill_minus_op_with_zero(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a3ca0982e8f00f57c8be81824c2466bdb.html">
+       Function finalize
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1adae9b4b93ed071988f50402abece9cac.html">
+       Function finalize_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ad00ff8d6ea58fe38322d3ca02b52de99.html">
+       Function find_closing_char
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a597392d04d4268baed76d008022c5df1.html">
+       Function fix_column_aliases(const std::vector&lt;std::string&gt;&amp;, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a597392d04d4268baed76d008022c5df1.html">
+       Function fix_column_aliases(const std::vector&lt;std::string&gt;&amp;, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a577dc37868768e8bd68ce62cf3042fa5.html">
+       Function fix_column_names_duplicated
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8cpp_1a78900caa2be5784a34668af3a49bd829.html">
+       Function generate_graph(std::vector&lt;ral::io::data_loader&gt;, std::vector&lt;ral::io::Schema&gt;, std::vector&lt;std::string&gt;, std::vector&lt;std::string&gt;, std::string, Context&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8h_1a78900caa2be5784a34668af3a49bd829.html">
+       Function generate_graph(std::vector&lt;ral::io::data_loader&gt;, std::vector&lt;ral::io::Schema&gt;, std::vector&lt;std::string&gt;, std::vector&lt;std::string&gt;, std::string, Context&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a38b2b470b5a33db83e70c86e9f9fcc6e.html">
+       Function get_aggregation_operation_string(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1adc1a9ca33720d06aaef1f5cfca885677.html">
+       Function get_aggregation_operation_string(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1abf582c72cc7b89dd926de49c0e12627c.html">
+       Function get_all_str_values_in_the_same_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a93bc730130f941476b42f28ff6a38477.html">
+       Function get_all_values_in_the_same_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a62bf30cccd461f0bac29cc88754776cf.html">
+       Function get_bounds_from_window_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf.html">
+       Function get_bounds_from_window_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a2b1e69e6cea639ec9f5d532633517d94.html">
+       Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c.html">
+       Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8cpp_1afafaece78c14fa2854655452fab848b5.html">
+       Function get_execute_graph_results(std::shared_ptr&lt;ral::cache::graph&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8h_1afafaece78c14fa2854655452fab848b5.html">
+       Function get_execute_graph_results(std::shared_ptr&lt;ral::cache::graph&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a5f1ff4a556cb62777dc69e7bcd2a9aa4.html">
+       Function get_expressions_from_expression_list(std::string&amp;, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657.html">
+       Function get_expressions_from_expression_list(std::string&amp;, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a37f2c7a268cd308b36040855417b5478.html">
+       Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478.html">
+       Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html">
+       Function get_frame_type_from_over_clause(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html">
+       Function get_frame_type_from_over_clause(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ae82256997677ac5d9716140bfc75a965.html">
+       Function get_index(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1ae82256997677ac5d9716140bfc75a965.html">
+       Function get_index(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a2d05cd714c409b652018a18c8406059b.html">
+       Function get_ip
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1ac2b1eeed6311019103cc8f10f8694db3.html">
+       Function get_loaders_and_schemas
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1abdba8cb9205076d65b966688e33c8573.html">
+       Function get_max_integer_scalar(cudf::data_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1abdba8cb9205076d65b966688e33c8573.html">
+       Function get_max_integer_scalar(cudf::data_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a92f8778c9e68688ce22df6a1e70e85d0.html">
+       Function get_minmax_metadata(std::vector&lt;cudf::io::parsed_orc_statistics&gt;&amp;, size_t, int)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8h_1a9d580a89d9f803997f675d1b92194445.html">
+       Function get_minmax_metadata(std::vector&lt;cudf::io::parsed_orc_statistics&gt;&amp;, size_t, int)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_parquet__metadata_8cpp_1a1c287d4955f6219fb9b083ea01b8f045.html">
+       Function get_minmax_metadata(std::vector&lt;std::unique_ptr&lt;parquet::ParquetFileReader&gt;&gt;&amp;, size_t, int)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_parquet__metadata_8h_1a1c287d4955f6219fb9b083ea01b8f045.html">
+       Function get_minmax_metadata(std::vector&lt;std::unique_ptr&lt;parquet::ParquetFileReader&gt;&gt;&amp;, size_t, int)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa60fd2cf4a5990f75376962058107160.html">
+       Function get_named_expression(const std::string&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aa60fd2cf4a5990f75376962058107160.html">
+       Function get_named_expression(const std::string&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a4996fc412c775b98b4b6c010259a66b0.html">
+       Function get_output_type(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ab852f06a7c2678e10788ef5dc79d2ab4.html">
+       Function get_output_type(operator_type, cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a6fce7f7944d7704c2e129080f0789150.html">
+       Function get_output_type(operator_type, cudf::type_id, cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ab852f06a7c2678e10788ef5dc79d2ab4.html">
+       Function get_output_type(operator_type, cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a6fce7f7944d7704c2e129080f0789150.html">
+       Function get_output_type(operator_type, cudf::type_id, cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a4996fc412c775b98b4b6c010259a66b0.html">
+       Function get_output_type(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae67a78cff7624957f904219c398e23f2.html">
+       Function get_over_expression(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2.html">
+       Function get_over_expression(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8cpp_1a6873292cd0f9ef043baef8ebd8c7b50f.html">
+       Function get_physical_plan(std::string, Context&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8h_1a6873292cd0f9ef043baef8ebd8c7b50f.html">
+       Function get_physical_plan(std::string, Context&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1acc0723ef2e4e69f89a2981faf824a1ea.html">
+       Function get_projections(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea.html">
+       Function get_projections(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a49e1001e3fadb90c5544936a91034cd2.html">
+       Function get_query_part(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2.html">
+       Function get_query_part(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a3ec66f525b0a50c73c81afc0ddc36c6e.html">
+       Function get_scalar_from_string(const std::string&amp;, cudf::data_type, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a70c2a2177f4613c6318b374246b084fc.html">
+       Function get_scalar_from_string(const std::string&amp;, cudf::data_type, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a8f810c7bb94c5cb0eeba883914f2dedf.html">
+       Function get_string_between_outer_parentheses(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a822ceb68fbb4bd6d6b78c33c3df2ebee.html">
+       Function get_string_between_outer_parentheses(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1affb6494edf6b343f4923af9f32568046.html">
+       Function get_table_index(std::vector&lt;std::string&gt;, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046.html">
+       Function get_table_index(std::vector&lt;std::string&gt;, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a060bd9d2bb4f60aab4c38a1c4bf1e358.html">
+       Function get_tokens_in_reverse_order(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a060bd9d2bb4f60aab4c38a1c4bf1e358.html">
+       Function get_tokens_in_reverse_order(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8cpp_1af5268c1eb1fa3829fd3f7b7964da888d.html">
+       Function get_typed_vector_content(cudf::type_id, std::vector&lt;int64_t&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8h_1af5268c1eb1fa3829fd3f7b7964da888d.html">
+       Function get_typed_vector_content(cudf::type_id, std::vector&lt;int64_t&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a3587ab7d35c3eafab6fe361b35a54e9a.html">
+       Function get_typed_vector_str_content
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a9b95521429a8374e7644015612374bf2.html">
+       Function getExecuteGraphResult
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a227861ee146633c88a49917eaadf5d5a.html">
+       Function getFreeMemory
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1aacca369ae9ac47a27b15293c81ccab81.html">
+       Function getMaxMemoryUsed
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_static_8cpp_1a3543184ea52cdc99558bbcfa541fafa6.html">
+       Function getProductDetails
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8cpp_1a98297e82182b34631e2aed11b5ecf217.html">
+       Function getTableScanInfo(std::string&amp;, std::vector&lt;std::string&gt;&amp;, std::vector&lt;std::string&gt;&amp;, std::vector&lt;std::vector&lt;int&gt;&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8h_1a98297e82182b34631e2aed11b5ecf217.html">
+       Function getTableScanInfo(std::string&amp;, std::vector&lt;std::string&gt;&amp;, std::vector&lt;std::string&gt;&amp;, std::vector&lt;std::vector&lt;int&gt;&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a4a098e96e7beb32b75661563cf0c4b65.html">
+       Function getTableScanInfo(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a3c2348f39cf58c5c0f48742b32b15d83.html">
+       Function handler
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1ab4e69beb74bcdd6c53544eb61f107ab1.html">
+       Function inferFolderPartitionMetadata
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a772e8d0e2e2b28d67aee0cb3fdf34430.html">
+       Function initialize
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a8ad40c9fc4642e43c8c11fde6e7d72ea.html">
+       Function initialize_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_interpreter__cpp_8h_1a02fdfeb675833d1f8906368153d01f7b.html">
+       Function interops::add_expression_to_interpreter_plan
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_interpreter__cpp_8h_1abfcc2abb2fc552dc88ada82b25ef2686.html">
+       Function interops::perform_interpreter_operation
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_protocols_8cpp_1a3cd5c8efc438b5d151b8dbf1fb5a2390.html">
+       Function io::read_from_socket
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_protocols_8cpp_1a683986f2324743d6603498b585220150.html">
+       Function io::write_to_socket
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a31705d370349370602c5743126ddc79e.html">
+       Function is_accumulate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a31705d370349370602c5743126ddc79e.html">
+       Function is_accumulate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html">
+       Function is_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html">
+       Function is_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a140d8c66182d9c7237728543252c9e56.html">
+       Function is_aggregate_and_sample
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a6b47196f0fdc0710189a2a1c7d760c9e.html">
+       Function is_aggregate_merge
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a8075c3f3dc0522f9ac4421eaa89348df.html">
+       Function is_aggregate_partition
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a905843d5854f28d64d11d068c560eb43.html">
+       Function is_avg_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43.html">
+       Function is_avg_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ab28c6a42ddbd289232f39a5111f6ff95.html">
+       Function is_binary_operator(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ab28c6a42ddbd289232f39a5111f6ff95.html">
+       Function is_binary_operator(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aebb79ccbb09d16dd354a47758d73d3ad.html">
+       Function is_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad.html">
+       Function is_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a2f4aefc724c60dbbbd81620efca2181f.html">
+       Function is_bool(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a2f4aefc724c60dbbbd81620efca2181f.html">
+       Function is_bool(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html">
+       Function is_compute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html">
+       Function is_compute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1accf3f8108d4e72e94f48954c22212329.html">
+       Function is_date(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1accf3f8108d4e72e94f48954c22212329.html">
+       Function is_date(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1acf54d81974786b8070761033ef88496f.html">
+       Function is_decimal_or_empty_dtype
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1add695985ea62e084e6adea25ab83be07.html">
+       Function is_distribute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07.html">
+       Function is_distribute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1add5b2070f13ed2236f41b253e48dec8b.html">
+       Function is_filter(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b.html">
+       Function is_filter(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html">
+       Function is_filtered_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html">
+       Function is_filtered_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html">
+       Function is_first_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html">
+       Function is_first_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html">
+       Function is_generate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html">
+       Function is_generate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a6566d1fe108173708939994b4003c605.html">
+       Function is_hour(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a6566d1fe108173708939994b4003c605.html">
+       Function is_hour(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a8405138c765230f540e9b7f028148260.html">
+       Function is_inequality(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a8405138c765230f540e9b7f028148260.html">
+       Function is_inequality(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a76bda2ebba29bae334d70942fdec351f.html">
+       Function is_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f.html">
+       Function is_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1af38bfef0c126d5c26423f15024e67c3b.html">
+       Function is_join_partition(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b.html">
+       Function is_join_partition(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1abff4609e5199a159ad8706438f77a4c4.html">
+       Function is_lag_or_lead_aggregation(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1abff4609e5199a159ad8706438f77a4c4.html">
+       Function is_lag_or_lead_aggregation(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a144a7c17ea2ddd80a2322757ebba3866.html">
+       Function is_last_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a144a7c17ea2ddd80a2322757ebba3866.html">
+       Function is_last_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a16cf2520ed490282e4fb912c2edbbf01.html">
+       Function is_limit(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01.html">
+       Function is_limit(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a788be39db69af819766caf71baa763ce.html">
+       Function is_literal(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a788be39db69af819766caf71baa763ce.html">
+       Function is_literal(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html">
+       Function is_logical_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html">
+       Function is_logical_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1af05d71851eaa16ae1d4058b7d89fd0af.html">
+       Function is_merge(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af.html">
+       Function is_merge(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ac788da52f08887a8fcc4b1591a4385ef.html">
+       Function is_merge_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef.html">
+       Function is_merge_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ab7a098e35e96a261178c98144d8a5bde.html">
+       Function is_null(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ab7a098e35e96a261178c98144d8a5bde.html">
+       Function is_null(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a5124a6fe9cb0860668bf06e913100847.html">
+       Function is_nullary_operator(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a5124a6fe9cb0860668bf06e913100847.html">
+       Function is_nullary_operator(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae308fa3babdc71d17da0e808476b2076.html">
+       Function is_number(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ae308fa3babdc71d17da0e808476b2076.html">
+       Function is_number(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a381839be51cf5f83ae60fb8bcb64cf64.html">
+       Function is_operator_token(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a381839be51cf5f83ae60fb8bcb64cf64.html">
+       Function is_operator_token(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a5f3e50a94e10e3a584ae2b653246f578.html">
+       Function is_pairwise_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578.html">
+       Function is_pairwise_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1af61507198dee2ef50fcc681bd0bf8458.html">
+       Function is_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458.html">
+       Function is_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae02fa9a1efd1b6d55d185996d6f43745.html">
+       Function is_project(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745.html">
+       Function is_project(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html">
+       Function is_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html">
+       Function is_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1affc551196389065e03323e6b78f0fab5.html">
+       Function is_single_node_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5.html">
+       Function is_single_node_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae9006e3701a532dd3129a89830a0e318.html">
+       Function is_sort(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318.html">
+       Function is_sort(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a8b285991517b5466f58f9eb8311791df.html">
+       Function is_sort_and_sample(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df.html">
+       Function is_sort_and_sample(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a52ff43ed65bc65da4ae09e202c025be1.html">
+       Function is_SQL_data_type(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a52ff43ed65bc65da4ae09e202c025be1.html">
+       Function is_SQL_data_type(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a3831f2bc7b7731472c597369f15fb065.html">
+       Function is_string(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a3831f2bc7b7731472c597369f15fb065.html">
+       Function is_string(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html">
+       Function is_sum_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html">
+       Function is_sum_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a311f3203dd6a06578df17bae7acb6d2f.html">
+       Function is_timestamp(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a311f3203dd6a06578df17bae7acb6d2f.html">
+       Function is_timestamp(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1add91d6583500ed618b683908adbcd9d9.html">
+       Function is_type_bool(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1add91d6583500ed618b683908adbcd9d9.html">
+       Function is_type_bool(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ad6a7007ab3c8e8473b26290bf8a45224.html">
+       Function is_type_float(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1ad6a7007ab3c8e8473b26290bf8a45224.html">
+       Function is_type_float(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a70d96f69856c00dd66a6cb2e29b04a0c.html">
+       Function is_type_integer(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a70d96f69856c00dd66a6cb2e29b04a0c.html">
+       Function is_type_integer(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1aa9e7eab73fe2077667b40a97422b9621.html">
+       Function is_type_string(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1aa9e7eab73fe2077667b40a97422b9621.html">
+       Function is_type_string(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a1f19d4b8aab24ad6bd20c38b89845f1b.html">
+       Function is_type_timestamp(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8h_1a1f19d4b8aab24ad6bd20c38b89845f1b.html">
+       Function is_type_timestamp(cudf::type_id)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a8c7e8efcb51f02eb7009c17064ce96de.html">
+       Function is_unary_operator(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de.html">
+       Function is_unary_operator(operator_type)
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       Function is_union(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html">
+       Function is_union(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae7bfd7ed71a93147fb1241dc88568ed8.html">
+       Function is_var_column(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ae7bfd7ed71a93147fb1241dc88568ed8.html">
+       Function is_var_column(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a1cef7edbacff6b28adcf455e7872a414.html">
+       Function is_window_compute(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414.html">
+       Function is_window_compute(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aded092ec0380f864d0f987ad0234417f.html">
+       Function is_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f.html">
+       Function is_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a467afeda876efb78b294cf59c35414ac.html">
+       Function isEmptyFile
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1ad3e49a8a4163c97815f5bc9f513e7bcc.html">
+       Function log_level_str_to_enum
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8cpp_1a3bc24cd23a9ed819a3ed8ed553870db0.html">
+       Function make_cudf_column_from_vector(cudf::data_type, std::basic_string&lt;char&gt;&amp;, unsigned long)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8h_1a3bc24cd23a9ed819a3ed8ed553870db0.html">
+       Function make_cudf_column_from_vector(cudf::data_type, std::basic_string&lt;char&gt;&amp;, unsigned long)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8cpp_1a8350d1144fb1d2d0fc0bb9a21431b162.html">
+       Function make_dummy_metadata_table_from_col_names(std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8h_1a8350d1144fb1d2d0fc0bb9a21431b162.html">
+       Function make_dummy_metadata_table_from_col_names(std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_common__metadata_8h_1ae4843d0599066b5576a86a0fd0fb1264.html">
+       Function make_empty_column
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a292a2199e8b6ae46c498ae9e9d9a9f7a.html">
+       Function map_to_operator_type(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a292a2199e8b6ae46c498ae9e9d9a9f7a.html">
+       Function map_to_operator_type(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a1197d2a633904ad7f8c84cfcdb471a71.html">
+       Function parseMetadata
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a9509b817e472e7a6b374d72e3ebd7bb6.html">
+       Function parseMetadata_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a672867eab379e17a1d3340f75e8014f9.html">
+       Function parseSchema
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a0b61d69465a819e765ddc4b11d12d057.html">
+       Function parseSchema_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a113ba9c3e7b6721bc9ade3564086baf6.html">
+       Function printLoggerHeader
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11.html">
+       Function ral::batch::get_projections_wrapper
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1ade67fb087235e4bf129578219d5fc9ee.html">
+       Function ral::batch::parseExpressionToGetTypeAndCondition
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1a08af1d3b63504448c6807539bbc9cbf1.html">
+       Function ral::batch::parseJoinConditionToColumnIndices
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1a0a59fd08580e65c57d3ad38f4f62da3d.html">
+       Function ral::batch::parseJoinConditionToEqualityTypes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1a57e25e15fc4b52ed200ab6d2d8426b60.html">
+       Function ral::batch::split_inequality_join_into_join_and_filter
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_graph_8h_1a76d01b985ad65c75ca742aeafa58718e.html">
+       Function ral::cache::create_cache_machine
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_graph_8h_1a7fdaa011295c0abd6f08ea7ef1b4a8b3.html">
+       Function ral::cache::create_cache_machines
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_kernel__type_8cpp_1acf1cca5cbf3462f62f4576cfcaf6e4ef.html">
+       Function ral::cache::get_kernel_type_name
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_port_8h_1a77d63df543fbd6784f925cca94e47ce9.html">
+       Template Function ral::cache::kick_port_helper
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CacheData_8cpp_1ad967588a31aa32de65b481bde100b4cc.html">
+       Function ral::cache::randomString
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_distributing__kernel_8cpp_1aef38a7c09931dc461c33797b448aff18.html">
+       Function ral::cache::unique_message_id
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1ab8486812a4b51e738caa24c8d1800f6a.html">
+       Template Function ral::communication::CheckError(const bool, const std::string&amp;, Callable&amp;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1a4499fa0218119a4c55a6d3b63cdd1ae5.html">
+       Function ral::communication::CheckError(const bool, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1ad67691c140a81b916304104c85619856.html">
+       Function ral::communication::CreatetUcpWorker
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1a147b01f6f64d5d82985cc7133a721d5f.html">
+       Function ral::communication::CreateUcpContext
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1a6480b48aabfed1c793e664591c646178.html">
+       Function ral::communication::CreateUcpEp
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1afa8e50abadeee855775e8ceb2ba342c4.html">
+       Function ral::communication::failure_handler
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1a652269547de9c0936000e7c876f41ae1.html">
+       Function ral::communication::GetUcpWorkerAddress
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GPUComponentMessage_8cpp_1ac6c94e9f288bd227b64c0bcb86e971c7.html">
+       Function ral::communication::messages::deserialize_from_gpu_raw_buffers
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GPUComponentMessage_8cpp_1a93b4c0fa10d64193463d94af4a6b72de.html">
+       Function ral::communication::messages::serialize_gpu_message_to_gpu_containers
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GPUComponentMessage_8cpp_1a8a5e9eab426c6da5b0ae48ecac667c40.html">
+       Function ral::communication::messages::serialize_gpu_message_to_host_table
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ucx__init_8h_1a9098c52c7bc582d2afc2f38e2d5db772.html">
+       Function ral::communication::request_init
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_primitives_8cpp_1a7a584ef31d37baa267fb072208890927.html">
+       Function ral::distribution::generatePartitionPlans
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_primitives_8h_1a5d38555c889e0333202d472767cdb6af.html">
+       Function ral::distribution::getPartitionPlan
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_primitives_8cpp_1a194cb6c5ae929522c2fc95ae017d3106.html">
+       Function ral::distribution::getPivotPointsTable
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_primitives_8cpp_1a670acabee38ce5db4ee23752e6a0fb91.html">
+       Function ral::distribution::partitionData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_primitives_8cpp_1a8202d3d591cf2f505335bef4a2eede78.html">
+       Function ral::distribution::sortedMerger
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicPrimitives_8cpp_1acb272107c87ccddf4404c130f173ad84.html">
+       Function ral::frame::createEmptyBlazingTable(std::vector&lt;cudf::type_id&gt;, std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicPrimitives_8cpp_1a588406653839278d006e5b49da47428c.html">
+       Function ral::frame::createEmptyBlazingTable(std::vector&lt;cudf::data_type&gt;, std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicPrimitives_8cpp_1a0529cc4b0903b226668d178c35ef27f5.html">
+       Function ral::frame::cudfTableViewToBlazingColumns
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_sqlcommon_8h_1a120578126fcff3de4d23965d615c0bd6.html">
+       Template Function ral::io::build_fixed_width_cudf_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1a3feeae468f8b368ac13593ab411b0dbe.html">
+       Function ral::io::build_jdbc_mysql_connection
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_sqlcommon_8h_1a67cc2d2d4088b95b4222aad45051b333.html">
+       Function ral::io::build_str_cudf_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1afdc5c32667ae478e005074735a4b0c43.html">
+       Function ral::io::execute_mysql_query
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1a1334deadf69c63744aa384b5a571ca7f.html">
+       Function ral::io::execute_sqlite_query
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1a5d8b0c2b3f702d2b9be6521fc4583977.html">
+       Function ral::io::get_mysql_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1adde9bd75afe5d21ece4caf24550219cc.html">
+       Function ral::io::get_mysql_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1afb9ce85746d015d5b21ead6c14d14e15.html">
+       Function ral::io::get_sqlite_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1a86bdd6590cc468ce776fd73cf5a09c47.html">
+       Function ral::io::get_sqlite_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1abe1a7bf84069fedb46ce55b5f4c53cec.html">
+       Function ral::io::getCsvReaderOptions
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1ab3471859a4fed557f91279ed0cc74b0b.html">
+       Function ral::io::getDataTypeName
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a11edc1f5eed8fe67aa8f6ca4dd905d8b.html">
+       Function ral::io::getJsonReaderOptions
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1aa0296cfb7e317aab580f0a31238af33f.html">
+       Function ral::io::getOrcReaderOptions
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a6a2454f923e9cbab2585b8207b836345.html">
+       Function ral::io::getSqlInfo
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856.html">
+       Function ral::io::in
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a60f8a1a41a4e1af64f8ff15e616e45b8.html">
+       Function ral::io::inferDataType
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a2de58bece361223056a85382ea05b926.html">
+       Function ral::io::inferFileType
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_AbstractSQLParser_8cpp_1a4bbde01b60ea6ff5fab3fb8c627b7302.html">
+       Function ral::io::init
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1a1308169c128b51902915af5e020b091f.html">
+       Function ral::io::is_string_test
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a7f1968d0bacaf231959ee970bea24e07.html">
+       Function ral::io::map_contains
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1a61ec50e430db1597dfa7e88c95ec72dd.html">
+       Function ral::io::MapPostgreSQLTypeName
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLParser_8cpp_1a48201ceddcb66049e9188abc33dcddf4.html">
+       Function ral::io::mysql_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a73013ac0c543a4481db2c9c35f0ded90.html">
+       Function ral::io::ord
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLParser_8cpp_1a8332073c1d15bdeab02a92e44f399253.html">
+       Function ral::io::parse_mysql_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLParser_8cpp_1af72f1ce9d491b8aaa52ac1e8bb20b07d.html">
+       Function ral::io::parse_mysql_column_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a30ff69324193dcd34c64a3a1f98be83d.html">
+       Function ral::io::parse_sqlite_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a91330a47ecc677dd33c179da38c9dd0c.html">
+       Function ral::io::parse_sqlite_column_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1a7785b44de601e632b2717a1b3e44176a.html">
+       Function ral::io::postgresql_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1ab341b6ba54ffe1b6fa9699f8542565c4.html">
+       Function ral::io::read_postgresql
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a51930bbcbe2e9ce51112551717675126.html">
+       Function ral::io::read_sqlite
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a5cce860014ee8527375dea0a9eea1730.html">
+       Function ral::io::read_sqlite_v2
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_AbstractSQLDataProvider_8h_1ab569754458a8d843d0826295afdda8be.html">
+       Template Function ral::io::set_sql_projections
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a48b9d7e35c29e9848fe1f527034aab82.html">
+       Function ral::io::sqlite_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1a5f1eadcb2076bf78ade1d20e16dfe502.html">
+       Function ral::io::sqlite_is_string_col_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a4edc1ec9bb0bd72d5be8d7d8dc063a9e.html">
+       Function ral::io::to_bool
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a99ef3d0f03b1b76bb6a64374519a5b65.html">
+       Function ral::io::to_int
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a789e576acd9ab34d82126b236fdc6929.html">
+       Function ral::io::to_map
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1aadd6d0c6c51ed55590b2665df168f74d.html">
+       Function ral::io::to_vector_int
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1aae1b17e5ca08ead191713f5d177d3629.html">
+       Function ral::io::to_vector_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BufferProvider_8cpp_1ac5ab6ab49c1ab6606bfe2ee6a712c7d9.html">
+       Function ral::memory::convert_gpu_buffers_to_chunks
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BufferProvider_8cpp_1aa0dd2bf94f02945e0ae4581b2af970f9.html">
+       Function ral::memory::empty_pools
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BufferProvider_8cpp_1a7dc1a226f1a6517d232cee0d6b4d663a.html">
+       Function ral::memory::set_allocation_pools
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a3e53748f81b7b440d9ef2fc71dc8b15d.html">
+       Function ral::operators::aggregator_to_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a03de4155b7eeb9d977a8c683933f1e80.html">
+       Function ral::operators::compute_aggregations_with_groupby
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a50b81eda8c05e734a0efeb4a7ff9dd0a.html">
+       Function ral::operators::compute_aggregations_without_groupby
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a695b9cb7b108de2871bed10d84fce029.html">
+       Function ral::operators::compute_groupby_without_aggregations
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a886ba79b997e08c0bbf97e5b203dcf2b.html">
+       Function ral::operators::compute_total_samples
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1ad6786cf03e9b20d173638c2c5a633f8e.html">
+       Function ral::operators::generate_partition_plan
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a1a2ba52a5c1995714ebc89ca0761e4f6.html">
+       Function ral::operators::get_aggregation_operation
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a2f504df8b0f66353af33784f2abc318a.html">
+       Function ral::operators::get_aggregation_output_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a2e649499b890a26cb6d7f6021717286b.html">
+       Function ral::operators::get_group_columns
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1afe71ab06be14f542abcc76a708666d60.html">
+       Function ral::operators::get_limit_rows_when_relational_alg_is_simple
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a267b5850e6fcb4f836c5c029ff165bcc.html">
+       Function ral::operators::get_right_sorts_vars
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a8b8b6147f8945953731ce7cf2d19610b.html">
+       Function ral::operators::get_sort_vars
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a175bdceb8ffde11582052d1a4b115ffd.html">
+       Function ral::operators::get_vars_to_orders
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1abbf2ab613fcc700782f66e070575af45.html">
+       Function ral::operators::get_vars_to_partition
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1ac32ba19f595aae49817227b33eadcc3c.html">
+       Function ral::operators::get_vars_to_partition_and_order
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1af232d009a7da65d9b815368df3dbd0ab.html">
+       Function ral::operators::has_limit_only
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a75da72a1bc5585d4e529e76604405506.html">
+       Function ral::operators::limit_table
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1aefa6928eb43dd6584cade9b96ec6f6d9.html">
+       Function ral::operators::logicalSort
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a5ff14f8db90b8482144914fdfa0716f6.html">
+       Function ral::operators::makeCudfAggregation
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1ac2d6f9b2a588b14fc3ee6689c28d95da.html">
+       Function ral::operators::merge
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1a873c3bd4d85e8877bc7e18b059aa5cc1.html">
+       Function ral::operators::modGroupByParametersPostComputeAggregations
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_GroupBy_8cpp_1abffd0030a67602d10ab0b8786dcff9a6.html">
+       Function ral::operators::parseGroupByExpression
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a003f3bf11e12ac853bffc039d2d7312c.html">
+       Function ral::operators::partition_table
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a1473e920ffe9086e980f57589ac3f96c.html">
+       Function ral::operators::sample
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a9f761da097028d1e3f55e5536d083a98.html">
+       Function ral::operators::sort
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__tree_8cpp_1aad29dae270f932f9f093f76f01edc4f0.html">
+       Function ral::parser::detail::infer_type_from_literal_token
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__tree_8cpp_1a4e9eb3341ae44fdc9f5a2220c1d35af9.html">
+       Function ral::parser::detail::type_from_type_token
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalFilter_8cpp_1ac80076659007bb28071b9158e87eb2cf.html">
+       Function ral::processor::applyBooleanFilter
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalFilter_8cpp_1aa5305e25f5181a011552366b38768f8c.html">
+       Function ral::processor::check_if_has_nulls
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a2000b070ee41c757de240fbb4959c232.html">
+       Function ral::processor::evaluate_expressions
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalFilter_8cpp_1a0db26593dd6dc92737c463ac2eb32da9.html">
+       Function ral::processor::is_logical_filter
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalFilter_8h_1ab1c35937a56792f8ba7d7983f2b09742.html">
+       Function ral::processor::process_distribution_table
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalFilter_8cpp_1a3363cf58becb234cbd2cef5bb549eeb9.html">
+       Function ral::processor::process_filter
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1ab9f260d10cbd5a19467bf7c131a1fe6d.html">
+       Function ral::processor::process_project
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a7fb707a934a4fa57400675a0727b0d5c.html">
+       Function ral::processor::strings::evaluate_string_case_when_else
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a5339ddb750de84327f93af50c7babbbd.html">
+       Function ral::processor::strings::evaluate_string_functions
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a186318ac9040cd20e11b5d2bfcbf26c8.html">
+       Function ral::processor::strings::like_expression_to_regex_str
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a42081035b5d999d7867175c61370794b.html">
+       Function ral::processor::strings::map_trim_flag_to_strip_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SkipDataProcessor_8cpp_1a18deb6de21ca6da1ebf525b390cff192.html">
+       Function ral::skip_data::apply_skip_data_rules
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SkipDataProcessor_8cpp_1a4ee9e29754ae47f230a0be67575e7935.html">
+       Function ral::skip_data::drop_value
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_utils_8cpp_1a329c234bc445a10fb4dc5bc57597a623.html">
+       Function ral::skip_data::get_id
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_utils_8cpp_1af91610118d59f87a97c91675705b6923.html">
+       Function ral::skip_data::is_exclusion_unary_op
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_utils_8cpp_1afcc2a689d66c26b591bcbde65d4f4685.html">
+       Function ral::skip_data::is_unsupported_binary_op
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SkipDataProcessor_8cpp_1a780f6759f7e35c5fa49631b91e700483.html">
+       Function ral::skip_data::process_skipdata_for_table
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_utils_8cpp_1ae4ee305638bf3a249f775cb0a6963c34.html">
+       Function ral::skip_data::split
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_DebuggingUtils_8cpp_1aae53a21cf9e4abfde92c313eba5765f4.html">
+       Function ral::utilities::blazing_table_view_schema_to_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec.html">
+       Function ral::utilities::checkIfConcatenatingStringsWillOverflow(const std::vector&lt;std::unique_ptr&lt;BlazingTable&gt;&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30.html">
+       Function ral::utilities::checkIfConcatenatingStringsWillOverflow(const std::vector&lt;BlazingTableView&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8h_1a99f694b7d74f1626bb7f610a2c6e9451.html">
+       Template Function ral::utilities::column_to_vector
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4.html">
+       Function ral::utilities::concatTables
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a66244d6370e7cf9ec7bc2a4488f95446.html">
+       Function ral::utilities::create_empty_table(const std::vector&lt;std::string&gt;&amp;, const std::vector&lt;cudf::data_type&gt;&amp;, std::vector&lt;size_t&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a38409d742b076f7ef66a4b7ad79e014a.html">
+       Function ral::utilities::create_empty_table(const std::vector&lt;cudf::type_id&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a9047f7579abb1d46982975ba6d28014c.html">
+       Function ral::utilities::create_empty_table(const BlazingTableView&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a4e6f3dc33119de69fdf488a1dd3c10dc.html">
+       Function ral::utilities::get_common_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1acce09bf9c7e7c2a7dabec6b1970b8ecd.html">
+       Function ral::utilities::get_common_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a47a8023cd1fd53c7fb45e6371e1c2fd6.html">
+       Function ral::utilities::getLimitedRows
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a49683cfdf8de653c9d617ec7a18cbf98.html">
+       Function ral::utilities::normalize_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_DebuggingUtils_8cpp_1a14c4a859e890df3354f896036faba9d3.html">
+       Function ral::utilities::print_blazing_table_view
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_DebuggingUtils_8cpp_1ab23b9b7297171d7af6359664f7cc0a9c.html">
+       Function ral::utilities::print_blazing_table_view_schema
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_transform_8hpp_1a1bb9219d5a89f946963b97a535707911.html">
+       Function ral::utilities::transform_length_to_end
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_transform_8hpp_1a740e6ce94ba516eb2484020e8e973ea8.html">
+       Function ral::utilities::transform_start_to_zero_based_indexing
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_DebuggingUtils_8cpp_1a2eb6375199d07ce3a28a642b9dbabb1c.html">
+       Function ral::utilities::type_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8h_1af088e3a8310407797f3d5d48d07258da.html">
+       Template Function ral::utilities::vector_to_column
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a95767f1d8ca4616f840507f362ee1d69.html">
+       Function registerFileSystem
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a83aded6fb187eb24521602aee8522748.html">
+       Function registerFileSystemGCS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1abf6d8b5aa8a54153524bddbc21d1bcf0.html">
+       Function registerFileSystemGCS_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a0d74532a9311276efee9a96570b1f6f1.html">
+       Function registerFileSystemHDFS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a9951303bb3ed0028bc0411d1c40fd721.html">
+       Function registerFileSystemHDFS_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a084259d2c50c3da99113d8f6e0bb27e5.html">
+       Function registerFileSystemLocal
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1aaa962128be76bbe3071dc56756d46e42.html">
+       Function registerFileSystemLocal_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1aa15feb864dbc6b48ba68545ed21bd606.html">
+       Function registerFileSystemS3
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1ac1f7d5dbb2f3b0c794acc73896ae05a4.html">
+       Function registerFileSystemS3_C
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ad4e6c023e485a8cc458d95c6c94eae64.html">
+       Function remove_over_expr(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64.html">
+       Function remove_over_expr(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a110a8755e64db53f18657e989dd0809f.html">
+       Function replace_calcite_regex(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f.html">
+       Function replace_calcite_regex(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html">
+       Function replace_count_expr_with_right_index(std::string, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html">
+       Function replace_count_expr_with_right_index(std::string, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a64f3303a4196a53aa669481b15ede1c7.html">
+       Function replace_sum0_expr_with_right_index(std::string, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7.html">
+       Function replace_sum0_expr_with_right_index(std::string, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_initialize_8cpp_1a6dea7ca47d6d8c9f651e841ae1704bd1.html">
+       Function resetMaxMemoryUsed
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1aab327dfacfc0728976ed61e8eeae2164.html">
+       Function runGenerateGraph
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a5a5b8584b329f37e496ab364caf10f1b.html">
+       Function runGeneratePhysicalGraph
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a21265e777955ba2a24cca78d43b41ce5.html">
+       Function runSkipData
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1ab99b3c0f3df40cca8d4e6fba33611c26.html">
+       Function set_min_max(std::vector&lt;int64_t&gt;&amp;, cudf::io::column_statistics&amp;, int)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8h_1acf917e0fdd1fd9a6d522ee7ab35d1d90.html">
+       Function set_min_max(std::vector&lt;std::vector&lt;int64_t&gt;&gt;&amp;, cudf::io::column_statistics&amp;, int)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_parquet__metadata_8cpp_1a880d2c82faa9779c96d1336488063231.html">
+       Function set_min_max(std::vector&lt;std::vector&lt;int64_t&gt;&gt;&amp;, int, parquet::Type::type, parquet::ConvertedType::type, std::shared_ptr&lt;parquet::Statistics&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_parquet__metadata_8h_1a880d2c82faa9779c96d1336488063231.html">
+       Function set_min_max(std::vector&lt;std::vector&lt;int64_t&gt;&gt;&amp;, int, parquet::Type::type, parquet::ConvertedType::type, std::shared_ptr&lt;parquet::Statistics&gt;&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a0e1706567e9dbeb81a10f76023414fb4.html">
+       Function set_min_max_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8cpp_1a3067ba222250cdcb155dcc82b7c6261c.html">
+       Function start_execute_graph(std::shared_ptr&lt;ral::cache::graph&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8h_1a3067ba222250cdcb155dcc82b7c6261c.html">
+       Function start_execute_graph(std::shared_ptr&lt;ral::cache::graph&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a3ed475581ce7d8eb68870079d83b11df.html">
+       Function startExecuteGraph
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a9bd5e4ae134c7423380de638769fb69c.html">
+       Function statistic_to_dtype
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_scalar__timestamp__parser_8cpp_1aea190a30495a035e344fd1cad4866174.html">
+       Function strings::detail::str_to_timestamp_scalar
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_scalar__timestamp__parser_8cpp_1a53f3bf1cd99803d4ab46dd6b7a20d64e.html">
+       Function strings::str_to_timestamp_scalar
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8h_1a6952454c5b7dd29dc423f0f5fafd23d0.html">
+       Function to_dtype(cudf::io::statistics_type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_parquet__metadata_8cpp_1a4f7f8f11a65553e2e1e8998891ffb5fa.html">
+       Function to_dtype(parquet::Type::type, parquet::ConvertedType::type)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_orc__metadata_8cpp_1a59c282fb2fa41de72c4dcb34056b7da5.html">
+       Function type_statistic_valid
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_io_8cpp_1a9ae3ccdf9e5ace49e9166605d5df54ae.html">
+       Function visitPartitionFolder
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aad5753dfce608e546bdb1c634029bfdd.html">
+       Function window_expression_contains_bounds(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aad5753dfce608e546bdb1c634029bfdd.html">
+       Function window_expression_contains_bounds(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html">
+       Function window_expression_contains_bounds_by_range(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html">
+       Function window_expression_contains_bounds_by_range(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a9dbf8f491c6a558b22be5306ef76df52.html">
+       Function window_expression_contains_multiple_diff_over_clauses(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4.html">
+       Function window_expression_contains_multiple_diff_over_clauses(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a13f4990818a06d1e1d1f4218486fa30b.html">
+       Function window_expression_contains_order_by(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a13f4990818a06d1e1d1f4218486fa30b.html">
+       Function window_expression_contains_order_by(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1abe34792b84222a73751f700fa68cea1f.html">
+       Function window_expression_contains_partition_by(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1abe34792b84222a73751f700fa68cea1f.html">
+       Function window_expression_contains_partition_by(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a8f36c4b7a7f335b82f6826098a914a7f.html">
+       Variable ASCENDING_ORDER_SORT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a33d38bd6d82887e47cd9bca39d749485.html">
+       Variable BINDABLE_SCAN_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLDataProvider_8cpp_1aebe162a581a50180a3d5f7170bade175.html">
+       Variable column_bytes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLDataProvider_8cpp_1a6cfe23662037bc20c86fb97a29d6b5aa.html">
+       Variable column_names
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLDataProvider_8cpp_1a776e765c396e9f226fe6eb5c3029d5c1.html">
+       Variable column_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8hpp_1a2c3d39f637fdd75b2832032d737e4117.html">
+       Variable comm::acknownledge_tag_mask
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8hpp_1acc79dbc83a65d84f8b0ff3cd054131b0.html">
+       Variable comm::begin_tag_mask
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8cpp_1a63a92f9496679f77e39d42d1a331a9cf.html">
+       Variable comm::instance
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8cpp_1ad44c9a652630650cf3cc312490233944.html">
+       Variable comm::instance_mutex
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8hpp_1a92eee89b1f3cf5264b941f7ddcc50c82.html">
+       Variable comm::message_tag_mask
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1ab3738f218484b788d1acf4b23636ce5a.html">
+       Variable DESCENDING_ORDER_SORT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_SkipDataProcessor_8cpp_1a7f4e32ec6e6eecc523c5edfc5ae5e900.html">
+       Variable drop_value_
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8cpp_1acccc324922b946e31a9caf18331bcbba.html">
+       Variable FILE_RETRY_DELAY
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_initialize_8cpp_1a041d6429f2ec4e780db14de28a11412a.html">
+       Variable initialize_lock
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_initialize_8cpp_1aedeffc7d23da25d52b9a50045189fe2b.html">
+       Variable initialized
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_scalar__timestamp__parser_8cpp_1a2362e05b8a8ece4fb430289425d02b81.html">
+       Variable item_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_scalar__timestamp__parser_8cpp_1a250e0738917c368641223447159b6739.html">
+       Variable items
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_scalar__timestamp__parser_8cpp_1a6c0ea7a35cf6a4acccdb4bf686793baf.html">
+       Variable length
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a1a53bfe0e48ec7977d54934f1518a2c7.html">
+       Variable LOGICAL_ACCUMULATE_OVERLAPS_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973.html">
+       Variable LOGICAL_AGGREGATE_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1ab860f78b701c5fd157599694b6530543.html">
+       Variable LOGICAL_COMPUTE_AGGREGATE_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a7aef636f64fa52a0386fc0bd1b27e6ee.html">
+       Variable LOGICAL_COMPUTE_WINDOW_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a200aa6a816aaffa227fd7b9b9fa84641.html">
+       Variable LOGICAL_DISTRIBUTE_AGGREGATE_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c.html">
+       Variable LOGICAL_FILTER_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a7d5c1dac9820f316a2f637341c7f8634.html">
+       Variable LOGICAL_GENERATE_OVERLAPS_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7.html">
+       Variable LOGICAL_JOIN_PARTITION_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a73532bf8a9c0c1969173fca143353a56.html">
+       Variable LOGICAL_JOIN_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a996924dbb99f41abd3d3f895ac7f811e.html">
+       Variable LOGICAL_LIMIT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a197d68efd6c32085fc069db873fabc3e.html">
+       Variable LOGICAL_MERGE_AGGREGATE_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a6076e775b97aabc5008e1fc3da0f8f41.html">
+       Variable LOGICAL_MERGE_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a9fa8f215453ed9721d4e1d3c4c75b11e.html">
+       Variable LOGICAL_PARTITION_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1ab296b774677acda07f10a46f4918262b.html">
+       Variable LOGICAL_PARTWISE_JOIN_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1ae6cd56316e0a5b2405740f8faf99b9d3.html">
+       Variable LOGICAL_PROJECT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a50855d80ec0e094aba9fe7d27626c12a.html">
+       Variable LOGICAL_SCAN_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a824bc6a22aa374c7765be01c7b0149d8.html">
+       Variable LOGICAL_SINGLE_NODE_PARTITION_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a5aa2cb434408e9a4d81bb3551cb93f12.html">
+       Variable LOGICAL_SORT_AND_SAMPLE_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1af7d67af38b74cf135a507bd12eea9f8c.html">
+       Variable LOGICAL_SORT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1ad5610f36330da537b25e65b9f97ea112.html">
+       Variable LOGICAL_UNION_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_protocols_8cpp_1a136228cd530b5d66411ae51fe3081665.html">
+       Variable NUMBER_RETRIES
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a362f64188be5aec6c228cc0f69dd0cdb.html">
+       Variable ral::batch::BOTH_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a023e63d9a3fbff1b27f9662be176e9e9.html">
+       Variable ral::batch::CROSS_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1addb756e52d468826fe4d2ebb5b1bcdd2.html">
+       Variable ral::batch::DONE_OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a99917a232e4ec46caa409e6040c24587.html">
+       Variable ral::batch::FALSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a97e82b19410ad68a80de7fe227acf90c.html">
+       Variable ral::batch::FOLLOWING_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a4f0140148d776c0891662317cda49808.html">
+       Variable ral::batch::FOLLOWING_REQUEST
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a091010238ede364e6f1fdc1eed343e88.html">
+       Variable ral::batch::FOLLOWING_RESPONSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1acea0ed4ee664db21921408cb44d773ec.html">
+       Variable ral::batch::INCOMPLETE_OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a6e0c355ca3625e6cc3af329feb6856b3.html">
+       Variable ral::batch::INNER_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a318f2f4a1366b504987da58211358501.html">
+       Variable ral::batch::LEFT_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a88d6e2d008a6c2c9c586a29a24d712cb.html">
+       Variable ral::batch::LEFT_TABLE_IDX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a7812a46b79305ac1e3c69a2046dfc30f.html">
+       Variable ral::batch::OUTER_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a1224aa7f88ca85a260b0851179389da2.html">
+       Variable ral::batch::PRECEDING_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a2a4b87d82278c94ef4b6ea0b168bf706.html">
+       Variable ral::batch::PRECEDING_REQUEST
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1ab656bb76fbb9a7d078a72b6216213d09.html">
+       Variable ral::batch::PRECEDING_RESPONSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1afe34315964f2d43b8653f9657730ecea.html">
+       Variable ral::batch::RIGHT_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a1df8dbe7a9c986c319228696561c167c.html">
+       Variable ral::batch::RIGHT_TABLE_IDX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1af2335a23b10905a34f543998a27d7a31.html">
+       Variable ral::batch::TASK_ARG_OP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a1ef3b7cc27b7a64f39cd1ca1bfa5be72.html">
+       Variable ral::batch::TASK_ARG_OVERLAP_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1ab9db7eeef6e657d71ec92d475acefc02.html">
+       Variable ral::batch::TASK_ARG_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a23a04b2a7df2cec935856a5f9d7443e3.html">
+       Variable ral::batch::TASK_ARG_REMOVE_FOLLOWING_OVERLAP
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1ab4e7ce1df1375a61567c3814866e3e78.html">
+       Variable ral::batch::TASK_ARG_REMOVE_PRECEDING_OVERLAP
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a2c908bcf66f0bbdf6a3a7013831c55ff.html">
+       Variable ral::batch::TASK_ARG_SOURCE_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a36a1e5ed8d22f34c1023b8fed8b16ea7.html">
+       Variable ral::batch::TASK_ARG_TARGET_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1adfd502a643a9c61131fa65756cf98ac3.html">
+       Variable ral::batch::TASK_ARG_TARGET_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a4da1ea4521c357f879baadfc29e17c5a.html">
+       Variable ral::batch::TRUE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a3cdb81347cd3be6e17266b3d5d583f29.html">
+       Variable ral::batch::UNKNOWN_OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a72d523e2fe0c552233eb3019c7937382.html">
+       Variable ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1ad9c85032e02e6d40e3ed40ff67aea0b1.html">
+       Variable ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a21ed6bd6cb8c1e4101f562b966a3e3b5.html">
+       Variable ral::cache::CACHE_ID_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheMachine_8h_1a5cff5f9f3e800280a6b41ac3cc4bf4af.html">
+       Variable ral::cache::CACHE_LEVEL_AUTO
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheMachine_8h_1a745bc84a39fbd13348cf571c6bacf1e0.html">
+       Variable ral::cache::CACHE_LEVEL_CPU
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheMachine_8h_1aabe552ce8ca22d94380acf3843c1f649.html">
+       Variable ral::cache::CACHE_LEVEL_DISK
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheMachine_8h_1a59158a83453b4ada809baf3e11bc997b.html">
+       Variable ral::cache::CACHE_LEVEL_GPU
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a9ed4de4b12a7814127b8c8eec0c30e89.html">
+       Variable ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a38477827c60fbd3e882b0fea0142a6c6.html">
+       Variable ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a0618edb0637edcd74500004d90a3ef12.html">
+       Variable ral::cache::KERNEL_ID_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1ab3dda6486c9b463f1f55ad2f00e6abbc.html">
+       Variable ral::cache::MESSAGE_ID
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a3a1d5af0ac1e0271fbe0b6abba7da98d.html">
+       Variable ral::cache::OVERLAP_MESSAGE_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a7f54fe4fe7c387ba968f63ff36609860.html">
+       Variable ral::cache::OVERLAP_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a5e0c2d7708387aa6059f0f21678c016c.html">
+       Variable ral::cache::OVERLAP_SOURCE_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1aaf2672ad471f8af206c01952b1e9cdef.html">
+       Variable ral::cache::OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1af88a1f1f4e6a1d4295790a12fcb28c3d.html">
+       Variable ral::cache::OVERLAP_TARGET_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1ad6bda7369df03c1c5f78814325a1e6d4.html">
+       Variable ral::cache::OVERLAP_TARGET_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a29674a4c7028bf58df89486f31769f3c.html">
+       Variable ral::cache::PARTITION_COUNT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a3769c671d7b9e3eda2e06cf930ea7ee1.html">
+       Variable ral::cache::QUERY_ID_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1ac320f524b86bf7515998ffe8a386b576.html">
+       Variable ral::cache::RAL_ID_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a68ddd087913a7ad5e3b92f8990167f02.html">
+       Variable ral::cache::SENDER_WORKER_ID_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1ae31b4f46756fc76546c80cb97023d4a2.html">
+       Variable ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a708b744cc3f04d42ecf17754c4bb4bc9.html">
+       Variable ral::cache::UNIQUE_MESSAGE_ID
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a3c840e36d92f7b0361f9e365b512f07c.html">
+       Variable ral::cache::WORKER_IDS_METADATA_LABEL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc.html">
+       Variable ral::communication::err_handling_opt
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLParser_8cpp_1a351a3a4e1cb8a7cb6c7ba54ab5bc4dc9.html">
+       Variable ral::io::postgresql_string_type_hints
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_OrderBy_8cpp_1a0253a8d0b4f9b7546355d4164bbfb44e.html">
+       Variable ral::operators::ASCENDING_ORDER_SORT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_OrderBy_8cpp_1a95bf498c9bf7609df2d6fc10481d75ba.html">
+       Variable ral::operators::DESCENDING_ORDER_SORT_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_scalar__timestamp__parser_8cpp_1a7e107ce3f059b762ab6c9418f5953033.html">
+       Variable units
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_scalar__timestamp__parser_8cpp_1a1de5cca0fbfc376f5a6997b84006e25e.html">
+       Variable value
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_protocols_8cpp_1a752a7432942feac5c461b09be2b85c87.html">
+       Define ACK_BUFFER_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_BufferProvider_8h_1ac99e568fbf4b79ff4a8eac55b7ca9d26.html">
+       Define BLAZING_ALIGNMENT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_common__metadata_8cpp_1af8e5f5d7e46eb45a3ae1c37822d2afdb.html">
+       Define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_COMMON_METADATA_CPP_H_
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_orc__metadata_8cpp_1ac3dca623419ba8048733b879b3a64c99.html">
+       Define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_ORC_METADATA_CPP_H_
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_parquet__metadata_8cpp_1aeae511ebcceba3faa4461a3b54d68815.html">
+       Define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_macros_8hpp_1ade19f4e52fc5aab97fe63cd9b6211ba0.html">
+       Define BZ_INTERFACE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_CSVParser_8cpp_1a25a058551bb4f4fa8f4e613d5dc87c3f.html">
+       Define checkError
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_dbg_8hpp_1afde3f42696113719c9ae35507125ee6e.html">
+       Define debug_log
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_macros_8hpp_1acfe076ad7b5cdd1d2d24f354a32ca3fc.html">
+       Define DefineClassName
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_errors_8cpp_1ab49f41449e8965744341d1285ed30401.html">
+       Define RAISE_ERROR
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_error_8hpp_1aeba3f3a407d4949be4e01e5db08a865c.html">
+       Define RAL_EXPECTS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_error_8hpp_1a7d005d2f5896b65c720823e0e9520082.html">
+       Define RAL_FAIL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_error_8hpp_1ab99ef554b80f4e3149aa50a2fb16cbc0.html">
+       Define RAL_STRINGIFY
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_error_8hpp_1aafefdd05c438f655b1f34e1e66a48951.html">
+       Define STRINGIFY_DETAIL
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="define_macros_8hpp_1ad16a64e310d7bf98602d75ca0295e779.html">
+       Define UC_INLINE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html">
+       Typedef blazingdb::manager::Node
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html">
+       Typedef cudaStream_t
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BlazingColumn_8h_1a75228f03b5f35aabdcb834653877255b.html">
+       Typedef CudfColumn
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BlazingColumn_8h_1ad45a870019940bc469c365c91feb0d71.html">
+       Typedef CudfColumnView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BlazingColumn_8h_1a60e6a4564eccadda544785c903200343.html">
+       Typedef CudfTable
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_LogicPrimitives_8h_1a60e6a4564eccadda544785c903200343.html">
+       Typedef CudfTable
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BlazingColumn_8h_1ade7b77001abe59b93f77837aa0d36a06.html">
+       Typedef CudfTableView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_LogicPrimitives_8h_1ade7b77001abe59b93f77837aa0d36a06.html">
+       Typedef CudfTableView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_dbg_8hpp_1a6f99664732957cf3ac632ddd28ee9752.html">
+       Typedef dbg_macro::detail_detector::void_t
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_dbg_8hpp_1a5fccea185f880b828afeaf9121a07eb3.html">
+       Typedef dbg_macro::detect_begin_t
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_dbg_8hpp_1af741237ad6c9ecc9146e511f9b5f2617.html">
+       Typedef dbg_macro::detect_end_t
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_dbg_8hpp_1a7aa5f53d554fd9d654d9d16a7d7f7f05.html">
+       Typedef dbg_macro::detect_size_t
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_dbg_8hpp_1a3d5961fae5aaaacb8b2f5bf549eaa4e4.html">
+       Typedef dbg_macro::is_detected
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_error_8hpp_1a6d895297debc7253322514af9c28d782.html">
+       Typedef error_code_t
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_interpreter__cpp_8h_1a1a3b365f4c86d28ba0afd1f235ad217a.html">
+       Typedef interops::column_index_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6.html">
+       Typedef ral::batch::Context
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BatchProcessing_8h_1a558c5bce9b3654ad7158381e97d73e29.html">
+       Typedef ral::batch::frame_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html">
+       Typedef ral::cache::Context
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_kernel_8h_1aebd7b546e1b8f3f28612b770c46e4a87.html">
+       Typedef ral::cache::kernel_pair
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_GPUComponentMessage_8h_1a0803efd50acd0c61eb9238ee1dd6e949.html">
+       Typedef ral::communication::messages::ColumnTransport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_GPUComponentMessage_8h_1aa6b914419371815c1a99f6c0c2f85300.html">
+       Typedef ral::communication::messages::gpu_raw_buffer_container
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_GPUComponentMessage_8h_1a41a6a0c9c56c949aa38c88bc4bd2640d.html">
+       Typedef ral::communication::messages::Node
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_primitives_8cpp_1a501a0a4925ba9becfa0098c995cf758d.html">
+       Typedef ral::distribution::BlazingTable
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_primitives_8cpp_1a35e0297a99e6aa45a67e07a3cf286536.html">
+       Typedef ral::distribution::BlazingTableView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_primitives_8cpp_1af9e763b988c5c5cfb80d31c81b429977.html">
+       Typedef ral::distribution::Context
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_primitives_8cpp_1a0379413b640eed15b01fba65277e6ef7.html">
+       Typedef ral::distribution::Node
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_primitives_8h_1aa20124f0723db0c0ca543f3dda287d73.html">
+       Typedef ral::distribution::NodeColumn
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_primitives_8h_1a4359b9b917882776cdd179b5b17d0f42.html">
+       Typedef ral::distribution::NodeColumnView
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BlazingHostTable_8h_1aa6d4bd70661380463cfd498e215223ce.html">
+       Typedef ral::frame::ColumnTransport
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="typedef_BufferProvider_8h_1aa46752ca220caae14a68b4811f2fd480.html">
+       Typedef ral::memory::Buffer
+      </a>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+</ul>
+
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/xml/function_expression__utils_8cpp_1a376ff51e92d4b5122403877ee04296ee.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+            <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                    data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+                    title="Fullscreen mode"><i
+                        class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i>
+            Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#function-documentation">
+   Function Documentation
+  </a>
+ </li>
+</ul>
+
+        </nav>
+        
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <section id="function-is-union-std-string">
+<span id="exhale-function-expression-utils-8cpp-1a376ff51e92d4b5122403877ee04296ee"></span><h1>Function is_union(std::string)<a class="headerlink" href="#function-is-union-std-string" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_engine_src_parser_expression_utils.cpp.html#file-engine-src-parser-expression-utils-cpp"><span class="std std-ref">File expression_utils.cpp</span></a></p></li>
+</ul>
+<section id="function-documentation">
+<h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp function">
+<dt id="_CPPv48is_unionNSt6stringE">
+<span id="_CPPv38is_unionNSt6stringE"></span><span id="_CPPv28is_unionNSt6stringE"></span><span id="is_union__ss"></span><span class="target" id="expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee"></span>bool <code class="sig-name descname">is_union</code><span class="sig-paren">(</span>std::string <em>query_part</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48is_unionNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="function_expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de.html" title="previous page">Function is_unary_operator(operator_type)</a>
+    <a class='right-next' id="next-link" href="function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html" title="next page">Function is_union(std::string)</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By BlazingDB, Inc.<br/>
+        
+            &copy; Copyright 2020, BlazingDB, Inc.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    
+  </body>
+</html>

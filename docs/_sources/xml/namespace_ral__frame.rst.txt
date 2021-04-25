@@ -41,9 +41,9 @@ Functions
 ---------
 
 
-- :ref:`exhale_function_LogicPrimitives_8cpp_1a588406653839278d006e5b49da47428c`
-
 - :ref:`exhale_function_LogicPrimitives_8cpp_1acb272107c87ccddf4404c130f173ad84`
+
+- :ref:`exhale_function_LogicPrimitives_8cpp_1a588406653839278d006e5b49da47428c`
 
 - :ref:`exhale_function_LogicPrimitives_8cpp_1a0529cc4b0903b226668d178c35ef27f5`
 

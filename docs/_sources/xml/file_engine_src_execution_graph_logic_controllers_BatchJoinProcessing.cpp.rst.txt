@@ -66,5 +66,7 @@ Functions
 
 - :ref:`exhale_function_BatchJoinProcessing_8cpp_1a08af1d3b63504448c6807539bbc9cbf1`
 
+- :ref:`exhale_function_BatchJoinProcessing_8cpp_1a0a59fd08580e65c57d3ad38f4f62da3d`
+
 - :ref:`exhale_function_BatchJoinProcessing_8cpp_1a57e25e15fc4b52ed200ab6d2d8426b60`
 

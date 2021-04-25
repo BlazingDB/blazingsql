@@ -1,0 +1,13 @@
+.. _exhale_function_MySQLDataProvider_8cpp_1afdc5c32667ae478e005074735a4b0c43:
+
+Function ral::io::execute_mysql_query
+=====================================
+
+- Defined in :ref:`file_engine_src_io_data_provider_sql_MySQLDataProvider.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::execute_mysql_query(sql::Connection *, const std::string&)
