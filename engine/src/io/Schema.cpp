@@ -133,7 +133,11 @@ std::vector<int> Schema::get_rowgroup_ids(size_t file_index) const {
 	}
 }
 
-std::vector<std::vector<int>> Schema::get_rowgroups(){
+void Schema::set_row_groups_ids(const std::vector<std::vector<int>> row_groups_ids) {
+	this->row_groups_ids = row_groups_ids;
+}
+
+std::vector<std::vector<int>> Schema::get_rowgroups() const {
 	return this->row_groups_ids;
 }
 

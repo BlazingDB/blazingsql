@@ -13,6 +13,8 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "ArgsUtil.h"
 
+#define DEFAULT_CSV_CHUNK_SIZE 268435456 //256MB
+
 #define checkError(error, txt)                                                                                         \
 	if(error != GDF_SUCCESS) {                                                                                         \
 		std::cerr << "ERROR:  " << error << "  in " << txt << std::endl;                                               \
@@ -53,12 +55,20 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		} 
 		else args.set_header(-1);
 
-		// Overrride `byte_range_offset` and `byte_range_size`
-		auto iter = args_map.find("max_bytes_chunk_read");
-		if(iter != args_map.end() && !row_groups.empty()) {
-			auto chunk_size = std::stoll(iter->second);
-			args.set_byte_range_offset(chunk_size * row_groups[0]);
-			args.set_byte_range_size(chunk_size);
+		// Override `byte_range_offset` and `byte_range_size`
+
+		if(!row_groups.empty()) {
+			auto iter = args_map.find("max_bytes_chunk_read");
+
+			if(iter == args_map.end()){
+				//const auto row_groups = schema.get_rowgroups(); TODO duplicated values
+				args.set_byte_range_offset(DEFAULT_CSV_CHUNK_SIZE * (row_groups[0]));
+				args.set_byte_range_size(DEFAULT_CSV_CHUNK_SIZE);
+			}else if(iter->second != "None"){
+				auto chunk_size = std::stoll(iter->second);
+				args.set_byte_range_offset(chunk_size * row_groups[0]);
+				args.set_byte_range_size(chunk_size);
+			}
 		}
 
 		cudf::io::table_with_metadata csv_table = cudf::io::read_csv(args);
@@ -114,15 +124,22 @@ void csv_parser::parse_schema(
 		args.set_nrows(1);
 		args.set_skipfooter(0);
 	}
+	// here we can infer the file size and set the nrowgroups
+	int num_row_groups = std::ceil(num_bytes / (double) DEFAULT_CSV_CHUNK_SIZE);
+
+	std::vector<int> row_groups_ids(num_row_groups);
+	std::iota (std::begin(row_groups_ids), std::end(row_groups_ids), 0);
+	schema.set_row_groups_ids({row_groups_ids});
+
 	cudf::io::table_with_metadata table_out = cudf::io::read_csv(args);
 	file->Close();
 
 	for(int i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
-		size_t file_index = i;
+		size_t column_index = i;
 		bool is_in_file = true;
 		std::string name = table_out.metadata.column_names.at(i);
-		schema.add_column(name, type, file_index, is_in_file);
+		schema.add_column(name, type, column_index, is_in_file);
 	}
 }
 

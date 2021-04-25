@@ -6,6 +6,7 @@
 
 
 ## Improvements
+- #1468 Setting CSV chunk size default to 256MB 
 
 
 
