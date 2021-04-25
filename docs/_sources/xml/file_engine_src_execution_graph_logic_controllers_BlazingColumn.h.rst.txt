@@ -42,6 +42,8 @@ Included By
 -----------
 
 
+- :ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`
+
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.h`
@@ -49,8 +51,6 @@ Included By
 - :ref:`file_engine_src_execution_graph_logic_controllers_BlazingColumnView.h`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_LogicalProject.h`
-
-- :ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`
 
 
 

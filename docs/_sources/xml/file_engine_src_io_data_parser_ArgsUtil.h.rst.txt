@@ -24,6 +24,8 @@ Includes
 --------
 
 
+- ``../data_provider/sql/AbstractSQLDataProvider.h``
+
 - ``cudf/io/csv.hpp``
 
 - ``cudf/io/datasource.hpp``

@@ -194,6 +194,9 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 				return datetime_type;
 		}
 	}
+	else if ( is_type_string(type1.id()) && is_type_timestamp(type2.id()) ) {
+		return type2;
+	}
 	if (strict) {
 		RAL_FAIL("No common type between " + std::to_string(static_cast<int32_t>(type1.id())) + " and " + std::to_string(static_cast<int32_t>(type2.id())));
 	} else {

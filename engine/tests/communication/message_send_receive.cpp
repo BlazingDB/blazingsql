@@ -412,8 +412,8 @@ std::shared_ptr<blazingdb::manager::Context> make_context() {
 	blazingdb::transport::Node master_node;
 	std::string logicalPlan;
 	std::map<std::string, std::string> config_options;
-
-	return std::make_shared<blazingdb::manager::Context>(query_id, nodes, master_node, logicalPlan, config_options);
+  std::string current_timestamp;
+	return std::make_shared<blazingdb::manager::Context>(query_id, nodes, master_node, logicalPlan, config_options, current_timestamp);
 }
 
 std::shared_ptr<ral::cache::graph> create_graph(){

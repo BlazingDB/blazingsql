@@ -21,6 +21,7 @@ bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_ABS:
 	case operator_type::BLZ_FLOOR:
 	case operator_type::BLZ_CEIL:
@@ -42,6 +43,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_SECOND:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_CAST_TINYINT:
 	case operator_type::BLZ_CAST_SMALLINT:
 	case operator_type::BLZ_CAST_INTEGER:
@@ -171,8 +174,11 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_ABS:
 		return input_left_type;
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -257,7 +263,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
-		{"IS NOT TRUE", operator_type::BLZ_NOT},
+		{"IS NOT TRUE", operator_type::BLZ_IS_NOT_TRUE},
+		{"IS NOT FALSE", operator_type::BLZ_IS_NOT_FALSE},
+		{"IS TRUE", operator_type::BLZ_IS_TRUE},
 		{"SIN", operator_type::BLZ_SIN},
 		{"ASIN", operator_type::BLZ_ASIN},
 		{"COS", operator_type::BLZ_COS},
@@ -340,20 +348,99 @@ bool is_number(const std::string & token) {
 	return std::regex_match(token, re);
 }
 
-bool is_date(const std::string & token) {
-	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
-	return std::regex_match(token, re);
-}
-
 bool is_hour(const std::string & token) {
 	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2})"};
 	return std::regex_match(token, re);
 }
 
-bool is_timestamp(const std::string & token) {
-	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})");
+bool is_date_with_dash(const std::string & token) {
+	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
+	return std::regex_match(token, re);
+}
+
+bool is_date_with_bar(const std::string & token) {
+	static const std::regex re{R"([0-9]{4}/[0-9]{2}/[0-9]{2})"};
+	return std::regex_match(token, re);
+}
+
+bool is_date(const std::string & token) {
+	return (is_date_with_bar(token) || is_date_with_dash(token));
+}
+
+bool is_timestamp_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2})?[Z]?");
 	bool ret = std::regex_match(token, re);
 	return ret;
+}
+
+bool is_timestamp_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp(const std::string & token) {
+	return (is_timestamp_with_bar(token) || is_timestamp_with_dash(token));
+}
+
+bool is_timestamp_ms_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ms_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ms(const std::string & token) {
+	return (is_timestamp_ms_with_bar(token) || is_timestamp_ms_with_dash(token));
+}
+
+bool is_timestamp_us_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_us_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_us(const std::string & token) {
+	return (is_timestamp_us_with_bar(token) || is_timestamp_us_with_dash(token));
+}
+
+bool is_timestamp_ns_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ns_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ns(const std::string & token) {
+	return (is_timestamp_ns_with_bar(token) || is_timestamp_ns_with_dash(token));
+}
+
+bool is_timestamp_with_decimals(const std::string & token) {
+	return (is_timestamp_ms(token) || is_timestamp_us(token) || is_timestamp_ns(token));
+}
+
+bool is_timestamp_with_decimals_and_dash(const std::string & token) {
+	return (is_timestamp_ns_with_dash(token) || is_timestamp_us_with_dash(token) || is_timestamp_ms_with_dash(token));
+}
+
+bool is_timestamp_with_decimals_and_bar(const std::string & token) {
+	return (is_timestamp_ns_with_bar(token) || is_timestamp_us_with_bar(token) || is_timestamp_ms_with_bar(token));
 }
 
 bool is_bool(const std::string & token) { return (token == "true" || token == "false"); }
@@ -926,7 +1013,6 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 	return expressions;
 }
 
-
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
 
@@ -967,6 +1053,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
+
 	return ret;
 }
 
@@ -1041,4 +1128,15 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 	}
 
 	return new_expression;
+}
+
+const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string) {
+	if (scalar_string[0] != '\'' && scalar_string[scalar_string.size() - 1] != '\'') {
+		return scalar_string;
+	}
+
+	std::string temp_str = scalar_string;
+	const std::string cleaned_timestamp = temp_str.substr(1, temp_str.size() - 2);
+
+	return cleaned_timestamp;
 }

@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a144a7c17ea2ddd80a2322757ebba3866:
 
-Function is_last_value_window
-=============================
+Function is_last_value_window(std::string)
+==========================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

@@ -44,7 +44,6 @@ cudf::size_type get_index(const std::string & operand_string) {
 	return std::stoi(is_literal(operand_string) ? operand_string : operand_string.substr(1, operand_string.size() - 1));
 }
 
-
 std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
 	if(type.id() == cudf::type_id::INT8) {
 		auto ret = cudf::make_numeric_scalar(type);
@@ -77,6 +76,29 @@ std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
 	assert(false);
 }
 
+std::unique_ptr<cudf::scalar> str_to_timestamp_scalar_with_day_format(const std::string & cleaned_scalar_string, cudf::data_type type) {
+	if (is_date_with_bar(cleaned_scalar_string)) {
+		return strings::str_to_timestamp_scalar(cleaned_scalar_string, type, "%Y/%m/%d");
+	} else {
+		return strings::str_to_timestamp_scalar(cleaned_scalar_string, type, "%Y-%m-%d");
+	}
+}
+
+std::unique_ptr<cudf::scalar> str_to_timestamp_scalar_with_second_format(const std::string & cleaned_scalar_string, cudf::data_type type) {
+	if (is_timestamp_with_bar(cleaned_scalar_string)) {
+		return strings::str_to_timestamp_scalar(cleaned_scalar_string, type, "%Y/%m/%d %H:%M:%S");
+	} else {
+		return strings::str_to_timestamp_scalar(cleaned_scalar_string, type, "%Y-%m-%d %H:%M:%S");
+	}
+}
+
+std::unique_ptr<cudf::scalar> str_to_timestamp_scalar_with_decimal_format(const std::string & cleaned_scalar_string, cudf::data_type type) {
+	if (is_timestamp_with_decimals_and_bar(cleaned_scalar_string)) {
+		return strings::str_to_timestamp_scalar(cleaned_scalar_string, type, "%Y/%m/%d %H:%M:%S.%f");
+	} else {
+		return strings::str_to_timestamp_scalar(cleaned_scalar_string, type, "%Y-%m-%d %H:%M:%S.%f");
+	}
+}
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type, bool strings_have_quotes) {
 	if (is_null(scalar_string)) {
@@ -131,22 +153,37 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stod(scalar_string)));
 		return ret;
 	}
-	if(type.id() == cudf::type_id::TIMESTAMP_DAYS) {
-		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
-	}
-	if(type.id() == cudf::type_id::TIMESTAMP_SECONDS || type.id() == cudf::type_id::TIMESTAMP_MILLISECONDS
-		|| type.id() == cudf::type_id::TIMESTAMP_MICROSECONDS || type.id() == cudf::type_id::TIMESTAMP_NANOSECONDS) {
-		if (scalar_string.find(":") != std::string::npos){
-			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
-		} else {
-			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
-		}
-	}
-	if(type.id() == cudf::type_id::STRING)	{
+	if(type.id() == cudf::type_id::STRING) {
 		if (strings_have_quotes) {
 			return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
 		} else {
 			return cudf::make_string_scalar(scalar_string);
+		}
+	}
+	// We want to ensure the scalar TIMESTAMP value does not contains `'`
+	const std::string cleaned_scalar_string = remove_quotes_from_timestamp_literal(scalar_string);
+	if(type.id() == cudf::type_id::TIMESTAMP_DAYS) {
+		if (is_date(cleaned_scalar_string)) {
+			return str_to_timestamp_scalar_with_day_format(cleaned_scalar_string, type);
+		} else {
+			throw std::runtime_error("In CalciteExpressionParcing, not recognized format TIMESTAMP_DAYS for: " + scalar_string);
+		}
+	}
+	if(type.id() == cudf::type_id::TIMESTAMP_SECONDS) {
+		if (is_timestamp(cleaned_scalar_string)) {
+			return str_to_timestamp_scalar_with_second_format(cleaned_scalar_string, type);
+		} else {
+			throw std::runtime_error("In CalciteExpressionParcing, not recognized format TIMESTAMP_SECONDS for: " + cleaned_scalar_string);
+		}
+	}
+	if(type.id() == cudf::type_id::TIMESTAMP_MILLISECONDS || type.id() == cudf::type_id::TIMESTAMP_MICROSECONDS
+		 || type.id() == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+		if (is_timestamp_with_decimals(cleaned_scalar_string)) {
+			return str_to_timestamp_scalar_with_decimal_format(cleaned_scalar_string, type);
+		} else if (is_timestamp(cleaned_scalar_string)) {
+			return str_to_timestamp_scalar_with_second_format(cleaned_scalar_string, type);
+		} else {
+			throw std::runtime_error("In CalciteExpressionParcing, not recognized format TIMESTAMP for: " + cleaned_scalar_string);
 		}
 	}
 
@@ -288,7 +325,6 @@ std::string expand_if_logical_op(std::string expression) {
 
 	return output;
 }
-
 
 std::string clean_calcite_expression(const std::string & expression) {
 	std::string clean_expression = replace_calcite_regex(expression);

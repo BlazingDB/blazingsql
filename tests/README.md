@@ -133,8 +133,6 @@ BLAZINGSQL_E2E_TEST_WITH_NULLS=true   BLAZINGSQL_E2E_EXEC_MODE="generator" ./tes
 
 ### Unit tests
 
-
-
 ```shell-script
 cd blazingsql
 
@@ -252,12 +250,13 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	```
 
 #### MySQL, PostgreSQL, SQLite testing
-For MySQL you will need to install this lib:
+For MySQL and PostgreSQL you will need to install these libs:
 ```shell-script
 conda install -c conda-forge mysql-connector-python
+conda install -c conda-forge psycopg2
 ```
 
-and run the following line into mysql console:
+and run the following line in the MySQL console:
 ```sql
 SET GLOBAL local_infile = 'ON';
 ```
@@ -265,11 +264,22 @@ SET GLOBAL local_infile = 'ON';
 To run the tests for tables from other SQL databases just define these env vars before run the test:
 
 ```shell-script
-BLAZINGSQL_E2E_SQL_HOSTNAME
-BLAZINGSQL_E2E_SQL_PORT
-BLAZINGSQL_E2E_SQL_USERNAME
-BLAZINGSQL_E2E_SQL_PASSWORD
-BLAZINGSQL_E2E_SQL_SCHEMA
+# for MySQL
+BLAZINGSQL_E2E_MYSQL_HOSTNAME
+BLAZINGSQL_E2E_MYSQL_PORT
+BLAZINGSQL_E2E_MYSQL_USERNAME
+BLAZINGSQL_E2E_MYSQL_PASSWORD
+BLAZINGSQL_E2E_MYSQL_DATABASE
+
+# for PostgreSQL
+BLAZINGSQL_E2E_POSTGRESQL_HOSTNAME
+BLAZINGSQL_E2E_POSTGRESQL_PORT
+BLAZINGSQL_E2E_POSTGRESQL_USERNAME
+BLAZINGSQL_E2E_POSTGRESQL_PASSWORD
+BLAZINGSQL_E2E_POSTGRESQL_DATABASE
+
+# for SQLite
+BLAZINGSQL_E2E_SQLITE_DATABASE
 ```
 
 Note BLAZINGSQL_E2E_SQL_PORT is a number and the other vars are strings!

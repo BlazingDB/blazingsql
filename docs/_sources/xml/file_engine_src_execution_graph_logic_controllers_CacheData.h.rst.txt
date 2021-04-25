@@ -72,6 +72,8 @@ Included By
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`
 
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp`
+
 
 
 
@@ -136,6 +138,18 @@ Variables
 - :ref:`exhale_variable_CacheData_8h_1a0618edb0637edcd74500004d90a3ef12`
 
 - :ref:`exhale_variable_CacheData_8h_1ab3dda6486c9b463f1f55ad2f00e6abbc`
+
+- :ref:`exhale_variable_CacheData_8h_1a3a1d5af0ac1e0271fbe0b6abba7da98d`
+
+- :ref:`exhale_variable_CacheData_8h_1a7f54fe4fe7c387ba968f63ff36609860`
+
+- :ref:`exhale_variable_CacheData_8h_1a5e0c2d7708387aa6059f0f21678c016c`
+
+- :ref:`exhale_variable_CacheData_8h_1aaf2672ad471f8af206c01952b1e9cdef`
+
+- :ref:`exhale_variable_CacheData_8h_1af88a1f1f4e6a1d4295790a12fcb28c3d`
+
+- :ref:`exhale_variable_CacheData_8h_1ad6bda7369df03c1c5f78814325a1e6d4`
 
 - :ref:`exhale_variable_CacheData_8h_1a29674a4c7028bf58df89486f31769f3c`
 
