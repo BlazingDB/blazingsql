@@ -73,7 +73,7 @@ std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
 }
 
 ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::frame::BlazingTable>>  inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+        std::string port_name,
 		cudaStream_t stream,
     const std::map<std::string, std::string>& args){
 
@@ -92,7 +92,7 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
         bytes += input->sizeInBytes();
         rows += input->num_rows();
     }
-    auto result = do_process(std::move(inputs), output, stream, args);
+    auto result = do_process(std::move(inputs), port_name, stream, args);
     if(result.status == ral::execution::SUCCESS){
          // increment these AFTER its been processed successfully
         total_input_bytes_processed += bytes;

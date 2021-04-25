@@ -19,7 +19,7 @@ public:
     std::string kernel_name() { return "Union";}
 
     ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-        std::shared_ptr<ral::cache::CacheMachine> output,
+        std::string port_name,
         cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
     virtual kstatus run();

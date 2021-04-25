@@ -11,11 +11,11 @@ namespace batch {
 UnionKernel::UnionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
     : kernel{kernel_id, queryString, context, kernel_type::UnionKernel} {
     this->query_graph = query_graph;
-    this->input_.add_port("input_a", "input_b");
+    this->input_.add_port("input_a").add_port("input_b");
 }
 
 ral::execution::task_result UnionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable>> inputs,
-    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    std::string /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     auto & input = inputs[0];
@@ -67,7 +67,7 @@ kstatus UnionKernel::run() {
 
                 ral::execution::executor::get_instance()->add_task(
                         std::move(inputs),
-                        this->output_cache(),
+                        "", //default port_name
                         this);
             } else {
                 this->add_to_output_cache(std::move(cache_data_a));
@@ -87,7 +87,7 @@ kstatus UnionKernel::run() {
 
                 ral::execution::executor::get_instance()->add_task(
                         std::move(inputs),
-                        this->output_cache(),
+                        "", //default port_name
                         this);
             } else {
                 this->add_to_output_cache(std::move(cache_data_b));

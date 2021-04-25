@@ -47,7 +47,7 @@ public:
 		const ral::frame::BlazingTableView & table_right);
 
 	ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;
@@ -97,7 +97,7 @@ public:
 	JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
 
 	ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;

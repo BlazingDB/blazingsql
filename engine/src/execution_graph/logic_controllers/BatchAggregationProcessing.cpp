@@ -14,7 +14,7 @@ ComputeAggregateKernel::ComputeAggregateKernel(std::size_t kernel_id, const std:
 }
 
 ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     try{
@@ -30,7 +30,7 @@ ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std:
             columns = ral::operators::compute_aggregations_with_groupby(
                 input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
         }
-        output->addToCache(std::move(columns));
+        this->output_.get_cache(port_name)->addToCache(std::move(columns));
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(const std::exception& e){
@@ -55,7 +55,7 @@ kstatus ComputeAggregateKernel::run() {
 
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                this->output_cache(),
+                "", //default port_name
                 this);
 
         cache_data = this->input_cache()->pullCacheData();
@@ -122,7 +122,7 @@ DistributeAggregateKernel::DistributeAggregateKernel(std::size_t kernel_id, cons
 }
 
 ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
@@ -186,7 +186,6 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
             }
 
             scatter(partitions,
-                output.get(),
                 "", //message_id_prefix
                 "" //cache_id
             );
@@ -219,7 +218,7 @@ kstatus DistributeAggregateKernel::run() {
 
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                this->output_cache(),
+                "", //default port_name
                 this);
 
         cache_data = this->input_cache()->pullCacheData();
@@ -275,7 +274,7 @@ MergeAggregateKernel::MergeAggregateKernel(std::size_t kernel_id, const std::str
 }
 
 ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
         
@@ -336,7 +335,7 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         auto log_output_num_rows = columns->num_rows();
         auto log_output_num_bytes = columns->sizeInBytes();
 
-        output->addToCache(std::move(columns));
+        this->output_.get_cache(port_name)->addToCache(std::move(columns));
         columns = nullptr;
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
@@ -367,7 +366,7 @@ kstatus MergeAggregateKernel::run() {
 
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                this->output_cache(),
+                "", //default port_name
                 this);
 
         if(logger){

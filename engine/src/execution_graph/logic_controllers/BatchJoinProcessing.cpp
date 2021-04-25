@@ -239,7 +239,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel{kernel_id, queryString, context, kernel_type::PartwiseJoinKernel} {
 	this->query_graph = query_graph;
-	this->input_.add_port("input_a", "input_b");
+	this->input_.add_port("input_a").add_port("input_b");
 
 	this->max_left_ind = -1;
 	this->max_right_ind = -1;
@@ -405,7 +405,7 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 }
 
 ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+	std::string /*output*/,
 	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 	CodeTimer eventTimer;
 
@@ -543,7 +543,7 @@ kstatus PartwiseJoin::run() {
 
 			ral::execution::executor::get_instance()->add_task(
 									std::move(inputs),
-									this->output_cache(),
+									"", //default port_name
 									this,
 									{{"left_idx", std::to_string(left_ind)}, {"right_idx", std::to_string(right_ind)}});
 
@@ -600,8 +600,8 @@ JoinPartitionKernel::JoinPartitionKernel(std::size_t kernel_id, const std::strin
 	this->query_graph = query_graph;
 	set_number_of_message_trackers(2); //default for left and right partitions
 
-	this->input_.add_port("input_a", "input_b");
-	this->output_.add_port("output_a", "output_b");
+	this->input_.add_port("input_a").add_port("input_b");
+	this->output_.add_port("output_a").add_port("output_b");
 
 	std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 }
@@ -835,7 +835,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 
 			ral::execution::executor::get_instance()->add_task(
 										std::move(inputs),
-										this->output_cache("output_a"),
+										"output_a",
 										this,
 										{{"operation_type", "hash_partition"}, {"side", "left"}});
 
@@ -850,7 +850,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 
 			ral::execution::executor::get_instance()->add_task(
 										std::move(inputs),
-										this->output_cache("output_b"),
+										"output_b",
 										this,
 										{{"operation_type", "hash_partition"}, {"side", "right"}});
 
@@ -937,7 +937,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 
 			ral::execution::executor::get_instance()->add_task(
 							std::move(inputs),
-							this->output_cache(small_output_cache_name),
+							small_output_cache_name,
 							this,
 							{{"operation_type", "small_table_scatter"}});
 
@@ -1001,7 +1001,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 }
 
 ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+	std::string /*output*/,
 	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 	bool input_consumed = false;
 	try{
@@ -1069,9 +1069,8 @@ ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::uni
 			}
 
 			scatter(partitions,
-				this->output_.get_cache(cache_id).get(),
 				"", //message_id_prefix
-				cache_id, //cache_id
+				cache_id, //cache_id = port_name
 				table_idx  //message_tracker_idx
 			);
 		} else { // not an option! error
