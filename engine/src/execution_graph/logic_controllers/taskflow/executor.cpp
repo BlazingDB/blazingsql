@@ -6,15 +6,16 @@ namespace ral {
 namespace execution{
 
 size_t executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    ral::cache::kernel * kernel, const std::map<std::string, std::string>& args) {
+    std::string port_name,
+    ral::cache::kernel * kernel,
+    const std::map<std::string, std::string>& args) {
 
     auto task_id = task_id_counter.fetch_add(1, std::memory_order_relaxed);
 
     kernel->add_task(task_id);
 
     auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit, args
+        std::move(inputs), port_name, task_id, kernel, attempts_limit, args
     );
 
     task_queue.put(std::move(task_added));
@@ -23,13 +24,13 @@ size_t executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > 
 
 
 void executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		ral::cache::kernel * kernel,
 		size_t attempts,
 		size_t task_id, const std::map<std::string, std::string>& args){
 
     auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit, args, attempts
+        std::move(inputs), port_name, task_id, kernel, attempts_limit, args, attempts
     );
     task_queue.put(std::move(task_added));
 }
@@ -44,13 +45,13 @@ std::unique_ptr<task> executor::remove_task_from_back(){
 
 task::task(
     std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     size_t task_id,
     ral::cache::kernel * kernel, size_t attempts_limit,
     const std::map<std::string, std::string>& args,
     size_t attempts) :
     inputs(std::move(inputs)),
-    output(output), task_id(task_id),
+    port_name(port_name), task_id(task_id),
     kernel(kernel),attempts(attempts),
     attempts_limit(attempts_limit), args(args) {
     
@@ -106,7 +107,7 @@ void task::run(cudaStream_t stream, executor * executor){
 
         this->attempts++;
         if(this->attempts < this->attempts_limit){
-            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
+            executor->add_task(std::move(inputs), port_name, kernel, attempts, task_id, args);
             return;
         }else{
             throw;
@@ -130,7 +131,7 @@ void task::run(cudaStream_t stream, executor * executor){
     }
     
     CodeTimer executionEventTimer;
-    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+    auto task_result = kernel->process(std::move(input_gpu), port_name, stream, args);
 
     if(task_logger) {
         task_logger->info("{time_started}|{ral_id}|{query_id}|{kernel_id}|{duration_decaching}|{duration_execution}|{input_num_rows}|{input_num_bytes}",
@@ -166,7 +167,7 @@ void task::run(cudaStream_t stream, executor * executor){
         }
         this->attempts++;
         if(this->attempts < this->attempts_limit){
-            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
+            executor->add_task(std::move(inputs), port_name, kernel, attempts, task_id, args);
         }else{
             throw rmm::bad_alloc("Ran out of memory processing");
         }

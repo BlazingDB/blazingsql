@@ -161,7 +161,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
 }
 
 ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
         
@@ -243,7 +243,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
             std::size_t num_bytes = windowed_table->sizeInBytes();
         }
 
-        output->addToCache(std::move(windowed_table));
+        this->output_.get_cache(port_name)->addToCache(std::move(windowed_table));
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(const std::exception& e){
@@ -282,7 +282,7 @@ kstatus ComputeWindowKernel::run() {
 
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
-                    this->output_cache(),
+                    "", //default port_name
                     this, 
                     task_args);
 
@@ -295,7 +295,7 @@ kstatus ComputeWindowKernel::run() {
 
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
-                    this->output_cache(),
+                    "", //default port_name
                     this);
 
             cache_data = this->input_cache()->pullCacheData();
@@ -341,7 +341,7 @@ OverlapGeneratorKernel::OverlapGeneratorKernel(std::size_t kernel_id, const std:
 
 
 ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
     try {
@@ -428,7 +428,7 @@ kstatus OverlapGeneratorKernel::run() {
         } else {
             ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                this->output_cache(),
+                "", //default port_name
                 this,
                 task_args);
         }
@@ -561,7 +561,7 @@ void OverlapAccumulatorKernel::combine_overlaps(bool preceding, int target_batch
 
 
 ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
     try {
@@ -802,7 +802,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool preceding, int source_b
         task_args[ral::cache::OVERLAP_STATUS] = overlap_status;
         ral::execution::executor::get_instance()->add_task(
             std::move(cache_datas_for_task_vect),
-            preceding ? preceding_overlap_cache : following_overlap_cache,
+            preceding ? "preceding_overlaps" : "following_overlaps",
             this,
             task_args);
     }    

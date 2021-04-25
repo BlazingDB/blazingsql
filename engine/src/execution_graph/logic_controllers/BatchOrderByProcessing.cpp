@@ -26,7 +26,7 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
 }
 
 ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    std::string /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     
     try{
@@ -65,7 +65,7 @@ kstatus PartitionSingleNodeKernel::run() {
 
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
-                    nullptr,
+                    "",//nullptr?
                     this);
         }
     }
@@ -144,7 +144,7 @@ void SortAndSampleKernel::make_partition_plan_task(){
 
     ral::execution::executor::get_instance()->add_task(
             std::move(sampleCacheDatas),
-            this->output_cache("output_b"),
+            "output_b",
             this,
             {{"operation_type", "compute_partition_plan"}});  
 
@@ -225,7 +225,7 @@ bool SortAndSampleKernel::all_node_samples_are_available(){
 }
 
 ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
     try{
@@ -265,7 +265,7 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
                 auto num_bytes = sortedTable->sizeInBytes();
             }
 
-            output->addToCache(std::move(sortedTable), "output_a");
+            this->output_.get_cache(port_name)->addToCache(std::move(sortedTable), "output_a");
         }
         else if (operation_type == "compute_partition_plan") {
             compute_partition_plan(std::move(inputs));
@@ -294,7 +294,7 @@ kstatus SortAndSampleKernel::run() {
 
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                this->output_cache("output_a"),
+                "output_a",
                 this,
                 {{"operation_type", "ordering_and_get_samples"}});
 
@@ -369,7 +369,7 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
 }
 
 ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    std::string /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
         auto & input = inputs[0];
@@ -421,7 +421,7 @@ kstatus PartitionKernel::run() {
 
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                nullptr,
+                "",//nullptr?
                 this);
 
         cache_data = this->input_.get_cache("input_a")->pullCacheData();
@@ -485,21 +485,21 @@ MergeStreamKernel::MergeStreamKernel(std::size_t kernel_id, const std::string & 
 }
 
 ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     try{
         if (inputs.empty()) {
             // no op
         } else if(inputs.size() == 1) {
-            output->addToCache(std::move(inputs[0]));
+            this->output_.get_cache(port_name)->addToCache(std::move(inputs[0]));
         } else {
             std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
             for (std::size_t i = 0; i < inputs.size(); i++){
                 tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
             }
             auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
-            output->addToCache(std::move(output_merge));
+            this->output_.get_cache(port_name)->addToCache(std::move(output_merge));
         }
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
@@ -530,7 +530,7 @@ kstatus MergeStreamKernel::run() {
 
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
-                    this->output_cache(),
+                    "", //default port_name
                     this);
 
             batch_count++;
@@ -593,13 +593,13 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
 }
 
 ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::string port_name,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
         CodeTimer eventTimer(false);
         auto & input = inputs[0];
         if (rows_limit<0) {
-            output->addToCache(std::move(input));
+            this->output_.get_cache(port_name)->addToCache(std::move(input));
         } else {
             auto log_input_num_rows = input->num_rows();
             auto log_input_num_bytes = input->sizeInBytes();
@@ -615,9 +615,9 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
             auto log_output_num_bytes = output_is_just_input ? input->sizeInBytes() : limited_input->sizeInBytes();
 
             if (output_is_just_input)
-                output->addToCache(std::move(input));
+                this->output_.get_cache(port_name)->addToCache(std::move(input));
             else
-                output->addToCache(std::move(limited_input));
+                this->output_.get_cache(port_name)->addToCache(std::move(limited_input));
         }
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
@@ -687,7 +687,7 @@ kstatus LimitKernel::run() {
 
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
-                    this->output_cache(),
+                    "", //default port_name
                     this);
 
             if (rows_limit == 0){

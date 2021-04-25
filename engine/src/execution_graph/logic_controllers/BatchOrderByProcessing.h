@@ -23,7 +23,7 @@ public:
 	std::string kernel_name() { return "PartitionSingleNode";}
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;
@@ -54,7 +54,7 @@ public:
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputSamples);
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;
@@ -79,7 +79,7 @@ public:
 	std::string kernel_name() { return "Partition";}
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;
@@ -104,7 +104,7 @@ public:
 	std::string kernel_name() { return "MergeStream";}
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;
@@ -124,7 +124,7 @@ public:
 	std::string kernel_name() { return "Limit";}
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;

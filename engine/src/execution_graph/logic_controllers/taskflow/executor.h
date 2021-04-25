@@ -24,7 +24,7 @@ public:
 
 	task(
 	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-	std::shared_ptr<ral::cache::CacheMachine> output,
+	std::string port_name,
 	size_t task_id,
 	ral::cache::kernel * kernel, size_t attempts_limit,
 	const std::map<std::string, std::string>& args, size_t attempts = 0);
@@ -51,7 +51,8 @@ public:
 
 protected:
 	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;
-	std::shared_ptr<ral::cache::CacheMachine> output;
+	//std::shared_ptr<ral::cache::CacheMachine> output;
+	std::string port_name;
 	size_t task_id;
 	ral::cache::kernel * kernel;
 	size_t attempts = 0;
@@ -89,11 +90,12 @@ public:
 	bool has_exception();
 
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel, const std::map<std::string, std::string>& args = {});
+		std::string port_name,
+		ral::cache::kernel * kernel,
+		const std::map<std::string, std::string>& args = {});
 
 	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		ral::cache::kernel * kernel,
 		size_t attempts,
 		size_t task_id, const std::map<std::string, std::string>& args = {});

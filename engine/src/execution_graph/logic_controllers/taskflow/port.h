@@ -50,9 +50,14 @@ public:
 
 	uint64_t get_num_rows_added(const std::string & port_name);
 
+	template<class... Args>
+	bool addToCache(const std::string & port_name, Args&&... args){
+		this->cache_machines_[port_name]->addToCache(std::forward<Args>(args)...);
+	}
 
 public:
 	kernel * kernel_;
+	//port_name,cache_machines
 	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_;
 };
  

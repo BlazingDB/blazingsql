@@ -168,10 +168,11 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
 
 
 void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> partitions,
-        ral::cache::CacheMachine* output,
         std::string message_id_prefix,
-        std::string cache_id,
+        std::string cache_id, //port_name
         std::size_t message_tracker_idx) {
+    
+    ral::cache::CacheMachine* output = this->output_.get_cache(cache_id).get();
     auto nodes = context->getAllNodes();
     assert(nodes.size() == partitions.size());
 

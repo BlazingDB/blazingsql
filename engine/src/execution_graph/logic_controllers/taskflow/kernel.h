@@ -186,7 +186,7 @@ public:
 	* @brief Invokes the do_process function.
 	*/
 	ral::execution::task_result process(std::vector<std::unique_ptr<ral::frame::BlazingTable > >  inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
+		std::string port_name,
 		cudaStream_t stream, const std::map<std::string, std::string>& args);
 
 	/**
@@ -197,7 +197,8 @@ public:
 	* @param args any additional arguments the kernel may need to perform its execution that may not be available to the kernel at instantiation.
 	*/
 	virtual ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
-		std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+		//std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+		std::string /*port_name*/,
 		cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/){
 			return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
