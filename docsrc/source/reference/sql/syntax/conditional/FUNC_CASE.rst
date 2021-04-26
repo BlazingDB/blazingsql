@@ -19,6 +19,7 @@ Example
             WHEN <literal_1> THEN <result_1>
             WHEN <literal_2> THEN <result_2>
             ELSE <result_3>
+        END
     FROM <table_name>
 
 
@@ -45,4 +46,5 @@ Example
     SELECT CASE WHEN <col_1> IN (<literal_1>, <literal_2) THEN <result_1>
             WHEN <col_2> > 0 THEN <result_2>
             ELSE <result_3>
+        END
     FROM <table_name>
