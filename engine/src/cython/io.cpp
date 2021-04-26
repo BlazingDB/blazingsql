@@ -27,6 +27,11 @@
 #include "../io/data_provider/sql/SQLiteDataProvider.h"
 #endif
 
+#ifdef SNOWFLAKE_SUPPORT
+#include "../io/data_parser/sql/SnowFlakeParser.h"
+#include "../io/data_provider/sql/SnowFlakeDataProvider"
+#endif
+
 using namespace fmt::literals;
 
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>
@@ -97,6 +102,15 @@ TableSchema parseSchema(std::vector<std::string> files,
     isSqlProvider = true;
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
+#endif
+  } else if(fileType == ral::io::DataType::SNOWFLAKE) {
+#ifdef SNOWFLAKE_SUPPORT
+    parser = std::make_shared<ral::io::snowflake_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::snowflake_data_provider>(sql, 0, 0);
+    isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SnowFlake integration");
 #endif
   }
 
