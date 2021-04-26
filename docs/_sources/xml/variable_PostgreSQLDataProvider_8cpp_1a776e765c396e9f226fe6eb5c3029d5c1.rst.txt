@@ -1,0 +1,13 @@
+.. _exhale_variable_PostgreSQLDataProvider_8cpp_1a776e765c396e9f226fe6eb5c3029d5c1:
+
+Variable column_types
+=====================
+
+- Defined in :ref:`file_engine_src_io_data_provider_sql_PostgreSQLDataProvider.cpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: column_types

@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af:
 
-Function is_merge
-=================
+Function is_merge(std::string)
+==============================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

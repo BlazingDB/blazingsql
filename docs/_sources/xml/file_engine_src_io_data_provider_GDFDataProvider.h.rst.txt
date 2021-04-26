@@ -24,7 +24,7 @@ Includes
 --------
 
 
-- ``DataProvider.h`` (:ref:`file_engine_src_io_data_provider_DataProvider.h`)
+- ``DataProvider.h`` (:ref:`file_engine_src_io_data_provider_sql_AbstractSQLDataProvider.h`)
 
 - ``arrow/io/interfaces.h``
 

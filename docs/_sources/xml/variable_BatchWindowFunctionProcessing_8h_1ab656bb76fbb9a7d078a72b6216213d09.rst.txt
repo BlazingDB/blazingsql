@@ -1,0 +1,13 @@
+.. _exhale_variable_BatchWindowFunctionProcessing_8h_1ab656bb76fbb9a7d078a72b6216213d09:
+
+Variable ral::batch::PRECEDING_RESPONSE
+=======================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::batch::PRECEDING_RESPONSE

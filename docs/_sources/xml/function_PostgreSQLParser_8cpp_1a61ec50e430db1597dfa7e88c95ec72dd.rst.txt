@@ -1,0 +1,13 @@
+.. _exhale_function_PostgreSQLParser_8cpp_1a61ec50e430db1597dfa7e88c95ec72dd:
+
+Function ral::io::MapPostgreSQLTypeName
+=======================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::MapPostgreSQLTypeName(const std::string&)

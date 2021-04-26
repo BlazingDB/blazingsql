@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a2b1e69e6cea639ec9f5d532633517d94:
+
+Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&)
+===========================================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&)

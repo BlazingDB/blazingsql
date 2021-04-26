@@ -1,0 +1,1058 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>String functions &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/sphinx-book-theme.e7340bb3dbd8dde6db86f25597f54a1b.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/blazingsql.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/pandas.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/d3.v3.min.js"></script>
+    <script src="../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <link rel="shortcut icon" href="../../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Date and timestamp functions" href="dates.html" />
+    <link rel="prev" title="Arithmetic functions" href="arithmetic.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../index.html">
+  
+  <img src="../../_static/blazingsql_logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  
+</a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search BlazingSQL Docs" aria-label="Search BlazingSQL Docs" autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <p>
+ <span class="caption-text">
+  Contents:
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 collapsible-parent">
+  <a class="reference internal" href="../../getting_started/index.html">
+   Getting started
+  </a>
+  <ul class="simple collapse-ul">
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+ <li class="toctree-l1 collapsible-parent">
+  <a class="reference internal" href="../../engine/index.html">
+   BlazingSQL Engine
+  </a>
+  <ul class="collapse-ul">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/arch.html">
+     Technology Stack
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/pyblazing.html">
+     Python User Interface
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/relational_algebra.html">
+     Relational algebra
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/graph.html">
+     BlazingSQL Execution Graph
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/kernels.html">
+     Kernels
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/caches.html">
+     Caches
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/executor.html">
+     Task Executor
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/memory_management.html">
+     Memory Management
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/communication.html">
+     Communication
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/interops.html">
+     Interops
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/io.html">
+     I/O
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../engine/data_structures.html">
+     Data Structures
+    </a>
+   </li>
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+ <li class="toctree-l1 collapsible-parent">
+  <a class="reference internal" href="../../use_cases/index.html">
+   Use cases
+  </a>
+  <ul class="collapse-ul">
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../../use_cases/industry_solutions/index.html">
+     Industry solutions
+    </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../use_cases/industry_solutions/urban_planning.html">
+       Urban planning
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../../use_cases/industry_solutions/healthcare.html">
+       Healthcare
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../../use_cases/data_science/index.html">
+     Data science solutions
+    </a>
+    <ul class="simple collapse-ul">
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../../use_cases/webinars/index.html">
+     GPU Accelerated Data Science
+    </a>
+    <ul class="simple collapse-ul">
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+ <li class="toctree-l1 current active collapsible-parent">
+  <a class="reference internal" href="../index.html">
+   API Reference
+  </a>
+  <ul class="current collapse-ul">
+   <li class="toctree-l2 collapsible-parent">
+    <a class="reference internal" href="../python/index.html">
+     Python API Reference
+    </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../python/blazing_context.html">
+       BlazingContext()
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.html">
+         blazingsql.BlazingContext
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.create_table.html">
+         blazingsql.BlazingContext.create_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.drop_table.html">
+         blazingsql.BlazingContext.drop_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.describe_table.html">
+         blazingsql.BlazingContext.describe_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.list_tables.html">
+         blazingsql.BlazingContext.list_tables
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.partition.html">
+         blazingsql.BlazingContext.partition
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.add_remove_table.html">
+         blazingsql.BlazingContext.add_remove_table
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.sql.html">
+         blazingsql.BlazingContext.sql
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.explain.html">
+         blazingsql.BlazingContext.explain
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.fetch.html">
+         blazingsql.BlazingContext.fetch
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.status.html">
+         blazingsql.BlazingContext.status
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.do_progress_bar.html">
+         blazingsql.BlazingContext.do_progress_bar
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.get_free_memory.html">
+         blazingsql.BlazingContext.get_free_memory
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.get_max_memory_used.html">
+         blazingsql.BlazingContext.get_max_memory_used
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.reset_max_memory_used.html">
+         blazingsql.BlazingContext.reset_max_memory_used
+        </a>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../python/storage_plugins.html">
+       Storage Plugins
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.gs.html">
+         blazingsql.BlazingContext.gs
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.hdfs.html">
+         blazingsql.BlazingContext.hdfs
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.localfs.html">
+         blazingsql.BlazingContext.localfs
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.s3.html">
+         blazingsql.BlazingContext.s3
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/api/blazingsql.BlazingContext.show_filesystems.html">
+         blazingsql.BlazingContext.show_filesystems
+        </a>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../python/tables.html">
+       Create tables
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/apache-hive.html">
+         Query Hive Tables
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/apache-orc.html">
+         Query Apache ORC Files
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/apache-parquet.html">
+         Query Apache Parquet Files
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/pandas-df.html">
+         Query pandas DataFrames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/rapidsai-cudf.html">
+         Query cuDF DataFrames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/rapidsai-cudf.html#query-dask-cudf-dataframes">
+         Query dask_cudf DataFrames
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="../python/tables/text-files.html">
+         Query Plain Text Files
+        </a>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+   <li class="toctree-l2 current active collapsible-parent">
+    <a class="reference internal" href="index.html">
+     SQL API Reference
+    </a>
+    <ul class="current collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="filter.html">
+       Filtering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="order.html">
+       Ordering data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="arithmetic.html">
+       Arithmetic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 current active collapsible-parent">
+      <a class="current reference internal" href="#">
+       String functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="dates.html">
+       Date and timestamp functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="functions.html">
+       Conditional functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="windowing.html">
+       Window funtions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
+   </li>
+  </ul>
+  <i class="fas fa-chevron-down">
+  </i>
+ </li>
+</ul>
+
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../../_sources/reference/sql/strings.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+            <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                    data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+                    title="Fullscreen mode"><i
+                        class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i>
+            Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-characterlength">
+   STRING CHARACTERLENGTH
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-charlength">
+   STRING CHARLENGTH
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-concat">
+   STRING CONCAT
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id2">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-greatest">
+   STRING GREATEST
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id3">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-initcap">
+   STRING INITCAP
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id4">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-least">
+   STRING LEAST
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id5">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-left">
+   STRING LEFT
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id6">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-lower">
+   STRING LOWER
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id7">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-ltrim">
+   STRING LTRIM
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id8">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-nvl">
+   STRING NVL
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id9">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-regexpreplace">
+   STRING REGEXPREPLACE
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id10">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-reverse">
+   STRING REVERSE
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id11">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-right">
+   STRING RIGHT
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id12">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-rtrim">
+   STRING RTRIM
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id13">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-substring">
+   STRING SUBSTRING
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id14">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-trim">
+   STRING TRIM
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id15">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#string-upper">
+   STRING UPPER
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id16">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+        </nav>
+        
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <section id="string-functions">
+<span id="sql-strings"></span><h1>String functions<a class="headerlink" href="#string-functions" title="Permalink to this headline">¶</a></h1>
+<section id="string-characterlength">
+<span id="sql-string-characterlength"></span><h2>STRING CHARACTERLENGTH<a class="headerlink" href="#string-characterlength" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-charlength">
+<span id="sql-string-charlength"></span><h2>STRING CHARLENGTH<a class="headerlink" href="#string-charlength" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id1">
+<h3>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-concat">
+<span id="sql-string-concat"></span><h2>STRING CONCAT<a class="headerlink" href="#string-concat" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id2">
+<h3>Example<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-greatest">
+<span id="sql-string-greatest"></span><h2>STRING GREATEST<a class="headerlink" href="#string-greatest" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id3">
+<h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-initcap">
+<span id="sql-string-initcap"></span><h2>STRING INITCAP<a class="headerlink" href="#string-initcap" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id4">
+<h3>Example<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-least">
+<span id="sql-string-least"></span><h2>STRING LEAST<a class="headerlink" href="#string-least" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id5">
+<h3>Example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-left">
+<span id="sql-string-left"></span><h2>STRING LEFT<a class="headerlink" href="#string-left" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id6">
+<h3>Example<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-lower">
+<span id="sql-string-lower"></span><h2>STRING LOWER<a class="headerlink" href="#string-lower" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id7">
+<h3>Example<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-ltrim">
+<span id="sql-string-ltrim"></span><h2>STRING LTRIM<a class="headerlink" href="#string-ltrim" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id8">
+<h3>Example<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-nvl">
+<span id="sql-string-nvl"></span><h2>STRING NVL<a class="headerlink" href="#string-nvl" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id9">
+<h3>Example<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-regexpreplace">
+<span id="sql-string-regexpreplace"></span><h2>STRING REGEXPREPLACE<a class="headerlink" href="#string-regexpreplace" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id10">
+<h3>Example<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-reverse">
+<span id="sql-string-reverse"></span><h2>STRING REVERSE<a class="headerlink" href="#string-reverse" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id11">
+<h3>Example<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-right">
+<span id="sql-string-right"></span><h2>STRING RIGHT<a class="headerlink" href="#string-right" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id12">
+<h3>Example<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-rtrim">
+<span id="sql-string-rtrim"></span><h2>STRING RTRIM<a class="headerlink" href="#string-rtrim" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id13">
+<h3>Example<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-substring">
+<span id="sql-string-substring"></span><h2>STRING SUBSTRING<a class="headerlink" href="#string-substring" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id14">
+<h3>Example<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-trim">
+<span id="sql-string-trim"></span><h2>STRING TRIM<a class="headerlink" href="#string-trim" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id15">
+<h3>Example<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="string-upper">
+<span id="sql-string-upper"></span><h2>STRING UPPER<a class="headerlink" href="#string-upper" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Lorem ipsum</p>
+<section id="id16">
+<h3>Example<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+</section>
+
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="arithmetic.html" title="previous page">Arithmetic functions</a>
+    <a class='right-next' id="next-link" href="dates.html" title="next page">Date and timestamp functions</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By BlazingDB, Inc.<br/>
+        
+            &copy; Copyright 2020, BlazingDB, Inc.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    
+  </body>
+</html>

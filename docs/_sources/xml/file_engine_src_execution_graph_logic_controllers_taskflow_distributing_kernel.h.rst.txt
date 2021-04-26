@@ -44,11 +44,13 @@ Included By
 -----------
 
 
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.h`
+
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.h`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.h`
 
-- :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.h`
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.cpp`
 

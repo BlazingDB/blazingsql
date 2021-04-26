@@ -1,0 +1,13 @@
+.. _exhale_variable_BatchWindowFunctionProcessing_8h_1af2335a23b10905a34f543998a27d7a31:
+
+Variable ral::batch::TASK_ARG_OP_TYPE
+=====================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::batch::TASK_ARG_OP_TYPE

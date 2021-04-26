@@ -1,0 +1,13 @@
+.. _exhale_function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11:
+
+Function ral::batch::get_projections_wrapper
+============================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::batch::get_projections_wrapper(size_t, const std::string&)
