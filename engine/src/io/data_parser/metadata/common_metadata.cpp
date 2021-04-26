@@ -54,13 +54,23 @@ std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vecto
   std::basic_string<char> output;
   switch (dtype) {
 	case cudf::type_id::INT8:{
-			std::vector<char> typed_v(vector.begin(), vector.end());
-			output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(char));
-			break;
-		}
+		std::vector<char> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(char));
+		break;
+	}
+	case cudf::type_id::UINT8:{
+		std::vector<uint8_t> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(uint8_t));
+		break;
+	}
 	case cudf::type_id::INT16: {
 		std::vector<int16_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int16_t));
+		break;
+	}
+	case cudf::type_id::UINT16:{
+		std::vector<uint16_t> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(uint16_t));
 		break;
 	}
 	case cudf::type_id::INT32:{
@@ -68,8 +78,17 @@ std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vecto
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int32_t));
 		break;
 	}
+	case cudf::type_id::UINT32:{
+		std::vector<uint32_t> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(uint32_t));
+		break;
+	}
 	case cudf::type_id::INT64: {
 		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(int64_t));
+		break;
+	}
+	case cudf::type_id::UINT64: {
+		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(uint64_t));
 		break;
 	}
 	case cudf::type_id::FLOAT32: {
