@@ -28,12 +28,12 @@ from EndToEndTests import (
     fileSystemLocalTest,
     fileSystemS3Test,
 )
-from EndToEndTests import fullOuterJoinsTest as fullOuterJoinsTest
-from EndToEndTests import groupByTest as groupByTest
-from EndToEndTests import innerJoinsTest as innerJoinsTest
-from EndToEndTests import crossJoinsTest as crossJoinsTest
-from EndToEndTests import leftOuterJoinsTest as leftOuterJoinsTest
 from EndToEndTests import (
+    crossJoinsTest,
+    fullOuterJoinsTest,
+    groupByTest,
+    innerJoinsTest,
+    leftOuterJoinsTest,
     likeTest,
     literalTest,
     loggingTest,
@@ -41,10 +41,11 @@ from EndToEndTests import (
     messageValidationTest,
     nestedQueriesTest,
     nonEquiJoinsTest,
+    rightOuterJoinsTest,
 )
 from EndToEndTests import orderbyTest as orderbyTest
 from EndToEndTests import (
-    predicatesWithNulls,
+    predicatesWithNullsTest,
     roundTest,
     stringTests,
     substringTest,
@@ -182,6 +183,9 @@ def main():
     if runAllTests or ("leftOuterJoinsTest" in targetTestGroups):
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
+    if runAllTests or ("rightOuterJoinsTest" in targetTestGroups):
+        rightOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
         nonEquiJoinsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
@@ -193,8 +197,8 @@ def main():
     if runAllTests or ("orderbyTest" in targetTestGroups):
         orderbyTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if runAllTests or ("predicatesWithNulls" in targetTestGroups):
-        predicatesWithNulls.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+    if runAllTests or ("predicatesWithNullsTest" in targetTestGroups):
+        predicatesWithNullsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("stringTests" in targetTestGroups):
         stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)

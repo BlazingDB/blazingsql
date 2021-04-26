@@ -33,7 +33,7 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	// since this is all that is implemented at the time
 
 	// TODO: for this to work properly we can only do multi column join
-	// when we have ands, when we have hors we hvae to perform the joisn seperately then
+	// when we have `ands`, when we have `ors` we have to perform the join seperately then
 	// do a unique merge of the indices
 
 	// right now with pred push down the join codnition takes the filters as the second argument to condition
@@ -258,9 +258,6 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 	if (this->filter_statement != "" && this->join_type != INNER_JOIN){
 		throw std::runtime_error("Outer joins with inequalities are not currently supported");
 	}
-	if (this->join_type == RIGHT_JOIN) {
-		throw std::runtime_error("Right Outer Joins are not currently supported");
-	}
 }
 
 std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_left_set(){
@@ -341,7 +338,7 @@ std::tuple<int, int> PartwiseJoin::check_for_set_that_has_not_been_completed(){
 }
 
 // this function makes sure that the columns being joined are of the same type so that we can join them properly
-void PartwiseJoin::computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
+void PartwiseJoin::computeNormalizationData(const std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 	std::vector<cudf::data_type> left_join_types, right_join_types;
 	for (size_t i = 0; i < this->left_column_indices.size(); i++){
 		left_join_types.push_back(left_types[this->left_column_indices[i]]);
@@ -353,6 +350,23 @@ void PartwiseJoin::computeNormalizationData(const	std::vector<cudf::data_type> &
 												left_join_types.cbegin(), left_join_types.cend());
 	this->normalize_right = !std::equal(this->join_column_common_types.cbegin(), this->join_column_common_types.cend(),
 												right_join_types.cbegin(), right_join_types.cend());
+}
+
+std::unique_ptr<cudf::table> reordering_columns_due_to_right_join(std::unique_ptr<cudf::table> table_ptr, size_t right_columns) {
+	std::vector<std::unique_ptr<cudf::column>> columns_ptr = table_ptr->release();
+	std::vector<std::unique_ptr<cudf::column>> columns_right_pos;
+
+	// First let's put all the left columns
+	for (size_t index = right_columns; index < columns_ptr.size(); ++index) {
+		columns_right_pos.push_back(std::move(columns_ptr[index]));
+	}
+
+	// Now let's append right columns
+	for (size_t index = 0; index < right_columns; ++index) {
+		columns_right_pos.push_back(std::move(columns_ptr[index]));
+	}
+
+	return std::make_unique<cudf::table>(std::move(columns_right_pos));
 }
 
 std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
@@ -389,6 +403,22 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices);
+		} else if(this->join_type == RIGHT_JOIN) {
+			//Removing nulls on left key columns before joining
+			std::unique_ptr<CudfTable> table_left_dropna;
+			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+			if(has_nulls_left){
+				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
+			}
+
+			result_table = cudf::left_join(
+				table_right.view(),
+				has_nulls_left ? table_left_dropna->view() : table_left.view(),
+				this->right_column_indices,
+				this->left_column_indices);
+
+			// After a right join is performed, we want to make sure the left column keep on the left side of result_table
+			result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
@@ -411,7 +441,6 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 
 	auto & left_batch = inputs[0];
 	auto & right_batch = inputs[1];
-
 
 	try{
 		if (this->normalize_left){
@@ -607,7 +636,7 @@ JoinPartitionKernel::JoinPartitionKernel(std::size_t kernel_id, const std::strin
 }
 
 // this function makes sure that the columns being joined are of the same type so that we can join them properly
-void JoinPartitionKernel::computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types){
+void JoinPartitionKernel::computeNormalizationData(const std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 	std::vector<cudf::data_type> left_join_types, right_join_types;
 	for (size_t i = 0; i < this->left_column_indices.size(); i++){
 		left_join_types.push_back(left_types[this->left_column_indices[i]]);

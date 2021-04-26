@@ -4,17 +4,17 @@ from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
 from Runner import runTest
-from Utils import Execution,  gpuMemory, init_context, skip_test
+from Utils import Execution, gpuMemory, init_context, skip_test
+
+queryType = "Right outer join"
 
 
 def main(dask_client, drill, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
-    queryType = "Round"
-
-    def executionTest(queryType):
-        tables = ["nation", "region", "customer", "orders", "lineitem"]
+    def executionTest():
+        tables = ["nation", "region", "orders", "lineitem"]
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -37,17 +37,14 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             acceptable_difference = 0
 
             print("==============================")
-            print(queryType + " Tests")
+            print(queryType)
             print("==============================")
 
             queryId = "TEST_01"
-            query = """select ROUND(orders.o_orderkey),
-                        ROUND(orders.o_totalprice)
-                    from customer
-                    left outer join orders
-                    on customer.c_custkey = orders.o_custkey
-                    where customer.c_nationkey = 3
-                    and customer.c_custkey < 500"""
+            query = """select n.n_nationkey, r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10"""
             runTest.run_query(
                 bc,
                 drill,
@@ -55,20 +52,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 queryId,
                 queryType,
                 worder,
-                "",
+                "n_nationkey",
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
             )
 
             queryId = "TEST_02"
-            query = """select ROUND(orders.o_totalprice, 2),
-                        ROUND(orders.o_totalprice, -2)
-                    from customer
-                    left outer join orders
-                    on customer.c_custkey = orders.o_custkey
-                    where customer.c_nationkey = 3
-                    and customer.c_custkey < 500"""
+            query = """select n.n_nationkey, r.r_regionkey,
+                        n.n_nationkey + r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10"""
             runTest.run_query(
                 bc,
                 drill,
@@ -76,20 +71,17 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 queryId,
                 queryType,
                 worder,
-                "",
+                "n_nationkey",
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
             )
 
             queryId = "TEST_03"
-            query = """select customer.c_custkey, orders.o_orderkey,
-                    ROUND(orders.o_custkey,0)
-                    from customer
-                    left outer join orders
-                    on customer.c_custkey = orders.o_custkey
-                    where customer.c_nationkey = 3
-                    and customer.c_custkey < 500"""
+            query = """select n.n_nationkey, r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_regionkey = r.r_regionkey
+                    where n.n_nationkey < 10"""
             runTest.run_query(
                 bc,
                 drill,
@@ -97,17 +89,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 queryId,
                 queryType,
                 worder,
-                "",
+                "n_nationkey",
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
             )
 
             queryId = "TEST_04"
-            query = """select MAX(ROUND(n1.n_regionkey,3))
-                    from nation as n1
-                    full outer join nation as n2
-                    on n1.n_nationkey = n2.n_nationkey + 6 """
+            query = """select n.n_nationkey, r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_regionkey = r.r_regionkey
+                    where n.n_nationkey < 10
+                    and n.n_nationkey > 5"""
             runTest.run_query(
                 bc,
                 drill,
@@ -115,14 +108,19 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 queryId,
                 queryType,
                 worder,
-                "",
+                "n_nationkey",
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-            )  # WSM NEED TO REVISIT THIS
+            )
 
             queryId = "TEST_05"
-            query = "select ROUND(AVG(o_totalprice)) from orders"
+            query = """select l.l_orderkey, l.l_partkey, l.l_quantity, o.o_totalprice, o.o_clerk
+                    from lineitem as l right outer join orders as o
+                    on l.l_orderkey = o.o_orderkey
+                    where o.o_totalprice < 87523.2
+                    and l.l_returnflag in ('A', 'R')
+                    order by o.o_totalprice"""
             runTest.run_query(
                 bc,
                 drill,
@@ -130,49 +128,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 queryId,
                 queryType,
                 worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            queryId = "TEST_06"
-            query = """select ROUND(orders.o_totalprice, 2),
-                        ROUND(orders.o_totalprice, -2)
-                    from customer
-                    right outer join orders
-                    on customer.c_custkey = orders.o_custkey
-                    where customer.c_nationkey = 3
-                    and customer.c_custkey < 500"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            queryId = "TEST_07"
-            query = """select customer.c_custkey, orders.o_orderkey,
-                    ROUND(orders.o_custkey,0)
-                    from customer
-                    right outer join orders
-                    on customer.c_custkey = orders.o_custkey
-                    where customer.c_nationkey = 3
-                    and customer.c_custkey < 500"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
+                "o_totalprice",
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
@@ -182,7 +138,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 print("==============================")
                 break
 
-    executionTest(queryType)
+    executionTest()
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -213,6 +169,7 @@ if __name__ == "__main__":
                              Settings.data["TestSettings"]["dataDirectory"])
 
     # Create Context For BlazingSQL
+
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
