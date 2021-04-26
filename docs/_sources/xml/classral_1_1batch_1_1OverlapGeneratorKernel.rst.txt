@@ -1,0 +1,25 @@
+.. _exhale_class_classral_1_1batch_1_1OverlapGeneratorKernel:
+
+Class OverlapGeneratorKernel
+============================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public ral::cache::kernel`` (:ref:`exhale_class_classral_1_1cache_1_1kernel`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: ral::batch::OverlapGeneratorKernel
+   :members:
+   :protected-members:
+   :undoc-members:

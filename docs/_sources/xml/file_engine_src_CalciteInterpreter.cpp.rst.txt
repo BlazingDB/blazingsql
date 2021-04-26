@@ -50,6 +50,8 @@ Functions
 
 - :ref:`exhale_function_CalciteInterpreter_8cpp_1afafaece78c14fa2854655452fab848b5`
 
+- :ref:`exhale_function_CalciteInterpreter_8cpp_1a6873292cd0f9ef043baef8ebd8c7b50f`
+
 - :ref:`exhale_function_CalciteInterpreter_8cpp_1a98297e82182b34631e2aed11b5ecf217`
 
 - :ref:`exhale_function_CalciteInterpreter_8cpp_1a3067ba222250cdcb155dcc82b7c6261c`

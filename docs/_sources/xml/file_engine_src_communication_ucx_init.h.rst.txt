@@ -79,9 +79,9 @@ Functions
 ---------
 
 
-- :ref:`exhale_function_ucx__init_8h_1ab8486812a4b51e738caa24c8d1800f6a`
-
 - :ref:`exhale_function_ucx__init_8h_1a4499fa0218119a4c55a6d3b63cdd1ae5`
+
+- :ref:`exhale_function_ucx__init_8h_1ab8486812a4b51e738caa24c8d1800f6a`
 
 - :ref:`exhale_function_ucx__init_8h_1ad67691c140a81b916304104c85619856`
 
@@ -100,5 +100,5 @@ Variables
 ---------
 
 
-- :ref:`exhale_variable_ucx__init_8h_1a925a856e0d1b7b8a778089a48599c835`
+- :ref:`exhale_variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc`
 

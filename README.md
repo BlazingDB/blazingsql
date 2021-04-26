@@ -70,7 +70,7 @@ bc.sql('SELECT passenger_count, trip_distance FROM taxi LIMIT 2')
 ## Documentation
 You can find our full documentation at [docs.blazingdb.com](https://docs.blazingdb.com/docs).
 
-# Prerequisites 
+# Prerequisites
 * [Anaconda or Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) installed
 * OS Support
   * Ubuntu 16.04/18.04 LTS
@@ -95,7 +95,7 @@ Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda install -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.1
-``` 
+```
 
 ## Nightly Version
 For nightly version cuda 11+ are only supported, see https://github.com/rapidsai/cudf#cudagpu-requirements
@@ -103,9 +103,9 @@ For nightly version cuda 11+ are only supported, see https://github.com/rapidsai
 conda install -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION  cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 11.0 or 11.2 and $PYTHON_VERSION is 3.7 or 3.8
-*For example for CUDA 10.1 and Python 3.7:*
+*For example for CUDA 11.2 and Python 3.8:*
 ```bash
-conda install -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7  cudatoolkit=10.1
+conda install -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.8  cudatoolkit=11.2
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -152,11 +152,11 @@ conda activate bsql
 ./dependencies.sh 0.20 $CUDA_VERSION nightly
 ```
 Where $CUDA_VERSION is 11.0 or 11.2 and $PYTHON_VERSION is 3.7 or 3.8
-*For example for CUDA 11.0 and Python 3.7:*
+*For example for CUDA 11.2 and Python 3.8:*
 ```bash
-conda create -n bsql python=3.7
+conda create -n bsql python=3.8
 conda activate bsql
-./dependencies.sh 0.20 11.0 nightly
+./dependencies.sh 0.20 11.2 nightly
 ```
 
 ### Build
