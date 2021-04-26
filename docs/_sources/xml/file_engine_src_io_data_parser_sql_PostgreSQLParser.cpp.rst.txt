@@ -1,0 +1,71 @@
+
+.. _file_engine_src_io_data_parser_sql_PostgreSQLParser.cpp:
+
+File PostgreSQLParser.cpp
+=========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_parser_sql>` (``engine/src/io/data_parser/sql``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_parser/sql/PostgreSQLParser.cpp``)
+-------------------------------------------------------------------
+
+
+
+
+
+
+Includes
+--------
+
+
+- ``PostgreSQLParser.h`` (:ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.h`)
+
+- ``array``
+
+- ``cudf/io/types.hpp``
+
+- ``cudf/utilities/bit.hpp``
+
+- ``libpq-fe.h``
+
+- ``netinet/in.h``
+
+- ``sqlcommon.h`` (:ref:`file_engine_src_io_data_parser_sql_sqlcommon.h`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_PostgreSQLParser_8cpp_1a61ec50e430db1597dfa7e88c95ec72dd`
+
+- :ref:`exhale_function_PostgreSQLParser_8cpp_1a7785b44de601e632b2717a1b3e44176a`
+
+- :ref:`exhale_function_PostgreSQLParser_8cpp_1ab341b6ba54ffe1b6fa9699f8542565c4`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_PostgreSQLParser_8cpp_1a351a3a4e1cb8a7cb6c7ba54ab5bc4dc9`
+

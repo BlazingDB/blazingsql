@@ -12,10 +12,10 @@ Inheritance Relationships
 Derived Types
 *************
 
-- ``public ral::cache::CPUCacheData`` (:ref:`exhale_class_classral_1_1cache_1_1CPUCacheData`)
 - ``public ral::cache::CacheDataIO`` (:ref:`exhale_class_classral_1_1cache_1_1CacheDataIO`)
 - ``public ral::cache::CacheDataLocalFile`` (:ref:`exhale_class_classral_1_1cache_1_1CacheDataLocalFile`)
 - ``public ral::cache::ConcatCacheData`` (:ref:`exhale_class_classral_1_1cache_1_1ConcatCacheData`)
+- ``public ral::cache::CPUCacheData`` (:ref:`exhale_class_classral_1_1cache_1_1CPUCacheData`)
 - ``public ral::cache::GPUCacheData`` (:ref:`exhale_class_classral_1_1cache_1_1GPUCacheData`)
 
 

@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee:
 
-Function is_union
-=================
+Function is_union(std::string)
+==============================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

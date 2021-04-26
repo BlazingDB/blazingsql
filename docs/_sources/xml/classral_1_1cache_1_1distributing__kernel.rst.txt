@@ -21,6 +21,7 @@ Derived Types
 - ``public ral::batch::DistributeAggregateKernel`` (:ref:`exhale_class_classral_1_1batch_1_1DistributeAggregateKernel`)
 - ``public ral::batch::JoinPartitionKernel`` (:ref:`exhale_class_classral_1_1batch_1_1JoinPartitionKernel`)
 - ``public ral::batch::LimitKernel`` (:ref:`exhale_class_classral_1_1batch_1_1LimitKernel`)
+- ``public ral::batch::OverlapAccumulatorKernel`` (:ref:`exhale_class_classral_1_1batch_1_1OverlapAccumulatorKernel`)
 - ``public ral::batch::PartitionKernel`` (:ref:`exhale_class_classral_1_1batch_1_1PartitionKernel`)
 - ``public ral::batch::SortAndSampleKernel`` (:ref:`exhale_class_classral_1_1batch_1_1SortAndSampleKernel`)
 

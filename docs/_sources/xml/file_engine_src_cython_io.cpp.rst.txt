@@ -40,13 +40,31 @@ Includes
 
 - ``../io/data_provider/UriDataProvider.h``
 
+- ``../src/io/DataType.h``
+
+- ``/home/tom/Documents/programming/blazingsql_repos/blazingsql/engine/src/error.hpp``
+
+- ``arrow/table.h``
+
 - ``blazingdb/io/Config/BlazingContext.h``
+
+- ``execution_graph/logic_controllers/LogicPrimitives.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+- ``map``
+
+- ``memory``
 
 - ``numeric``
 
 - ``parser/expression_tree.hpp`` (:ref:`file_engine_src_parser_expression_tree.hpp`)
 
+- ``set``
+
+- ``string``
+
 - ``utilities/CommonOperations.h`` (:ref:`file_engine_src_utilities_CommonOperations.h`)
+
+- ``vector``
 
 
 

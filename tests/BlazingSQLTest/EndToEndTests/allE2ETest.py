@@ -54,6 +54,7 @@ from EndToEndTests import (
     timestampTest,
     toTimestampTest,
     tpchQueriesTest,
+    unsignedTypeTest
 )
 from EndToEndTests import unaryOpsTest as unaryOpsTest
 from EndToEndTests import unifyTablesTest
@@ -132,6 +133,9 @@ def main():
     if runAllTests or ("hiveFileTest" in targetTestGroups):
         hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
+    if runAllTests or ("unsignedTypeTest" in targetTestGroups):
+        unsignedTypeTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
             dask_client, drill, dir_data_file, bc, nRals
@@ -305,7 +309,7 @@ def main():
     if testsWithNulls == "true":
         if Settings.execution_mode != ExecutionMode.GPUCI:
             if runAllTests or ("tablesFromSQL" in targetTestGroups):
-                tablesFromSQL.main(dask_client, drill, dir_data_file, bc, nRals)
+                tablesFromSQL.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

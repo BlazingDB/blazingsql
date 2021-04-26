@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f:
 
-Function replace_calcite_regex
-==============================
+Function replace_calcite_regex(const std::string&)
+==================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

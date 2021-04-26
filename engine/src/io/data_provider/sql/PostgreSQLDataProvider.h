@@ -1,6 +1,6 @@
 /*
- * Copyright 2021 BlazingDB, Inc.
- *     Copyright 2021 Cristhian Alberto Gonzales Castillo <cristhian@blazingdb.com>
+ * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
+ * Copyright 2021 Cristhian Alberto Gonzales Castillo
  */
 
 #ifndef POSTGRESQLDATAPROVIDER_H_
@@ -30,6 +30,10 @@ public:
   data_handle get_next(bool open_file = true) override;
 
   std::size_t get_num_handles() override;
+
+protected:
+  // TODO percy c.gonzales
+  std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
 
 private:
   PGconn *connection;

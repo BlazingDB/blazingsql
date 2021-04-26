@@ -34,9 +34,9 @@ Included By
 -----------
 
 
-- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
-
 - :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp`
 
 
 

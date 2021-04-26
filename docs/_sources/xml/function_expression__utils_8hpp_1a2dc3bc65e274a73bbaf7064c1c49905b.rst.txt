@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b:
 
-Function is_first_value_window
-==============================
+Function is_first_value_window(std::string)
+===========================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 
