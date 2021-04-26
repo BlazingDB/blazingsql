@@ -19,12 +19,12 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         print("Start Minio server")
         client = docker.from_env()
         conda_prefix = os.getenv("CONDA_PREFIX", "/data")
-        mount_path = conda_prefix + "/blazingsql-testing-files/data"
+        mount_path = conda_prefix + "/blazingsql-testing-files"
         container = client.containers.run(image='minio/minio',
                                         detach=True,
                                         auto_remove=True,
-                                        environment=[f"MINIO_ROOT_USER=={access_key_id}",
-                                                     f"MINIO_ROOT_PASSWORD={secret_access_key}"],
+                                        environment=[f"MINIO_ACCESS_KEY={access_key_id}",
+                                                     f"MINIO_SECRET_KEY={secret_access_key}"],
                                         ports={ '9000/tcp': 9000 },
                                         remove=True,
                                         volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
@@ -40,7 +40,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
     def executionTest(queryType):
         # Read Data TPCH------------------------------------------------------
-        authority = "tpch_s3"
+        authority = "data"
 
         awsS3BucketName = Settings.data["TestSettings"]["awsS3BucketName"]
         awsS3AccessKeyId = Settings.data["TestSettings"]["awsS3AccessKeyId"]
@@ -48,8 +48,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         awsS3OverrideEndpoint = None
 
         if not awsS3BucketName:
-            awsS3BucketName = "tpch"
+            awsS3BucketName = "data"
             awsS3OverrideEndpoint = "http://127.0.0.1:9000"
+
+        mock_server = start_s3mock(awsS3AccessKeyId, awsS3SecretKey)
 
         bc.s3(
             authority,
@@ -62,13 +64,11 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
         # dir_df = dir_data_lc[dir_data_lc.find("DataSet"):len(dir_data_lc)]
 
-        dir_data_lc = "s3://" + authority + "/" + "tpch/"
+        dir_data_lc = "s3://" + authority + "/"
 
         tables = ["nation", "region", "supplier", "customer",
                   "lineitem", "orders"]
         data_types = [DataType.CSV, DataType.PARQUET]  # TODO json
-        
-        mock_server = start_s3mock(awsS3AccessKeyId, awsS3SecretKey)
 
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
