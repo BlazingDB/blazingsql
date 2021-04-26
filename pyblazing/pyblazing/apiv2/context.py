@@ -2644,6 +2644,7 @@ class BlazingContext(object):
                     "mysql",
                     "postgresql",
                     "sqlite",
+                    "snowflake"
                 ]:
                     raise Exception(
                         "ERROR: The file pattern specified did not match any files"

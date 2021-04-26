@@ -6,6 +6,7 @@ SQLEngineDataTypeMap = {
     "mysql": DataType.MYSQL,
     "sqlite": DataType.SQLITE,
     "postgresql": DataType.POSTGRESQL,
+    "snowflake": DataType.SNOWFLAKE,
     # TODO percy c.gonzales support for more db engines
 }
 

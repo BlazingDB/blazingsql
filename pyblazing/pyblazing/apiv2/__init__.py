@@ -14,7 +14,8 @@ class DataType(IntEnum):
     ARROW = 6
     MYSQL = 7,
     POSTGRESQL = 8,
-    SQLITE = 9
+    SQLITE = 9,
+    SNOWFLAKE = 10
 
 
 # NOTE Same values from io
