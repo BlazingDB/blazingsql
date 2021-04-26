@@ -109,7 +109,8 @@ option(S3_SUPPORT "Enables support for S3 fileSystem" ON)
 
 option(MYSQL_SUPPORT "Enables support for MySQL database" ON)
 option(SQLITE_SUPPORT "Enables support for SQLite database" ON)
-option(POSTGRESQL_SUPPORT "Enables support for Postgre database" ON)
+option(POSTGRESQL_SUPPORT "Enables support for PostgreSQL database" ON)
+option(SNOWFLAKE_SUPPORT "Enables support for SnowFlake database" ON)
 
 ###################################################################################################
 # - cudart options --------------------------------------------------------------------------------
@@ -271,6 +272,18 @@ else()
     message(STATUS "MyPostgreSQL support is disabled!")
 endif()
 
+if(SNOWFLAKE_SUPPORT)
+  add_definitions(-DSNOWFLAKE_SUPPORT)
+    set(SNOWFLAKE_DATABASE_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/SnowFlakeDataProvider.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/SnowFlakeParser.cpp)
+      set(SNOWFLAKE_LIBRARY libodbc.so)
+      message(STATUS "SnowFlake support is enabled!")
+else()
+  message(STATUS "SnowFlake support is disabled!")
+endif()
+
+
 ## Target source files
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheData.cpp
@@ -351,6 +364,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${MYSQL_DATABASE_SRC_FILES}
               ${SQLITE_DATABASE_SRC_FILES}
               ${POSTGRESQL_DATABASE_SRC_FILES}
+              ${SNOWFLAKE_DATABASE_SRC_FILES}
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
@@ -364,6 +378,7 @@ add_library(blazingsql-engine SHARED
     ${MYSQL_DATABASE_SRC_FILES}
     ${SQLITE_DATABASE_SRC_FILES}
     ${POSTGRESQL_DATABASE_SRC_FILES}
+    ${SNOWFLAKE_DATABASE_SRC_FILES}
 )
 
 if(GCS_SUPPORT)
@@ -413,6 +428,7 @@ target_link_libraries(blazingsql-engine
     ${MYSQL_LIBRARY}
     ${SQLITE_LIBRARY}
     ${POSTGRESQL_LIBRARY}
+    ${SNOWFLAKE_LIBRARY}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
