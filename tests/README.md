@@ -49,6 +49,27 @@ cd blazingsql
 ./test.sh e2e tests=roundTest,orderbyTest
 ```
 
+### Adding new Tests
+- Make a fork from https://github.com/BlazingDB/blazingsql and create a new branch (example feat/my-new-test)
+- After that make another one from https://github.com/BlazingDB/blazingsql-testing-files and create a new branch with the same name as above (example feat/my-new-test)
+- Write a new test file in blazingsql/tests/BlazingSQLTest/
+- Add new files in blazingsql-testing-files/data/
+- Push your changes of both repositories (example: git push origin feat/my-new-test)
+- Finally make a new Pull Request on https://github.com/BlazingDB/blazingsql/compare
+
+```shell-script
+cd blazingsql
+
+# Run all e2e tests based on your current env settings.
+./test.sh e2e
+
+# Run only the round end to end test group.
+./test.sh e2e tests=roundTest
+
+# Run the round and orderby end to end test groups.
+./test.sh e2e tests=roundTest,orderbyTest
+```
+
 ### Custom settings
 All the behaviour of the end to end test are base on environment variables. So when you want to have more control you need to change some of the default values exporting or defining the target environment variable before run the tests.
 

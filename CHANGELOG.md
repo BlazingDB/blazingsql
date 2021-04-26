@@ -40,6 +40,7 @@
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
 - #1473 Added Warning to Window Functions 
+- #1482 Improve test script for blazingsql-testing-file
 - #1480 Improve dependencies script
 
 ## Bug Fixes
