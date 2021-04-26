@@ -10,7 +10,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
-BUILD_CPP     = $(build_cpp)
+BUILD_CPP     = 1
 
 # Put it first so that "make" without argument is like "make help".
 help:
