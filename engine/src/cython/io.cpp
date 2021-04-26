@@ -29,7 +29,7 @@
 
 #ifdef SNOWFLAKE_SUPPORT
 #include "../io/data_parser/sql/SnowFlakeParser.h"
-#include "../io/data_provider/sql/SnowFlakeDataProvider"
+#include "../io/data_provider/sql/SnowFlakeDataProvider.h"
 #endif
 
 using namespace fmt::literals;
