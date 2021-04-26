@@ -3,6 +3,7 @@
 
 ## New Features
 - #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
+- #1505 Support for right outer join
 
 
 ## Improvements
