@@ -72,7 +72,7 @@
 - #1456 Raising exceptions on Python side for RAL
 - #1466 SQL providers: update README.md
 - #1470 Fix pre compiler flags for sql parsers
-
+- #1504 Fixing some conflicts in Dockerfile
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
