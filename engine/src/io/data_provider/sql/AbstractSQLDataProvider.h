@@ -14,13 +14,15 @@ namespace io {
 
 struct sql_info {
   std::string host;
-  size_t port;
+  std::size_t port;
   std::string user;
   std::string password;
   std::string schema; // aka database name
   std::string table;
   std::string table_filter;
-  size_t table_batch_size;
+  std::size_t table_batch_size;
+  std::string dsn;
+  std::string sub_schema;
 };
 
 /**

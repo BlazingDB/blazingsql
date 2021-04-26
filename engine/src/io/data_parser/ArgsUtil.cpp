@@ -29,6 +29,8 @@ DataType inferDataType(std::string file_format_hint) {
 		return DataType::POSTGRESQL;
 	if(file_format_hint == "sqlite")
 		return DataType::SQLITE;
+	if(file_format_hint == "snowflake")
+		return DataType::SNOWFLAKE;
 	// NOTE if you need more options the user can pass file_format in the create table
 
 	return DataType::UNDEFINED;
@@ -252,6 +254,7 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::MYSQL: return "mysql"; break;
 	case DataType::POSTGRESQL: return "postgresql"; break;
 	case DataType::SQLITE: return "sqlite"; break;
+	case DataType::SNOWFLAKE: return "snowflake"; break;
 	default: break;
 	}
 
@@ -289,10 +292,16 @@ sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
     if (args_map.at("table_batch_size").empty()) {
       sql.table_batch_size = DETAULT_TABLE_BATCH_SIZE;
     } else {
-      sql.table_batch_size = static_cast<std::size_t>(std::atoll(args_map.at("table_batch_size").data())); 
+      sql.table_batch_size = static_cast<std::size_t>(std::atoll(args_map.at("table_batch_size").data()));
     }
   } else {
     sql.table_batch_size = DETAULT_TABLE_BATCH_SIZE;
+  }
+  if (args_map.find("dsn") != args_map.end()) {
+    sql.dsn = args_map.at("dsn");
+  }
+  if (args_map.find("schema") != args_map.end()) {
+    sql.sub_schema = args_map.at("schema");
   }
   return sql;
 }
