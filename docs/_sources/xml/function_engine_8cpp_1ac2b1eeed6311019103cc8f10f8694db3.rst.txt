@@ -1,0 +1,13 @@
+.. _exhale_function_engine_8cpp_1ac2b1eeed6311019103cc8f10f8694db3:
+
+Function get_loaders_and_schemas
+================================
+
+- Defined in :ref:`file_engine_src_cython_engine.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_loaders_and_schemas(const std::vector<TableSchema>&, const std::vector<std::vector<std::string>>&, const std::vector<std::vector<std::string>>&, const std::vector<std::vector<std::string>>&, const std::vector<int>&, const std::vector<std::vector<std::map<std::string, std::string>>>&, size_t, size_t)

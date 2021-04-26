@@ -11,6 +11,11 @@ Directory provider
 
 *Directory path:* ``engine/src/io/data_provider``
 
+Subdirectories
+--------------
+
+- :ref:`dir_engine_src_io_data_provider_sql`
+
 
 Files
 -----

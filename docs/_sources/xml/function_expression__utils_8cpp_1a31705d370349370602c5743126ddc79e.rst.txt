@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a31705d370349370602c5743126ddc79e:
+
+Function is_accumulate_overlaps(std::string)
+============================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_accumulate_overlaps(std::string)

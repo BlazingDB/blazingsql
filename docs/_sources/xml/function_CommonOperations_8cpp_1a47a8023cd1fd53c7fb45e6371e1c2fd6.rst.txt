@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8cpp_1a47a8023cd1fd53c7fb45e6371e1c2fd6:
+
+Function ral::utilities::getLimitedRows
+=======================================
+
+- Defined in :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::getLimitedRows(const BlazingTableView&, cudf::size_type, bool)

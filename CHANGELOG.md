@@ -6,14 +6,14 @@
 
 
 ## Improvements
-
+- #1464 Better Support for unsigned types in C++ side
 
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
 
 
-# BlazingSQL 0.19.0 (Date TBS)
+# BlazingSQL 0.19.0 (April 21, 2021)
 
 ## New Features
 - #1367 OverlapAccumulator Kernel
@@ -40,6 +40,7 @@
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
 - #1473 Added Warning to Window Functions 
+- #1480 Improve dependencies script
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
@@ -75,7 +76,7 @@
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
 
-# BlazingSQL 0.18.0 (Date TBS)
+# BlazingSQL 0.18.0 (February 24, 2021)
 
 ## New Features
 - #1139 Adding centralized task executor for kernels
@@ -153,8 +154,9 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-- #1220 Implement string LEFT and RIGHT
+- #1220 Implement string LEFT and RIGHT 
 - #1223 Add support for UNION statement
+- #1250 updated README.md and CHANGELOG and others preparing for 0.17 release
 
 
 ## Improvements
@@ -183,6 +185,7 @@
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
 - #1229 Change hardcoded version from setup.py
 - #1231 Adding docker support for gpuCI scripts
+- #1248 Jenkins and Docker scripts were improved for building
 
 
 ## Bug Fixes
@@ -210,7 +213,8 @@
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
-- #1225 Fixed issue due to change in gather API
+- #1225 Fixed issue due to change in gather API 
+- #1254 Fixing support of nightly and stable on localhost
 - #1258 Fixing gtest version issue
 
 

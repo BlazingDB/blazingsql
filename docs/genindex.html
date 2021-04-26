@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; BlazingSQL v0.18 documentation</title>
+    <title>Index &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -26,7 +26,7 @@
 
     
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/sphinx-book-theme.c441f2ba0852f4cabcb80105e3a46ae6.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.e7340bb3dbd8dde6db86f25597f54a1b.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
@@ -67,7 +67,7 @@
   <img src="_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -75,7 +75,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search BlazingSQL Docs" aria-label="Search BlazingSQL Docs" autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-    <p class="caption collapsible-parent">
+    <p>
  <span class="caption-text">
   Contents:
  </span>
@@ -396,7 +396,7 @@
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="xml/library_root.html">
-     Library API
+     Engine C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -460,11 +460,6 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_parser.html">
-       Namespace parser
-      </a>
-     </li>
-     <li class="toctree-l3">
       <a class="reference internal" href="xml/namespace_ral.html">
        Namespace ral
       </a>
@@ -515,8 +510,13 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_ral__io__%40115.html">
-       Namespace ral::io::@115
+      <a class="reference internal" href="xml/namespace_ral__io__%40125.html">
+       Namespace ral::io::@125
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/namespace_ral__io__%40132.html">
+       Namespace ral::io::@132
       </a>
      </li>
      <li class="toctree-l3">
@@ -530,8 +530,8 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_ral__operators__%40122.html">
-       Namespace ral::operators::@122
+      <a class="reference internal" href="xml/namespace_ral__operators__%40139.html">
+       Namespace ral::operators::@139
       </a>
      </li>
      <li class="toctree-l3">
@@ -565,28 +565,13 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_ral__skip_data__%40127.html">
-       Namespace ral::skip_data::@127
+      <a class="reference internal" href="xml/namespace_ral__skip_data__%40144.html">
+       Namespace ral::skip_data::@144
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/namespace_ral__utilities.html">
        Namespace ral::utilities
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_rmm.html">
-       Namespace rmm
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_rmm__mr.html">
-       Namespace rmm::mr
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_std.html">
-       Namespace std
       </a>
      </li>
      <li class="toctree-l3">
@@ -605,8 +590,8 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/namespace_strings__detail__%40142.html">
-       Namespace strings::detail::@142
+      <a class="reference internal" href="xml/namespace_strings__detail__%40159.html">
+       Namespace strings::detail::@159
       </a>
      </li>
      <li class="toctree-l3">
@@ -705,8 +690,48 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1callb.html">
+       Struct callb
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1cudf__string__col.html">
+       Struct cudf_string_col
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/structral_1_1io_1_1data__handle.html">
        Struct data_handle
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1mysql__columns__info.html">
+       Struct mysql_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1mysql__table__info.html">
+       Struct mysql_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1sql__datasource.html">
+       Struct sql_datasource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1sql__info.html">
+       Struct sql_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1sqlite__columns__info.html">
+       Struct sqlite_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/structral_1_1io_1_1sqlite__table__info.html">
+       Struct sqlite_table_info
       </a>
      </li>
      <li class="toctree-l3">
@@ -925,6 +950,16 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1batch_1_1OverlapAccumulatorKernel.html">
+       Class OverlapAccumulatorKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1batch_1_1OverlapGeneratorKernel.html">
+       Class OverlapGeneratorKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/classral_1_1batch_1_1PartitionKernel.html">
        Class PartitionKernel
       </a>
@@ -1120,6 +1155,16 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1abstractsql__data__provider.html">
+       Class abstractsql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1abstractsql__parser.html">
+       Class abstractsql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/classral_1_1io_1_1arrow__parser.html">
        Class arrow_parser
       </a>
@@ -1160,6 +1205,16 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1mysql__data__provider.html">
+       Class mysql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1mysql__parser.html">
+       Class mysql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/classral_1_1io_1_1orc__parser.html">
        Class orc_parser
       </a>
@@ -1170,8 +1225,28 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1postgresql__data__provider.html">
+       Class postgresql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1postgresql__parser.html">
+       Class postgresql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/classral_1_1io_1_1Schema.html">
        Class Schema
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1sqlite__data__provider.html">
+       Class sqlite_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/classral_1_1io_1_1sqlite__parser.html">
+       Class sqlite_parser
       </a>
      </li>
      <li class="toctree-l3">
@@ -1280,17 +1355,17 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab534198e293c2ef4002cc3170e1b1ac5.html">
+      <a class="reference internal" href="xml/enum_scalar__timestamp__parser_8cpp_1a0dad018c848102504b1bfde687e465eb.html">
        Enum format_char_type
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1aac14ad84ac0459beb277fc7fb085a806.html">
+      <a class="reference internal" href="xml/enum_scalar__timestamp__parser_8cpp_1a0bbf7c9dc9b27381f2c180e411796b01.html">
        Enum timestamp_parse_component
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html">
+      <a class="reference internal" href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html">
        Enum timestamp_units
       </a>
      </li>
@@ -1305,8 +1380,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aeb1417d8928ac4574cd35044c8f384ef.html">
+       Function bypassingProject(std::string, std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef.html">
-       Function bypassingProject
+       Function bypassingProject(std::string, std::vector&lt;std::string&gt;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1320,8 +1400,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html">
+       Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html">
-       Function clean_window_function_expressions
+       Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1377,6 +1462,16 @@
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_orc__metadata_8cpp_1a61842c811e058f656a82826436a9cb43.html">
        Function concat_strings
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html">
+       Function convert_concat_expression_into_multiple_binary_concat_ops(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8hpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html">
+       Function convert_concat_expression_into_multiple_binary_concat_ops(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1460,13 +1555,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html">
+       Function extract_table_name(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html">
-       Function extract_table_name
+       Function extract_table_name(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a6a7604747742d1add660479363811c83.html">
+       Function fill_minus_op_with_zero(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a6a7604747742d1add660479363811c83.html">
-       Function fill_minus_op_with_zero
+       Function fill_minus_op_with_zero(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1530,13 +1635,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a62bf30cccd461f0bac29cc88754776cf.html">
+       Function get_bounds_from_window_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf.html">
-       Function get_bounds_from_window_expression
+       Function get_bounds_from_window_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a2b1e69e6cea639ec9f5d532633517d94.html">
+       Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c.html">
-       Function get_cols_to_apply_window_and_cols_to_apply_agg
+       Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1550,18 +1665,33 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a5f1ff4a556cb62777dc69e7bcd2a9aa4.html">
+       Function get_expressions_from_expression_list(std::string&amp;, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657.html">
-       Function get_expressions_from_expression_list
+       Function get_expressions_from_expression_list(std::string&amp;, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a37f2c7a268cd308b36040855417b5478.html">
+       Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478.html">
-       Function get_first_over_expression_from_logical_plan
+       Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html">
+       Function get_frame_type_from_over_clause(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html">
-       Function get_frame_type_from_over_clause
+       Function get_frame_type_from_over_clause(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1580,7 +1710,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/function_engine_8cpp_1aea74327f086d9d7e9a518185228197ef.html">
+      <a class="reference internal" href="xml/function_engine_8cpp_1ac2b1eeed6311019103cc8f10f8694db3.html">
        Function get_loaders_and_schemas
       </a>
      </li>
@@ -1655,18 +1785,43 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1ae67a78cff7624957f904219c398e23f2.html">
+       Function get_over_expression(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2.html">
-       Function get_over_expression
+       Function get_over_expression(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_CalciteInterpreter_8cpp_1a6873292cd0f9ef043baef8ebd8c7b50f.html">
+       Function get_physical_plan(std::string, Context&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_CalciteInterpreter_8h_1a6873292cd0f9ef043baef8ebd8c7b50f.html">
+       Function get_physical_plan(std::string, Context&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1acc0723ef2e4e69f89a2981faf824a1ea.html">
+       Function get_projections(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea.html">
-       Function get_projections
+       Function get_projections(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a49e1001e3fadb90c5544936a91034cd2.html">
+       Function get_query_part(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2.html">
-       Function get_query_part
+       Function get_query_part(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1690,8 +1845,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1affb6494edf6b343f4923af9f32568046.html">
+       Function get_table_index(std::vector&lt;std::string&gt;, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046.html">
-       Function get_table_index
+       Function get_table_index(std::vector&lt;std::string&gt;, std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1795,8 +1955,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a31705d370349370602c5743126ddc79e.html">
+       Function is_accumulate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8hpp_1a31705d370349370602c5743126ddc79e.html">
+       Function is_accumulate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html">
+       Function is_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html">
-       Function is_aggregate
+       Function is_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1815,8 +1990,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a905843d5854f28d64d11d068c560eb43.html">
+       Function is_avg_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43.html">
-       Function is_avg_window_function
+       Function is_avg_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1830,8 +2010,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aebb79ccbb09d16dd354a47758d73d3ad.html">
+       Function is_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad.html">
-       Function is_bindable_scan
+       Function is_bindable_scan(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1845,8 +2030,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html">
+       Function is_compute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html">
-       Function is_compute_aggregate
+       Function is_compute_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1865,23 +2055,53 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1add695985ea62e084e6adea25ab83be07.html">
+       Function is_distribute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07.html">
-       Function is_distribute_aggregate
+       Function is_distribute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1add5b2070f13ed2236f41b253e48dec8b.html">
+       Function is_filter(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b.html">
-       Function is_filter
+       Function is_filter(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html">
+       Function is_filtered_bindable_scan(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html">
-       Function is_filtered_bindable_scan
+       Function is_filtered_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html">
+       Function is_first_value_window(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html">
-       Function is_first_value_window
+       Function is_first_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html">
+       Function is_generate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8hpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html">
+       Function is_generate_overlaps(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1905,28 +2125,53 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a76bda2ebba29bae334d70942fdec351f.html">
+       Function is_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f.html">
-       Function is_join
+       Function is_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1af38bfef0c126d5c26423f15024e67c3b.html">
+       Function is_join_partition(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b.html">
-       Function is_join_partition
+       Function is_join_partition(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1abff4609e5199a159ad8706438f77a4c4.html">
+       Function is_lag_or_lead_aggregation(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1abff4609e5199a159ad8706438f77a4c4.html">
-       Function is_lag_or_lead_aggregation
+       Function is_lag_or_lead_aggregation(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a144a7c17ea2ddd80a2322757ebba3866.html">
+       Function is_last_value_window(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a144a7c17ea2ddd80a2322757ebba3866.html">
-       Function is_last_value_window
+       Function is_last_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a16cf2520ed490282e4fb912c2edbbf01.html">
+       Function is_limit(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01.html">
-       Function is_limit
+       Function is_limit(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1940,18 +2185,33 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html">
+       Function is_logical_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html">
-       Function is_logical_scan
+       Function is_logical_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1af05d71851eaa16ae1d4058b7d89fd0af.html">
+       Function is_merge(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af.html">
-       Function is_merge
+       Function is_merge(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1ac788da52f08887a8fcc4b1591a4385ef.html">
+       Function is_merge_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef.html">
-       Function is_merge_aggregate
+       Function is_merge_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1995,38 +2255,73 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a5f3e50a94e10e3a584ae2b653246f578.html">
+       Function is_pairwise_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578.html">
-       Function is_pairwise_join
+       Function is_pairwise_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1af61507198dee2ef50fcc681bd0bf8458.html">
+       Function is_partition(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458.html">
-       Function is_partition
+       Function is_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1ae02fa9a1efd1b6d55d185996d6f43745.html">
+       Function is_project(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745.html">
-       Function is_project
+       Function is_project(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html">
+       Function is_scan(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html">
-       Function is_scan
+       Function is_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1affc551196389065e03323e6b78f0fab5.html">
+       Function is_single_node_partition(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5.html">
-       Function is_single_node_partition
+       Function is_single_node_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1ae9006e3701a532dd3129a89830a0e318.html">
+       Function is_sort(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318.html">
-       Function is_sort
+       Function is_sort(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a8b285991517b5466f58f9eb8311791df.html">
+       Function is_sort_and_sample(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df.html">
-       Function is_sort_and_sample
+       Function is_sort_and_sample(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2050,8 +2345,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html">
+       Function is_sum_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html">
-       Function is_sum_window_function
+       Function is_sum_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2125,8 +2425,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a376ff51e92d4b5122403877ee04296ee.html">
+       Function is_union(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html">
-       Function is_union
+       Function is_union(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2140,13 +2445,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a1cef7edbacff6b28adcf455e7872a414.html">
+       Function is_window_compute(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414.html">
-       Function is_window_compute
+       Function is_window_compute(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aded092ec0380f864d0f987ad0234417f.html">
+       Function is_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f.html">
-       Function is_window_function
+       Function is_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2220,6 +2535,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11.html">
+       Function ral::batch::get_projections_wrapper
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_BatchJoinProcessing_8cpp_1ade67fb087235e4bf129578219d5fc9ee.html">
        Function ral::batch::parseExpressionToGetTypeAndCondition
       </a>
@@ -2227,6 +2547,11 @@
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_BatchJoinProcessing_8cpp_1a08af1d3b63504448c6807539bbc9cbf1.html">
        Function ral::batch::parseJoinConditionToColumnIndices
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_BatchJoinProcessing_8cpp_1a0a59fd08580e65c57d3ad38f4f62da3d.html">
+       Function ral::batch::parseJoinConditionToEqualityTypes
       </a>
      </li>
      <li class="toctree-l3">
@@ -2360,6 +2685,51 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_sqlcommon_8h_1a120578126fcff3de4d23965d615c0bd6.html">
+       Template Function ral::io::build_fixed_width_cudf_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLDataProvider_8cpp_1a3feeae468f8b368ac13593ab411b0dbe.html">
+       Function ral::io::build_jdbc_mysql_connection
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_sqlcommon_8h_1a67cc2d2d4088b95b4222aad45051b333.html">
+       Function ral::io::build_str_cudf_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLDataProvider_8cpp_1afdc5c32667ae478e005074735a4b0c43.html">
+       Function ral::io::execute_mysql_query
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteDataProvider_8cpp_1a1334deadf69c63744aa384b5a571ca7f.html">
+       Function ral::io::execute_sqlite_query
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLDataProvider_8cpp_1a5d8b0c2b3f702d2b9be6521fc4583977.html">
+       Function ral::io::get_mysql_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLDataProvider_8cpp_1adde9bd75afe5d21ece4caf24550219cc.html">
+       Function ral::io::get_mysql_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteDataProvider_8cpp_1afb9ce85746d015d5b21ead6c14d14e15.html">
+       Function ral::io::get_sqlite_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteDataProvider_8cpp_1a86bdd6590cc468ce776fd73cf5a09c47.html">
+       Function ral::io::get_sqlite_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_ArgsUtil_8cpp_1abe1a7bf84069fedb46ce55b5f4c53cec.html">
        Function ral::io::getCsvReaderOptions
       </a>
@@ -2380,6 +2750,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_ArgsUtil_8cpp_1a6a2454f923e9cbab2585b8207b836345.html">
+       Function ral::io::getSqlInfo
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856.html">
        Function ral::io::in
       </a>
@@ -2395,13 +2770,88 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_AbstractSQLParser_8cpp_1a4bbde01b60ea6ff5fab3fb8c627b7302.html">
+       Function ral::io::init
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLDataProvider_8cpp_1a1308169c128b51902915af5e020b091f.html">
+       Function ral::io::is_string_test
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_ArgsUtil_8cpp_1a7f1968d0bacaf231959ee970bea24e07.html">
        Function ral::io::map_contains
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_PostgreSQLParser_8cpp_1a61ec50e430db1597dfa7e88c95ec72dd.html">
+       Function ral::io::MapPostgreSQLTypeName
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLParser_8cpp_1a48201ceddcb66049e9188abc33dcddf4.html">
+       Function ral::io::mysql_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_ArgsUtil_8cpp_1a73013ac0c543a4481db2c9c35f0ded90.html">
        Function ral::io::ord
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLParser_8cpp_1a8332073c1d15bdeab02a92e44f399253.html">
+       Function ral::io::parse_mysql_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_MySQLParser_8cpp_1af72f1ce9d491b8aaa52ac1e8bb20b07d.html">
+       Function ral::io::parse_mysql_column_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteParser_8cpp_1a30ff69324193dcd34c64a3a1f98be83d.html">
+       Function ral::io::parse_sqlite_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteParser_8cpp_1a91330a47ecc677dd33c179da38c9dd0c.html">
+       Function ral::io::parse_sqlite_column_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_PostgreSQLParser_8cpp_1a7785b44de601e632b2717a1b3e44176a.html">
+       Function ral::io::postgresql_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_PostgreSQLParser_8cpp_1ab341b6ba54ffe1b6fa9699f8542565c4.html">
+       Function ral::io::read_postgresql
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteParser_8cpp_1a51930bbcbe2e9ce51112551717675126.html">
+       Function ral::io::read_sqlite
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteParser_8cpp_1a5cce860014ee8527375dea0a9eea1730.html">
+       Function ral::io::read_sqlite_v2
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_AbstractSQLDataProvider_8h_1ab569754458a8d843d0826295afdda8be.html">
+       Template Function ral::io::set_sql_projections
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteParser_8cpp_1a48b9d7e35c29e9848fe1f527034aab82.html">
+       Function ral::io::sqlite_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_SQLiteDataProvider_8cpp_1a5f1eadcb2076bf78ade1d20e16dfe502.html">
+       Function ral::io::sqlite_is_string_col_type
       </a>
      </li>
      <li class="toctree-l3">
@@ -2470,11 +2920,6 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/function_OrderBy_8cpp_1a3273d9cca104bc4a02f011fdd105be80.html">
-       Function ral::operators::determine_local_limit
-      </a>
-     </li>
-     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_OrderBy_8cpp_1ad6786cf03e9b20d173638c2c5a633f8e.html">
        Function ral::operators::generate_partition_plan
       </a>
@@ -2535,12 +2980,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/function_OrderBy_8cpp_1aed9ddaff30a0f877247c63c6fc74bfe0.html">
-       Function ral::operators::logicalLimit
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="xml/function_OrderBy_8cpp_1a91fadf05c2a0d303373bf852d8a99bda.html">
+      <a class="reference internal" href="xml/function_OrderBy_8cpp_1aefa6928eb43dd6584cade9b96ec6f6d9.html">
        Function ral::operators::logicalSort
       </a>
      </li>
@@ -2565,7 +3005,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/function_OrderBy_8cpp_1a7d23f9f2057526b7d27932843faff210.html">
+      <a class="reference internal" href="xml/function_OrderBy_8cpp_1a003f3bf11e12ac853bffc039d2d7312c.html">
        Function ral::operators::partition_table
       </a>
      </li>
@@ -2730,6 +3170,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_CommonOperations_8cpp_1a47a8023cd1fd53c7fb45e6371e1c2fd6.html">
+       Function ral::utilities::getLimitedRows
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_CommonOperations_8cpp_1a49683cfdf8de653c9d617ec7a18cbf98.html">
        Function ral::utilities::normalize_types
       </a>
@@ -2810,23 +3255,43 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1ad4e6c023e485a8cc458d95c6c94eae64.html">
+       Function remove_over_expr(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64.html">
-       Function remove_over_expr
+       Function remove_over_expr(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a110a8755e64db53f18657e989dd0809f.html">
+       Function replace_calcite_regex(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f.html">
-       Function replace_calcite_regex
+       Function replace_calcite_regex(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html">
+       Function replace_count_expr_with_right_index(std::string, size_t)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html">
-       Function replace_count_expr_with_right_index
+       Function replace_count_expr_with_right_index(std::string, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a64f3303a4196a53aa669481b15ede1c7.html">
+       Function replace_sum0_expr_with_right_index(std::string, size_t)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7.html">
-       Function replace_sum0_expr_with_right_index
+       Function replace_sum0_expr_with_right_index(std::string, size_t)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2837,6 +3302,11 @@
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_engine_8cpp_1aab327dfacfc0728976ed61e8eeae2164.html">
        Function runGenerateGraph
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_engine_8cpp_1a5a5b8584b329f37e496ab364caf10f1b.html">
+       Function runGeneratePhysicalGraph
       </a>
      </li>
      <li class="toctree-l3">
@@ -2920,28 +3390,53 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aad5753dfce608e546bdb1c634029bfdd.html">
+       Function window_expression_contains_bounds(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aad5753dfce608e546bdb1c634029bfdd.html">
-       Function window_expression_contains_bounds
+       Function window_expression_contains_bounds(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html">
+       Function window_expression_contains_bounds_by_range(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html">
-       Function window_expression_contains_bounds_by_range
+       Function window_expression_contains_bounds_by_range(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a9dbf8f491c6a558b22be5306ef76df52.html">
+       Function window_expression_contains_multiple_diff_over_clauses(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4.html">
-       Function window_expression_contains_multiple_diff_over_clauses
+       Function window_expression_contains_multiple_diff_over_clauses(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1a13f4990818a06d1e1d1f4218486fa30b.html">
+       Function window_expression_contains_order_by(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1a13f4990818a06d1e1d1f4218486fa30b.html">
-       Function window_expression_contains_order_by
+       Function window_expression_contains_order_by(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/function_expression__utils_8cpp_1abe34792b84222a73751f700fa68cea1f.html">
+       Function window_expression_contains_partition_by(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="xml/function_expression__utils_8hpp_1abe34792b84222a73751f700fa68cea1f.html">
-       Function window_expression_contains_partition_by
+       Function window_expression_contains_partition_by(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2952,6 +3447,21 @@
      <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_expression__utils_8hpp_1a33d38bd6d82887e47cd9bca39d749485.html">
        Variable BINDABLE_SCAN_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_PostgreSQLDataProvider_8cpp_1aebe162a581a50180a3d5f7170bade175.html">
+       Variable column_bytes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_PostgreSQLDataProvider_8cpp_1a6cfe23662037bc20c86fb97a29d6b5aa.html">
+       Variable column_names
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_PostgreSQLDataProvider_8cpp_1a776e765c396e9f226fe6eb5c3029d5c1.html">
+       Variable column_types
       </a>
      </li>
      <li class="toctree-l3">
@@ -3020,6 +3530,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_expression__utils_8hpp_1a1a53bfe0e48ec7977d54934f1518a2c7.html">
+       Variable LOGICAL_ACCUMULATE_OVERLAPS_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973.html">
        Variable LOGICAL_AGGREGATE_TEXT
       </a>
@@ -3042,6 +3557,11 @@
      <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c.html">
        Variable LOGICAL_FILTER_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_expression__utils_8hpp_1a7d5c1dac9820f316a2f637341c7f8634.html">
+       Variable LOGICAL_GENERATE_OVERLAPS_TEXT
       </a>
      </li>
      <li class="toctree-l3">
@@ -3115,8 +3635,43 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a362f64188be5aec6c228cc0f69dd0cdb.html">
+       Variable ral::batch::BOTH_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_BatchJoinProcessing_8h_1a023e63d9a3fbff1b27f9662be176e9e9.html">
        Variable ral::batch::CROSS_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1addb756e52d468826fe4d2ebb5b1bcdd2.html">
+       Variable ral::batch::DONE_OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a99917a232e4ec46caa409e6040c24587.html">
+       Variable ral::batch::FALSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a97e82b19410ad68a80de7fe227acf90c.html">
+       Variable ral::batch::FOLLOWING_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a4f0140148d776c0891662317cda49808.html">
+       Variable ral::batch::FOLLOWING_REQUEST
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a091010238ede364e6f1fdc1eed343e88.html">
+       Variable ral::batch::FOLLOWING_RESPONSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1acea0ed4ee664db21921408cb44d773ec.html">
+       Variable ral::batch::INCOMPLETE_OVERLAP_STATUS
       </a>
      </li>
      <li class="toctree-l3">
@@ -3140,6 +3695,21 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a1224aa7f88ca85a260b0851179389da2.html">
+       Variable ral::batch::PRECEDING_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a2a4b87d82278c94ef4b6ea0b168bf706.html">
+       Variable ral::batch::PRECEDING_REQUEST
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1ab656bb76fbb9a7d078a72b6216213d09.html">
+       Variable ral::batch::PRECEDING_RESPONSE
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_BatchJoinProcessing_8h_1afe34315964f2d43b8653f9657730ecea.html">
        Variable ral::batch::RIGHT_JOIN
       </a>
@@ -3147,6 +3717,56 @@
      <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_BatchJoinProcessing_8h_1a1df8dbe7a9c986c319228696561c167c.html">
        Variable ral::batch::RIGHT_TABLE_IDX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1af2335a23b10905a34f543998a27d7a31.html">
+       Variable ral::batch::TASK_ARG_OP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a1ef3b7cc27b7a64f39cd1ca1bfa5be72.html">
+       Variable ral::batch::TASK_ARG_OVERLAP_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1ab9db7eeef6e657d71ec92d475acefc02.html">
+       Variable ral::batch::TASK_ARG_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a23a04b2a7df2cec935856a5f9d7443e3.html">
+       Variable ral::batch::TASK_ARG_REMOVE_FOLLOWING_OVERLAP
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1ab4e7ce1df1375a61567c3814866e3e78.html">
+       Variable ral::batch::TASK_ARG_REMOVE_PRECEDING_OVERLAP
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a2c908bcf66f0bbdf6a3a7013831c55ff.html">
+       Variable ral::batch::TASK_ARG_SOURCE_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a36a1e5ed8d22f34c1023b8fed8b16ea7.html">
+       Variable ral::batch::TASK_ARG_TARGET_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1adfd502a643a9c61131fa65756cf98ac3.html">
+       Variable ral::batch::TASK_ARG_TARGET_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a4da1ea4521c357f879baadfc29e17c5a.html">
+       Variable ral::batch::TRUE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_BatchWindowFunctionProcessing_8h_1a3cdb81347cd3be6e17266b3d5d583f29.html">
+       Variable ral::batch::UNKNOWN_OVERLAP_STATUS
       </a>
      </li>
      <li class="toctree-l3">
@@ -3205,6 +3825,36 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_CacheData_8h_1a3a1d5af0ac1e0271fbe0b6abba7da98d.html">
+       Variable ral::cache::OVERLAP_MESSAGE_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_CacheData_8h_1a7f54fe4fe7c387ba968f63ff36609860.html">
+       Variable ral::cache::OVERLAP_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_CacheData_8h_1a5e0c2d7708387aa6059f0f21678c016c.html">
+       Variable ral::cache::OVERLAP_SOURCE_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_CacheData_8h_1aaf2672ad471f8af206c01952b1e9cdef.html">
+       Variable ral::cache::OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_CacheData_8h_1af88a1f1f4e6a1d4295790a12fcb28c3d.html">
+       Variable ral::cache::OVERLAP_TARGET_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_CacheData_8h_1ad6bda7369df03c1c5f78814325a1e6d4.html">
+       Variable ral::cache::OVERLAP_TARGET_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="xml/variable_CacheData_8h_1a29674a4c7028bf58df89486f31769f3c.html">
        Variable ral::cache::PARTITION_COUNT
       </a>
@@ -3240,8 +3890,13 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="xml/variable_ucx__init_8h_1a925a856e0d1b7b8a778089a48599c835.html">
+      <a class="reference internal" href="xml/variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc.html">
        Variable ral::communication::err_handling_opt
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="xml/variable_PostgreSQLParser_8cpp_1a351a3a4e1cb8a7cb6c7ba54ab5bc4dc9.html">
+       Variable ral::io::postgresql_string_type_hints
       </a>
      </li>
      <li class="toctree-l3">
@@ -3844,7 +4499,7 @@
         <li><a href="reference/python/blazing_context.html#module-blazingsql">module</a>
 </li>
       </ul></li>
-      <li><a href="xml/function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef.html#_CPPv416bypassingProjectNSt6stringENSt6vectorINSt6stringEEE">bypassingProject (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aeb1417d8928ac4574cd35044c8f384ef.html#_CPPv416bypassingProjectNSt6stringENSt6vectorINSt6stringEEE">bypassingProject (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef.html#_CPPv416bypassingProjectNSt6stringENSt6vectorINSt6stringEEE">[1]</a>
 </li>
       <li><a href="xml/define_macros_8hpp_1ade19f4e52fc5aab97fe63cd9b6211ba0.html#c.BZ_INTERFACE">BZ_INTERFACE (C macro)</a>
 </li>
@@ -3856,7 +4511,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/function_CalciteExpressionParsing_8cpp_1a774174506cadfc9987816e9d95df05d7.html#_CPPv424clean_calcite_expressionRKNSt6stringE">clean_calcite_expression (C++ function)</a>, <a href="xml/function_CalciteExpressionParsing_8h_1a774174506cadfc9987816e9d95df05d7.html#_CPPv424clean_calcite_expressionRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html#_CPPv433clean_window_function_expressionsRKNSt6vectorINSt6stringEEE6size_t">clean_window_function_expressions (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html#_CPPv433clean_window_function_expressionsRKNSt6vectorINSt6stringEEE6size_t">clean_window_function_expressions (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html#_CPPv433clean_window_function_expressionsRKNSt6vectorINSt6stringEEE6size_t">[1]</a>
 </li>
       <li><a href="xml/classCodeTimer.html#_CPPv49CodeTimer">CodeTimer (C++ class)</a>
 </li>
@@ -4020,10 +4675,10 @@
 </li>
       <li><a href="xml/classcomm_1_1message__sender.html#_CPPv4N4comm14message_sender19initialize_instanceENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt3mapINSt6stringE4nodeEEi13ucp_context_h12ucp_worker_hiN4comm16blazing_protocolEb">comm::message_sender::initialize_instance (C++ function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/classcomm_1_1message__sender.html#_CPPv4N4comm14message_sender14message_senderENSt10shared_ptrIN3ral5cache12CacheMachineEEERKNSt3mapINSt6stringE4nodeEEi13ucp_context_h12ucp_worker_hiN4comm16blazing_protocolEb">comm::message_sender::message_sender (C++ function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/classcomm_1_1message__sender.html#_CPPv4N4comm14message_sender11run_pollingEv">comm::message_sender::run_polling (C++ function)</a>
 </li>
       <li><a href="xml/variable_protocols_8hpp_1a92eee89b1f3cf5264b941f7ddcc50c82.html#_CPPv4N4comm16message_tag_maskE">comm::message_tag_mask (C++ member)</a>
@@ -4146,6 +4801,8 @@
 </li>
       <li><a href="xml/structcomm_1_1ucx__request.html#_CPPv4N4comm11ucx_request3uidE">comm::ucx_request::uid (C++ member)</a>
 </li>
+      <li><a href="xml/function_expression__utils_8cpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html#_CPPv457convert_concat_expression_into_multiple_binary_concat_opsNSt6stringE">convert_concat_expression_into_multiple_binary_concat_ops (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html#_CPPv457convert_concat_expression_into_multiple_binary_concat_opsNSt6stringE">[1]</a>
+</li>
       <li><a href="xml/function_CalciteExpressionParsing_8cpp_1aaffe8adbb74cbdedf9c6313029e5d7ca.html#_CPPv423count_string_occurrenceNSt6stringENSt6stringE">count_string_occurrence (C++ function)</a>, <a href="xml/function_CalciteExpressionParsing_8h_1aaffe8adbb74cbdedf9c6313029e5d7ca.html#_CPPv423count_string_occurrenceNSt6stringENSt6stringE">[1]</a>
 </li>
       <li><a href="reference/python/api/blazingsql.BlazingContext.create_table.html#blazingsql.BlazingContext.create_table">create_table() (blazingsql.BlazingContext method)</a>
@@ -4230,19 +4887,19 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/structdbg__macro_1_1detail__detector_1_1nonesuch.html#_CPPv4N9dbg_macro15detail_detector8nonesuchD0Ev">dbg_macro::detail_detector::nonesuch::~nonesuch (C++ function)</a>
 </li>
-      <li><a href="xml/typedef_dbg_8hpp_1a6f99664732957cf3ac632ddd28ee9752.html#_CPPv4IDpEN9dbg_macro15detail_detector6void_tE">dbg_macro::detail_detector::void_t (C++ type)</a>
+      <li><a href="xml/typedef_dbg_8hpp_1a6f99664732957cf3ac632ddd28ee9752.html#_CPPv4N9dbg_macro15detail_detector6void_tE">dbg_macro::detail_detector::void_t (C++ type)</a>
 </li>
-      <li><a href="xml/typedef_dbg_8hpp_1a5fccea185f880b828afeaf9121a07eb3.html#_CPPv4I0EN9dbg_macro14detect_begin_tE">dbg_macro::detect_begin_t (C++ type)</a>
+      <li><a href="xml/typedef_dbg_8hpp_1a5fccea185f880b828afeaf9121a07eb3.html#_CPPv4N9dbg_macro14detect_begin_tE">dbg_macro::detect_begin_t (C++ type)</a>
 </li>
-      <li><a href="xml/typedef_dbg_8hpp_1af741237ad6c9ecc9146e511f9b5f2617.html#_CPPv4I0EN9dbg_macro12detect_end_tE">dbg_macro::detect_end_t (C++ type)</a>
+      <li><a href="xml/typedef_dbg_8hpp_1af741237ad6c9ecc9146e511f9b5f2617.html#_CPPv4N9dbg_macro12detect_end_tE">dbg_macro::detect_end_t (C++ type)</a>
 </li>
-      <li><a href="xml/typedef_dbg_8hpp_1a7aa5f53d554fd9d654d9d16a7d7f7f05.html#_CPPv4I0EN9dbg_macro13detect_size_tE">dbg_macro::detect_size_t (C++ type)</a>
+      <li><a href="xml/typedef_dbg_8hpp_1a7aa5f53d554fd9d654d9d16a7d7f7f05.html#_CPPv4N9dbg_macro13detect_size_tE">dbg_macro::detect_size_t (C++ type)</a>
 </li>
       <li><a href="xml/structdbg__macro_1_1has__begin__end__size.html#_CPPv4I0EN9dbg_macro18has_begin_end_sizeE">dbg_macro::has_begin_end_size (C++ struct)</a>
 </li>
       <li><a href="xml/structdbg__macro_1_1has__begin__end__size.html#_CPPv4N9dbg_macro18has_begin_end_size5valueE">dbg_macro::has_begin_end_size::value (C++ member)</a>, <a href="xml/variable_scalar__timestamp__parser_8cpp_1a1de5cca0fbfc376f5a6997b84006e25e.html#_CPPv4N9dbg_macro18has_begin_end_size5valueE">[1]</a>
 </li>
-      <li><a href="xml/typedef_dbg_8hpp_1a3d5961fae5aaaacb8b2f5bf549eaa4e4.html#_CPPv4IIDpE0DpEN9dbg_macro11is_detectedE">dbg_macro::is_detected (C++ type)</a>
+      <li><a href="xml/typedef_dbg_8hpp_1a3d5961fae5aaaacb8b2f5bf549eaa4e4.html#_CPPv4N9dbg_macro11is_detectedE">dbg_macro::is_detected (C++ type)</a>
 </li>
       <li><a href="xml/function_dbg_8hpp_1a47085a02f3d4771e8a32b62147566d1c.html#_CPPv4I0EN9dbg_macro11prettyPrintENSt9enable_ifIN18has_begin_end_sizeI9ContainerE5valueEbE4typeERNSt7ostreamERK9Container">dbg_macro::prettyPrint (C++ function)</a>, <a href="xml/function_dbg_8hpp_1a4f8125f57f1a6411a815ff14b0585d25.html#_CPPv4I0EN9dbg_macro11prettyPrintEbRNSt7ostreamERPC1P">[1]</a>, <a href="xml/function_dbg_8hpp_1a6fdcf2651bcb47e3d703dccd86e14ad7.html#_CPPv4IEN9dbg_macro11prettyPrintEbRNSt7ostreamERKNSt6stringE">[2]</a>, <a href="xml/function_dbg_8hpp_1a7d2713ea440a6f885567be1f4b983e98.html#_CPPv4IEN9dbg_macro11prettyPrintEbRNSt7ostreamERKc">[3]</a>, <a href="xml/function_dbg_8hpp_1a8cd9706dcf99965377842446769f3527.html#_CPPv4I0EN9dbg_macro11prettyPrintENSt9enable_ifIXntN18has_begin_end_sizeI1TE5valueEEbE4typeERNSt7ostreamERK1T">[4]</a>, <a href="xml/function_dbg_8hpp_1aa9fdf7314d3ed417ce417e2d54d94b3e.html#_CPPv4IEN9dbg_macro11prettyPrintEbRNSt7ostreamERPCKc">[5]</a>, <a href="xml/function_dbg_8hpp_1ae827cdc8b6fe9b66cc015cdcb17f89ac.html#_CPPv4IEN9dbg_macro11prettyPrintEbRNSt7ostreamERKb">[6]</a>
 </li>
@@ -4274,7 +4931,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/python/api/blazingsql.BlazingContext.explain.html#blazingsql.BlazingContext.explain">explain() (blazingsql.BlazingContext method)</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html#_CPPv418extract_table_nameNSt6stringE">extract_table_name (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html#_CPPv418extract_table_nameNSt6stringE">extract_table_name (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html#_CPPv418extract_table_nameNSt6stringE">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -4286,7 +4943,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="xml/function_expression__utils_8hpp_1a6a7604747742d1add660479363811c83.html#_CPPv423fill_minus_op_with_zeroNSt6stringE">fill_minus_op_with_zero (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a6a7604747742d1add660479363811c83.html#_CPPv423fill_minus_op_with_zeroNSt6stringE">fill_minus_op_with_zero (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a6a7604747742d1add660479363811c83.html#_CPPv423fill_minus_op_with_zeroNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a597392d04d4268baed76d008022c5df1.html#_CPPv418fix_column_aliasesRKNSt6vectorINSt6stringEEENSt6stringE">fix_column_aliases (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a597392d04d4268baed76d008022c5df1.html#_CPPv418fix_column_aliasesRKNSt6vectorINSt6stringEEENSt6stringE">[1]</a>
 </li>
@@ -4300,17 +4957,17 @@
 </li>
       <li><a href="xml/function_CalciteExpressionParsing_8cpp_1a38b2b470b5a33db83e70c86e9f9fcc6e.html#_CPPv432get_aggregation_operation_stringNSt6stringE">get_aggregation_operation_string (C++ function)</a>, <a href="xml/function_CalciteExpressionParsing_8h_1adc1a9ca33720d06aaef1f5cfca885677.html#_CPPv432get_aggregation_operation_stringNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf.html#_CPPv433get_bounds_from_window_expressionRKNSt6stringE">get_bounds_from_window_expression (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a62bf30cccd461f0bac29cc88754776cf.html#_CPPv433get_bounds_from_window_expressionRKNSt6stringE">get_bounds_from_window_expression (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf.html#_CPPv433get_bounds_from_window_expressionRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c.html#_CPPv446get_cols_to_apply_window_and_cols_to_apply_aggRKNSt6stringE">get_cols_to_apply_window_and_cols_to_apply_agg (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a2b1e69e6cea639ec9f5d532633517d94.html#_CPPv446get_cols_to_apply_window_and_cols_to_apply_aggRKNSt6stringE">get_cols_to_apply_window_and_cols_to_apply_agg (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c.html#_CPPv446get_cols_to_apply_window_and_cols_to_apply_aggRKNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_CalciteInterpreter_8cpp_1afafaece78c14fa2854655452fab848b5.html#_CPPv425get_execute_graph_resultsNSt10shared_ptrIN3ral5cache5graphEEE">get_execute_graph_results (C++ function)</a>, <a href="xml/function_CalciteInterpreter_8h_1afafaece78c14fa2854655452fab848b5.html#_CPPv425get_execute_graph_resultsNSt10shared_ptrIN3ral5cache5graphEEE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657.html#_CPPv436get_expressions_from_expression_listRNSt6stringEb">get_expressions_from_expression_list (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a5f1ff4a556cb62777dc69e7bcd2a9aa4.html#_CPPv436get_expressions_from_expression_listRNSt6stringEb">get_expressions_from_expression_list (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657.html#_CPPv436get_expressions_from_expression_listRNSt6stringEb">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478.html#_CPPv443get_first_over_expression_from_logical_planRKNSt6stringERKNSt6stringE">get_first_over_expression_from_logical_plan (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a37f2c7a268cd308b36040855417b5478.html#_CPPv443get_first_over_expression_from_logical_planRKNSt6stringERKNSt6stringE">get_first_over_expression_from_logical_plan (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478.html#_CPPv443get_first_over_expression_from_logical_planRKNSt6stringERKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html#_CPPv431get_frame_type_from_over_clauseRKNSt6stringE">get_frame_type_from_over_clause (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html#_CPPv431get_frame_type_from_over_clauseRKNSt6stringE">get_frame_type_from_over_clause (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html#_CPPv431get_frame_type_from_over_clauseRKNSt6stringE">[1]</a>
 </li>
       <li><a href="reference/python/api/blazingsql.BlazingContext.get_free_memory.html#blazingsql.BlazingContext.get_free_memory">get_free_memory() (blazingsql.BlazingContext method)</a>
 </li>
@@ -4320,25 +4977,27 @@
 </li>
       <li><a href="reference/python/api/blazingsql.BlazingContext.get_max_memory_used.html#blazingsql.BlazingContext.get_max_memory_used">get_max_memory_used() (blazingsql.BlazingContext method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/function_orc__metadata_8cpp_1a92f8778c9e68688ce22df6a1e70e85d0.html#_CPPv419get_minmax_metadataRNSt6vectorIN4cudf2io21parsed_orc_statisticsEEE6size_ti">get_minmax_metadata (C++ function)</a>, <a href="xml/function_orc__metadata_8h_1a9d580a89d9f803997f675d1b92194445.html#_CPPv419get_minmax_metadataRNSt6vectorIN4cudf2io21parsed_orc_statisticsEEE6size_ti">[1]</a>, <a href="xml/function_parquet__metadata_8cpp_1a1c287d4955f6219fb9b083ea01b8f045.html#_CPPv419get_minmax_metadataRNSt6vectorINSt10unique_ptrIN7parquet17ParquetFileReaderEEEEE6size_ti">[2]</a>, <a href="xml/function_parquet__metadata_8h_1a1c287d4955f6219fb9b083ea01b8f045.html#_CPPv419get_minmax_metadataRNSt6vectorINSt10unique_ptrIN7parquet17ParquetFileReaderEEEEE6size_ti">[3]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/function_expression__utils_8cpp_1aa60fd2cf4a5990f75376962058107160.html#_CPPv420get_named_expressionRKNSt6stringERKNSt6stringE">get_named_expression (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aa60fd2cf4a5990f75376962058107160.html#_CPPv420get_named_expressionRKNSt6stringERKNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a4996fc412c775b98b4b6c010259a66b0.html#_CPPv415get_output_type13operator_type">get_output_type (C++ function)</a>, <a href="xml/function_expression__utils_8cpp_1a6fce7f7944d7704c2e129080f0789150.html#_CPPv415get_output_type13operator_typeN4cudf7type_idEN4cudf7type_idE">[1]</a>, <a href="xml/function_expression__utils_8cpp_1ab852f06a7c2678e10788ef5dc79d2ab4.html#_CPPv415get_output_type13operator_typeN4cudf7type_idE">[2]</a>, <a href="xml/function_expression__utils_8hpp_1a4996fc412c775b98b4b6c010259a66b0.html#_CPPv415get_output_type13operator_type">[3]</a>, <a href="xml/function_expression__utils_8hpp_1a6fce7f7944d7704c2e129080f0789150.html#_CPPv415get_output_type13operator_typeN4cudf7type_idEN4cudf7type_idE">[4]</a>, <a href="xml/function_expression__utils_8hpp_1ab852f06a7c2678e10788ef5dc79d2ab4.html#_CPPv415get_output_type13operator_typeN4cudf7type_idE">[5]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2.html#_CPPv419get_over_expressionNSt6stringE">get_over_expression (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1ae67a78cff7624957f904219c398e23f2.html#_CPPv419get_over_expressionNSt6stringE">get_over_expression (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2.html#_CPPv419get_over_expressionNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea.html#_CPPv415get_projectionsRKNSt6stringE">get_projections (C++ function)</a>
+      <li><a href="xml/function_CalciteInterpreter_8cpp_1a6873292cd0f9ef043baef8ebd8c7b50f.html#_CPPv417get_physical_planNSt6stringER7Context">get_physical_plan (C++ function)</a>, <a href="xml/function_CalciteInterpreter_8h_1a6873292cd0f9ef043baef8ebd8c7b50f.html#_CPPv417get_physical_planNSt6stringER7Context">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2.html#_CPPv414get_query_partNSt6stringE">get_query_part (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1acc0723ef2e4e69f89a2981faf824a1ea.html#_CPPv415get_projectionsRKNSt6stringE">get_projections (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea.html#_CPPv415get_projectionsRKNSt6stringE">[1]</a>
+</li>
+      <li><a href="xml/function_expression__utils_8cpp_1a49e1001e3fadb90c5544936a91034cd2.html#_CPPv414get_query_partNSt6stringE">get_query_part (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2.html#_CPPv414get_query_partNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_CalciteExpressionParsing_8cpp_1a3ec66f525b0a50c73c81afc0ddc36c6e.html#_CPPv422get_scalar_from_stringRKNSt6stringEN4cudf9data_typeEb">get_scalar_from_string (C++ function)</a>, <a href="xml/function_CalciteExpressionParsing_8h_1a70c2a2177f4613c6318b374246b084fc.html#_CPPv422get_scalar_from_stringRKNSt6stringEN4cudf9data_typeEb">[1]</a>
 </li>
       <li><a href="xml/function_CalciteExpressionParsing_8cpp_1a8f810c7bb94c5cb0eeba883914f2dedf.html#_CPPv436get_string_between_outer_parenthesesNSt6stringE">get_string_between_outer_parentheses (C++ function)</a>, <a href="xml/function_CalciteExpressionParsing_8h_1a822ceb68fbb4bd6d6b78c33c3df2ebee.html#_CPPv436get_string_between_outer_parenthesesNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046.html#_CPPv415get_table_indexNSt6vectorINSt6stringEEENSt6stringE">get_table_index (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1affb6494edf6b343f4923af9f32568046.html#_CPPv415get_table_indexNSt6vectorINSt6stringEEENSt6stringE">get_table_index (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046.html#_CPPv415get_table_indexNSt6vectorINSt6stringEEENSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_CalciteExpressionParsing_8cpp_1a060bd9d2bb4f60aab4c38a1c4bf1e358.html#_CPPv427get_tokens_in_reverse_orderRKNSt6stringE">get_tokens_in_reverse_order (C++ function)</a>, <a href="xml/function_CalciteExpressionParsing_8h_1a060bd9d2bb4f60aab4c38a1c4bf1e358.html#_CPPv427get_tokens_in_reverse_orderRKNSt6stringE">[1]</a>
 </li>
@@ -4426,7 +5085,9 @@
 </li>
       <li><a href="xml/function_protocols_8cpp_1a683986f2324743d6603498b585220150.html#_CPPv4N2io15write_to_socketEiPKv6size_t">io::write_to_socket (C++ function)</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html#_CPPv412is_aggregateNSt6stringE">is_aggregate (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a31705d370349370602c5743126ddc79e.html#_CPPv422is_accumulate_overlapsNSt6stringE">is_accumulate_overlaps (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a31705d370349370602c5743126ddc79e.html#_CPPv422is_accumulate_overlapsNSt6stringE">[1]</a>
+</li>
+      <li><a href="xml/function_expression__utils_8cpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html#_CPPv412is_aggregateNSt6stringE">is_aggregate (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html#_CPPv412is_aggregateNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8hpp_1a140d8c66182d9c7237728543252c9e56.html#_CPPv423is_aggregate_and_sampleNSt6stringE">is_aggregate_and_sample (C++ function)</a>
 </li>
@@ -4434,49 +5095,51 @@
 </li>
       <li><a href="xml/function_expression__utils_8hpp_1a8075c3f3dc0522f9ac4421eaa89348df.html#_CPPv422is_aggregate_partitionNSt6stringE">is_aggregate_partition (C++ function)</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43.html#_CPPv422is_avg_window_functionNSt6stringE">is_avg_window_function (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a905843d5854f28d64d11d068c560eb43.html#_CPPv422is_avg_window_functionNSt6stringE">is_avg_window_function (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43.html#_CPPv422is_avg_window_functionNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1ab28c6a42ddbd289232f39a5111f6ff95.html#_CPPv418is_binary_operator13operator_type">is_binary_operator (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ab28c6a42ddbd289232f39a5111f6ff95.html#_CPPv418is_binary_operator13operator_type">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad.html#_CPPv416is_bindable_scanNSt6stringE">is_bindable_scan (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aebb79ccbb09d16dd354a47758d73d3ad.html#_CPPv416is_bindable_scanNSt6stringE">is_bindable_scan (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad.html#_CPPv416is_bindable_scanNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a2f4aefc724c60dbbbd81620efca2181f.html#_CPPv47is_boolRKNSt6stringE">is_bool (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a2f4aefc724c60dbbbd81620efca2181f.html#_CPPv47is_boolRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html#_CPPv420is_compute_aggregateNSt6stringE">is_compute_aggregate (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html#_CPPv420is_compute_aggregateNSt6stringE">is_compute_aggregate (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html#_CPPv420is_compute_aggregateNSt6stringE">[1]</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/function_expression__utils_8cpp_1accf3f8108d4e72e94f48954c22212329.html#_CPPv47is_dateRKNSt6stringE">is_date (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1accf3f8108d4e72e94f48954c22212329.html#_CPPv47is_dateRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07.html#_CPPv423is_distribute_aggregateNSt6stringE">is_distribute_aggregate (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1add695985ea62e084e6adea25ab83be07.html#_CPPv423is_distribute_aggregateNSt6stringE">is_distribute_aggregate (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07.html#_CPPv423is_distribute_aggregateNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b.html#_CPPv49is_filterNSt6stringE">is_filter (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1add5b2070f13ed2236f41b253e48dec8b.html#_CPPv49is_filterNSt6stringE">is_filter (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b.html#_CPPv49is_filterNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html#_CPPv425is_filtered_bindable_scanNSt6stringE">is_filtered_bindable_scan (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html#_CPPv425is_filtered_bindable_scanNSt6stringE">is_filtered_bindable_scan (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html#_CPPv425is_filtered_bindable_scanNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html#_CPPv421is_first_value_windowNSt6stringE">is_first_value_window (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html#_CPPv421is_first_value_windowNSt6stringE">is_first_value_window (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html#_CPPv421is_first_value_windowNSt6stringE">[1]</a>
+</li>
+      <li><a href="xml/function_expression__utils_8cpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html#_CPPv420is_generate_overlapsNSt6stringE">is_generate_overlaps (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html#_CPPv420is_generate_overlapsNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a6566d1fe108173708939994b4003c605.html#_CPPv47is_hourRKNSt6stringE">is_hour (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a6566d1fe108173708939994b4003c605.html#_CPPv47is_hourRKNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a8405138c765230f540e9b7f028148260.html#_CPPv413is_inequalityRKNSt6stringE">is_inequality (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a8405138c765230f540e9b7f028148260.html#_CPPv413is_inequalityRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f.html#_CPPv47is_joinRKNSt6stringE">is_join (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a76bda2ebba29bae334d70942fdec351f.html#_CPPv47is_joinRKNSt6stringE">is_join (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f.html#_CPPv47is_joinRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b.html#_CPPv417is_join_partitionRKNSt6stringE">is_join_partition (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1af38bfef0c126d5c26423f15024e67c3b.html#_CPPv417is_join_partitionRKNSt6stringE">is_join_partition (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b.html#_CPPv417is_join_partitionRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1abff4609e5199a159ad8706438f77a4c4.html#_CPPv426is_lag_or_lead_aggregationNSt6stringE">is_lag_or_lead_aggregation (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1abff4609e5199a159ad8706438f77a4c4.html#_CPPv426is_lag_or_lead_aggregationNSt6stringE">is_lag_or_lead_aggregation (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1abff4609e5199a159ad8706438f77a4c4.html#_CPPv426is_lag_or_lead_aggregationNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a144a7c17ea2ddd80a2322757ebba3866.html#_CPPv420is_last_value_windowNSt6stringE">is_last_value_window (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a144a7c17ea2ddd80a2322757ebba3866.html#_CPPv420is_last_value_windowNSt6stringE">is_last_value_window (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a144a7c17ea2ddd80a2322757ebba3866.html#_CPPv420is_last_value_windowNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01.html#_CPPv48is_limitNSt6stringE">is_limit (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a16cf2520ed490282e4fb912c2edbbf01.html#_CPPv48is_limitNSt6stringE">is_limit (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01.html#_CPPv48is_limitNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a788be39db69af819766caf71baa763ce.html#_CPPv410is_literalRKNSt6stringE">is_literal (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a788be39db69af819766caf71baa763ce.html#_CPPv410is_literalRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html#_CPPv415is_logical_scanNSt6stringE">is_logical_scan (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html#_CPPv415is_logical_scanNSt6stringE">is_logical_scan (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html#_CPPv415is_logical_scanNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af.html#_CPPv48is_mergeNSt6stringE">is_merge (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1af05d71851eaa16ae1d4058b7d89fd0af.html#_CPPv48is_mergeNSt6stringE">is_merge (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af.html#_CPPv48is_mergeNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef.html#_CPPv418is_merge_aggregateNSt6stringE">is_merge_aggregate (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1ac788da52f08887a8fcc4b1591a4385ef.html#_CPPv418is_merge_aggregateNSt6stringE">is_merge_aggregate (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef.html#_CPPv418is_merge_aggregateNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1ab7a098e35e96a261178c98144d8a5bde.html#_CPPv47is_nullRKNSt6stringE">is_null (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ab7a098e35e96a261178c98144d8a5bde.html#_CPPv47is_nullRKNSt6stringE">[1]</a>
 </li>
@@ -4486,25 +5149,25 @@
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a381839be51cf5f83ae60fb8bcb64cf64.html#_CPPv417is_operator_tokenRKNSt6stringE">is_operator_token (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a381839be51cf5f83ae60fb8bcb64cf64.html#_CPPv417is_operator_tokenRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578.html#_CPPv416is_pairwise_joinRKNSt6stringE">is_pairwise_join (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a5f3e50a94e10e3a584ae2b653246f578.html#_CPPv416is_pairwise_joinRKNSt6stringE">is_pairwise_join (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578.html#_CPPv416is_pairwise_joinRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458.html#_CPPv412is_partitionNSt6stringE">is_partition (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1af61507198dee2ef50fcc681bd0bf8458.html#_CPPv412is_partitionNSt6stringE">is_partition (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458.html#_CPPv412is_partitionNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745.html#_CPPv410is_projectNSt6stringE">is_project (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1ae02fa9a1efd1b6d55d185996d6f43745.html#_CPPv410is_projectNSt6stringE">is_project (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745.html#_CPPv410is_projectNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html#_CPPv47is_scanNSt6stringE">is_scan (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html#_CPPv47is_scanNSt6stringE">is_scan (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html#_CPPv47is_scanNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5.html#_CPPv424is_single_node_partitionNSt6stringE">is_single_node_partition (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1affc551196389065e03323e6b78f0fab5.html#_CPPv424is_single_node_partitionNSt6stringE">is_single_node_partition (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5.html#_CPPv424is_single_node_partitionNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318.html#_CPPv47is_sortNSt6stringE">is_sort (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1ae9006e3701a532dd3129a89830a0e318.html#_CPPv47is_sortNSt6stringE">is_sort (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318.html#_CPPv47is_sortNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df.html#_CPPv418is_sort_and_sampleNSt6stringE">is_sort_and_sample (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a8b285991517b5466f58f9eb8311791df.html#_CPPv418is_sort_and_sampleNSt6stringE">is_sort_and_sample (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df.html#_CPPv418is_sort_and_sampleNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a52ff43ed65bc65da4ae09e202c025be1.html#_CPPv416is_SQL_data_typeRKNSt6stringE">is_SQL_data_type (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a52ff43ed65bc65da4ae09e202c025be1.html#_CPPv416is_SQL_data_typeRKNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a3831f2bc7b7731472c597369f15fb065.html#_CPPv49is_stringRKNSt6stringE">is_string (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a3831f2bc7b7731472c597369f15fb065.html#_CPPv49is_stringRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html#_CPPv422is_sum_window_functionNSt6stringE">is_sum_window_function (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html#_CPPv422is_sum_window_functionNSt6stringE">is_sum_window_function (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html#_CPPv422is_sum_window_functionNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a311f3203dd6a06578df17bae7acb6d2f.html#_CPPv412is_timestampRKNSt6stringE">is_timestamp (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a311f3203dd6a06578df17bae7acb6d2f.html#_CPPv412is_timestampRKNSt6stringE">[1]</a>
 </li>
@@ -4520,13 +5183,13 @@
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1a8c7e8efcb51f02eb7009c17064ce96de.html#_CPPv417is_unary_operator13operator_type">is_unary_operator (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a8c7e8efcb51f02eb7009c17064ce96de.html#_CPPv417is_unary_operator13operator_type">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html#_CPPv48is_unionNSt6stringE">is_union (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a376ff51e92d4b5122403877ee04296ee.html#_CPPv48is_unionNSt6stringE">is_union (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html#_CPPv48is_unionNSt6stringE">[1]</a>
 </li>
       <li><a href="xml/function_expression__utils_8cpp_1ae7bfd7ed71a93147fb1241dc88568ed8.html#_CPPv413is_var_columnRKNSt6stringE">is_var_column (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ae7bfd7ed71a93147fb1241dc88568ed8.html#_CPPv413is_var_columnRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414.html#_CPPv417is_window_computeNSt6stringE">is_window_compute (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a1cef7edbacff6b28adcf455e7872a414.html#_CPPv417is_window_computeNSt6stringE">is_window_compute (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414.html#_CPPv417is_window_computeNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f.html#_CPPv418is_window_functionNSt6stringE">is_window_function (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aded092ec0380f864d0f987ad0234417f.html#_CPPv418is_window_functionNSt6stringE">is_window_function (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f.html#_CPPv418is_window_functionNSt6stringE">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -4540,6 +5203,8 @@
 </li>
       <li><a href="reference/python/api/blazingsql.BlazingContext.log.html#blazingsql.BlazingContext.log">log() (blazingsql.BlazingContext method)</a>
 </li>
+      <li><a href="xml/variable_expression__utils_8hpp_1a1a53bfe0e48ec7977d54934f1518a2c7.html#_CPPv432LOGICAL_ACCUMULATE_OVERLAPS_TEXT">LOGICAL_ACCUMULATE_OVERLAPS_TEXT (C++ member)</a>
+</li>
       <li><a href="xml/variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973.html#_CPPv422LOGICAL_AGGREGATE_TEXT">LOGICAL_AGGREGATE_TEXT (C++ member)</a>
 </li>
       <li><a href="xml/variable_expression__utils_8hpp_1ab860f78b701c5fd157599694b6530543.html#_CPPv430LOGICAL_COMPUTE_AGGREGATE_TEXT">LOGICAL_COMPUTE_AGGREGATE_TEXT (C++ member)</a>
@@ -4550,12 +5215,14 @@
 </li>
       <li><a href="xml/variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c.html#_CPPv419LOGICAL_FILTER_TEXT">LOGICAL_FILTER_TEXT (C++ member)</a>
 </li>
-      <li><a href="xml/variable_expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7.html#_CPPv427LOGICAL_JOIN_PARTITION_TEXT">LOGICAL_JOIN_PARTITION_TEXT (C++ member)</a>
+      <li><a href="xml/variable_expression__utils_8hpp_1a7d5c1dac9820f316a2f637341c7f8634.html#_CPPv430LOGICAL_GENERATE_OVERLAPS_TEXT">LOGICAL_GENERATE_OVERLAPS_TEXT (C++ member)</a>
 </li>
-      <li><a href="xml/variable_expression__utils_8hpp_1a73532bf8a9c0c1969173fca143353a56.html#_CPPv417LOGICAL_JOIN_TEXT">LOGICAL_JOIN_TEXT (C++ member)</a>
+      <li><a href="xml/variable_expression__utils_8hpp_1a276e90635205c7bd5078fe7faa69c3f7.html#_CPPv427LOGICAL_JOIN_PARTITION_TEXT">LOGICAL_JOIN_PARTITION_TEXT (C++ member)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="xml/variable_expression__utils_8hpp_1a73532bf8a9c0c1969173fca143353a56.html#_CPPv417LOGICAL_JOIN_TEXT">LOGICAL_JOIN_TEXT (C++ member)</a>
+</li>
       <li><a href="xml/variable_expression__utils_8hpp_1a996924dbb99f41abd3d3f895ac7f811e.html#_CPPv418LOGICAL_LIMIT_TEXT">LOGICAL_LIMIT_TEXT (C++ member)</a>
 </li>
       <li><a href="xml/variable_expression__utils_8hpp_1a197d68efd6c32085fc069db873fabc3e.html#_CPPv428LOGICAL_MERGE_AGGREGATE_TEXT">LOGICAL_MERGE_AGGREGATE_TEXT (C++ member)</a>
@@ -4670,6 +5337,8 @@
       <li><a href="xml/enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#_CPPv4N13operator_type8BLZ_HOURE">operator_type::BLZ_HOUR (C++ enumerator)</a>
 </li>
       <li><a href="xml/enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#_CPPv4N13operator_type14BLZ_INVALID_OPE">operator_type::BLZ_INVALID_OP (C++ enumerator)</a>
+</li>
+      <li><a href="xml/enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#_CPPv4N13operator_type24BLZ_IS_NOT_DISTINCT_FROME">operator_type::BLZ_IS_NOT_DISTINCT_FROM (C++ enumerator)</a>
 </li>
       <li><a href="xml/enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.html#_CPPv4N13operator_type15BLZ_IS_NOT_NULLE">operator_type::BLZ_IS_NOT_NULL (C++ enumerator)</a>
 </li>
@@ -4797,6 +5466,8 @@
 </li>
       <li><a href="xml/classral_1_1batch_1_1BindableTableScan.html#_CPPv4N3ral5batch17BindableTableScan3runEv">ral::batch::BindableTableScan::run (C++ function)</a>
 </li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a362f64188be5aec6c228cc0f69dd0cdb.html#_CPPv4N3ral5batch17BOTH_OVERLAP_TYPEE">ral::batch::BOTH_OVERLAP_TYPE (C++ member)</a>
+</li>
       <li><a href="xml/classral_1_1batch_1_1ComputeAggregateKernel.html#_CPPv4N3ral5batch22ComputeAggregateKernelE">ral::batch::ComputeAggregateKernel (C++ class)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1ComputeAggregateKernel.html#_CPPv4N3ral5batch22ComputeAggregateKernel22ComputeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">ral::batch::ComputeAggregateKernel::ComputeAggregateKernel (C++ function)</a>
@@ -4835,6 +5506,10 @@
 </li>
       <li><a href="xml/classral_1_1batch_1_1DistributeAggregateKernel.html#_CPPv4N3ral5batch25DistributeAggregateKernel3runEv">ral::batch::DistributeAggregateKernel::run (C++ function)</a>
 </li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1addb756e52d468826fe4d2ebb5b1bcdd2.html#_CPPv4N3ral5batch19DONE_OVERLAP_STATUSE">ral::batch::DONE_OVERLAP_STATUS (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a99917a232e4ec46caa409e6040c24587.html#_CPPv4N3ral5batch5FALSEE">ral::batch::FALSE (C++ member)</a>
+</li>
       <li><a href="xml/classral_1_1batch_1_1Filter.html#_CPPv4N3ral5batch6FilterE">ral::batch::Filter (C++ class)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1Filter.html#_CPPv4N3ral5batch6Filter10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">ral::batch::Filter::do_process (C++ function)</a>
@@ -4847,7 +5522,17 @@
 </li>
       <li><a href="xml/classral_1_1batch_1_1Filter.html#_CPPv4N3ral5batch6Filter3runEv">ral::batch::Filter::run (C++ function)</a>
 </li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a97e82b19410ad68a80de7fe227acf90c.html#_CPPv4N3ral5batch22FOLLOWING_OVERLAP_TYPEE">ral::batch::FOLLOWING_OVERLAP_TYPE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a4f0140148d776c0891662317cda49808.html#_CPPv4N3ral5batch17FOLLOWING_REQUESTE">ral::batch::FOLLOWING_REQUEST (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a091010238ede364e6f1fdc1eed343e88.html#_CPPv4N3ral5batch18FOLLOWING_RESPONSEE">ral::batch::FOLLOWING_RESPONSE (C++ member)</a>
+</li>
       <li><a href="xml/typedef_BatchProcessing_8h_1a558c5bce9b3654ad7158381e97d73e29.html#_CPPv4N3ral5batch10frame_typeE">ral::batch::frame_type (C++ type)</a>
+</li>
+      <li><a href="xml/function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11.html#_CPPv4N3ral5batch23get_projections_wrapperE6size_tRKNSt6stringE">ral::batch::get_projections_wrapper (C++ function)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1acea0ed4ee664db21921408cb44d773ec.html#_CPPv4N3ral5batch25INCOMPLETE_OVERLAP_STATUSE">ral::batch::INCOMPLETE_OVERLAP_STATUS (C++ member)</a>
 </li>
       <li><a href="xml/variable_BatchJoinProcessing_8h_1a6e0c355ca3625e6cc3af329feb6856b3.html#_CPPv4N3ral5batch10INNER_JOINE">ral::batch::INNER_JOIN (C++ member)</a>
 </li>
@@ -4927,9 +5612,31 @@
 </li>
       <li><a href="xml/classral_1_1batch_1_1OutputKernel.html#_CPPv4N3ral5batch12OutputKernel3runEv">ral::batch::OutputKernel::run (C++ function)</a>
 </li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapAccumulatorKernel.html#_CPPv4N3ral5batch24OverlapAccumulatorKernelE">ral::batch::OverlapAccumulatorKernel (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapAccumulatorKernel.html#_CPPv4N3ral5batch24OverlapAccumulatorKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">ral::batch::OverlapAccumulatorKernel::do_process (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapAccumulatorKernel.html#_CPPv4N3ral5batch24OverlapAccumulatorKernel11kernel_nameEv">ral::batch::OverlapAccumulatorKernel::kernel_name (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapAccumulatorKernel.html#_CPPv4N3ral5batch24OverlapAccumulatorKernel24OverlapAccumulatorKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">ral::batch::OverlapAccumulatorKernel::OverlapAccumulatorKernel (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapAccumulatorKernel.html#_CPPv4N3ral5batch24OverlapAccumulatorKernel3runEv">ral::batch::OverlapAccumulatorKernel::run (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapGeneratorKernel.html#_CPPv4N3ral5batch22OverlapGeneratorKernelE">ral::batch::OverlapGeneratorKernel (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapGeneratorKernel.html#_CPPv4N3ral5batch22OverlapGeneratorKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">ral::batch::OverlapGeneratorKernel::do_process (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapGeneratorKernel.html#_CPPv4N3ral5batch22OverlapGeneratorKernel11kernel_nameEv">ral::batch::OverlapGeneratorKernel::kernel_name (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapGeneratorKernel.html#_CPPv4N3ral5batch22OverlapGeneratorKernel22OverlapGeneratorKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">ral::batch::OverlapGeneratorKernel::OverlapGeneratorKernel (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1batch_1_1OverlapGeneratorKernel.html#_CPPv4N3ral5batch22OverlapGeneratorKernel3runEv">ral::batch::OverlapGeneratorKernel::run (C++ function)</a>
+</li>
       <li><a href="xml/function_BatchJoinProcessing_8cpp_1ade67fb087235e4bf129578219d5fc9ee.html#_CPPv4N3ral5batch36parseExpressionToGetTypeAndConditionERKNSt6stringE">ral::batch::parseExpressionToGetTypeAndCondition (C++ function)</a>
 </li>
       <li><a href="xml/function_BatchJoinProcessing_8cpp_1a08af1d3b63504448c6807539bbc9cbf1.html#_CPPv4N3ral5batch33parseJoinConditionToColumnIndicesERKNSt6stringERNSt6vectorIiEE">ral::batch::parseJoinConditionToColumnIndices (C++ function)</a>
+</li>
+      <li><a href="xml/function_BatchJoinProcessing_8cpp_1a0a59fd08580e65c57d3ad38f4f62da3d.html#_CPPv4N3ral5batch33parseJoinConditionToEqualityTypesERKNSt6stringE">ral::batch::parseJoinConditionToEqualityTypes (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1PartitionKernel.html#_CPPv4N3ral5batch15PartitionKernelE">ral::batch::PartitionKernel (C++ class)</a>
 </li>
@@ -4964,6 +5671,12 @@
       <li><a href="xml/classral_1_1batch_1_1PartwiseJoin.html#_CPPv4N3ral5batch12PartwiseJoin12PartwiseJoinENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">ral::batch::PartwiseJoin::PartwiseJoin (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1PartwiseJoin.html#_CPPv4N3ral5batch12PartwiseJoin3runEv">ral::batch::PartwiseJoin::run (C++ function)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a1224aa7f88ca85a260b0851179389da2.html#_CPPv4N3ral5batch22PRECEDING_OVERLAP_TYPEE">ral::batch::PRECEDING_OVERLAP_TYPE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a2a4b87d82278c94ef4b6ea0b168bf706.html#_CPPv4N3ral5batch17PRECEDING_REQUESTE">ral::batch::PRECEDING_REQUEST (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1ab656bb76fbb9a7d078a72b6216213d09.html#_CPPv4N3ral5batch18PRECEDING_RESPONSEE">ral::batch::PRECEDING_RESPONSE (C++ member)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1Print.html#_CPPv4N3ral5batch5PrintE">ral::batch::Print (C++ class)</a>
 </li>
@@ -5021,6 +5734,22 @@
 </li>
       <li><a href="xml/classral_1_1batch_1_1TableScan.html#_CPPv4N3ral5batch9TableScan9TableScanENSt6size_tERKNSt6stringENSt10shared_ptrIN3ral2io13data_providerEEENSt10shared_ptrIN3ral2io11data_parserEEERN3ral2io6SchemaENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">ral::batch::TableScan::TableScan (C++ function)</a>
 </li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1af2335a23b10905a34f543998a27d7a31.html#_CPPv4N3ral5batch16TASK_ARG_OP_TYPEE">ral::batch::TASK_ARG_OP_TYPE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a1ef3b7cc27b7a64f39cd1ca1bfa5be72.html#_CPPv4N3ral5batch21TASK_ARG_OVERLAP_SIZEE">ral::batch::TASK_ARG_OVERLAP_SIZE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1ab9db7eeef6e657d71ec92d475acefc02.html#_CPPv4N3ral5batch21TASK_ARG_OVERLAP_TYPEE">ral::batch::TASK_ARG_OVERLAP_TYPE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a23a04b2a7df2cec935856a5f9d7443e3.html#_CPPv4N3ral5batch33TASK_ARG_REMOVE_FOLLOWING_OVERLAPE">ral::batch::TASK_ARG_REMOVE_FOLLOWING_OVERLAP (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1ab4e7ce1df1375a61567c3814866e3e78.html#_CPPv4N3ral5batch33TASK_ARG_REMOVE_PRECEDING_OVERLAPE">ral::batch::TASK_ARG_REMOVE_PRECEDING_OVERLAP (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a2c908bcf66f0bbdf6a3a7013831c55ff.html#_CPPv4N3ral5batch27TASK_ARG_SOURCE_BATCH_INDEXE">ral::batch::TASK_ARG_SOURCE_BATCH_INDEX (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a36a1e5ed8d22f34c1023b8fed8b16ea7.html#_CPPv4N3ral5batch27TASK_ARG_TARGET_BATCH_INDEXE">ral::batch::TASK_ARG_TARGET_BATCH_INDEX (C++ member)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1adfd502a643a9c61131fa65756cf98ac3.html#_CPPv4N3ral5batch26TASK_ARG_TARGET_NODE_INDEXE">ral::batch::TASK_ARG_TARGET_NODE_INDEX (C++ member)</a>
+</li>
       <li><a href="xml/structral_1_1batch_1_1tree__processor.html#_CPPv4N3ral5batch14tree_processorE">ral::batch::tree_processor (C++ struct)</a>
 </li>
       <li><a href="xml/structral_1_1batch_1_1tree__processor.html#_CPPv4N3ral5batch14tree_processor17build_batch_graphENSt6stringE">ral::batch::tree_processor::build_batch_graph (C++ function)</a>
@@ -5049,9 +5778,13 @@
 </li>
       <li><a href="xml/structral_1_1batch_1_1tree__processor.html#_CPPv4N3ral5batch14tree_processor35transform_operators_bigger_than_gpuE">ral::batch::tree_processor::transform_operators_bigger_than_gpu (C++ member)</a>
 </li>
+      <li><a href="xml/structral_1_1batch_1_1tree__processor.html#_CPPv4N3ral5batch14tree_processor23transform_physical_planENSt6stringE">ral::batch::tree_processor::transform_physical_plan (C++ function)</a>
+</li>
       <li><a href="xml/structral_1_1batch_1_1tree__processor.html#_CPPv4N3ral5batch14tree_processor14tree_processorE4nodeNSt10shared_ptrI7ContextEENSt6vectorIN3ral2io11data_loaderEEENSt6vectorIN3ral2io6SchemaEEENSt6vectorINSt6stringEEENSt6vectorINSt6stringEEEKb">ral::batch::tree_processor::tree_processor (C++ function)</a>
 </li>
       <li><a href="xml/structral_1_1batch_1_1tree__processor.html#_CPPv4N3ral5batch14tree_processor5visitERN3ral5cache5graphEP4nodeRNSt6vectorINSt10shared_ptrI4nodeEEEE">ral::batch::tree_processor::visit (C++ function)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a4da1ea4521c357f879baadfc29e17c5a.html#_CPPv4N3ral5batch4TRUEE">ral::batch::TRUE (C++ member)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1UnionKernel.html#_CPPv4N3ral5batch11UnionKernelE">ral::batch::UnionKernel (C++ class)</a>
 </li>
@@ -5062,6 +5795,8 @@
       <li><a href="xml/classral_1_1batch_1_1UnionKernel.html#_CPPv4N3ral5batch11UnionKernel3runEv">ral::batch::UnionKernel::run (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1batch_1_1UnionKernel.html#_CPPv4N3ral5batch11UnionKernel11UnionKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">ral::batch::UnionKernel::UnionKernel (C++ function)</a>
+</li>
+      <li><a href="xml/variable_BatchWindowFunctionProcessing_8h_1a3cdb81347cd3be6e17266b3d5d583f29.html#_CPPv4N3ral5batch22UNKNOWN_OVERLAP_STATUSE">ral::batch::UNKNOWN_OVERLAP_STATUS (C++ member)</a>
 </li>
       <li><a href="xml/variable_CacheData_8h_1a72d523e2fe0c552233eb3019c7937382.html#_CPPv4N3ral5cache36ADD_TO_SPECIFIC_CACHE_METADATA_LABELE">ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL (C++ member)</a>
 </li>
@@ -5079,11 +5814,19 @@
 </li>
       <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE">ral::cache::cache_settings (C++ struct)</a>
 </li>
+      <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings20cache_level_overrideE">ral::cache::cache_settings::cache_level_override (C++ member)</a>
+</li>
       <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings10concat_allE">ral::cache::cache_settings::concat_all (C++ member)</a>
 </li>
       <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings22concat_cache_num_bytesE">ral::cache::cache_settings::concat_cache_num_bytes (C++ member)</a>
 </li>
       <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings7contextE">ral::cache::cache_settings::context (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings15is_array_accessE">ral::cache::cache_settings::is_array_access (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings11log_timeoutE">ral::cache::cache_settings::log_timeout (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings17num_bytes_timeoutE">ral::cache::cache_settings::num_bytes_timeout (C++ member)</a>
 </li>
       <li><a href="xml/structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settings14num_partitionsE">ral::cache::cache_settings::num_partitions (C++ member)</a>
 </li>
@@ -5120,6 +5863,8 @@
       <li><a href="xml/classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheData6schemaE">ral::cache::CacheData::schema (C++ member)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheData9set_namesERKNSt6vectorINSt6stringEEE">ral::cache::CacheData::set_names (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheData11setMetadataE18MetadataDictionary">ral::cache::CacheData::setMetadata (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheData.html#_CPPv4NK3ral5cache9CacheData11sizeInBytesEv">ral::cache::CacheData::sizeInBytes (C++ function)</a>
 </li>
@@ -5173,7 +5918,7 @@
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine19addHostFrameToCacheENSt10unique_ptrIN3ral5frame16BlazingHostTableEEENSt6stringE">ral::cache::CacheMachine::addHostFrameToCache (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine10addToCacheENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringEbRK18MetadataDictionarybb">ral::cache::CacheMachine::addToCache (C++ function)</a>
+      <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine10addToCacheENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringEbRK18MetadataDictionaryb">ral::cache::CacheMachine::addToCache (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine11cache_countE">ral::cache::CacheMachine::cache_count (C++ member)</a>
 </li>
@@ -5200,6 +5945,8 @@
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4NK3ral5cache12CacheMachine11get_contextEv">ral::cache::CacheMachine::get_context (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4NK3ral5cache12CacheMachine6get_idEv">ral::cache::CacheMachine::get_id (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine15get_num_batchesEv">ral::cache::CacheMachine::get_num_batches (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine21get_num_batches_addedEv">ral::cache::CacheMachine::get_num_batches_added (C++ function)</a>
 </li>
@@ -5231,13 +5978,15 @@
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine19pull_all_cache_dataEv">ral::cache::CacheMachine::pull_all_cache_data (C++ function)</a>
 </li>
+      <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine16pullAnyCacheDataERKNSt6vectorINSt6stringEEE">ral::cache::CacheMachine::pullAnyCacheData (C++ function)</a>
+</li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine13pullCacheDataENSt6stringE">ral::cache::CacheMachine::pullCacheData (C++ function)</a>, <a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine13pullCacheDataEv">[1]</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine13pullFromCacheEv">ral::cache::CacheMachine::pullFromCache (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine22pullUnorderedFromCacheEv">ral::cache::CacheMachine::pullUnorderedFromCache (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine3putE6size_tNSt10unique_ptrIN3ral5frame12BlazingTableEEE">ral::cache::CacheMachine::put (C++ function)</a>
+      <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine3putE6size_tNSt10unique_ptrIN3ral5cache9CacheDataEEE">ral::cache::CacheMachine::put (C++ function)</a>, <a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine3putE6size_tNSt10unique_ptrIN3ral5frame12BlazingTableEEE">[1]</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachine15something_addedE">ral::cache::CacheMachine::something_added (C++ member)</a>
 </li>
@@ -5277,7 +6026,7 @@
 </li>
       <li><a href="xml/classral_1_1cache_1_1ConcatenatingCacheMachine.html#_CPPv4N3ral5cache25ConcatenatingCacheMachineE">ral::cache::ConcatenatingCacheMachine (C++ class)</a>
 </li>
-      <li><a href="xml/classral_1_1cache_1_1ConcatenatingCacheMachine.html#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE">ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine (C++ function)</a>, <a href="xml/classral_1_1cache_1_1ConcatenatingCacheMachine.html#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE">[1]</a>
+      <li><a href="xml/classral_1_1cache_1_1ConcatenatingCacheMachine.html#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEibNSt6stringE">ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine (C++ function)</a>, <a href="xml/classral_1_1cache_1_1ConcatenatingCacheMachine.html#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE">[1]</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1ConcatenatingCacheMachine.html#_CPPv4N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv">ral::cache::ConcatenatingCacheMachine::downgradeCacheData (C++ function)</a>
 </li>
@@ -5533,6 +6282,8 @@
 </li>
       <li><a href="xml/classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernel22total_input_rows_addedEv">ral::cache::kernel::total_input_rows_added (C++ function)</a>
 </li>
+      <li><a href="xml/classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernel26total_input_rows_processedE">ral::cache::kernel::total_input_rows_processed (C++ member)</a>
+</li>
       <li><a href="xml/classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelD0Ev">ral::cache::kernel::~kernel (C++ function)</a>
 </li>
       <li><a href="xml/variable_CacheData_8h_1a0618edb0637edcd74500004d90a3ef12.html#_CPPv4N3ral5cache24KERNEL_ID_METADATA_LABELE">ral::cache::KERNEL_ID_METADATA_LABEL (C++ member)</a>
@@ -5562,6 +6313,10 @@
       <li><a href="xml/enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_type17MergeStreamKernelE">ral::cache::kernel_type::MergeStreamKernel (C++ enumerator)</a>
 </li>
       <li><a href="xml/enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_type12OutputKernelE">ral::cache::kernel_type::OutputKernel (C++ enumerator)</a>
+</li>
+      <li><a href="xml/enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_type24OverlapAccumulatorKernelE">ral::cache::kernel_type::OverlapAccumulatorKernel (C++ enumerator)</a>
+</li>
+      <li><a href="xml/enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_type22OverlapGeneratorKernelE">ral::cache::kernel_type::OverlapGeneratorKernel (C++ enumerator)</a>
 </li>
       <li><a href="xml/enum_kernel__type_8h_1a65f37628a9c26ef883e2973226b23279.html#_CPPv4N3ral5cache11kernel_type15PartitionKernelE">ral::cache::kernel_type::PartitionKernel (C++ enumerator)</a>
 </li>
@@ -5641,6 +6396,18 @@
 </li>
       <li><a href="xml/classral_1_1cache_1_1MetadataDictionary.html#_CPPv4N3ral5cache18MetadataDictionary10set_valuesENSt3mapINSt6stringENSt6stringEEE">ral::cache::MetadataDictionary::set_values (C++ function)</a>
 </li>
+      <li><a href="xml/variable_CacheData_8h_1a3a1d5af0ac1e0271fbe0b6abba7da98d.html#_CPPv4N3ral5cache20OVERLAP_MESSAGE_TYPEE">ral::cache::OVERLAP_MESSAGE_TYPE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_CacheData_8h_1a7f54fe4fe7c387ba968f63ff36609860.html#_CPPv4N3ral5cache12OVERLAP_SIZEE">ral::cache::OVERLAP_SIZE (C++ member)</a>
+</li>
+      <li><a href="xml/variable_CacheData_8h_1a5e0c2d7708387aa6059f0f21678c016c.html#_CPPv4N3ral5cache25OVERLAP_SOURCE_NODE_INDEXE">ral::cache::OVERLAP_SOURCE_NODE_INDEX (C++ member)</a>
+</li>
+      <li><a href="xml/variable_CacheData_8h_1aaf2672ad471f8af206c01952b1e9cdef.html#_CPPv4N3ral5cache14OVERLAP_STATUSE">ral::cache::OVERLAP_STATUS (C++ member)</a>
+</li>
+      <li><a href="xml/variable_CacheData_8h_1af88a1f1f4e6a1d4295790a12fcb28c3d.html#_CPPv4N3ral5cache26OVERLAP_TARGET_BATCH_INDEXE">ral::cache::OVERLAP_TARGET_BATCH_INDEX (C++ member)</a>
+</li>
+      <li><a href="xml/variable_CacheData_8h_1ad6bda7369df03c1c5f78814325a1e6d4.html#_CPPv4N3ral5cache25OVERLAP_TARGET_NODE_INDEXE">ral::cache::OVERLAP_TARGET_NODE_INDEX (C++ member)</a>
+</li>
       <li><a href="xml/variable_CacheData_8h_1a29674a4c7028bf58df89486f31769f3c.html#_CPPv4N3ral5cache15PARTITION_COUNTE">ral::cache::PARTITION_COUNT (C++ member)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1port.html#_CPPv4N3ral5cache4portE">ral::cache::port (C++ class)</a>
@@ -5695,8 +6462,6 @@
 </li>
       <li><a href="xml/function_CacheData_8cpp_1ad967588a31aa32de65b481bde100b4cc.html#_CPPv4N3ral5cache12randomStringENSt6size_tE">ral::cache::randomString (C++ function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/variable_CacheData_8h_1a68ddd087913a7ad5e3b92f8990167f02.html#_CPPv4N3ral5cache31SENDER_WORKER_ID_METADATA_LABELE">ral::cache::SENDER_WORKER_ID_METADATA_LABEL (C++ member)</a>
 </li>
       <li><a href="xml/variable_CacheData_8h_1ae31b4f46756fc76546c80cb97023d4a2.html#_CPPv4N3ral5cache31TOTAL_TABLE_ROWS_METADATA_LABELE">ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL (C++ member)</a>
@@ -5720,6 +6485,8 @@
       <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue22get_next_size_in_bytesEv">ral::cache::WaitingQueue::get_next_size_in_bytes (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue11get_or_waitENSt6stringE">ral::cache::WaitingQueue::get_or_wait (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue15get_or_wait_anyERKNSt6vectorINSt6stringEEE">ral::cache::WaitingQueue::get_or_wait_any (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue12has_next_nowEv">ral::cache::WaitingQueue::has_next_now (C++ function)</a>
 </li>
@@ -5749,7 +6516,7 @@
 </li>
       <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue19wait_until_finishedEv">ral::cache::WaitingQueue::wait_until_finished (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue20wait_until_num_bytesE6size_t">ral::cache::WaitingQueue::wait_until_num_bytes (C++ function)</a>
+      <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue20wait_until_num_bytesE6size_ti">ral::cache::WaitingQueue::wait_until_num_bytes (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue12WaitingQueueENSt6stringEib">ral::cache::WaitingQueue::WaitingQueue (C++ function)</a>, <a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue12WaitingQueueERK12WaitingQueue">[1]</a>, <a href="xml/classral_1_1cache_1_1WaitingQueue.html#_CPPv4N3ral5cache12WaitingQueue12WaitingQueueERR12WaitingQueue">[2]</a>
 </li>
@@ -5811,8 +6578,10 @@
 </li>
       <li><a href="xml/function_ucx__init_8h_1a6480b48aabfed1c793e664591c646178.html#_CPPv4N3ral13communication11CreateUcpEpE12ucp_worker_hRK16UcpWorkerAddress">ral::communication::CreateUcpEp (C++ function)</a>
 </li>
-      <li><a href="xml/variable_ucx__init_8h_1a925a856e0d1b7b8a778089a48599c835.html#_CPPv4N3ral13communication16err_handling_optE">ral::communication::err_handling_opt (C++ member)</a>
+      <li><a href="xml/variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc.html#_CPPv4N3ral13communication16err_handling_optE">ral::communication::err_handling_opt (C++ member)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="xml/classral_1_1communication_1_1ErrorHandling.html#_CPPv4N3ral13communication13ErrorHandlingE">ral::communication::ErrorHandling (C++ class)</a>
 </li>
       <li><a href="xml/classral_1_1communication_1_1ErrorHandling.html#_CPPv4N3ral13communication13ErrorHandling7failureE">ral::communication::ErrorHandling::failure (C++ member)</a>
@@ -6075,15 +6844,111 @@
 </li>
       <li><a href="xml/function_LogicPrimitives_8cpp_1a0529cc4b0903b226668d178c35ef27f5.html#_CPPv4N3ral5frame29cudfTableViewToBlazingColumnsERK13CudfTableView">ral::frame::cudfTableViewToBlazingColumns (C++ function)</a>
 </li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_providerE">ral::io::abstractsql_data_provider (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider25abstractsql_data_providerERK8sql_info6size_t6size_t">ral::io::abstractsql_data_provider::abstractsql_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4NK3ral2io25abstractsql_data_provider18build_limit_offsetE6size_t">ral::io::abstractsql_data_provider::build_limit_offset (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4NK3ral2io25abstractsql_data_provider17build_select_fromEv">ral::io::abstractsql_data_provider::build_select_from (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider18close_file_handlesEv">ral::io::abstractsql_data_provider::close_file_handles (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider12column_bytesE">ral::io::abstractsql_data_provider::column_bytes (C++ member)</a>, <a href="xml/variable_PostgreSQLDataProvider_8cpp_1aebe162a581a50180a3d5f7170bade175.html#_CPPv4N3ral2io25abstractsql_data_provider12column_bytesE">[1]</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider14column_indicesE">ral::io::abstractsql_data_provider::column_indices (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider12column_namesE">ral::io::abstractsql_data_provider::column_names (C++ member)</a>, <a href="xml/variable_PostgreSQLDataProvider_8cpp_1a6cfe23662037bc20c86fb97a29d6b5aa.html#_CPPv4N3ral2io25abstractsql_data_provider12column_namesE">[1]</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider12column_typesE">ral::io::abstractsql_data_provider::column_types (C++ member)</a>, <a href="xml/variable_PostgreSQLDataProvider_8cpp_1a776e765c396e9f226fe6eb5c3029d5c1.html#_CPPv4N3ral2io25abstractsql_data_provider12column_typesE">[1]</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider8get_someENSt6size_tEb">ral::io::abstractsql_data_provider::get_some (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider11query_partsE">ral::io::abstractsql_data_provider::query_parts (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider13self_node_idxE">ral::io::abstractsql_data_provider::self_node_idx (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider18set_column_indicesENSt6vectorIiEE">ral::io::abstractsql_data_provider::set_column_indices (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider3sqlE">ral::io::abstractsql_data_provider::sql (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_provider21total_number_of_nodesE">ral::io::abstractsql_data_provider::total_number_of_nodes (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__data__provider.html#_CPPv4N3ral2io25abstractsql_data_providerD0Ev">ral::io::abstractsql_data_provider::~abstractsql_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parserE">ral::io::abstractsql_parser (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser18abstractsql_parserE8DataType">ral::io::abstractsql_parser::abstractsql_parser (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser16get_cudf_type_idERKNSt6stringE">ral::io::abstractsql_parser::get_cudf_type_id (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi">ral::io::abstractsql_parser::get_metadata (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::abstractsql_parser::parse_batch (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE">ral::io::abstractsql_parser::parse_cudf_bool8 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE">ral::io::abstractsql_parser::parse_cudf_float32 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE">ral::io::abstractsql_parser::parse_cudf_float64 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE">ral::io::abstractsql_parser::parse_cudf_int16 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE">ral::io::abstractsql_parser::parse_cudf_int32 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE">ral::io::abstractsql_parser::parse_cudf_int64 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE">ral::io::abstractsql_parser::parse_cudf_int8 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col">ral::io::abstractsql_parser::parse_cudf_string (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col">ral::io::abstractsql_parser::parse_cudf_timestamp_days (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col">ral::io::abstractsql_parser::parse_cudf_timestamp_microseconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col">ral::io::abstractsql_parser::parse_cudf_timestamp_milliseconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col">ral::io::abstractsql_parser::parse_cudf_timestamp_nanoseconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col">ral::io::abstractsql_parser::parse_cudf_timestamp_seconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE">ral::io::abstractsql_parser::parse_cudf_uint16 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE">ral::io::abstractsql_parser::parse_cudf_uint32 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE">ral::io::abstractsql_parser::parse_cudf_uint64 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE">ral::io::abstractsql_parser::parse_cudf_uint8 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser12parse_schemaEN3ral2io11data_handleER6Schema">ral::io::abstractsql_parser::parse_schema (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser9parse_sqlEPvRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE6size_tRNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE">ral::io::abstractsql_parser::parse_sql (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE">ral::io::abstractsql_parser::read_sql_loop (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4NK3ral2io18abstractsql_parser4typeEv">ral::io::abstractsql_parser::type (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1abstractsql__parser.html#_CPPv4N3ral2io18abstractsql_parserD0Ev">ral::io::abstractsql_parser::~abstractsql_parser (C++ function)</a>
+</li>
       <li><a href="xml/classral_1_1io_1_1arrow__parser.html#_CPPv4N3ral2io12arrow_parserE">ral::io::arrow_parser (C++ class)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1arrow__parser.html#_CPPv4N3ral2io12arrow_parser12arrow_parserENSt10shared_ptrIN5arrow5TableEEE">ral::io::arrow_parser::arrow_parser (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1arrow__parser.html#_CPPv4N3ral2io12arrow_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE">ral::io::arrow_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1arrow__parser.html#_CPPv4N3ral2io12arrow_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE">ral::io::arrow_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1arrow__parser.html#_CPPv4NK3ral2io12arrow_parser4typeEv">ral::io::arrow_parser::type (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1arrow__parser.html#_CPPv4N3ral2io12arrow_parserD0Ev">ral::io::arrow_parser::~arrow_parser (C++ function)</a>
+</li>
+      <li><a href="xml/function_sqlcommon_8h_1a120578126fcff3de4d23965d615c0bd6.html#_CPPv4I0EN3ral2io26build_fixed_width_cudf_colENSt10unique_ptrIN4cudf6columnEEE6size_tPNSt6vectorI1TEERKNSt6vectorIN4cudf12bitmask_typeEEEN4cudf7type_idE">ral::io::build_fixed_width_cudf_col (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLDataProvider_8cpp_1a3feeae468f8b368ac13593ab411b0dbe.html#_CPPv4N3ral2io27build_jdbc_mysql_connectionEKNSt6stringEKNSt6stringEKNSt6stringE6size_tKNSt6stringE">ral::io::build_jdbc_mysql_connection (C++ function)</a>
+</li>
+      <li><a href="xml/function_sqlcommon_8h_1a67cc2d2d4088b95b4222aad45051b333.html#_CPPv4N3ral2io18build_str_cudf_colEP15cudf_string_colRKNSt6vectorIN4cudf12bitmask_typeEEE">ral::io::build_str_cudf_col (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1callb.html#_CPPv4N3ral2io5callbE">ral::io::callb (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1callb.html#_CPPv4N3ral2io5callb15sqlite_callbackEPviPPcPPc">ral::io::callb::sqlite_callback (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1csv__parser.html#_CPPv4N3ral2io10csv_parserE">ral::io::csv_parser (C++ class)</a>
 </li>
@@ -6093,11 +6958,17 @@
 </li>
       <li><a href="xml/classral_1_1io_1_1csv__parser.html#_CPPv4N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::csv_parser::parse_batch (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1csv__parser.html#_CPPv4N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE">ral::io::csv_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1csv__parser.html#_CPPv4N3ral2io10csv_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE">ral::io::csv_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1csv__parser.html#_CPPv4NK3ral2io10csv_parser4typeEv">ral::io::csv_parser::type (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1csv__parser.html#_CPPv4N3ral2io10csv_parserD0Ev">ral::io::csv_parser::~csv_parser (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_colE">ral::io::cudf_string_col (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_col5charsE">ral::io::cudf_string_col::chars (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1cudf__string__col.html#_CPPv4N3ral2io15cudf_string_col7offsetsE">ral::io::cudf_string_col::offsets (C++ member)</a>
 </li>
       <li><a href="xml/structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE">ral::io::data_handle (C++ struct)</a>
 </li>
@@ -6108,6 +6979,8 @@
       <li><a href="xml/structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handle11file_handleE">ral::io::data_handle::file_handle (C++ member)</a>
 </li>
       <li><a href="xml/structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handle8is_validEv">ral::io::data_handle::is_valid (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handle10sql_handleE">ral::io::data_handle::sql_handle (C++ member)</a>
 </li>
       <li><a href="xml/structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handle10table_viewE">ral::io::data_handle::table_view (C++ member)</a>
 </li>
@@ -6131,13 +7004,13 @@
 </li>
       <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE">ral::io::data_parser (C++ class)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parser12get_metadataENSt6vectorINSt10shared_ptrIN5arrow2io16RandomAccessFileEEEEEi">ral::io::data_parser::get_metadata (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi">ral::io::data_parser::get_metadata (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parser18get_num_partitionsEv">ral::io::data_parser::get_num_partitions (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::data_parser::parse_batch (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE">ral::io::data_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE">ral::io::data_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1data__parser.html#_CPPv4NK3ral2io11data_parser4typeEv">ral::io::data_parser::type (C++ function)</a>
 </li>
@@ -6169,11 +7042,21 @@
 </li>
       <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType4JSONE">ral::io::DataType::JSON (C++ enumerator)</a>
 </li>
+      <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType5MYSQLE">ral::io::DataType::MYSQL (C++ enumerator)</a>
+</li>
       <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType3ORCE">ral::io::DataType::ORC (C++ enumerator)</a>
 </li>
       <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType7PARQUETE">ral::io::DataType::PARQUET (C++ enumerator)</a>
 </li>
+      <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType10POSTGRESQLE">ral::io::DataType::POSTGRESQL (C++ enumerator)</a>
+</li>
+      <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType6SQLITEE">ral::io::DataType::SQLITE (C++ enumerator)</a>
+</li>
       <li><a href="xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataType9UNDEFINEDE">ral::io::DataType::UNDEFINED (C++ enumerator)</a>
+</li>
+      <li><a href="xml/function_MySQLDataProvider_8cpp_1afdc5c32667ae478e005074735a4b0c43.html#_CPPv4N3ral2io19execute_mysql_queryEPN3sql10ConnectionERKNSt6stringE">ral::io::execute_mysql_query (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteDataProvider_8cpp_1a1334deadf69c63744aa384b5a571ca7f.html#_CPPv4N3ral2io20execute_sqlite_queryEP7sqlite3RKNSt6stringE">ral::io::execute_sqlite_query (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1gdf__data__provider.html#_CPPv4N3ral2io17gdf_data_providerE">ral::io::gdf_data_provider (C++ class)</a>
 </li>
@@ -6205,11 +7088,19 @@
 </li>
       <li><a href="xml/classral_1_1io_1_1gdf__parser.html#_CPPv4N3ral2io10gdf_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::gdf_parser::parse_batch (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1gdf__parser.html#_CPPv4N3ral2io10gdf_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE">ral::io::gdf_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1gdf__parser.html#_CPPv4N3ral2io10gdf_parser12parse_schemaEN3ral2io11data_handleERN3ral2io6SchemaE">ral::io::gdf_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1gdf__parser.html#_CPPv4NK3ral2io10gdf_parser4typeEv">ral::io::gdf_parser::type (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1gdf__parser.html#_CPPv4N3ral2io10gdf_parserD0Ev">ral::io::gdf_parser::~gdf_parser (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLDataProvider_8cpp_1a5d8b0c2b3f702d2b9be6521fc4583977.html#_CPPv4N3ral2io22get_mysql_columns_infoEPN3sql10ConnectionERKNSt6stringE">ral::io::get_mysql_columns_info (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLDataProvider_8cpp_1adde9bd75afe5d21ece4caf24550219cc.html#_CPPv4N3ral2io20get_mysql_table_infoEPN3sql10ConnectionERKNSt6stringE">ral::io::get_mysql_table_info (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteDataProvider_8cpp_1afb9ce85746d015d5b21ead6c14d14e15.html#_CPPv4N3ral2io23get_sqlite_columns_infoEP7sqlite3RKNSt6stringE">ral::io::get_sqlite_columns_info (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteDataProvider_8cpp_1a86bdd6590cc468ce776fd73cf5a09c47.html#_CPPv4N3ral2io21get_sqlite_table_infoEP7sqlite3RKNSt6stringE">ral::io::get_sqlite_table_info (C++ function)</a>
 </li>
       <li><a href="xml/function_ArgsUtil_8cpp_1abe1a7bf84069fedb46ce55b5f4c53cec.html#_CPPv4N3ral2io19getCsvReaderOptionsERKNSt3mapINSt6stringENSt6stringEEERN4cudf2io15arrow_io_sourceE">ral::io::getCsvReaderOptions (C++ function)</a>
 </li>
@@ -6219,11 +7110,17 @@
 </li>
       <li><a href="xml/function_ArgsUtil_8cpp_1aa0296cfb7e317aab580f0a31238af33f.html#_CPPv4N3ral2io19getOrcReaderOptionsERKNSt3mapINSt6stringENSt6stringEEERN4cudf2io15arrow_io_sourceE">ral::io::getOrcReaderOptions (C++ function)</a>
 </li>
+      <li><a href="xml/function_ArgsUtil_8cpp_1a6a2454f923e9cbab2585b8207b836345.html#_CPPv4N3ral2io10getSqlInfoERNSt3mapINSt6stringENSt6stringEEE">ral::io::getSqlInfo (C++ function)</a>
+</li>
       <li><a href="xml/function_ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856.html#_CPPv4N3ral2io2inENSt6stringENSt3mapINSt6stringENSt6stringEEE">ral::io::in (C++ function)</a>
 </li>
       <li><a href="xml/function_ArgsUtil_8cpp_1a60f8a1a41a4e1af64f8ff15e616e45b8.html#_CPPv4N3ral2io13inferDataTypeENSt6stringE">ral::io::inferDataType (C++ function)</a>
 </li>
       <li><a href="xml/function_ArgsUtil_8cpp_1a2de58bece361223056a85382ea05b926.html#_CPPv4N3ral2io13inferFileTypeENSt6vectorINSt6stringEEE8DataTypeb">ral::io::inferFileType (C++ function)</a>
+</li>
+      <li><a href="xml/function_AbstractSQLParser_8cpp_1a4bbde01b60ea6ff5fab3fb8c627b7302.html#_CPPv4N3ral2io4initE6size_tRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE">ral::io::init (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLDataProvider_8cpp_1a1308169c128b51902915af5e020b091f.html#_CPPv4N3ral2io14is_string_testERKNSt6stringE">ral::io::is_string_test (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1json__parser.html#_CPPv4N3ral2io11json_parserE">ral::io::json_parser (C++ class)</a>
 </li>
@@ -6231,7 +7128,7 @@
 </li>
       <li><a href="xml/classral_1_1io_1_1json__parser.html#_CPPv4N3ral2io11json_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::json_parser::parse_batch (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1json__parser.html#_CPPv4N3ral2io11json_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEER6Schema">ral::io::json_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1json__parser.html#_CPPv4N3ral2io11json_parser12parse_schemaEN3ral2io11data_handleER6Schema">ral::io::json_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1json__parser.html#_CPPv4NK3ral2io11json_parser4typeEv">ral::io::json_parser::type (C++ function)</a>
 </li>
@@ -6239,15 +7136,91 @@
 </li>
       <li><a href="xml/function_ArgsUtil_8cpp_1a7f1968d0bacaf231959ee970bea24e07.html#_CPPv4N3ral2io12map_containsENSt6stringENSt3mapINSt6stringENSt6stringEEE">ral::io::map_contains (C++ function)</a>
 </li>
+      <li><a href="xml/function_PostgreSQLParser_8cpp_1a61ec50e430db1597dfa7e88c95ec72dd.html#_CPPv4N3ral2io21MapPostgreSQLTypeNameERKNSt6stringE">ral::io::MapPostgreSQLTypeName (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1mysql__columns__info.html#_CPPv4N3ral2io18mysql_columns_infoE">ral::io::mysql_columns_info (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1mysql__columns__info.html#_CPPv4N3ral2io18mysql_columns_info5bytesE">ral::io::mysql_columns_info::bytes (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1mysql__columns__info.html#_CPPv4N3ral2io18mysql_columns_info7columnsE">ral::io::mysql_columns_info::columns (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1mysql__columns__info.html#_CPPv4N3ral2io18mysql_columns_info5typesE">ral::io::mysql_columns_info::types (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_providerE">ral::io::mysql_data_provider (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_provider5cloneEv">ral::io::mysql_data_provider::clone (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_provider8get_nextEb">ral::io::mysql_data_provider::get_next (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_provider15get_num_handlesEv">ral::io::mysql_data_provider::get_num_handles (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_provider8has_nextEv">ral::io::mysql_data_provider::has_next (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_provider19mysql_data_providerERK8sql_info6size_t6size_t">ral::io::mysql_data_provider::mysql_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_provider5resetEv">ral::io::mysql_data_provider::reset (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__data__provider.html#_CPPv4N3ral2io19mysql_data_providerD0Ev">ral::io::mysql_data_provider::~mysql_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLParser_8cpp_1a48201ceddcb66049e9188abc33dcddf4.html#_CPPv4N3ral2io20mysql_is_cudf_stringERKNSt6stringE">ral::io::mysql_is_cudf_string (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parserE">ral::io::mysql_parser (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser16get_cudf_type_idERKNSt6stringE">ral::io::mysql_parser::get_cudf_type_id (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser12mysql_parserEv">ral::io::mysql_parser::mysql_parser (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser16parse_cudf_bool8EPv6size_t6size_tPNSt6vectorI6int8_tEE">ral::io::mysql_parser::parse_cudf_bool8 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser18parse_cudf_float32EPv6size_t6size_tPNSt6vectorIfEE">ral::io::mysql_parser::parse_cudf_float32 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser18parse_cudf_float64EPv6size_t6size_tPNSt6vectorIdEE">ral::io::mysql_parser::parse_cudf_float64 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser16parse_cudf_int16EPv6size_t6size_tPNSt6vectorI7int16_tEE">ral::io::mysql_parser::parse_cudf_int16 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser16parse_cudf_int32EPv6size_t6size_tPNSt6vectorI7int32_tEE">ral::io::mysql_parser::parse_cudf_int32 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser16parse_cudf_int64EPv6size_t6size_tPNSt6vectorI7int64_tEE">ral::io::mysql_parser::parse_cudf_int64 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser15parse_cudf_int8EPv6size_t6size_tPNSt6vectorI6int8_tEE">ral::io::mysql_parser::parse_cudf_int8 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser17parse_cudf_stringEPv6size_t6size_tP15cudf_string_col">ral::io::mysql_parser::parse_cudf_string (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser25parse_cudf_timestamp_daysEPv6size_t6size_tP15cudf_string_col">ral::io::mysql_parser::parse_cudf_timestamp_days (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser33parse_cudf_timestamp_microsecondsEPv6size_t6size_tP15cudf_string_col">ral::io::mysql_parser::parse_cudf_timestamp_microseconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser33parse_cudf_timestamp_millisecondsEPv6size_t6size_tP15cudf_string_col">ral::io::mysql_parser::parse_cudf_timestamp_milliseconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser32parse_cudf_timestamp_nanosecondsEPv6size_t6size_tP15cudf_string_col">ral::io::mysql_parser::parse_cudf_timestamp_nanoseconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser28parse_cudf_timestamp_secondsEPv6size_t6size_tP15cudf_string_col">ral::io::mysql_parser::parse_cudf_timestamp_seconds (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser17parse_cudf_uint16EPv6size_t6size_tPNSt6vectorI8uint16_tEE">ral::io::mysql_parser::parse_cudf_uint16 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser17parse_cudf_uint32EPv6size_t6size_tPNSt6vectorI8uint32_tEE">ral::io::mysql_parser::parse_cudf_uint32 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser17parse_cudf_uint64EPv6size_t6size_tPNSt6vectorI8uint64_tEE">ral::io::mysql_parser::parse_cudf_uint64 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser16parse_cudf_uint8EPv6size_t6size_tPNSt6vectorI7uint8_tEE">ral::io::mysql_parser::parse_cudf_uint8 (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parser13read_sql_loopEPvRKNSt6vectorIN4cudf7type_idEEERKNSt6vectorIiEERNSt6vectorIPvEERNSt6vectorINSt6vectorIN4cudf12bitmask_typeEEEEE">ral::io::mysql_parser::read_sql_loop (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1mysql__parser.html#_CPPv4N3ral2io12mysql_parserD0Ev">ral::io::mysql_parser::~mysql_parser (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1mysql__table__info.html#_CPPv4N3ral2io16mysql_table_infoE">ral::io::mysql_table_info (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1mysql__table__info.html#_CPPv4N3ral2io16mysql_table_info25estimated_table_row_countE">ral::io::mysql_table_info::estimated_table_row_count (C++ member)</a>
+</li>
       <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parserE">ral::io::orc_parser (C++ class)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parser12get_metadataENSt6vectorINSt10shared_ptrIN5arrow2io16RandomAccessFileEEEEEi">ral::io::orc_parser::get_metadata (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi">ral::io::orc_parser::get_metadata (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parser10orc_parserENSt3mapINSt6stringENSt6stringEEE">ral::io::orc_parser::orc_parser (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::orc_parser::parse_batch (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEER6Schema">ral::io::orc_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4N3ral2io10orc_parser12parse_schemaEN3ral2io11data_handleER6Schema">ral::io::orc_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1orc__parser.html#_CPPv4NK3ral2io10orc_parser4typeEv">ral::io::orc_parser::type (C++ function)</a>
 </li>
@@ -6257,17 +7230,65 @@
 </li>
       <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parserE">ral::io::parquet_parser (C++ class)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parser12get_metadataENSt6vectorINSt10shared_ptrIN5arrow2io16RandomAccessFileEEEEEi">ral::io::parquet_parser::get_metadata (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parser12get_metadataENSt6vectorIN3ral2io11data_handleEEEi">ral::io::parquet_parser::get_metadata (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parser14parquet_parserEv">ral::io::parquet_parser::parquet_parser (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::parquet_parser::parse_batch (C++ function)</a>
 </li>
-      <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEER6Schema">ral::io::parquet_parser::parse_schema (C++ function)</a>
+      <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parser12parse_schemaEN3ral2io11data_handleER6Schema">ral::io::parquet_parser::parse_schema (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4NK3ral2io14parquet_parser4typeEv">ral::io::parquet_parser::type (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1parquet__parser.html#_CPPv4N3ral2io14parquet_parserD0Ev">ral::io::parquet_parser::~parquet_parser (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLParser_8cpp_1a8332073c1d15bdeab02a92e44f399253.html#_CPPv4N3ral2io23parse_mysql_column_typeEKNSt6stringE">ral::io::parse_mysql_column_type (C++ function)</a>
+</li>
+      <li><a href="xml/function_MySQLParser_8cpp_1af72f1ce9d491b8aaa52ac1e8bb20b07d.html#_CPPv4N3ral2io24parse_mysql_column_typesEKNSt6vectorINSt6stringEEE">ral::io::parse_mysql_column_types (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteParser_8cpp_1a30ff69324193dcd34c64a3a1f98be83d.html#_CPPv4N3ral2io24parse_sqlite_column_typeENSt6stringE">ral::io::parse_sqlite_column_type (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteParser_8cpp_1a91330a47ecc677dd33c179da38c9dd0c.html#_CPPv4N3ral2io25parse_sqlite_column_typesEKNSt6vectorINSt6stringEEE">ral::io::parse_sqlite_column_types (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_providerE">ral::io::postgresql_data_provider (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_provider5cloneEv">ral::io::postgresql_data_provider::clone (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_provider8get_nextEb">ral::io::postgresql_data_provider::get_next (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_provider15get_num_handlesEv">ral::io::postgresql_data_provider::get_num_handles (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_provider8has_nextEv">ral::io::postgresql_data_provider::has_next (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_provider24postgresql_data_providerERK8sql_info6size_t6size_t">ral::io::postgresql_data_provider::postgresql_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_provider5resetEv">ral::io::postgresql_data_provider::reset (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__data__provider.html#_CPPv4N3ral2io24postgresql_data_providerD0Ev">ral::io::postgresql_data_provider::~postgresql_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/function_PostgreSQLParser_8cpp_1a7785b44de601e632b2717a1b3e44176a.html#_CPPv4N3ral2io25postgresql_is_cudf_stringERKNSt6stringE">ral::io::postgresql_is_cudf_string (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4N3ral2io17postgresql_parserE">ral::io::postgresql_parser (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4N3ral2io17postgresql_parser12get_metadataENSt6vectorI11data_handleEEi">ral::io::postgresql_parser::get_metadata (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4N3ral2io17postgresql_parser11parse_batchE11data_handleRK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::postgresql_parser::parse_batch (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4N3ral2io17postgresql_parser12parse_schemaE11data_handleR6Schema">ral::io::postgresql_parser::parse_schema (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4N3ral2io17postgresql_parser17postgresql_parserEv">ral::io::postgresql_parser::postgresql_parser (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4NK3ral2io17postgresql_parser4typeEv">ral::io::postgresql_parser::type (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1postgresql__parser.html#_CPPv4N3ral2io17postgresql_parserD0Ev">ral::io::postgresql_parser::~postgresql_parser (C++ function)</a>
+</li>
+      <li><a href="xml/variable_PostgreSQLParser_8cpp_1a351a3a4e1cb8a7cb6c7ba54ab5bc4dc9.html#_CPPv4N3ral2io28postgresql_string_type_hintsE">ral::io::postgresql_string_type_hints (C++ member)</a>
+</li>
+      <li><a href="xml/function_PostgreSQLParser_8cpp_1ab341b6ba54ffe1b6fa9699f8542565c4.html#_CPPv4N3ral2io15read_postgresqlERKNSt10shared_ptrI8PGresultEERKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEERKNSt6vectorINSt6size_tEEE">ral::io::read_postgresql (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteParser_8cpp_1a51930bbcbe2e9ce51112551717675126.html#_CPPv4N3ral2io11read_sqliteEP12sqlite3_stmtKNSt6vectorINSt6stringEEE">ral::io::read_sqlite (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteParser_8cpp_1a5cce860014ee8527375dea0a9eea1730.html#_CPPv4N3ral2io14read_sqlite_v2EP12sqlite3_stmtRKNSt6vectorIiEERKNSt6vectorIN4cudf7type_idEEE">ral::io::read_sqlite_v2 (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE">ral::io::Schema (C++ class)</a>
 </li>
@@ -6320,6 +7341,88 @@
       <li><a href="xml/classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE">ral::io::Schema::set_names (C++ function)</a>
 </li>
       <li><a href="xml/classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaD0Ev">ral::io::Schema::~Schema (C++ function)</a>
+</li>
+      <li><a href="xml/function_AbstractSQLDataProvider_8h_1ab569754458a8d843d0826295afdda8be.html#_CPPv4I0EN3ral2io19set_sql_projectionsEvP13data_providerRKNSt6vectorIiEE">ral::io::set_sql_projections (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasourceE">ral::io::sql_datasource (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasource12column_bytesE">ral::io::sql_datasource::column_bytes (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasource12column_namesE">ral::io::sql_datasource::column_names (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasource12column_typesE">ral::io::sql_datasource::column_types (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasource5queryE">ral::io::sql_datasource::query (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasource9row_countE">ral::io::sql_datasource::row_count (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__datasource.html#_CPPv4N3ral2io14sql_datasource5tableE">ral::io::sql_datasource::table (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_infoE">ral::io::sql_info (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info4hostE">ral::io::sql_info::host (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info8passwordE">ral::io::sql_info::password (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info4portE">ral::io::sql_info::port (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info6schemaE">ral::io::sql_info::schema (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info5tableE">ral::io::sql_info::table (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info16table_batch_sizeE">ral::io::sql_info::table_batch_size (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info12table_filterE">ral::io::sql_info::table_filter (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sql__info.html#_CPPv4N3ral2io8sql_info4userE">ral::io::sql_info::user (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__columns__info.html#_CPPv4N3ral2io19sqlite_columns_infoE">ral::io::sqlite_columns_info (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__columns__info.html#_CPPv4N3ral2io19sqlite_columns_info5bytesE">ral::io::sqlite_columns_info::bytes (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__columns__info.html#_CPPv4N3ral2io19sqlite_columns_info7columnsE">ral::io::sqlite_columns_info::columns (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__columns__info.html#_CPPv4N3ral2io19sqlite_columns_info5typesE">ral::io::sqlite_columns_info::types (C++ member)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_providerE">ral::io::sqlite_data_provider (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_provider5cloneEv">ral::io::sqlite_data_provider::clone (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_provider8get_nextEb">ral::io::sqlite_data_provider::get_next (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_provider15get_num_handlesEv">ral::io::sqlite_data_provider::get_num_handles (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_provider8has_nextEv">ral::io::sqlite_data_provider::has_next (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_provider5resetEv">ral::io::sqlite_data_provider::reset (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_provider20sqlite_data_providerERK8sql_info6size_t6size_t">ral::io::sqlite_data_provider::sqlite_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__data__provider.html#_CPPv4N3ral2io20sqlite_data_providerD0Ev">ral::io::sqlite_data_provider::~sqlite_data_provider (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteParser_8cpp_1a48b9d7e35c29e9848fe1f527034aab82.html#_CPPv4N3ral2io21sqlite_is_cudf_stringERKNSt6stringE">ral::io::sqlite_is_cudf_string (C++ function)</a>
+</li>
+      <li><a href="xml/function_SQLiteDataProvider_8cpp_1a5f1eadcb2076bf78ade1d20e16dfe502.html#_CPPv4N3ral2io25sqlite_is_string_col_typeERKNSt6stringE">ral::io::sqlite_is_string_col_type (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4N3ral2io13sqlite_parserE">ral::io::sqlite_parser (C++ class)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4N3ral2io13sqlite_parser12get_metadataENSt6vectorI11data_handleEEi">ral::io::sqlite_parser::get_metadata (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4N3ral2io13sqlite_parser11parse_batchE11data_handleRK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">ral::io::sqlite_parser::parse_batch (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4N3ral2io13sqlite_parser12parse_schemaE11data_handleR6Schema">ral::io::sqlite_parser::parse_schema (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4N3ral2io13sqlite_parser13sqlite_parserEv">ral::io::sqlite_parser::sqlite_parser (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4NK3ral2io13sqlite_parser4typeEv">ral::io::sqlite_parser::type (C++ function)</a>
+</li>
+      <li><a href="xml/classral_1_1io_1_1sqlite__parser.html#_CPPv4N3ral2io13sqlite_parserD0Ev">ral::io::sqlite_parser::~sqlite_parser (C++ function)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__table__info.html#_CPPv4N3ral2io17sqlite_table_infoE">ral::io::sqlite_table_info (C++ struct)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__table__info.html#_CPPv4N3ral2io17sqlite_table_info10partitionsE">ral::io::sqlite_table_info::partitions (C++ member)</a>
+</li>
+      <li><a href="xml/structral_1_1io_1_1sqlite__table__info.html#_CPPv4N3ral2io17sqlite_table_info4rowsE">ral::io::sqlite_table_info::rows (C++ member)</a>
 </li>
       <li><a href="xml/function_ArgsUtil_8cpp_1a4edc1ec9bb0bd72d5be8d7d8dc063a9e.html#_CPPv4N3ral2io7to_boolENSt6stringE">ral::io::to_bool (C++ function)</a>
 </li>
@@ -6479,8 +7582,6 @@
 </li>
       <li><a href="xml/variable_OrderBy_8cpp_1a95bf498c9bf7609df2d6fc10481d75ba.html#_CPPv4N3ral9operators26DESCENDING_ORDER_SORT_TEXTE">ral::operators::DESCENDING_ORDER_SORT_TEXT (C++ member)</a>, <a href="xml/variable_expression__utils_8hpp_1ab3738f218484b788d1acf4b23636ce5a.html#_CPPv4N3ral9operators26DESCENDING_ORDER_SORT_TEXTE">[1]</a>
 </li>
-      <li><a href="xml/function_OrderBy_8cpp_1a3273d9cca104bc4a02f011fdd105be80.html#_CPPv4N3ral9operators21determine_local_limitEP7Context7int64_tN4cudf9size_typeE">ral::operators::determine_local_limit (C++ function)</a>
-</li>
       <li><a href="xml/function_OrderBy_8cpp_1ad6786cf03e9b20d173638c2c5a633f8e.html#_CPPv4N3ral9operators23generate_partition_planERKNSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt6size_tENSt6size_tERKNSt6stringEP7Context">ral::operators::generate_partition_plan (C++ function)</a>
 </li>
       <li><a href="xml/function_GroupBy_8cpp_1a1a2ba52a5c1995714ebc89ca0761e4f6.html#_CPPv4N3ral9operators25get_aggregation_operationENSt6stringEb">ral::operators::get_aggregation_operation (C++ function)</a>
@@ -6505,9 +7606,7 @@
 </li>
       <li><a href="xml/function_OrderBy_8cpp_1a75da72a1bc5585d4e529e76604405506.html#_CPPv4N3ral9operators11limit_tableERKN3ral5frame16BlazingTableViewE7int64_t">ral::operators::limit_table (C++ function)</a>
 </li>
-      <li><a href="xml/function_OrderBy_8cpp_1aed9ddaff30a0f877247c63c6fc74bfe0.html#_CPPv4N3ral9operators12logicalLimitERKN4cudf10table_viewEN4cudf9size_typeE">ral::operators::logicalLimit (C++ function)</a>
-</li>
-      <li><a href="xml/function_OrderBy_8cpp_1a91fadf05c2a0d303373bf852d8a99bda.html#_CPPv4N3ral9operators11logicalSortERKN3ral5frame16BlazingTableViewERKNSt6vectorIiEERKNSt6vectorIN4cudf5orderEEE">ral::operators::logicalSort (C++ function)</a>
+      <li><a href="xml/function_OrderBy_8cpp_1aefa6928eb43dd6584cade9b96ec6f6d9.html#_CPPv4N3ral9operators11logicalSortERKN3ral5frame16BlazingTableViewERKNSt6vectorIiEERKNSt6vectorIN4cudf5orderEEE">ral::operators::logicalSort (C++ function)</a>
 </li>
       <li><a href="xml/function_GroupBy_8cpp_1a5ff14f8db90b8482144914fdfa0716f6.html#_CPPv4N3ral9operators19makeCudfAggregationE13AggregateKindi">ral::operators::makeCudfAggregation (C++ function)</a>
 </li>
@@ -6517,7 +7616,7 @@
 </li>
       <li><a href="xml/function_GroupBy_8cpp_1abffd0030a67602d10ab0b8786dcff9a6.html#_CPPv4N3ral9operators22parseGroupByExpressionERKNSt6stringENSt6size_tE">ral::operators::parseGroupByExpression (C++ function)</a>
 </li>
-      <li><a href="xml/function_OrderBy_8cpp_1a7d23f9f2057526b7d27932843faff210.html#_CPPv4N3ral9operators15partition_tableERKN3ral5frame16BlazingTableViewERKN3ral5frame16BlazingTableViewERKNSt6stringE">ral::operators::partition_table (C++ function)</a>
+      <li><a href="xml/function_OrderBy_8cpp_1a003f3bf11e12ac853bffc039d2d7312c.html#_CPPv4N3ral9operators15partition_tableERKN3ral5frame16BlazingTableViewERKN3ral5frame16BlazingTableViewERKNSt6vectorIN4cudf5orderEEERKNSt6vectorIiEE">ral::operators::partition_table (C++ function)</a>
 </li>
       <li><a href="xml/function_OrderBy_8cpp_1a1473e920ffe9086e980f57589ac3f96c.html#_CPPv4N3ral9operators6sampleERKN3ral5frame16BlazingTableViewERKNSt6stringE">ral::operators::sample (C++ function)</a>
 </li>
@@ -6601,6 +7700,8 @@
 </li>
       <li><a href="xml/function_CommonOperations_8cpp_1acce09bf9c7e7c2a7dabec6b1970b8ecd.html#_CPPv4N3ral9utilities16get_common_typesERKNSt6vectorIN4cudf9data_typeEEERKNSt6vectorIN4cudf9data_typeEEEb">ral::utilities::get_common_types (C++ function)</a>
 </li>
+      <li><a href="xml/function_CommonOperations_8cpp_1a47a8023cd1fd53c7fb45e6371e1c2fd6.html#_CPPv4N3ral9utilities14getLimitedRowsERK16BlazingTableViewN4cudf9size_typeEb">ral::utilities::getLimitedRows (C++ function)</a>
+</li>
       <li><a href="xml/function_CommonOperations_8cpp_1a49683cfdf8de653c9d617ec7a18cbf98.html#_CPPv4N3ral9utilities15normalize_typesERNSt10unique_ptrIN3ral5frame12BlazingTableEEERKNSt6vectorIN4cudf9data_typeEEENSt6vectorIN4cudf9size_typeEEE">ral::utilities::normalize_types (C++ function)</a>
 </li>
       <li><a href="xml/function_DebuggingUtils_8cpp_1a14c4a859e890df3354f896036faba9d3.html#_CPPv4N3ral9utilities24print_blazing_table_viewEN3ral5frame16BlazingTableViewEKNSt6stringE">ral::utilities::print_blazing_table_view (C++ function)</a>
@@ -6621,13 +7722,13 @@
 </li>
       <li><a href="xml/define_error_8hpp_1ab99ef554b80f4e3149aa50a2fb16cbc0.html#c.RAL_STRINGIFY">RAL_STRINGIFY (C macro)</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64.html#_CPPv416remove_over_exprNSt6stringE">remove_over_expr (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1ad4e6c023e485a8cc458d95c6c94eae64.html#_CPPv416remove_over_exprNSt6stringE">remove_over_expr (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64.html#_CPPv416remove_over_exprNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f.html#_CPPv421replace_calcite_regexRKNSt6stringE">replace_calcite_regex (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a110a8755e64db53f18657e989dd0809f.html#_CPPv421replace_calcite_regexRKNSt6stringE">replace_calcite_regex (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f.html#_CPPv421replace_calcite_regexRKNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html#_CPPv435replace_count_expr_with_right_indexNSt6stringE6size_t">replace_count_expr_with_right_index (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html#_CPPv435replace_count_expr_with_right_indexNSt6stringE6size_t">replace_count_expr_with_right_index (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html#_CPPv435replace_count_expr_with_right_indexNSt6stringE6size_t">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7.html#_CPPv434replace_sum0_expr_with_right_indexNSt6stringE6size_t">replace_sum0_expr_with_right_index (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a64f3303a4196a53aa669481b15ede1c7.html#_CPPv434replace_sum0_expr_with_right_indexNSt6stringE6size_t">replace_sum0_expr_with_right_index (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7.html#_CPPv434replace_sum0_expr_with_right_indexNSt6stringE6size_t">[1]</a>
 </li>
       <li><a href="reference/python/api/blazingsql.BlazingContext.reset_max_memory_used.html#blazingsql.BlazingContext.reset_max_memory_used">reset_max_memory_used() (blazingsql.BlazingContext method)</a>
 </li>
@@ -6651,35 +7752,35 @@
 </li>
       <li><a href="xml/define_error_8hpp_1aafefdd05c438f655b1f34e1e66a48951.html#c.STRINGIFY_DETAIL">STRINGIFY_DETAIL (C macro)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab534198e293c2ef4002cc3170e1b1ac5.html#_CPPv4N7strings6detailUt3_14216format_char_typeE">strings::detail::[anonymous]::format_char_type (C++ enum)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a0dad018c848102504b1bfde687e465eb.html#_CPPv4N7strings6detailUt3_15916format_char_typeE">strings::detail::[anonymous]::format_char_type (C++ enum)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab534198e293c2ef4002cc3170e1b1ac5.html#_CPPv4N7strings6detailUt3_14216format_char_type7literalE">strings::detail::[anonymous]::format_char_type::literal (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a0dad018c848102504b1bfde687e465eb.html#_CPPv4N7strings6detailUt3_15916format_char_type7literalE">strings::detail::[anonymous]::format_char_type::literal (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab534198e293c2ef4002cc3170e1b1ac5.html#_CPPv4N7strings6detailUt3_14216format_char_type9specifierE">strings::detail::[anonymous]::format_char_type::specifier (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a0dad018c848102504b1bfde687e465eb.html#_CPPv4N7strings6detailUt3_15916format_char_type9specifierE">strings::detail::[anonymous]::format_char_type::specifier (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1aac14ad84ac0459beb277fc7fb085a806.html#_CPPv4N7strings6detailUt3_14225timestamp_parse_componentE">strings::detail::[anonymous]::timestamp_parse_component (C++ enum)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a0bbf7c9dc9b27381f2c180e411796b01.html#_CPPv4N7strings6detailUt3_15925timestamp_parse_componentE">strings::detail::[anonymous]::timestamp_parse_component (C++ enum)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_unitsE">strings::detail::[anonymous]::timestamp_units (C++ enum)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_unitsE">strings::detail::[anonymous]::timestamp_units (C++ enum)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units4daysE">strings::detail::[anonymous]::timestamp_units::days (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units4daysE">strings::detail::[anonymous]::timestamp_units::days (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units5hoursE">strings::detail::[anonymous]::timestamp_units::hours (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units5hoursE">strings::detail::[anonymous]::timestamp_units::hours (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units7minutesE">strings::detail::[anonymous]::timestamp_units::minutes (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units7minutesE">strings::detail::[anonymous]::timestamp_units::minutes (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units6monthsE">strings::detail::[anonymous]::timestamp_units::months (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units6monthsE">strings::detail::[anonymous]::timestamp_units::months (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units2msE">strings::detail::[anonymous]::timestamp_units::ms (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units2msE">strings::detail::[anonymous]::timestamp_units::ms (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units2nsE">strings::detail::[anonymous]::timestamp_units::ns (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units2nsE">strings::detail::[anonymous]::timestamp_units::ns (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units7secondsE">strings::detail::[anonymous]::timestamp_units::seconds (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units7secondsE">strings::detail::[anonymous]::timestamp_units::seconds (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units2usE">strings::detail::[anonymous]::timestamp_units::us (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units2usE">strings::detail::[anonymous]::timestamp_units::us (C++ enumerator)</a>
 </li>
-      <li><a href="xml/enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html#_CPPv4N7strings6detailUt3_14215timestamp_units5yearsE">strings::detail::[anonymous]::timestamp_units::years (C++ enumerator)</a>
+      <li><a href="xml/enum_scalar__timestamp__parser_8cpp_1a96428995d8c8a15756991846bddfa3ac.html#_CPPv4N7strings6detailUt3_15915timestamp_units5yearsE">strings::detail::[anonymous]::timestamp_units::years (C++ enumerator)</a>
 </li>
       <li><a href="xml/function_scalar__timestamp__parser_8cpp_1aea190a30495a035e344fd1cad4866174.html#_CPPv4N7strings6detail23str_to_timestamp_scalarERKNSt6stringEN4cudf9data_typeERKNSt6stringE">strings::detail::str_to_timestamp_scalar (C++ function)</a>
 </li>
@@ -6707,17 +7808,17 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="xml/function_expression__utils_8hpp_1aad5753dfce608e546bdb1c634029bfdd.html#_CPPv433window_expression_contains_boundsNSt6stringE">window_expression_contains_bounds (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aad5753dfce608e546bdb1c634029bfdd.html#_CPPv433window_expression_contains_boundsNSt6stringE">window_expression_contains_bounds (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aad5753dfce608e546bdb1c634029bfdd.html#_CPPv433window_expression_contains_boundsNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html#_CPPv442window_expression_contains_bounds_by_rangeNSt6stringE">window_expression_contains_bounds_by_range (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html#_CPPv442window_expression_contains_bounds_by_rangeNSt6stringE">window_expression_contains_bounds_by_range (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html#_CPPv442window_expression_contains_bounds_by_rangeNSt6stringE">[1]</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="xml/function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4.html#_CPPv453window_expression_contains_multiple_diff_over_clausesNSt6stringE">window_expression_contains_multiple_diff_over_clauses (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a9dbf8f491c6a558b22be5306ef76df52.html#_CPPv453window_expression_contains_multiple_diff_over_clausesNSt6stringE">window_expression_contains_multiple_diff_over_clauses (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4.html#_CPPv453window_expression_contains_multiple_diff_over_clausesNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1a13f4990818a06d1e1d1f4218486fa30b.html#_CPPv435window_expression_contains_order_byNSt6stringE">window_expression_contains_order_by (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1a13f4990818a06d1e1d1f4218486fa30b.html#_CPPv435window_expression_contains_order_byNSt6stringE">window_expression_contains_order_by (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1a13f4990818a06d1e1d1f4218486fa30b.html#_CPPv435window_expression_contains_order_byNSt6stringE">[1]</a>
 </li>
-      <li><a href="xml/function_expression__utils_8hpp_1abe34792b84222a73751f700fa68cea1f.html#_CPPv439window_expression_contains_partition_byNSt6stringE">window_expression_contains_partition_by (C++ function)</a>
+      <li><a href="xml/function_expression__utils_8cpp_1abe34792b84222a73751f700fa68cea1f.html#_CPPv439window_expression_contains_partition_byNSt6stringE">window_expression_contains_partition_by (C++ function)</a>, <a href="xml/function_expression__utils_8hpp_1abe34792b84222a73751f700fa68cea1f.html#_CPPv439window_expression_contains_partition_byNSt6stringE">[1]</a>
 </li>
   </ul></td>
 </tr></table>

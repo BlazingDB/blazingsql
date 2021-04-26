@@ -12,6 +12,7 @@ Inheritance Relationships
 Derived Types
 *************
 
+- ``public ral::io::abstractsql_data_provider`` (:ref:`exhale_class_classral_1_1io_1_1abstractsql__data__provider`)
 - ``public ral::io::gdf_data_provider`` (:ref:`exhale_class_classral_1_1io_1_1gdf__data__provider`)
 - ``public ral::io::uri_data_provider`` (:ref:`exhale_class_classral_1_1io_1_1uri__data__provider`)
 

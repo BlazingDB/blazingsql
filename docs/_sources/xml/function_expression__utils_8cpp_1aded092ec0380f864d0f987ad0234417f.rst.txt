@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1aded092ec0380f864d0f987ad0234417f:
+
+Function is_window_function(std::string)
+========================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_window_function(std::string)
