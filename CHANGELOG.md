@@ -55,7 +55,7 @@
 - #1456 Raising exceptions on Python side for RAL
 - #1466 SQL providers: update README.md
 - #1470 Fix pre compiler flags for sql parsers
-
+- #1504 Fixing some conflicts in Dockerfile
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
@@ -199,7 +199,6 @@
 - #1225 Fixed issue due to change in gather API 
 - #1254 Fixing support of nightly and stable on localhost
 - #1258 Fixing gtest version issue
-- #1504 Fixing some conflicts in Dockerfile
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
