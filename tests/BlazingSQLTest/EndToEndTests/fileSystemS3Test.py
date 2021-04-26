@@ -15,6 +15,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     queryType = "File System S3"
+
     def start_s3mock(access_key_id, secret_access_key):
         print("Start Minio server")
         client = docker.from_env()
@@ -89,7 +90,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             queryId = "TEST_01"
             query = """select count(c_custkey) as c1, count(c_acctbal) as c2
                     from customer"""
-            query(
+            runTest.run_query(
                 bc,
                 drill,
                 query,
