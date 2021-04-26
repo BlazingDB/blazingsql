@@ -33,6 +33,26 @@ snowflake_data_provider::snowflake_data_provider(
   if (sqlReturn != SQL_SUCCESS) {
     throw std::runtime_error("SnowFlake: Allocation handle database");
   }
+
+  std::ostringstream oss;
+  oss << "Dsn=" << sql.dsn << ";Database=" << sql.schema
+      << ";Schema=" << sql.sub_schema << ";uid=" << sql.user
+      << ";pwd=" << sql.password;
+  ;
+  std::string connectionStdString = oss.str();
+  SQLCHAR * connectionString = reinterpret_cast<SQLCHAR *>(
+      const_cast<char *>(connectionStdString.c_str()));
+  sqlReturn = SQLDriverConnect(sqlHdbc,
+                               nullptr,
+                               connectionString,
+                               SQL_NTS,
+                               nullptr,
+                               0,
+                               nullptr,
+                               SQL_DRIVER_COMPLETE);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error("SnowFlake: driver connection");
+  }
 }
 
 snowflake_data_provider::~snowflake_data_provider() {
