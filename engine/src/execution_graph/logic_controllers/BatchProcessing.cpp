@@ -253,7 +253,7 @@ std::pair<bool, uint64_t> TableScan::get_estimated_output_num_rows(){
 BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 : kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), provider(provider), parser(parser), schema(schema) {
     this->query_graph = query_graph;
-    this->filtered = is_filtered_bindable_scan(expression);
+    this->filterable = is_filtered_bindable_scan(expression);
     this->predicate_pushdown_done = false;
 
     if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
@@ -309,7 +309,7 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
     std::unique_ptr<ral::frame::BlazingTable> filtered_input;
 
     try{
-        if(this->filtered && !this->predicate_pushdown_done) {
+        if(this->filterable && !this->predicate_pushdown_done) {
             filtered_input = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
             filtered_input->setNames(fix_column_aliases(filtered_input->names(), expression));
             output->addToCache(std::move(filtered_input));

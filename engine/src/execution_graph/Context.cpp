@@ -8,7 +8,8 @@ Context::Context(const uint32_t token,
                  const std::vector<Node> &taskNodes,
                  const Node &masterNode,
                  const std::string &logicalPlan,
-                 const std::map<std::string, std::string>& config_options)
+                 const std::map<std::string, std::string>& config_options,
+                 const std::string current_timestamp)
     : token_{token},
       query_step{0},
       query_substep{0},
@@ -16,13 +17,15 @@ Context::Context(const uint32_t token,
       masterNode_{masterNode},
       logicalPlan_{logicalPlan},
       kernel_id_{0},
-      config_options_{config_options} {}
+      config_options_{config_options},
+      current_timestamp_{current_timestamp} {}
 
 std::shared_ptr<Context> Context::clone() {
-  auto ptr = std::make_shared<Context>(this->token_, this->taskNodes_, this->masterNode_, this->logicalPlan_, this->config_options_);
+  auto ptr = std::make_shared<Context>(this->token_, this->taskNodes_, this->masterNode_, this->logicalPlan_, this->config_options_, this->current_timestamp_);
   ptr->query_step = this->query_step;
   ptr->query_substep = this->query_substep;
   ptr->kernel_id_ = this->kernel_id_;
+  ptr->current_timestamp_ = this->current_timestamp_;
   return ptr;
 }
 
@@ -70,6 +73,8 @@ Node Context::getNode(const std::string & id) const {
 const Node &Context::getMasterNode() const { return masterNode_; }
 
 std::string Context::getLogicalPlan() const { return logicalPlan_; }
+
+std::string Context::getCurrentTimestamp() const { return current_timestamp_; }
 
 uint32_t Context::getContextToken() const { return token_; }
 
