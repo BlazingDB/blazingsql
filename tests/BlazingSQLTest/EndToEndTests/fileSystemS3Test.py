@@ -416,7 +416,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
             queryId = "TEST_19"
             query = """select sum(o_orderkey)/count(o_orderkey)
-                    rom orders group by o_orderstatus"""
+                    from orders group by o_orderstatus"""
             runTest.run_query(
                 bc,
                 drill,
@@ -476,8 +476,8 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 print("==============================")
                 break
 
-            if mock_server:
-                stop_s3mock(mock_server)
+        if mock_server:
+            stop_s3mock(mock_server)
 
     executionTest(queryType)
 
