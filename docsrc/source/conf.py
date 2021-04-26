@@ -166,10 +166,14 @@ html_context = {
         ]
         , "math": [
             'MATH_ABS'
-            ,'MATH_CEIL','MATH_COS','MATH_ACOS'
-            ,'MATH_FLOOR','MATH_GREATEST','MATH_LEAST','MATH_LN'
-            ,'MATH_LOG10','MATH_MOD'
-            ,'MATH_POWER','MATH_SQRT','MATH_RAND','MATH_ROUND','MATH_SIN','MATH_ASIN'
+            ,'MATH_CEIL','MATH_FLOOR','MATH_ROUND'
+            ,'MATH_GREATEST','MATH_LEAST'
+            ,'MATH_LN','MATH_LOG10'
+            ,'MATH_MOD'
+            ,'MATH_POWER','MATH_SQRT'
+            ,'MATH_RAND'
+            ,'MATH_COS','MATH_ACOS'
+            ,'MATH_SIN','MATH_ASIN'
             ,'MATH_TAN','MATH_ATAN'
         ]
         , "strings": [
