@@ -104,13 +104,8 @@ public:
 	kstatus run() override;
 
 private:
-	int preceding_value;     	   // X PRECEDING
-	int following_value;     		   // Y FOLLOWING
-
-	// these are the three output caches
-	std::shared_ptr<ral::cache::CacheMachine> output_batches_cache;
-	std::shared_ptr<ral::cache::CacheMachine> output_preceding_overlap_cache;
-	std::shared_ptr<ral::cache::CacheMachine> output_following_overlap_cache;
+	int preceding_value;     // X PRECEDING
+	int following_value;     // Y FOLLOWING
 
 	int self_node_index;
 	int total_nodes;

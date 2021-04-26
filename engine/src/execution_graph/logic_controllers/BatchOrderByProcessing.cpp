@@ -265,7 +265,7 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
                 auto num_bytes = sortedTable->sizeInBytes();
             }
 
-            this->output_.get_cache(port_name)->addToCache(std::move(sortedTable), "output_a");
+            this->output_.addToCache(port_name, std::move(sortedTable), "output_a");
         }
         else if (operation_type == "compute_partition_plan") {
             compute_partition_plan(std::move(inputs));
@@ -492,14 +492,14 @@ ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::uniq
         if (inputs.empty()) {
             // no op
         } else if(inputs.size() == 1) {
-            this->output_.get_cache(port_name)->addToCache(std::move(inputs[0]));
+            this->output_.addToCache(port_name, std::move(inputs[0]));
         } else {
             std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
             for (std::size_t i = 0; i < inputs.size(); i++){
                 tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
             }
             auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
-            this->output_.get_cache(port_name)->addToCache(std::move(output_merge));
+            this->output_.addToCache(port_name, std::move(output_merge));
         }
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
@@ -599,7 +599,7 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
         CodeTimer eventTimer(false);
         auto & input = inputs[0];
         if (rows_limit<0) {
-            this->output_.get_cache(port_name)->addToCache(std::move(input));
+            this->output_.addToCache(port_name, std::move(input));
         } else {
             auto log_input_num_rows = input->num_rows();
             auto log_input_num_bytes = input->sizeInBytes();
@@ -615,9 +615,9 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
             auto log_output_num_bytes = output_is_just_input ? input->sizeInBytes() : limited_input->sizeInBytes();
 
             if (output_is_just_input)
-                this->output_.get_cache(port_name)->addToCache(std::move(input));
+                this->output_.addToCache(port_name, std::move(input));
             else
-                this->output_.get_cache(port_name)->addToCache(std::move(limited_input));
+                this->output_.addToCache(port_name, std::move(limited_input));
         }
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};

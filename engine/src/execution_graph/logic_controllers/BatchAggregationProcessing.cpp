@@ -30,7 +30,7 @@ ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std:
             columns = ral::operators::compute_aggregations_with_groupby(
                 input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
         }
-        this->output_.get_cache(port_name)->addToCache(std::move(columns));
+        this->output_.addToCache(port_name, std::move(columns));
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(const std::exception& e){
@@ -135,7 +135,7 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
     if (group_column_indices.size() == 0) {
         try{
             if(this->context->isMasterNode(self_node)) {
-                bool added = this->output_.get_cache()->addToCache(std::move(input),"",false);
+                bool added = this->output_.addToCache("", std::move(input), "", false);
                 if (added) {
                     increment_node_count(self_node.id());
                 }
@@ -335,7 +335,7 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         auto log_output_num_rows = columns->num_rows();
         auto log_output_num_bytes = columns->sizeInBytes();
 
-        this->output_.get_cache(port_name)->addToCache(std::move(columns));
+        this->output_.addToCache(port_name, std::move(columns));
         columns = nullptr;
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};

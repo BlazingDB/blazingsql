@@ -243,7 +243,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
             std::size_t num_bytes = windowed_table->sizeInBytes();
         }
 
-        this->output_.get_cache(port_name)->addToCache(std::move(windowed_table));
+        this->output_.addToCache(port_name, std::move(windowed_table));
     }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(const std::exception& e){
@@ -356,12 +356,12 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
                 auto limited = ral::utilities::getLimitedRows(input->toBlazingTableView(), this->preceding_value, false);
                 ral::cache::MetadataDictionary extra_metadata;
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, DONE_OVERLAP_STATUS);
-                this->output_preceding_overlap_cache->addToCache(std::move(limited), "", true, extra_metadata);
+                this->output_.addToCache("preceding_overlaps", std::move(limited), "", true, extra_metadata);
             } else {
                 auto clone = input->toBlazingTableView().clone();
                 ral::cache::MetadataDictionary extra_metadata;
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS);
-                this->output_preceding_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);                
+                this->output_.addToCache("preceding_overlaps", std::move(clone), "", true, extra_metadata);
             }
         }
 
@@ -371,16 +371,16 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
                 auto limited = ral::utilities::getLimitedRows(input->toBlazingTableView(), this->following_value, true);
                 ral::cache::MetadataDictionary extra_metadata;
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, DONE_OVERLAP_STATUS);
-                this->output_following_overlap_cache->addToCache(std::move(limited), "", true, extra_metadata);
+                this->output_.addToCache("following_overlaps", std::move(limited), "", true, extra_metadata);
             } else {
                 auto clone = input->toBlazingTableView().clone();
                 ral::cache::MetadataDictionary extra_metadata;
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS);
-                this->output_following_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);                
+                this->output_.addToCache("following_overlaps", std::move(clone), "", true, extra_metadata);
             }
         }
-        this->output_batches_cache->addToCache(std::move(input));
-        
+        this->output_.addToCache("batches", std::move(input));
+
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
@@ -396,10 +396,6 @@ kstatus OverlapGeneratorKernel::run() {
     bool all_done = false;
     bool neighbors_notified_of_complete = false;
     int total_nodes = context->getTotalNodes();
-
-    output_batches_cache = this->output_.get_cache("batches");
-    output_preceding_overlap_cache = this->output_.get_cache("preceding_overlaps");
-    output_following_overlap_cache = this->output_.get_cache("following_overlaps");
 
     std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
     int batch_index = 0;
@@ -424,7 +420,7 @@ kstatus OverlapGeneratorKernel::run() {
         }
 
         if (cache_data == nullptr && batch_index == 0) {  // this is the first and last batch, then we dont need to process overlaps
-            this->output_batches_cache->addCacheData(std::move(inputs[0]));
+            this->output_.addCacheData("batches", std::move(inputs[0]));
         } else {
             ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
@@ -432,8 +428,7 @@ kstatus OverlapGeneratorKernel::run() {
                 this,
                 task_args);
         }
-        
-        
+
         batch_index++;
     }
     

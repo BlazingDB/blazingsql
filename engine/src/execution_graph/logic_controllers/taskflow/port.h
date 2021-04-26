@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "execution_graph/logic_controllers/CacheMachine.h"
+#include "bmr/MemoryMonitor.h"
 
 namespace ral {
 namespace cache { 
@@ -52,13 +53,24 @@ public:
 
 	template<class... Args>
 	bool addToCache(const std::string & port_name, Args&&... args){
-		this->cache_machines_[port_name]->addToCache(std::forward<Args>(args)...);
+		this->get_cache(port_name)->addToCache(std::forward<Args>(args)...);
 	}
 
-public:
+	template<class... Args>
+	bool addCacheData(const std::string & port_name, Args&&... args){
+		this->get_cache(port_name)->addCacheData(std::forward<Args>(args)...);
+	}
+
+	template<class... Args>
+	bool addHostFrameToCache(const std::string & port_name, Args&&... args){
+		this->get_cache(port_name)->addHostFrameToCache(std::forward<Args>(args)...);
+	}
+
+	friend class ral::MemoryMonitor;
+
+private:
 	kernel * kernel_;
-	//port_name,cache_machines
-	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_;
+	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_; //port_name,cache_machines
 };
  
 }  // namespace cache
