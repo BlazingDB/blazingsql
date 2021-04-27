@@ -28,7 +28,7 @@ public:
 	std::unique_ptr<CudfColumn> compute_column_from_window_function(
 		cudf::table_view input_cudf_view,
 		cudf::column_view input_col_view,
-		std::size_t pos, int & agg_param_count);
+		std::size_t pos);
 
 	std::string kernel_name() { return "ComputeWindow";}
 
@@ -43,7 +43,7 @@ private:
 	std::vector<int> column_indices_partitioned;   // column indices to be partitioned: [1]
 	std::vector<int> column_indices_ordered;   	   // column indices to be ordered: [3]
 	std::vector<int> column_indices_to_agg;        // column indices to be agg: [0, 0]
-	std::vector<int> agg_param_values;     		   // due to LAG or LEAD: [5]
+	std::vector<int> agg_param_values;     		   // due to LAG or LEAD: [0, 5]
 	int preceding_value;     	                   // X PRECEDING
 	int following_value;     		               // Y FOLLOWING
 	std::string frame_type;                        // ROWS or RANGE
