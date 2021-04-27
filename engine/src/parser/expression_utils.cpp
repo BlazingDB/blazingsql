@@ -515,6 +515,16 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
+int get_id_from_expression(const std::string & query_part){
+	const std::string prefix_id_pattern = "), id = ";
+	if(query_part.find(prefix_id_pattern) == query_part.npos) {
+		return -1;  // pattern not found
+	}
+
+	int start_position = query_part.find(prefix_id_pattern) + prefix_id_pattern.size();
+	return std::stoi(query_part.substr(start_position));
+}
+
 std::vector<int> get_projections(const std::string & query_part) {
 
 	// On Calcite, the select count(*) case is represented with

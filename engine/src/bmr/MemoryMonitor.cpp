@@ -86,7 +86,9 @@ namespace ral {
                     iter != starting_node->kernel_unit->output_.cache_machines_.end(); iter++) {
                 size_t amount_downgraded = 0;
                 do {
-                    amount_downgraded = iter->second->downgradeCacheData();
+                    for (auto cache : iter->second){
+                        amount_downgraded = cache->downgradeCacheData();
+                    }
                 } while (amount_downgraded > 0 && need_to_free_memory()); // if amount_downgraded is 0 then there is was nothing left to downgrade
             }
         }

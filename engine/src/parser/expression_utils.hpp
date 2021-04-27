@@ -129,6 +129,7 @@ bool is_var_column(const std::string& token);
 bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
+int get_id_from_expression(const std::string & query_part);
 
 std::vector<int> get_projections(const std::string & query_part);
 

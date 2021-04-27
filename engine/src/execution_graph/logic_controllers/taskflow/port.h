@@ -69,7 +69,7 @@ public:
 
 	void finish();
 
-	std::shared_ptr<CacheMachine> & operator[](const std::string & port_name) { return cache_machines_[port_name]; }
+	std::shared_ptr<CacheMachine> & operator[](const std::string & port_name) { return cache_machines_[port_name][0]; } //todo
 
 	bool all_finished();
 
@@ -86,7 +86,7 @@ public:
 
 public:
 	kernel * kernel_;
-	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_;
+	std::map<std::string, std::vector<std::shared_ptr<CacheMachine>>> cache_machines_;
 };
  
 }  // namespace cache
