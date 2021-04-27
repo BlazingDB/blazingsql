@@ -58,6 +58,8 @@ Functions
 
 - :ref:`exhale_function_ArgsUtil_8cpp_1aa0296cfb7e317aab580f0a31238af33f`
 
+- :ref:`exhale_function_ArgsUtil_8cpp_1a6a2454f923e9cbab2585b8207b836345`
+
 - :ref:`exhale_function_ArgsUtil_8cpp_1a60f8a1a41a4e1af64f8ff15e616e45b8`
 
 - :ref:`exhale_function_ArgsUtil_8cpp_1a2de58bece361223056a85382ea05b926`

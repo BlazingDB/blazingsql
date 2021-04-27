@@ -25,7 +25,8 @@ bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type 
 
 bool is_type_integer(cudf::type_id type) {
 	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type ||
-			cudf::type_id::INT64 == type);
+			cudf::type_id::INT64 == type || cudf::type_id::UINT8 == type || cudf::type_id::UINT16 == type ||
+			cudf::type_id::UINT32 == type || cudf::type_id::UINT64 == type);
 }
 
 bool is_type_bool(cudf::type_id type) { return cudf::type_id::BOOL8 == type; }
@@ -52,11 +53,25 @@ std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(SCHAR_MAX));
 		return ret;
 	}
+	if(type.id() == cudf::type_id::UINT8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint8_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(UCHAR_MAX));
+		return ret;
+	}
 	if(type.id() == cudf::type_id::INT16) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int16_t;
 		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(SHRT_MAX));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::UINT16) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint16_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(USHRT_MAX));
 		return ret;
 	}
 	if(type.id() == cudf::type_id::INT32) {
@@ -66,11 +81,25 @@ std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(INT_MAX));
 		return ret;
 	}
+	if(type.id() == cudf::type_id::UINT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint32_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(UINT_MAX));
+		return ret;
+	}
 	if(type.id() == cudf::type_id::INT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int64_t;
 		using ScalarType = cudf::scalar_type_t<T>;
-		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(LONG_MAX));
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(LLONG_MAX));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::UINT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint64_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(ULLONG_MAX));
 		return ret;
 	}
 	assert(false);
@@ -118,11 +147,25 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
+	if(type.id() == cudf::type_id::UINT8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint8_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoul(scalar_string)));
+		return ret;
+	}
 	if(type.id() == cudf::type_id::INT16) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int16_t;
 		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::UINT16) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint16_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoul(scalar_string)));
 		return ret;
 	}
 	if(type.id() == cudf::type_id::INT32) {
@@ -132,11 +175,25 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
+	if(type.id() == cudf::type_id::UINT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint32_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoul(scalar_string)));
+		return ret;
+	}
 	if(type.id() == cudf::type_id::INT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int64_t;
 		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoll(scalar_string)));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::UINT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = uint64_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoull(scalar_string)));
 		return ret;
 	}
 	if(type.id() == cudf::type_id::FLOAT32) {
