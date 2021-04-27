@@ -177,18 +177,20 @@ html_context = {
             ,'MATH_TAN','MATH_ATAN'
         ]
         , "strings": [
-            'STRING_CHARACTERLENGTH','STRING_CHARLENGTH','STRING_CONCAT','STRING_GREATEST','STRING_LEAST'
+            'STRING_CHARACTERLENGTH','STRING_CHARLENGTH'
+            ,'STRING_CONCAT'
             ,'STRING_INITCAP','STRING_LOWER','STRING_UPPER'
-            ,'STRING_LEFT','STRING_RIGHT','STRING_LTRIM','STRING_RTRIM','STRING_TRIM'
-            ,'STRING_NVL','STRING_REGEXPREPLACE'
-            ,'STRING_REPLACE','STRING_REVERSE'
-            ,'STRING_SUBSTRING'
+            ,'STRING_LEFT','STRING_RIGHT','STRING_SUBSTRING'
+            ,'STRING_LTRIM','STRING_RTRIM','STRING_TRIM'
+            ,'STRING_REGEXPREPLACE','STRING_REPLACE'
+            ,'STRING_REVERSE'
+            
         ]
         , "dates": [
             'DATE_DAYOFMONTH','DATE_DAYOFWEEK','DATE_HOUR','DATE_MINUTE','DATE_MONTH','DATE_SECOND','DATE_YEAR','DATE_EXTRACT'
         ]
         , "conditional": [
-            "FUNC_CASE","FUNC_COALESCE","FUNC_NULLIF"
+            "FUNC_CASE","FUNC_COALESCE","FUNC_NULLIF","FUNC_NVL"
         ]
         , "aggregating": [
             'AGG_AVG','AGG_COUNT','AGG_MAX','AGG_MIN','AGG_STDDEV','AGG_STDDEVPOP','AGG_STDDEVSAMP','AGG_SUM'
