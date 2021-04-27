@@ -26,8 +26,12 @@ using ral::frame::BlazingTable;
 using ral::cache::kernel;
 using Context = blazingdb::manager::Context;
 
+struct kernel_test_base : public ::testing::Test {
 
-struct WindowOverlapAccumulatorTest : public ::testing::Test {
+	std::shared_ptr<ral::cache::CacheMachine> input_message_cache;
+	std::shared_ptr<ral::cache::CacheMachine> output_message_cache;
+	std::shared_ptr<ral::cache::graph> graph;
+
 	virtual void SetUp() override {
 		BlazingRMMInitialize();
 		float host_memory_quota=0.75; //default value
@@ -36,46 +40,36 @@ struct WindowOverlapAccumulatorTest : public ::testing::Test {
 										4000000, 10, false, {});
 		int executor_threads = 10;
 		ral::execution::executor::init_executor(executor_threads, 0.8);
+
+		graph = std::make_shared<ral::cache::graph>();
+		input_message_cache = std::make_shared<CacheMachine>(nullptr, "messages_in", false);
+		output_message_cache = std::make_shared<CacheMachine>(nullptr, "messages_out", false, ral::cache::CACHE_LEVEL_CPU );
+		graph->set_input_and_output_caches(input_message_cache, output_message_cache);
 	}
 
 	virtual void TearDown() override {
 		ral::memory::empty_pools();
 		BlazingRMMFinalize();
 	}
+
+	
 };
 
-struct WindowOverlapGeneratorTest : public ::testing::Test {
-    virtual void SetUp() override {
-        BlazingRMMInitialize();
-        float host_memory_quota=0.75; //default value
-        blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
-        ral::memory::set_allocation_pools(4000000, 10,
-                                          4000000, 10, false, {});
-        int executor_threads = 10;
-        ral::execution::executor::init_executor(executor_threads, 0.8);
-    }
 
-    virtual void TearDown() override {
-        ral::memory::empty_pools();
-        BlazingRMMFinalize();
-    }
+struct WindowOverlapAccumulatorTest : public kernel_test_base {
+	
 };
 
-struct WindowOverlapTest : public ::testing::Test {
-    virtual void SetUp() override {
-        BlazingRMMInitialize();
-        float host_memory_quota=0.75; //default value
-        blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
-        ral::memory::set_allocation_pools(4000000, 10,
-                                          4000000, 10, false, {});
-        int executor_threads = 10;
-        ral::execution::executor::init_executor(executor_threads, 0.8);
-    }
+struct WindowOverlapGeneratorTest : public kernel_test_base {
+	
+};
 
-    virtual void TearDown() override {
-        ral::memory::empty_pools();
-        BlazingRMMFinalize();
-    }
+struct WindowOverlapTest : public kernel_test_base {
+	
+};
+
+struct UnboundedWindowNoPartition : public kernel_test_base {
+	
 };
 
 // Just creates a Context
@@ -90,32 +84,6 @@ std::shared_ptr<Context> make_context(int num_nodes) {
 	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options);
 
 	return context;
-}
-
-// Creates a OverlapAccumulatorKernel using a valid `project_plan`
-std::tuple<std::shared_ptr<kernel>, std::shared_ptr<ral::cache::CacheMachine>, std::shared_ptr<ral::cache::CacheMachine>>
-		make_overlap_Accumulator_kernel(std::string project_plan, std::shared_ptr<Context> context) {
-	std::size_t kernel_id = 1;
-	std::shared_ptr<ral::cache::graph> graph = std::make_shared<ral::cache::graph>();
-	std::shared_ptr<ral::cache::CacheMachine> input_cache = std::make_shared<CacheMachine>(nullptr, "messages_in", false);
-	std::shared_ptr<ral::cache::CacheMachine> output_cache = std::make_shared<CacheMachine>(nullptr, "messages_out", false, ral::cache::CACHE_LEVEL_CPU );
-	graph->set_input_and_output_caches(input_cache, output_cache);
-	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(kernel_id, project_plan, context, graph);
-
-	return std::make_tuple(overlap_accumulator_kernel, input_cache, output_cache);
-}
-
-// Creates a OverlapGeneratorKernel using a valid `project_plan`
-std::tuple<std::shared_ptr<kernel>, std::shared_ptr<ral::cache::CacheMachine>, std::shared_ptr<ral::cache::CacheMachine>>
-make_overlap_Generator_kernel(std::string project_plan, std::shared_ptr<Context> context) {
-    std::size_t kernel_id = 1;
-    std::shared_ptr<ral::cache::graph> graph = std::make_shared<ral::cache::graph>();
-    std::shared_ptr<ral::cache::CacheMachine> input_cache = std::make_shared<CacheMachine>(nullptr, "messages_in", false);
-    std::shared_ptr<ral::cache::CacheMachine> output_cache = std::make_shared<CacheMachine>(nullptr, "messages_out", false, ral::cache::CACHE_LEVEL_CPU );
-    graph->set_input_and_output_caches(input_cache, output_cache);
-    std::shared_ptr<kernel> overlap_generator_kernel = std::make_shared<ral::batch::OverlapGeneratorKernel>(kernel_id, project_plan, context, graph);
-
-    return std::make_tuple(overlap_generator_kernel, input_cache, output_cache);
 }
 
 // Creates two CacheMachines and register them with the `project_kernel`
@@ -369,11 +337,9 @@ TEST_F(WindowOverlapAccumulatorTest, BasicSingleNode) {
 	communicationData.initialize("0", "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_cache, output_cache;
-	std::tie(overlap_accumulator_kernel, input_cache, output_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -467,11 +433,9 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_FirstNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -601,11 +565,9 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_LastNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -738,11 +700,9 @@ TEST_F(WindowOverlapAccumulatorTest, BasicMultiNode_MiddleNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -914,12 +874,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_FirstNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
-            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
+            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -1049,12 +1007,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_LastNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
-            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
+            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -1191,12 +1147,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowMultiNode_MiddleNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
-            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
+            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -1368,12 +1322,10 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 	communicationData.initialize(std::to_string(self_node_index), "/tmp");
 
 	// overlap kernel
-	std::shared_ptr<kernel> overlap_accumulator_kernel;
-	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
-	std::tie(overlap_accumulator_kernel, input_message_cache, output_message_cache) = make_overlap_Accumulator_kernel(
-            "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
-            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
-
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) +
+            " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])";
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
 	// register cache machines with the kernel
 	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
 	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_overlap_accumulator_with_cache_machines(
@@ -1418,12 +1370,12 @@ TEST_F(WindowOverlapAccumulatorTest, BigWindowSingleNode) {
 }
 
 std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>>
-run_overlap_generator_kernel(const std::string& project_plan, std::shared_ptr<Context> context, std::vector<std::unique_ptr<CacheData>>& inputCacheData){
+run_overlap_generator_kernel(const std::string& project_plan, std::shared_ptr<Context> context, std::vector<std::unique_ptr<CacheData>>& inputCacheData,
+	std::shared_ptr<ral::cache::graph> graph){
 
     // overlap Generator kernel
-    std::shared_ptr<kernel> overlap_generator_kernel;
-    std::shared_ptr<ral::cache::CacheMachine> input_generator_cache, output_generator_cache;
-    std::tie(overlap_generator_kernel, input_generator_cache, output_generator_cache) = make_overlap_Generator_kernel(project_plan, context);
+    
+	std::shared_ptr<kernel> overlap_generator_kernel = std::make_shared<ral::batch::OverlapGeneratorKernel>(1, project_plan, context, graph);
 
     // register cache machines with the kernel
     std::shared_ptr<CacheMachine>   batchesCacheMachineGenerator,
@@ -1464,14 +1416,12 @@ run_overlap_accumulator_kernel(const std::string& project_plan,
                                std::shared_ptr<Context> context,
                                std::vector<std::unique_ptr<CacheData>>& batchesCacheData,
                                std::vector<std::unique_ptr<CacheData>>& batchesPrecedingCacheData,
-                               std::vector<std::unique_ptr<CacheData>>& batchesFollowingCacheData){
+                               std::vector<std::unique_ptr<CacheData>>& batchesFollowingCacheData,
+							   std::shared_ptr<ral::cache::graph> graph){
 
     // overlap Accumulator kernel
-    std::shared_ptr<kernel> overlap_accumulator_kernel;
-    std::shared_ptr<ral::cache::CacheMachine> input_accumulator_cache, output_accumulator_cache;
-    std::tie(overlap_accumulator_kernel, input_accumulator_cache, output_accumulator_cache) = make_overlap_Accumulator_kernel(
-            project_plan, context);
-
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
+	
     // register cache machines with the kernel
     std::shared_ptr<CacheMachine>   batchesCacheMachineAccumulator,
             precedingCacheMachineAccumulator,
@@ -1562,7 +1512,8 @@ TEST_F(WindowOverlapGeneratorTest, BasicSingleNode) {
              batches_following_pulled)
             = run_overlap_generator_kernel(project_plan,
                                            context,
-                                           inputCacheData);
+                                           inputCacheData,
+										   graph);
 
     EXPECT_EQ(batches_preceding_pulled.size(), preceding_overlaps.size());
     EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
@@ -1649,7 +1600,8 @@ TEST_F(WindowOverlapGeneratorTest, BigWindowSingleNode) {
              batches_following_pulled)
             = run_overlap_generator_kernel(project_plan,
                                            context,
-                                           inputCacheData);
+                                           inputCacheData,
+										   graph);
 
     EXPECT_EQ(batches_preceding_pulled.size(), preceding_overlaps.size());
     EXPECT_EQ(batches_pulled.size(),           expected_batch_out.size());
@@ -1745,13 +1697,15 @@ TEST_F(WindowOverlapTest, BasicSingleNode) {
              batches_following_pulled)
             = run_overlap_generator_kernel(project_plan,
                                            context,
-                                           inputCacheData);
+                                           inputCacheData,
+										   graph);
 
     std::vector<std::unique_ptr<CacheData>> last_batches_pulled = run_overlap_accumulator_kernel(project_plan,
                                                                                                  context,
                                                                                                  batches_pulled,
                                                                                                  batches_preceding_pulled,
-                                                                                                 batches_following_pulled);
+                                                                                                 batches_following_pulled,
+																								 graph);
 
     EXPECT_EQ(last_batches_pulled.size(), expected_out.size());
 
@@ -1812,13 +1766,15 @@ TEST_F(WindowOverlapTest, BigWindowSingleNode) {
              batches_following_pulled)
             = run_overlap_generator_kernel(project_plan,
                                            context,
-                                           inputCacheData);
+                                           inputCacheData,
+										   graph);
 
     std::vector<std::unique_ptr<CacheData>> last_batches_pulled = run_overlap_accumulator_kernel(project_plan,
                                                                                                  context,
                                                                                                  batches_pulled,
                                                                                                  batches_preceding_pulled,
-                                                                                                 batches_following_pulled);
+                                                                                                 batches_following_pulled,
+																								 graph);
 
     EXPECT_EQ(last_batches_pulled.size(), expected_out.size());
 
@@ -1869,15 +1825,8 @@ TEST_F(WindowOverlapTest, BasicSingleNode2) {
 
     std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
 
-    // overlap Generator kernel
-    std::shared_ptr<kernel> overlap_generator_kernel;
-    std::shared_ptr<ral::cache::CacheMachine> input_generator_cache, output_generator_cache;
-    std::tie(overlap_generator_kernel, input_generator_cache, output_generator_cache) = make_overlap_Generator_kernel(project_plan, context);
-
-    std::shared_ptr<kernel> overlap_accumulator_kernel;
-    std::shared_ptr<ral::cache::CacheMachine> input_accumulator_cache, output_accumulator_cache;
-    std::tie(overlap_accumulator_kernel, input_accumulator_cache, output_accumulator_cache) = make_overlap_Accumulator_kernel(project_plan, context);
-
+    std::shared_ptr<kernel> overlap_generator_kernel = std::make_shared<ral::batch::OverlapGeneratorKernel>(1, project_plan, context, graph);
+	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
 
     std::shared_ptr<CacheMachine> batchesCacheMachine   = std::make_shared<CacheMachine>(context, "batches");
     std::shared_ptr<CacheMachine> precedingCacheMachine = std::make_shared<CacheMachine>(context, "preceding_overlaps");
