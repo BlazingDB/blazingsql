@@ -9,7 +9,7 @@ This function returns a default if the value in the column is :code:`NULL`.
 .. note:: The column types and/or literals used in this function need to be of compatible data types or 
     types that can be converted to a compatible type.
 
-.. seealso:: :ref:`sql_func_nullif`
+.. seealso:: :ref:`sql_func_nvl`, :ref:`sql_func_nullif`
 
 Example
 """""""
