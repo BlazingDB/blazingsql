@@ -91,6 +91,7 @@ def create_json():
                             "BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE", "false")
     acceptableDifference = os.getenv(
                             "BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE", 0.01)
+    hadoopDirectory = os.getenv("HADOOP_HOME")
 
     data["TestSettings"] = {
         "dataDirectory": dataDirectory,
@@ -106,6 +107,7 @@ def create_json():
         "googleStorageProjectId": googleStorageProjectId,
         "googleStorageBucketName": googleStorageBucketName,
         "googleStorageAdcJsonFile": googleStorageAdcJsonFile,
+        "hadoopDirectory": hadoopDirectory
     }
 
     data["RunSettings"] = {

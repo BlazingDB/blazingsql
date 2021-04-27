@@ -20,29 +20,27 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         krbticket = os.path.abspath(ktoken)
         hdfs_host = "172.22.0.3"
         hdfs_port = 9000
-        hdfs_driver = "libhdfs"
+        #hdfs_driver = "libhdfs"
         print("Using krb ticket: " + krbticket)
-        result, error_msg, fs = bc.hdfs(
+        result = bc.hdfs(
             authority,
             host=hdfs_host,
             port=hdfs_port,
             user="jhs",
-            driver=hdfs_driver,
-            kerb_ticket=krbticket,
+            #driver=hdfs_driver,
+            kerb_ticket=krbticket
         )
 
         if result is False:
             msg = (
-                """WARNING: Could not connect to HDFS instance %s:%d using
-                  driver %s, error was: %s"""
-                % (hdfs_host, hdfs_port, hdfs_driver, error_msg)
+                """WARNING: Could not connect to HDFS instance %s:%d """
+                % (hdfs_host, hdfs_port)
             )
             print(msg)
             print("WARNING: Will ignore " + queryType)
             return
 
-        print("Success connection to HDFS:")
-        print(fs)
+        print("Success connection to HDFS")
 
         hdfs_dir_data_lc = "hdfs://" + authority + dir_data_lc
         print("TPCH files at: " + hdfs_dir_data_lc)
