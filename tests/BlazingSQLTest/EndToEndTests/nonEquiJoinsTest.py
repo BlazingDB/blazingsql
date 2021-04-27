@@ -330,6 +330,103 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_14"
+            query = """select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
+                             df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
+                        from nation df1 inner join nation df2
+                        on df1.n_nationkey = df2.n_regionkey
+                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_15"
+            query = """select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
+                            df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
+                        from nation df1 inner join nation df2
+                        on df1.n_nationkey = df2.n_regionkey
+                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
+                        and df1.n_nationkey IS NOT DISTINCT FROM df2.n_nationkey"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_16"
+            query = """select o1.o_orderkey as okey1, o1.o_custkey as ocust1, o1.o_orderkey - o1.o_custkey as diffy, 
+                            o2.o_orderkey as okey2, o2.o_custkey as ocust2, o2.o_orderkey + o2.o_custkey as summy
+                        from orders as o1
+                        inner join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+                        and o1.o_orderkey - o1.o_custkey < o2.o_orderkey
+                        and o1.o_orderkey IS NOT DISTINCT FROM o2.o_custkey """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_17"
+            query = """select o2.o_orderkey as okey2, o1.o_orderkey as okey1, o2.o_custkey from orders as o1
+                    inner join orders as o2 on o1.o_orderkey = o2.o_orderkey
+                    and o1.o_orderkey < o2.o_custkey
+                    and o1.o_orderkey IS NOT DISTINCT FROM o2.o_custkey
+                    """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_18"
+            query = """select l.l_orderkey, l.l_partkey, l.l_suppkey, o.o_orderkey, o.o_custkey
+                        from lineitem as l inner join orders as o
+                        on l.l_commitdate > o.o_orderdate
+                        and l.l_orderkey = o.o_orderkey
+                        and l.l_partkey IS NOT DISTINCT FROM o.o_custkey """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
