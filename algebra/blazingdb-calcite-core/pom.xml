@@ -23,6 +23,7 @@
 		<org.testng.version>6.14.3</org.testng.version>
 		<org.apache.calcite-version>1.22.0</org.apache.calcite-version>
 		<org.apache.calcite.avatica-version>1.16.0</org.apache.calcite.avatica-version>
+		<org.apache.hive-version>3.1.2</org.apache.hive-version>
 	</properties>
 
 	<dependencies>
@@ -32,6 +33,12 @@
 			<artifactId>calcite-core</artifactId>
 			<version>${org.apache.calcite-version}</version>
 			<type>jar</type>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.hive/hive-exec -->
+		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+			<version>${org.apache.hive-version}</version>
 		</dependency>
 		<!-- Test Dependencies -->
 		<dependency>

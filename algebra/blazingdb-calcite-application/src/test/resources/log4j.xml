@@ -12,7 +12,7 @@
 
 	<appender name="FILE" class="org.apache.log4j.FileAppender">
 	   <param name="file" value="algebra.log"/>
-	   <param name="threshold" value="TRACE"/>
+	   <param name="threshold" value="INFO"/>
 	   <param name="append" value="false"/>
 
 	   <layout class="org.apache.log4j.PatternLayout">
@@ -51,8 +51,9 @@
 
 	<!-- Root Logger -->
 	<root>
-		<priority value="TRACE" />
+		<priority value="INFO" />
 		<appender-ref ref="FILE"/>
+		<appender-ref ref="console"/>
 	</root>
 
 </log4j:configuration>

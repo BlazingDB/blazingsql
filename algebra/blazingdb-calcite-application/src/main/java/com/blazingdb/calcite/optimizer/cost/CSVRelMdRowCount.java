@@ -1,10 +1,12 @@
 package com.blazingdb.calcite.optimizer.cost;
 
 import com.blazingdb.calcite.optimizer.reloperators.CSVProject;
+import com.blazingdb.calcite.optimizer.reloperators.CSVTableScan;
 import com.blazingdb.calcite.optimizer.reloperators.NewCsvProject;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rel.core.Project;
+import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.metadata.*;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.util.BuiltInMethod;
@@ -24,13 +26,25 @@ public class CSVRelMdRowCount extends RelMdRowCount {
 
     //以下两个方法用于测试 CBO 优化
     public Double getRowCount(NewCsvProject rel, RelMetadataQuery mq) {
-        return 1.0;
+        return 167.0;
     }
+
+//    // 2do usarra este mas alto nivel y generico
+//    @Override
+//    public Double getRowCount(TableScan rel, RelMetadataQuery mq) {
+//        return 2354.34;
+//    }
+
+    // 1ro usaria este mas especifico
+//    public Double getRowCount(CSVTableScan rel, RelMetadataQuery mq) {
+//        return 12.78;
+//    }
 
     public Double getRowCount(CSVProject rel, RelMetadataQuery mq) {
         return 1.0;
     }
 
+    @Override
     public Double getRowCount(Project rel, RelMetadataQuery mq) {
         return 2.0;
     }
@@ -39,7 +53,9 @@ public class CSVRelMdRowCount extends RelMdRowCount {
     @Override
     public Double getRowCount(Filter rel, RelMetadataQuery mq) {
         return mq.getRowCount(rel.getInput()) / 5;
-//        return 5.0;
+
+
+//        return 2234.0;
     }
 
 

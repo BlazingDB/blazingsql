@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement />
+  <nodes>
+    <node x="673.7264705882353" y="240.0">com.blazingdb.calcite.optimizer.converter.CSVFilterConverter</node>
+    <node x="609.3764705882352" y="0.0">org.apache.calcite.plan.RelOptRule</node>
+    <node x="0.0" y="240.0">com.blazingdb.calcite.optimizer.cost.CSVRelMdDistinctRowCount</node>
+    <node x="449.00000000000006" y="240.0">com.blazingdb.calcite.optimizer.converter.CSVProjectConverter</node>
+    <node x="792.5372549019608" y="130.0">com.blazingdb.calcite.optimizer.reloperators.CSVFilter</node>
+    <node x="934.3372549019608" y="130.0">com.blazingdb.calcite.optimizer.reloperators.CSVTableScan</node>
+    <node x="131.8450980392157" y="320.0">com.blazingdb.calcite.optimizer.cost.DefaultRelMetadataProvider</node>
+    <node x="609.9764705882352" y="130.0">org.apache.calcite.rel.convert.ConverterRule</node>
+    <node x="256.00000000000006" y="240.0">com.blazingdb.calcite.optimizer.cost.CSVRelMdRowCount</node>
+    <node x="768.9764705882352" y="0.0">com.blazingdb.calcite.optimizer.reloperators.CSVRel</node>
+    <node x="347.9843137254902" y="130.0">com.blazingdb.calcite.optimizer.reloperators.CSVProject</node>
+    <node x="886.5264705882353" y="240.0">com.blazingdb.calcite.optimizer.converter.CSVTableScanConverter</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVFilterConverter" target="com.blazingdb.calcite.optimizer.reloperators.CSVRel">
+      <point x="37.799999999999955" y="-15.0" />
+      <point x="806.0264705882353" y="220.0" />
+      <point x="782.0372549019608" y="220.0" />
+      <point x="782.0372549019608" y="110.0" />
+      <point x="808.5598039215686" y="110.0" />
+      <point x="-7.916666666666686" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVFilterConverter" target="org.apache.calcite.rel.convert.ConverterRule">
+      <point x="-37.799999999999955" y="-15.0" />
+      <point x="730.4264705882354" y="220.0" />
+      <point x="706.4050420168066" y="220.0" />
+      <point x="21.428571428571445" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.cost.DefaultRelMetadataProvider" target="com.blazingdb.calcite.optimizer.cost.CSVRelMdRowCount">
+      <point x="62.75" y="-15.0" />
+      <point x="320.0950980392157" y="295.0" />
+      <point x="342.50000000000006" y="295.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVTableScanConverter" target="org.apache.calcite.rel.convert.ConverterRule">
+      <point x="-26.5" y="-15.0" />
+      <point x="966.0264705882353" y="200.0" />
+      <point x="749.2621848739494" y="200.0" />
+      <point x="64.28571428571422" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.reloperators.CSVProject" target="com.blazingdb.calcite.optimizer.reloperators.CSVRel">
+      <point x="0.0" y="-15.0" />
+      <point x="410.9843137254902" y="90.0" />
+      <point x="776.8931372549018" y="90.0" />
+      <point x="-39.583333333333314" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVFilterConverter" target="com.blazingdb.calcite.optimizer.reloperators.CSVFilter">
+      <point x="75.59999999999991" y="-15.0" />
+      <point x="843.8264705882352" y="220.0" />
+      <point x="852.0372549019608" y="220.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVTableScanConverter" target="com.blazingdb.calcite.optimizer.reloperators.CSVTableScan">
+      <point x="26.5" y="-15.0" />
+      <point x="1019.0264705882353" y="220.0" />
+      <point x="1005.3372549019608" y="220.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVFilterConverter" target="org.apache.calcite.plan.RelOptRule">
+      <point x="0.0" y="-15.0" />
+      <point x="768.2264705882353" y="220.0" />
+      <point x="770.4764705882352" y="220.0" />
+      <point x="770.4764705882352" y="70.0" />
+      <point x="722.7764705882352" y="70.0" />
+      <point x="50.39999999999998" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.cost.DefaultRelMetadataProvider" target="com.blazingdb.calcite.optimizer.cost.CSVRelMdDistinctRowCount">
+      <point x="-62.75" y="-15.0" />
+      <point x="194.5950980392157" y="295.0" />
+      <point x="118.0" y="295.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVProjectConverter" target="org.apache.calcite.rel.convert.ConverterRule">
+      <point x="78.80000000000001" y="-15.0" />
+      <point x="626.3000000000001" y="220.0" />
+      <point x="663.5478991596638" y="220.0" />
+      <point x="-21.428571428571445" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.cost.CSVRelMdRowCount" target="com.blazingdb.calcite.optimizer.reloperators.CSVProject">
+      <point x="0.0" y="-15.0" />
+      <point x="342.50000000000006" y="220.0" />
+      <point x="379.4843137254902" y="220.0" />
+      <point x="-31.5" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.reloperators.CSVFilter" target="com.blazingdb.calcite.optimizer.reloperators.CSVRel">
+      <point x="0.0" y="-15.0" />
+      <point x="852.0372549019608" y="110.0" />
+      <point x="824.3931372549018" y="110.0" />
+      <point x="7.916666666666686" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVProjectConverter" target="com.blazingdb.calcite.optimizer.reloperators.CSVProject">
+      <point x="-39.400000000000034" y="-15.0" />
+      <point x="508.1" y="200.0" />
+      <point x="442.4843137254902" y="200.0" />
+      <point x="31.5" y="15.0" />
+    </edge>
+    <edge source="org.apache.calcite.rel.convert.ConverterRule" target="org.apache.calcite.rel.convert.ConverterRule">
+      <point x="-64.28571428571428" y="15.0" />
+      <point x="620.690756302521" y="180.0" />
+      <point x="589.9764705882352" y="180.0" />
+      <point x="589.9764705882352" y="145.0" />
+      <point x="-75.0" y="-0.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.reloperators.CSVTableScan" target="com.blazingdb.calcite.optimizer.reloperators.CSVRel">
+      <point x="0.0" y="-15.0" />
+      <point x="1005.3372549019608" y="100.0" />
+      <point x="840.2264705882352" y="100.0" />
+      <point x="23.75" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVProjectConverter" target="com.blazingdb.calcite.optimizer.reloperators.CSVRel">
+      <point x="0.0" y="-15.0" />
+      <point x="547.5" y="220.0" />
+      <point x="571.1764705882352" y="220.0" />
+      <point x="571.1764705882352" y="100.0" />
+      <point x="792.7264705882352" y="100.0" />
+      <point x="-23.75" y="15.0" />
+    </edge>
+    <edge source="org.apache.calcite.rel.convert.ConverterRule" target="org.apache.calcite.plan.RelOptRule">
+      <point x="-37.5" y="-15.0" />
+      <point x="647.4764705882352" y="80.0" />
+      <point x="672.3764705882352" y="80.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVProjectConverter" target="org.apache.calcite.plan.RelOptRule">
+      <point x="-78.80000000000004" y="-15.0" />
+      <point x="468.70000000000005" y="210.0" />
+      <point x="316.1759803921568" y="210.0" />
+      <point x="316.1759803921568" y="70.0" />
+      <point x="647.1764705882351" y="70.0" />
+      <point x="-25.200000000000045" y="15.0" />
+    </edge>
+    <edge source="com.blazingdb.calcite.optimizer.converter.CSVTableScanConverter" target="com.blazingdb.calcite.optimizer.reloperators.CSVRel">
+      <point x="79.5" y="-15.0" />
+      <point x="1072.0264705882353" y="220.0" />
+      <point x="1086.837254901961" y="220.0" />
+      <point x="1086.837254901961" y="90.0" />
+      <point x="856.0598039215686" y="90.0" />
+      <point x="39.58333333333337" y="15.0" />
+    </edge>
+    <edge source="org.apache.calcite.plan.RelOptRule" target="org.apache.calcite.plan.RelOptRule">
+      <point x="-50.4" y="15.0" />
+      <point x="621.9764705882352" y="50.0" />
+      <point x="589.3764705882352" y="50.0" />
+      <point x="589.3764705882352" y="15.0" />
+      <point x="-63.0" y="-0.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.1" x="551.2727272727273" y="144.63636363636363" />
+  <SelectedNodes>
+    <node>com.blazingdb.calcite.optimizer.cost.CSVRelMdDistinctRowCount</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

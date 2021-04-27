@@ -1,6 +1,6 @@
 package com.blazingdb.calcite.application;
 
-import com.blazingdb.calcite.optimizer.cost.DefaultRelMetadataProvider;
+import com.blazingdb.calcite.cbo.cost.DefaultRelMetadataProvider;
 import com.blazingdb.calcite.rules.FilterTableScanRule;
 import com.blazingdb.calcite.rules.ProjectFilterTransposeRule;
 import com.blazingdb.calcite.rules.ProjectTableScanRule;
@@ -8,20 +8,22 @@ import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
 import com.google.common.collect.Lists;
+import org.apache.calcite.adapter.enumerable.EnumerableConvention;
+import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
-import org.apache.calcite.plan.ConventionTraitDef;
-import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelOptRule;
-import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.plan.*;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
+import org.apache.calcite.prepare.CalcitePrepareImpl;
+import org.apache.calcite.rel.RelCollationTraitDef;
+import org.apache.calcite.rel.RelDistributionTraitDef;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.metadata.CachingRelMetadataProvider;
 import org.apache.calcite.rel.metadata.ChainedRelMetadataProvider;
@@ -41,6 +43,7 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
+import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperatorTable;
@@ -191,15 +194,41 @@ public class RelationalAlgebraGenerator {
 	public RelNode
 	getOptimizedRelationalAlgebraCOB(RelNode rel, List<RelOptRule> rules) throws RelConversionException {
 		VolcanoPlanner planner = (VolcanoPlanner) rel.getCluster().getPlanner();
+//		VolcanoPlanner planner = new VolcanoPlanner();
 		planner.clear();
+//		planner.setExecutor(RexUtil.EXECUTOR);
 		planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
+//		planner.addRelTraitDef(RelDistributionTraitDef.INSTANCE);
+
+		// Below two lines are important for the planner to use collation trait and generate merge join
+//		planner.addRelTraitDef(RelCollationTraitDef.INSTANCE);
+//		planner.registerAbstractRelationalRules();
+
+//		planner.setNoneConventionHasInfiniteCost(false);
 
 		for (RelOptRule r : rules)
 			planner.addRule(r);
 
-		final RelDataTypeFactory typeFactory =
-				new SqlTypeFactoryImpl(org.apache.calcite.rel.type.RelDataTypeSystem.DEFAULT);
+//		planner.addRelTraitDef(RelCollationTraitDef.INSTANCE);
+
+		List<RelMetadataProvider> list = Lists.newArrayList();
+		DefaultRelMetadataProvider defaultRelMetadataProvider = new DefaultRelMetadataProvider();
+		list.add(defaultRelMetadataProvider.getMetadataProvider());
+
+		planner.registerMetadataProviders(list);
+		RelMetadataProvider chainedProvider = ChainedRelMetadataProvider.of(list);
+		rel.getCluster().setMetadataProvider(
+				new CachingRelMetadataProvider(chainedProvider, planner));
+
+
+		//TODO: review differences between JavaTypeFactory and RelDataTypeFactory
+		final RelDataTypeFactory typeFactory = new SqlTypeFactoryImpl(org.apache.calcite.rel.type.RelDataTypeSystem.DEFAULT);
+//		final JavaTypeFactory typeFactory = new JavaTypeFactoryImpl(); //  prepareContext.getTypeFactory();
 		RelOptCluster cluster = RelOptCluster.create(planner, new RexBuilder(typeFactory));
+
+//		RelTraitSet desiredTraits =
+//				rel.getCluster().traitSet().replace(EnumerableConvention.INSTANCE);
+//		rel = planner.changeTraits(rel, desiredTraits);
 
 		cluster.getPlanner().setRoot(rel);
 		RelNode result = planner.chooseDelegate().findBestExp();
@@ -242,7 +271,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectMergeRule.INSTANCE)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
-//						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
+//						  .addRule`Instance(ProjectFilterTransposeRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
 						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
@@ -267,7 +296,6 @@ public class RelationalAlgebraGenerator {
 
 		List<RelMetadataProvider> list = Lists.newArrayList();
 		DefaultRelMetadataProvider defaultRelMetadataProvider = new DefaultRelMetadataProvider();
-		defaultRelMetadataProvider.getMetadataProvider();
 		list.add(defaultRelMetadataProvider.getMetadataProvider());
 
 		hepPlanner.registerMetadataProviders(list);

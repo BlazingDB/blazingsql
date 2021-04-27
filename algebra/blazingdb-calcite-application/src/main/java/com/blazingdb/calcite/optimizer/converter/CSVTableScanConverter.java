@@ -1,15 +1,12 @@
 package com.blazingdb.calcite.optimizer.converter;
-
 import com.blazingdb.calcite.optimizer.reloperators.CSVRel;
 import com.blazingdb.calcite.optimizer.reloperators.CSVTableScan;
-import org.apache.calcite.plan.Convention;
-import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.plan.RelTrait;
-import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.plan.*;
 import org.apache.calcite.rel.RelDistributionTraitDef;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.convert.ConverterRule;
 import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.apache.hadoop.hive.ql.optimizer.calcite.RelOptHiveTable;
 
 
 public class CSVTableScanConverter extends ConverterRule {
