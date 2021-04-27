@@ -9,7 +9,7 @@ test:
 #  - columnBasisSuite #Not supported yet
   - commonTableExpressionsSuite
   - concatSuite
-  - concurrentSuite
+#  - concurrentSuite #Not supported yet
   - configOptionsSuite
   - countDistinctSuite
   - countWithoutGroupBySuite
