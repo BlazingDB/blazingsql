@@ -10,5 +10,5 @@ Example
 
 .. code-block:: sql
 
-    SELECT ABS(<col_1)
+    SELECT ABS(<col_1>)
     FROM <table_name>
