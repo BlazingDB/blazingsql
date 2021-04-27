@@ -11,7 +11,7 @@
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
-
+- #1502 Fix IS NOT DISTINCT FROM with joins
 
 # BlazingSQL 0.19.0 (April 21, 2021)
 
