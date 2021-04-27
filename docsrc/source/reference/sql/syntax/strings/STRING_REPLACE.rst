@@ -1,15 +1,17 @@
 REPLACE
 ^^^^^^^
 
-**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
-:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
+**Supported datatypes:** :ref:`VARCHAR<sql_dtypes>`
 
-Lorem ipsum
+Obtain a string with all instances of a match substring are replaced with a specified
+replacement.
+
+.. seealso:: :ref:`sql_string_regexpreplace`
 
 Example
 """""""
 
 .. code-block:: sql
 
-    SELECT *
-    FROM <foo>
+    SELECT REPLACE(<col_1>, <substring>, <replacement>)
+    FROM <table_name>

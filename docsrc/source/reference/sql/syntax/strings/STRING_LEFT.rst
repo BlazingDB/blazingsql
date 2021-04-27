@@ -1,15 +1,18 @@
 LEFT
 ^^^^
 
-**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
-:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
+**Supported datatypes:** :ref:`VARCHAR<sql_dtypes>`
 
-Lorem ipsum
+Obtain a substring of a string with a specified number of leftmost characters.
+
+.. seealso:: :ref:`sql_string_right`, :ref:`sql_string_substring`
 
 Example
 """""""
 
+Retrieve first 3 characters from a string.
+
 .. code-block:: sql
 
-    SELECT *
-    FROM <foo>
+    SELECT LEFT(<col_1>, 3)
+    FROM <table_name>
