@@ -34,7 +34,7 @@ author = 'BlazingDB, Inc.'
 language = "en"
 
 # The full version, including alpha/beta/rc tags
-version = '0.18'
+version = '0.19'
 release = f'v{version}'
 
 
@@ -60,7 +60,7 @@ exhale_args = {
     # These arguments are required
     "containmentFolder":     "./xml",
     "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Library API",
+    "rootFileTitle":         "Engine C++ API Reference",
     "doxygenStripFromPath":  "..",
     # Suggested optional arguments
     "createTreeView":        True,

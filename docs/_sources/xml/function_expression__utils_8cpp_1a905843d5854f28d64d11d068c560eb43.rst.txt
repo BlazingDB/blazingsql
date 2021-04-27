@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a905843d5854f28d64d11d068c560eb43:
+
+Function is_avg_window_function(std::string)
+============================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_avg_window_function(std::string)

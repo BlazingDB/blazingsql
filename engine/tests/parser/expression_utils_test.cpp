@@ -321,12 +321,147 @@ TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
 	EXPECT_EQ(out_expression, expected_str);
 }
 
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__empty)
+{
+	std::string expression = "";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__not_contains)
+{
+	std::string expression = "CONCAT($0, ' , ', $2)";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__bad_expression)
+{
+	std::string expression = "IS NOT DISTINCT FROM($1, $3)";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__contains)
+{
+	std::string expression = "IS_NOT_DISTINCT_FROM($1, $3)";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+	std::string expected_str = "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ms_complex)
+{
+	std::string expression = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $2)), 86400000)):INTEGER";
+	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::INT32},
+										 cudf::data_type{cudf::type_id::STRING},
+										 cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}};
+	std::string out_expression = reinterpret_timestamp(expression, schema);
+	std::string expected_str = "CAST(/INT(Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP_MILLISECONDS, $2)), 86400000)):INTEGER";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__wrong_expression)
+{
+	try {
+		std::string expression = "IS_NOT_DISTINCT_FROM($1, $3, $5)";
+		std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+		FAIL();
+	} catch(const std::exception& e) {
+		SUCCEED();
+	}
+}
+
+// update_join_filter: update_join_and_filter_expressions_from_is_not_distinct_expr
+TEST_F(ExpressionUtilsTest, update_join_filter__empty)
+{
+	std::string condition = "";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "");
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__not_contains)
+{
+	std::string condition = "=($0, $3)";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+
+	EXPECT_EQ(join_expres, condition);
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__not_contains_and)
+{
+	std::string condition = "=($0, $3), IS_NOT_DISTINCT_FROM($1, $3)";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+
+	EXPECT_EQ(join_expres, condition);
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__not_contains_is_not_distinct)
+{
+	std::string condition = " AND(=($0, $3), $3 < 1254)";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+
+	EXPECT_EQ(join_expres, condition);
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__right_express)
+{
+	std::string condition = "AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $3)");
+	EXPECT_EQ(filter_expres, "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__multiple_is_not_distinct_from_express)
+{
+	std::string condition = "AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3), IS_NOT_DISTINCT_FROM($2, $5))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $3)");
+	EXPECT_EQ(filter_expres, "AND(OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3))), OR(AND(IS NULL($2), IS NULL($5)), IS TRUE(=($2 , $5))))");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__multiple_conditions)
+{
+	std::string condition = "AND(=($0, $4), >($3, $6), IS NOT IS_NOT_DISTINCT_FROM FROM($2, $5))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $4)");
+	EXPECT_EQ(filter_expres, "AND(>($3, $6), OR(AND(IS NULL($2), IS NULL($5)), IS TRUE(=($2 , $5))))");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__multiple_conditions_unordered)
+{
+	std::string condition = "AND(>($3, $6), =($0, $4), IS_NOT_DISTINCT_FROM($2, $5))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $4)");
+	EXPECT_EQ(filter_expres, "AND(>($3, $6), OR(AND(IS NULL($2), IS NULL($5)), IS TRUE(=($2 , $5))))");
+}
+
 TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_empty_expr)
 {
 	std::string expression = "";
 	std::string out_expression = convert_ms_to_ns_units(expression);
-
-	EXPECT_EQ(out_expression, expression);
 }
 
 TEST_F(ExpressionUtilsTest, convert_ms_to_ns_units_add_day)
@@ -456,16 +591,4 @@ TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ns)
 	std::string out_expression = reinterpret_timestamp(expression, schema);
 
 	EXPECT_EQ(out_expression, expression);
-}
-
-TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ms_complex)
-{
-	std::string expression = "CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $2)), 86400000)):INTEGER";
-	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::INT32},
-										 cudf::data_type{cudf::type_id::STRING},
-										 cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}};
-	std::string out_expression = reinterpret_timestamp(expression, schema);
-	std::string expected_str = "CAST(/INT(Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP_MILLISECONDS, $2)), 86400000)):INTEGER";
-
-	EXPECT_EQ(out_expression, expected_str);
 }

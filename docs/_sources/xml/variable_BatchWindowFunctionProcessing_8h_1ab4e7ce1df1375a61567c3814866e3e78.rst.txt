@@ -1,0 +1,13 @@
+.. _exhale_variable_BatchWindowFunctionProcessing_8h_1ab4e7ce1df1375a61567c3814866e3e78:
+
+Variable ral::batch::TASK_ARG_REMOVE_PRECEDING_OVERLAP
+======================================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::batch::TASK_ARG_REMOVE_PRECEDING_OVERLAP
