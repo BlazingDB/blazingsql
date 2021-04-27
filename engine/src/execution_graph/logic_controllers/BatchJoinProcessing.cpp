@@ -34,7 +34,7 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	// since this is all that is implemented at the time
 
 	// TODO: for this to work properly we can only do multi column join
-	// when we have ands, when we have hors we hvae to perform the joisn seperately then
+	// when we have `ands`, when we have `ors` we have to perform the join seperately then
 	// do a unique merge of the indices
 
 	// right now with pred push down the join codnition takes the filters as the second argument to condition
@@ -99,10 +99,9 @@ cudf::null_equality parseJoinConditionToEqualityTypes(const std::string & condit
 	}
 
 	// TODO: There may be cases where there is a mixture of
-	// equality operators. We do not support it for now,
+	// equality operators (not for IS NOT DISTINCT FROM). We do not support it for now,
 	// since that is not supported in cudf.
 	// We only rely on the first equality type found.
-	// Related issue: https://github.com/BlazingDB/blazingsql/issues/1421
 
 	bool all_types_are_equal = std::all_of(joinEqualityTypes.begin(), joinEqualityTypes.end(), [&](const cudf::null_equality & elem) {return elem == joinEqualityTypes.front();});
 	if(!all_types_are_equal){
@@ -131,6 +130,11 @@ Complex case:
 join_statement = LogicalJoin(condition=[AND(=($7, $0), OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5)))], joinType=[inner])
 new_join_statement = LogicalJoin(condition=[=($7, $0)], joinType=[inner])
 filter_statement = LogicalFilter(condition=[OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))])
+
+IS NOT DISTINCT FROM case:
+join_statement = LogicalJoin(condition=[AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))], joinType=[inner])
+new_join_statement = LogicalJoin(condition=[=($0, $3)], joinType=[inner])
+filter_statement = LogicalFilter(condition=[OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))])
 
 Error case:
 join_statement = LogicalJoin(condition=[OR(=($7, $0), AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))], joinType=[inner])
@@ -162,14 +166,22 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		filter_statement_expression = "";					   // no filter out
 	} else if (tree.root().value == "AND") {
 		size_t num_equalities = 0;
+		size_t num_equal_due_is_not_dist = 0;
 		for (auto&& c : tree.root().children) {
-			if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
+			if (c->value == "=") {
 				num_equalities++;
+			} else if (c->value == "IS_NOT_DISTINCT_FROM") {
+				num_equalities++;
+				num_equal_due_is_not_dist++;
 			}
 		}
 		if (num_equalities == tree.root().children.size()) {  // all are equalities. this would be a regular multiple equality join
-			new_join_statement_expression = condition;  // the join_out is the same as the original input
-			filter_statement_expression = "";					   // no filter out
+			if (num_equal_due_is_not_dist > 0) {
+				std::tie(new_join_statement_expression, filter_statement_expression) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+			} else {
+				new_join_statement_expression = condition;
+				filter_statement_expression = "";
+			}
 		} else if (num_equalities > 0) {			   // i can split this into an equality join and a filter
 			if (num_equalities == 1) {  // if there is only one equality, then the root_ for join_out wont be an AND,
 				// and we will just have this equality as the root_
@@ -204,6 +216,11 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 					}
 				}
 				new_join_statement_expression = ral::parser::detail::rebuild_helper(join_out_root.get());
+
+				// Now that we support IS_NOT_DISTINCT_FROM for join let's update if it is needed
+				if (new_join_statement_expression.find("IS_NOT_DISTINCT_FROM") != new_join_statement_expression.npos) {
+					std::tie(new_join_statement_expression, filter_statement_expression) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+				}
 			} else {
 				auto join_out_root = std::make_unique<ral::parser::operator_node>("AND");
 				auto filter_root = std::make_unique<ral::parser::operator_node>("AND");
@@ -258,9 +275,6 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 
 	if (this->filter_statement != "" && this->join_type != INNER_JOIN){
 		throw std::runtime_error("Outer joins with inequalities are not currently supported");
-	}
-	if (this->join_type == RIGHT_JOIN) {
-		throw std::runtime_error("Right Outer Joins are not currently supported");
 	}
 }
 
@@ -342,7 +356,7 @@ std::tuple<int, int> PartwiseJoin::check_for_set_that_has_not_been_completed(){
 }
 
 // this function makes sure that the columns being joined are of the same type so that we can join them properly
-void PartwiseJoin::computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
+void PartwiseJoin::computeNormalizationData(const std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 	std::vector<cudf::data_type> left_join_types, right_join_types;
 	for (size_t i = 0; i < this->left_column_indices.size(); i++){
 		left_join_types.push_back(left_types[this->left_column_indices[i]]);
@@ -354,6 +368,23 @@ void PartwiseJoin::computeNormalizationData(const	std::vector<cudf::data_type> &
 												left_join_types.cbegin(), left_join_types.cend());
 	this->normalize_right = !std::equal(this->join_column_common_types.cbegin(), this->join_column_common_types.cend(),
 												right_join_types.cbegin(), right_join_types.cend());
+}
+
+std::unique_ptr<cudf::table> reordering_columns_due_to_right_join(std::unique_ptr<cudf::table> table_ptr, size_t right_columns) {
+	std::vector<std::unique_ptr<cudf::column>> columns_ptr = table_ptr->release();
+	std::vector<std::unique_ptr<cudf::column>> columns_right_pos;
+
+	// First let's put all the left columns
+	for (size_t index = right_columns; index < columns_ptr.size(); ++index) {
+		columns_right_pos.push_back(std::move(columns_ptr[index]));
+	}
+
+	// Now let's append right columns
+	for (size_t index = 0; index < right_columns; ++index) {
+		columns_right_pos.push_back(std::move(columns_ptr[index]));
+	}
+
+	return std::make_unique<cudf::table>(std::move(columns_right_pos));
 }
 
 std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
@@ -390,6 +421,22 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices);
+		} else if(this->join_type == RIGHT_JOIN) {
+			//Removing nulls on left key columns before joining
+			std::unique_ptr<CudfTable> table_left_dropna;
+			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+			if(has_nulls_left){
+				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
+			}
+
+			result_table = cudf::left_join(
+				table_right.view(),
+				has_nulls_left ? table_left_dropna->view() : table_left.view(),
+				this->right_column_indices,
+				this->left_column_indices);
+
+			// After a right join is performed, we want to make sure the left column keep on the left side of result_table
+			result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
@@ -412,7 +459,6 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 
 	auto & left_batch = inputs[0];
 	auto & right_batch = inputs[1];
-
 
 	try{
 		if (this->normalize_left){
@@ -608,7 +654,7 @@ JoinPartitionKernel::JoinPartitionKernel(std::size_t kernel_id, const std::strin
 }
 
 // this function makes sure that the columns being joined are of the same type so that we can join them properly
-void JoinPartitionKernel::computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types){
+void JoinPartitionKernel::computeNormalizationData(const std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 	std::vector<cudf::data_type> left_join_types, right_join_types;
 	for (size_t i = 0; i < this->left_column_indices.size(); i++){
 		left_join_types.push_back(left_types[this->left_column_indices[i]]);

@@ -194,6 +194,64 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_09"
+            query = """select MIN(n.n_nationkey), MAX(r.r_regionkey),
+                    AVG(CAST((n.n_nationkey + r.r_regionkey) AS DOUBLE))
+                    from nation as n
+                    right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey IS NULL"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_10"
+            query = """select n.n_nationkey, n.n_name, r.r_regionkey,
+                        r.r_name
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE r.r_name IS NULL"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_11"
+            query = """select n.n_nationkey, n.n_name, r.r_regionkey,
+                        r.r_name
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE n.n_name IS NOT NULL"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

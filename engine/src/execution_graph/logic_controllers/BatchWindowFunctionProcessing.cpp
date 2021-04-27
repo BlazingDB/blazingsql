@@ -43,6 +43,12 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
 
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
     // if the window function has no partitioning but does have order by and a bounded window, then we need to remove the overlaps that are present in the data
     if (column_indices_partitioned.size() == 0 && column_indices_ordered.size() > 0 && this->preceding_value > 0 && this->following_value > 0){
         this->remove_overlap = true;
@@ -55,19 +61,10 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(
     cudf::table_view input_table_cudf_view,
     cudf::column_view col_view_to_agg,
-    std::size_t pos, int & agg_param_count ) {
-
-    std::unique_ptr<cudf::aggregation> window_aggregation;
+    std::size_t pos ) {
 
     // we want firs get the type of aggregation
-    if (this->agg_param_values.size() > agg_param_count && is_lag_or_lead_aggregation(this->type_aggs_as_str[pos])) {
-        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->agg_param_values[agg_param_count]);
-        agg_param_count++;
-    } else if (is_last_value_window(this->type_aggs_as_str[pos])) {
-        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], -1);
-    } else {
-        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos]);
-    }
+    std::unique_ptr<cudf::aggregation> window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->agg_param_values[pos]);
 
     // want all columns to be partitioned
     std::vector<cudf::column_view> columns_to_partition;
@@ -138,7 +135,10 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         else if (window_expression_contains_order_by(this->expression)) {
             if (window_expression_contains_bounds(this->expression)) {
                 // TODO: for now just ROWS bounds works (not RANGE)
-                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 
+                    this->preceding_value >= 0 ? this->preceding_value + 1: partitioned_table_view.num_rows(), 
+                    this->following_value >= 0 ? this->following_value : partitioned_table_view.num_rows(), 
+                    1, window_aggregation);
             } else {
                 if (this->type_aggs_as_str[pos] == "LEAD") {
                     windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 0, col_view_to_agg.size(), 1, window_aggregation);
@@ -177,19 +177,12 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
 
         std::vector<std::string> input_names = input->names();
         
-        // fill all the Kind aggregations
-        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
-            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
-            this->aggs_wind_func.push_back(aggr_kind_i);
-        }
-
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
-        int agg_param_count = 0;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
             cudf::column_view col_view_to_agg = input_table_cudf_view.column(column_indices_to_agg[col_i]);
 
             // calling main window function
-            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_table_cudf_view, col_view_to_agg, col_i, agg_param_count);
+            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_table_cudf_view, col_view_to_agg, col_i);
             new_wf_cols.push_back(std::move(windowed_col));
         }
 

@@ -235,6 +235,56 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     fileSchemaType,
                 )
 
+            if fileSchemaType != DataType.ORC:
+                queryId = "TEST_10"
+                query = """select l.l_suppkey, l.l_linestatus,
+                            min(l.l_commitdate), max(l.l_commitdate),
+                            max(l.l_orderkey), count(l.l_orderkey)
+                        FROM
+                        (
+                            SELECT l_suppkey, l_linestatus, l_shipmode,
+                                l_orderkey, l_commitdate
+                            from lineitem
+                            WHERE l_linenumber = 6
+                            and l_commitdate < DATE '1993-01-01'
+                        ) AS l
+                        RIGHT OUTER JOIN orders AS o
+                        ON l.l_orderkey + 100 = o.o_orderkey
+                        GROUP BY l.l_suppkey, l.l_linestatus
+                        order by l.l_suppkey, l.l_linestatus
+                        limit 10000"""
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_11"
+            query = """select l.l_suppkey, l.l_linestatus, max(l.l_shipmode),
+                        max(l.l_orderkey), count(l.l_orderkey)
+                    FROM lineitem AS l RIGHT OUTER JOIN orders AS o
+                    ON l.l_orderkey + 100 = o.o_orderkey
+                    GROUP BY l.l_suppkey, l.l_linestatus"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break

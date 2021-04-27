@@ -2,7 +2,9 @@
 
 
 ## New Features
+- #1471 Unbounded partitioned windows 
 - #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
+- #1505 Support for right outer join
 
 
 ## Improvements
@@ -11,7 +13,7 @@
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
-
+- #1502 Fix IS NOT DISTINCT FROM with joins
 
 # BlazingSQL 0.19.0 (April 21, 2021)
 

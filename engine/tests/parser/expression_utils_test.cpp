@@ -111,13 +111,21 @@ TEST_F(ExpressionUtilsTest, gettings_bounds_from_window_expression) {
 	EXPECT_EQ(preceding_value, expected_preceding);
 	EXPECT_EQ(following_value, expected_following);
 	
-	int expected_preceding2 = 1;
-	int expected_following2 = 2;
-	std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING)]";
-	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
-
-	EXPECT_EQ(preceding_value, expected_preceding2);
-	EXPECT_EQ(following_value, expected_following2);	
+	std::vector<std::string> preceding_options ={"UNBOUNDED PRECEDING", "4 PRECEDING", "CURRENT ROW"};
+	std::vector<std::string> following_options ={"UNBOUNDED FOLLOWING", "4 FOLLOWING", "CURRENT ROW"};
+	std::vector<int> expected = {-1, 4, 0};
+	for (int i = 0; i < preceding_options.size(); ++i) {
+		for (int j = 0; j < following_options.size(); ++j) {
+			if (!(preceding_options[i] == "CURRENT ROW" && following_options[j] == "CURRENT ROW")){
+				int expected_preceding2 = expected[i];
+				int expected_following2 = expected[j];
+				std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN " +  preceding_options[i] + " AND " + following_options[j] + ")]";
+				std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
+				EXPECT_EQ(preceding_value, expected_preceding2);
+				EXPECT_EQ(following_value, expected_following2);
+			}
+		}
+	}		
 }
 
 TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) {
@@ -127,7 +135,8 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) 
 	std::string query_part = "LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)], max_keys=[MAX($3) OVER (PARTITION BY $2 ORDER BY $1)])";
 	std::tie(column_indices_to_agg, type_aggs_as_str, agg_param_values) = get_cols_to_apply_window_and_cols_to_apply_agg(query_part);
 
-	std::vector<int> column_indices_expect = {0, 3}, agg_param_expect;
+	std::vector<int> column_indices_expect = {0, 3};
+	std::vector<int> agg_param_expect = {0, 0};
 	std::vector<std::string> type_aggs_expect = {"MIN", "MAX"};
 
 	EXPECT_EQ(column_indices_to_agg.size(), column_indices_expect.size());
@@ -137,6 +146,7 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) 
 	for (int i = 0; i < column_indices_to_agg.size(); ++i) {
 		EXPECT_EQ(column_indices_to_agg[i], column_indices_expect[i]);
 		EXPECT_EQ(type_aggs_as_str[i], type_aggs_expect[i]);
+		EXPECT_EQ(agg_param_values[i], agg_param_expect[i]);
 	}
 }
 
@@ -319,4 +329,129 @@ TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
 	std::string expected_str = "CONCAT(CONCAT($0, ' , '), $2)";
 
 	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__empty)
+{
+	std::string expression = "";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__not_contains)
+{
+	std::string expression = "CONCAT($0, ' , ', $2)";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__bad_expression)
+{
+	std::string expression = "IS NOT DISTINCT FROM($1, $3)";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+
+	EXPECT_EQ(out_expression, expression);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__contains)
+{
+	std::string expression = "IS_NOT_DISTINCT_FROM($1, $3)";
+	std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+	std::string expected_str = "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))";
+
+	EXPECT_EQ(out_expression, expected_str);
+}
+
+TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__wrong_expression)
+{
+	try {
+		std::string expression = "IS_NOT_DISTINCT_FROM($1, $3, $5)";
+		std::string out_expression = replace_is_not_distinct_as_calcite(expression);
+		FAIL();
+	} catch(const std::exception& e) {
+		SUCCEED();
+	}
+}
+
+// update_join_filter: update_join_and_filter_expressions_from_is_not_distinct_expr
+TEST_F(ExpressionUtilsTest, update_join_filter__empty)
+{
+	std::string condition = "";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "");
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__not_contains)
+{
+	std::string condition = "=($0, $3)";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+
+	EXPECT_EQ(join_expres, condition);
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__not_contains_and)
+{
+	std::string condition = "=($0, $3), IS_NOT_DISTINCT_FROM($1, $3)";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+
+	EXPECT_EQ(join_expres, condition);
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__not_contains_is_not_distinct)
+{
+	std::string condition = " AND(=($0, $3), $3 < 1254)";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition);
+
+	EXPECT_EQ(join_expres, condition);
+	EXPECT_EQ(filter_expres, "");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__right_express)
+{
+	std::string condition = "AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $3)");
+	EXPECT_EQ(filter_expres, "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__multiple_is_not_distinct_from_express)
+{
+	std::string condition = "AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3), IS_NOT_DISTINCT_FROM($2, $5))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $3)");
+	EXPECT_EQ(filter_expres, "AND(OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3))), OR(AND(IS NULL($2), IS NULL($5)), IS TRUE(=($2 , $5))))");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__multiple_conditions)
+{
+	std::string condition = "AND(=($0, $4), >($3, $6), IS NOT IS_NOT_DISTINCT_FROM FROM($2, $5))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $4)");
+	EXPECT_EQ(filter_expres, "AND(>($3, $6), OR(AND(IS NULL($2), IS NULL($5)), IS TRUE(=($2 , $5))))");
+}
+
+TEST_F(ExpressionUtilsTest, update_join_filter__multiple_conditions_unordered)
+{
+	std::string condition = "AND(>($3, $6), =($0, $4), IS_NOT_DISTINCT_FROM($2, $5))";
+	std::string join_expres, filter_expres;
+	std::tie(join_expres, filter_expres) = update_join_and_filter_expressions_from_is_not_distinct_expr(condition); 
+
+	EXPECT_EQ(join_expres, "=($0, $4)");
+	EXPECT_EQ(filter_expres, "AND(>($3, $6), OR(AND(IS NULL($2), IS NULL($5)), IS TRUE(=($2 , $5))))");
 }
