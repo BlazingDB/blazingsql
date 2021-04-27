@@ -257,6 +257,42 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = 'TEST_13'
+            query = """select COUNT(DISTINCT(n.n_nationkey)),
+                    AVG(r.r_regionkey) from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = 'TEST_14'
+            query = """select r.r_regionkey, n.n_nationkey,
+                    COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
+                    SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
+                    right outer join region as r on n.n_nationkey = r.r_regionkey
+                    GROUP BY r.r_regionkey, n.n_nationkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
