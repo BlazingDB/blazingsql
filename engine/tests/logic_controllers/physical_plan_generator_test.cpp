@@ -35,7 +35,7 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_one_join)
 	}
 	)raw";
 
-	Context context(0, {}, {}, logicalPlan, {});
+	Context context(0, {}, {}, logicalPlan, {}, "");
 	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
 
 	std::istringstream input(logicalPlan);
@@ -110,7 +110,7 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_two_join)
 	}
 	)raw";
 
-	Context context(0, {}, {}, logicalPlan, {});
+	Context context(0, {}, {}, logicalPlan, {}, "");
 	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
 
 	std::istringstream input(logicalPlan);
@@ -167,8 +167,8 @@ std::shared_ptr<Context> make_single_context(std::string logicalPlan) {
 	std::vector<Node> contextNodes;
 	contextNodes.push_back(master);
 	std::map<std::string, std::string> config_options;
-
-	std::shared_ptr<Context> context = std::make_shared<Context>(0, contextNodes, contextNodes[0], logicalPlan, config_options);
+	std::string current_timestamp;
+	std::shared_ptr<Context> context = std::make_shared<Context>(0, contextNodes, contextNodes[0], logicalPlan, config_options, current_timestamp);
 	return context;
 }
 
@@ -549,7 +549,7 @@ TEST_F(PhysicalPlanGeneratorTest, wf_multiple_equal_over_clauses_distributed)
 	}
 	)raw";
 
-	Context context(0, {}, {}, logicalPlan, {});
+	Context context(0, {}, {}, logicalPlan, {}, "");
 	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
 
 	std::istringstream input(logicalPlan);
@@ -726,7 +726,7 @@ TEST_F(PhysicalPlanGeneratorTest, wf_bounding_rows_distributed)
 	}
 	)raw";
 
-	Context context(0, {}, {}, logicalPlan, {});
+	Context context(0, {}, {}, logicalPlan, {}, "");
 	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
 
 	std::istringstream input(logicalPlan);

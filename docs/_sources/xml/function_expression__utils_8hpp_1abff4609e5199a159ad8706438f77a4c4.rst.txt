@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1abff4609e5199a159ad8706438f77a4c4:
 
-Function is_lag_or_lead_aggregation
-===================================
+Function is_lag_or_lead_aggregation(std::string)
+================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

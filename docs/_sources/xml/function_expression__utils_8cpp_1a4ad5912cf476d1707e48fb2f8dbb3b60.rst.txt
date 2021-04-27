@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a4ad5912cf476d1707e48fb2f8dbb3b60:
+
+Function replace_count_expr_with_right_index(std::string, size_t)
+=================================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: replace_count_expr_with_right_index(std::string, size_t)

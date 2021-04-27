@@ -75,13 +75,15 @@ Functions
 
 - :ref:`exhale_function_engine_8cpp_1a577dc37868768e8bd68ce62cf3042fa5`
 
-- :ref:`exhale_function_engine_8cpp_1aea74327f086d9d7e9a518185228197ef`
+- :ref:`exhale_function_engine_8cpp_1ac2b1eeed6311019103cc8f10f8694db3`
 
 - :ref:`exhale_function_engine_8cpp_1a9b95521429a8374e7644015612374bf2`
 
 - :ref:`exhale_function_engine_8cpp_1a4a098e96e7beb32b75661563cf0c4b65`
 
 - :ref:`exhale_function_engine_8cpp_1aab327dfacfc0728976ed61e8eeae2164`
+
+- :ref:`exhale_function_engine_8cpp_1a5a5b8584b329f37e496ab364caf10f1b`
 
 - :ref:`exhale_function_engine_8cpp_1a21265e777955ba2a24cca78d43b41ce5`
 
