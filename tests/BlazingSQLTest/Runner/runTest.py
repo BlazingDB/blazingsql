@@ -296,6 +296,7 @@ def get_codTest(test_name):
         "Predicates With Nulls": "PREDWNULLS",
         "Round": "ROUND",
         "Replace": "REPLACE",
+        "Right outer join": "ROUTJOIN",
         "Smiles Test": "SMILES",
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",

@@ -1255,6 +1255,188 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # testing different types of windows
+            queryId = "TEST_56"
+            query = """select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 5 PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 5 PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark. 
+                        order by o_orderkey nulls last
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,                
+            )
+
+            queryId = "TEST_57"
+            query = """select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND 5 FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND 5 FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark. 
+                        order by o_orderkey nulls last
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,                
+            )
+
+            queryId = "TEST_58"
+            query = """select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN CURRENT ROW
+                                AND UNBOUNDED FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN CURRENT ROW
+                                AND UNBOUNDED FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark. 
+                        order by o_orderkey nulls last
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_59"
+            query = """select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark. 
+                        order by o_orderkey nulls last
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,                
+            )
+            
+
+            queryId = "TEST_60"
+            query = """select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 10 PRECEDING
+                                AND CURRENT ROW
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 10 PRECEDING
+                                AND CURRENT ROW
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark. 
+                        order by o_orderkey nulls last
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

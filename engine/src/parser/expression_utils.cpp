@@ -769,19 +769,35 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 
 	// getting the first limit value
 	std::string between_expr = "BETWEEN ";
-	std::string preceding_expr = " PRECEDING";
+	std::string and_expr = "AND ";
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
-	size_t end_pos = over_clause.find(preceding_expr);
-	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	preceding_value = std::stoi(first_limit);
+	size_t end_pos = over_clause.find(and_expr);
+
+	std::string preceding_clause = over_clause.substr(start_pos, end_pos - start_pos);
+	std::string following_clause = over_clause.substr(end_pos + and_expr.size());
+
+	if (preceding_clause.find("CURRENT ROW") != std::string::npos){
+		preceding_value = 0;
+	} else if (preceding_clause.find("UNBOUNDED") != std::string::npos){
+		preceding_value = -1;
+	} else {
+		std::string preceding_expr = " PRECEDING";
+		end_pos = preceding_clause.find(preceding_expr);
+		std::string str_value = preceding_clause.substr(0, end_pos);
+		preceding_value = std::stoi(str_value);
+	}
 
 	// getting the second limit value
-	std::string and_expr = "AND ";
-	std::string following_expr = " FOLLOWING";
-	start_pos = over_clause.find(and_expr) + and_expr.size();
-	end_pos = over_clause.find(following_expr);
-	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	following_value = std::stoi(second_limit);
+	if (following_clause.find("CURRENT ROW") != std::string::npos){
+		following_value = 0;
+	} else if (following_clause.find("UNBOUNDED") != std::string::npos){
+		following_value = -1;
+	} else {
+		std::string following_expr = " FOLLOWING";
+		end_pos = following_clause.find(following_expr);
+		std::string str_value = following_clause.substr(0, end_pos);
+		following_value = std::stoi(str_value);
+	}
 
 	return std::make_tuple(preceding_value, following_value);
 }
@@ -844,48 +860,57 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 // input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             max_keys=[MAX(4) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)])
-// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [3] >
+// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [0, 0, 3] >
 std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<std::string> aggregations;
-	std::vector<int> agg_param_values;
+	std::vector<int> agg_param_values; // will be set to 0 when not actually used
 
 	std::string query_part = get_query_part(logical_plan);
 	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
 
 	// we want all expressions that contains an OVER clause
 	for (size_t i = 0; i < project_expressions.size(); ++i) {
-		if (project_expressions[i].find("OVER") != std::string::npos) {
-			std::string express_i = project_expressions[i];
-			size_t start_pos = express_i.find("[") + 1;
-			size_t end_pos = express_i.find("OVER");
-			express_i = express_i.substr(start_pos, end_pos - start_pos);
-			std::string express_i_wo_trim = StringUtil::trim(express_i);
-			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
-			if (split_parts[0] == "ROW_NUMBER()") {
-				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
-				column_index.push_back(0);
-			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
-				// we need to get the constant values
-				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
-				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
-				aggregations.push_back(split_parts[0]);
-				column_index.push_back(std::stoi(inside_parts[0]));
-				agg_param_values.push_back(std::stoi(inside_parts[1]));
-			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
-				aggregations.push_back("COUNT");
-				aggregations.push_back("$SUM0");
-				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
-				column_index.push_back(std::stoi(indice));
-				column_index.push_back(std::stoi(indice));
-			} else {
+ 		if (project_expressions[i].find("OVER") != std::string::npos) {
+ 			std::string express_i = project_expressions[i];
+ 			size_t start_pos = express_i.find("[") + 1;
+ 			size_t end_pos = express_i.find("OVER");
+ 			express_i = express_i.substr(start_pos, end_pos - start_pos);
+ 			std::string express_i_wo_trim = StringUtil::trim(express_i);
+ 			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
+ 			if (split_parts[0] == "ROW_NUMBER()") {
+ 				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
+ 				column_index.push_back(0);
+				agg_param_values.push_back(0);
+ 			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
+ 				// we need to get the constant values
+ 				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
+ 				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
+ 				aggregations.push_back(split_parts[0]);
+ 				column_index.push_back(std::stoi(inside_parts[0]));
+ 				agg_param_values.push_back(std::stoi(inside_parts[1]));
+ 			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
+ 				aggregations.push_back("COUNT");
+ 				aggregations.push_back("$SUM0");
+ 				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
+ 				column_index.push_back(std::stoi(indice));
+ 				column_index.push_back(std::stoi(indice));
+				agg_param_values.push_back(0);
+				agg_param_values.push_back(0);
+			} else if (is_last_value_window(project_expressions[i])) {
 				aggregations.push_back(split_parts[0]);
 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
 				column_index.push_back(std::stoi(col_index));
-			}
-		}
-	}
+				agg_param_values.push_back(-1);			
+ 			} else {
+ 				aggregations.push_back(split_parts[0]);
+ 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
+ 				column_index.push_back(std::stoi(col_index));
+				agg_param_values.push_back(0);
+ 			}
+ 		}
+ 	}
 
 	return std::make_tuple(column_index, aggregations, agg_param_values);
 }
