@@ -117,7 +117,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
   } else if (fileType == ral::io::DataType::SQLITE) {
-#ifdef SQLITE_SUPPORT
+#ifdef SNOWFLAKE_SUPPORT
     parser = std::make_shared<ral::io::snowflake_parser>();
     auto sql = ral::io::getSqlInfo(args_map);
     provider = std::make_shared<ral::io::snowflake_data_provider>(

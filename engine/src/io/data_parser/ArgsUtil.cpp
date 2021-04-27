@@ -36,14 +36,19 @@ DataType inferDataType(std::string file_format_hint) {
 	return DataType::UNDEFINED;
 }
 
-DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
-	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
-		data_type_hint == DataType::ORC || data_type_hint == DataType::MYSQL ||
-    data_type_hint == DataType::POSTGRESQL || data_type_hint == DataType::SQLITE) {
-		return data_type_hint;
-	}
+DataType inferFileType(std::vector<std::string> files,
+                       DataType data_type_hint,
+                       bool ignore_missing_paths) {
+  if (data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV ||
+      data_type_hint == DataType::JSON || data_type_hint == DataType::ORC ||
+      data_type_hint == DataType::MYSQL ||
+      data_type_hint == DataType::POSTGRESQL ||
+      data_type_hint == DataType::SQLITE ||
+      data_type_hint == DataType::SNOWFLAKE) {
+    return data_type_hint;
+  }
 
-	std::vector<Uri> uris;
+  std::vector<Uri> uris;
 	std::transform(
 		files.begin(), files.end(), std::back_inserter(uris), [](std::string uri) -> Uri { return Uri(uri); });
 	ral::io::uri_data_provider udp(uris, ignore_missing_paths);

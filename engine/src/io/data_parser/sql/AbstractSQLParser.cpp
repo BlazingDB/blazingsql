@@ -25,6 +25,10 @@
 #include <libpq-fe.h>
 #endif
 
+#ifdef SNOWFLAKE_SUPPORT
+#include <sql.h>
+#endif
+
 namespace ral {
 namespace io {
 
@@ -68,6 +72,15 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 #else
     throw std::runtime_error(
       "Unsupported Sqlite3 parser for this BlazingSQL version");
+#endif
+  }
+
+  if (type() == DataType::SQLITE) {
+#if defined(SNOWFLAKE_SUPPORT)
+    src = handle.sql_handle.snowflake_statement.get();
+#else
+    throw std::runtime_error(
+      "Unsupported SnowFlake parser for this BlazingSQL version");
 #endif
   }
 

@@ -61,6 +61,7 @@ private:
   SQLHDBC sqlHdbc;
   std::size_t row_count;
   std::size_t batch_position;
+  bool completed;
 };
 
 } /* namespace io */

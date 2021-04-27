@@ -9,6 +9,47 @@
 namespace ral {
 namespace io {
 
+static inline void
+ReadRowCount(SQLHDBC sqlHdbc, const sql_info & sql, std::size_t & row_count) {
+  SQLHSTMT sqlHStmt;
+  SQLRETURN sqlReturn = SQLAllocHandle(SQL_HANDLE_STMT, sqlHdbc, &sqlHStmt);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error(
+        "SnowFlake: allocation handle statement for row counting");
+  }
+
+  const std::string query = "select count(*) from " + sql.table;
+  SQLCHAR * statementText =
+      reinterpret_cast<SQLCHAR *>(const_cast<char *>(query.c_str()));
+  sqlReturn = SQLExecDirect(sqlHStmt, statementText, SQL_NTS);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error("SnowFlake: exec direct for row counting");
+  }
+
+  if (SQL_SUCCEEDED(sqlReturn = SQLFetch(sqlHStmt))) {
+    SQLLEN indicator;
+    sqlReturn = SQLGetData(sqlHStmt,
+                           1,
+                           SQL_C_LONG,
+                           static_cast<SQLPOINTER>(&row_count),
+                           static_cast<SQLLEN>(sizeof(row_count)),
+                           &indicator);
+    if (SQL_SUCCEEDED(sqlReturn)) {
+      if (indicator == SQL_NULL_DATA) {
+        throw std::runtime_error(
+            "SnowFlake: null returned instead of row count");
+      }
+    }
+  } else {
+    throw std::runtime_error("SnowFlake: reading result for row counting");
+  }
+
+  sqlReturn = SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error("SnowFlake: free hdbc");
+  }
+}
+
 static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
                                      const sql_info & sql,
                                      std::vector<std::string> & column_names,
@@ -18,7 +59,8 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
   SQLHSTMT sqlHStmt;
   sqlReturn = SQLAllocHandle(SQL_HANDLE_STMT, sqlHdbc, &sqlHStmt);
   if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: allocation handle statement");
+    throw std::runtime_error(
+        "SnowFlake: allocation handle statement for information schema");
   }
 
   std::ostringstream oss;
@@ -58,7 +100,7 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
     column_names.emplace_back(buffer);
 
     sqlReturn = SQLGetData(sqlHStmt,
-                           1,
+                           2,
                            SQL_C_CHAR,
                            static_cast<SQLPOINTER>(buffer),
                            static_cast<SQLLEN>(sizeof(buffer)),
@@ -80,6 +122,13 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
 
     counter++;
   }
+
+  sqlReturn = SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error("SnowFlake: free hdbc");
+  }
+
+  ReadRowCount(sqlHdbc, sql, row_count);
 }
 
 snowflake_data_provider::snowflake_data_provider(
@@ -87,7 +136,8 @@ snowflake_data_provider::snowflake_data_provider(
     std::size_t total_number_of_nodes,
     std::size_t self_node_idx)
     : abstractsql_data_provider{sql, total_number_of_nodes, self_node_idx},
-      sqlHEnv{nullptr}, sqlHdbc{nullptr}, row_count{0}, batch_position{0} {
+      sqlHEnv{nullptr}, sqlHdbc{nullptr}, row_count{0},
+      batch_position{0}, completed{false} {
   SQLRETURN sqlReturn = SQL_ERROR;
   sqlReturn = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &sqlHEnv);
   if (sqlReturn != SQL_SUCCESS) {
@@ -148,12 +198,46 @@ std::shared_ptr<data_provider> snowflake_data_provider::clone() {
   return nullptr;
 }
 
-bool snowflake_data_provider::has_next() { return false; }
+bool snowflake_data_provider::has_next() { return !completed; }
 
-void snowflake_data_provider::reset() {}
+void snowflake_data_provider::reset() { batch_position = 0; }
 
-data_handle snowflake_data_provider::get_next(bool) {
+data_handle snowflake_data_provider::get_next(bool open_file) {
   data_handle handle;
+
+  handle.sql_handle.table = sql.table;
+  handle.sql_handle.column_names = column_names;
+  handle.sql_handle.column_types = column_types;
+
+  if (open_file == false) { return handle; }
+
+  std::ostringstream oss;
+  oss << build_select_query(batch_position);
+  const std::string query = oss.str();
+  batch_position++;
+
+  SQLHSTMT sqlHStmt;
+  SQLRETURN sqlReturn = SQLAllocHandle(SQL_HANDLE_STMT, sqlHdbc, &sqlHStmt);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error(
+        "SnowFlake: allocation handle statement for information schema");
+  }
+  SQLCHAR * statementText =
+      reinterpret_cast<SQLCHAR *>(const_cast<char *>(query.c_str()));
+  sqlReturn = SQLExecDirect(sqlHStmt, statementText, SQL_NTS);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error("SnowFlake: exec direct getting next batch");
+  }
+
+  auto sqlHStmt_deleter = [](SQLHSTMT sqlHStmt) {
+    if (SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt) != SQL_SUCCESS) {
+      throw std::runtime_error("SnowFlake: free statement for get next batch");
+    }
+  };
+  handle.sql_handle.snowflake_statement.reset(sqlHStmt, sqlHStmt_deleter);
+  //handle.sql_handle.row_count = PQntuples(result);
+  handle.uri = Uri("snowflake", "", sql.schema + "/" + sql.table, "", "");
+
   return handle;
 }
 
