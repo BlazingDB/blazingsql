@@ -13,6 +13,7 @@ using namespace ral::frame;
 bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView> & tables);
 bool checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<BlazingTable>> & tables);
 
+std::unique_ptr<BlazingTable> concatTables(std::vector<std::unique_ptr<BlazingTable>> tables);
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables);
 
 std::unique_ptr<BlazingTable> getLimitedRows(const BlazingTableView& table, cudf::size_type num_rows, bool front=true);

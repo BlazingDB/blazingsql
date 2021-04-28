@@ -787,11 +787,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    // Let's clean all the expressions that contains Window functions (if exists)
-    // as they should be updated with new indices
-    std::vector<std::string> new_expressions = clean_window_function_expressions(expressions, table.num_columns());
-
-    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(new_expressions.size());
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(expressions.size());
 
     std::vector<bool> column_used(table.num_columns(), false);
     std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
@@ -800,8 +796,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
 
     function_evaluator_transformer evaluator{table};
-    for(size_t i = 0; i < new_expressions.size(); i++){
-        std::string expression = replace_calcite_regex(new_expressions[i]);
+    for(size_t i = 0; i < expressions.size(); i++){
+        std::string expression = replace_calcite_regex(expressions[i]);
         expression = expand_if_logical_op(expression);
 
         parser::parse_tree tree;
@@ -904,9 +900,9 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         out_columns.clear();
         computed_columns.clear();
 
-        size_t const half_size = new_expressions.size() / 2;
-        std::vector<std::string> split_lo(new_expressions.begin(), new_expressions.begin() + half_size);
-        std::vector<std::string> split_hi(new_expressions.begin() + half_size, new_expressions.end());
+        size_t const half_size = expressions.size() / 2;
+        std::vector<std::string> split_lo(expressions.begin(), expressions.begin() + half_size);
+        std::vector<std::string> split_hi(expressions.begin() + half_size, expressions.end());
         auto out_cols_lo = evaluate_expressions(table, split_lo);
         auto out_cols_hi = evaluate_expressions(table, split_hi);
 
@@ -933,10 +929,36 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     return std::move(out_columns);
 }
 
+std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context) {
+    // We want `CURRENT_TIME` holds the same value as `CURRENT_TIMESTAMP`
+	if (expression.find("CURRENT_TIME") != expression.npos) {
+		expression = StringUtil::replace(expression, "CURRENT_TIME", "CURRENT_TIMESTAMP");
+	}
+
+	std::size_t date_pos = expression.find("CURRENT_DATE");
+	std::size_t timestamp_pos = expression.find("CURRENT_TIMESTAMP");
+
+	if (date_pos == expression.npos && timestamp_pos == expression.npos) {
+		return expression;
+	}
+
+    // CURRENT_TIMESTAMP will return a `ms` format
+	std::string	timestamp_str = context->getCurrentTimestamp().substr(0, 23);
+    std::string str_to_replace = "CURRENT_TIMESTAMP";
+
+	// In case CURRENT_DATE we want only the date value
+	if (date_pos != expression.npos) {
+		str_to_replace = "CURRENT_DATE";
+        timestamp_str = timestamp_str.substr(0, 10);
+	}
+
+	return StringUtil::replace(expression, str_to_replace, timestamp_str);
+}
+
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::Context * /*context*/) {
+  blazingdb::manager::Context * context) {
 
     std::string combined_expression = get_query_part(query_part);
 
@@ -950,10 +972,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
         expression = fill_minus_op_with_zero(expression);
         expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+        expression = get_current_date_or_timestamp(expression, context);
 
         expressions[i] = expression;
         out_column_names[i] = name;
     }
+
+    // Let's clean all the expressions that contains Window functions (if exists)
+    // as they should be updated with new indices
+    expressions = clean_window_function_expressions(expressions, blazing_table_in->num_columns());
 
     return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(blazing_table_in->view(), expressions), out_column_names);
 }

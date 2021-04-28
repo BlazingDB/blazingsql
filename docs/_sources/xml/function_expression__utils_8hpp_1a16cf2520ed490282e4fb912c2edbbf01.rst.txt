@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01:
 
-Function is_limit
-=================
+Function is_limit(std::string)
+==============================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

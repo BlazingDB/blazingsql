@@ -136,6 +136,48 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_06"
+            query = """select ROUND(orders.o_totalprice, 2),
+                        ROUND(orders.o_totalprice, -2)
+                    from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_07"
+            query = """select customer.c_custkey, orders.o_orderkey,
+                    ROUND(orders.o_custkey,0)
+                    from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

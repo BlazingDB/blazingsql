@@ -2,3 +2,5 @@
 
 SQL API Reference
 =================
+
+*In preparation.*

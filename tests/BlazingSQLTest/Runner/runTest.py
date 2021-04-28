@@ -296,6 +296,7 @@ def get_codTest(test_name):
         "Predicates With Nulls": "PREDWNULLS",
         "Round": "ROUND",
         "Replace": "REPLACE",
+        "Right outer join": "ROUTJOIN",
         "Smiles Test": "SMILES",
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",
@@ -372,6 +373,7 @@ def print_query_results(
     load_time,
     engine_time,
     total_time,
+    comparing="true"
 ):
     if print_result:
         print("#BLZ:")
@@ -399,6 +401,10 @@ def print_query_results(
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
+
+    # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+    if comparing == "false":
+        compareResults = False
 
     if compareResults:
         columnNamesComparison = compare_column_names(pdf1, pdf2)
@@ -1397,6 +1403,8 @@ def run_query(
 
     algebra = kwargs.get("algebra", "")
 
+    comparing = kwargs.get("comparing", "false")
+
     nRals = Settings.data["RunSettings"]["nRals"]
 
     print_result = kwargs.get("print_result")
@@ -1555,6 +1563,7 @@ def run_query(
                             load_time,
                             engine_time,
                             total_time,
+                            comparing
                         )
 
                 else:
@@ -1617,6 +1626,7 @@ def run_query(
                             load_time,
                             engine_time,
                             total_time,
+                            comparing
                         )
             else:
                 print_query_results2(
@@ -1668,6 +1678,7 @@ def run_query(
                         load_time,
                         engine_time,
                         total_time,
+                        comparing
                     )
 
                 else:
@@ -1707,6 +1718,7 @@ def run_query(
                         load_time,
                         engine_time,
                         total_time,
+                        comparing
                     )
             else:
                 print_query_results2(

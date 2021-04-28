@@ -1,0 +1,13 @@
+.. _exhale_function_CalciteInterpreter_8cpp_1a6873292cd0f9ef043baef8ebd8c7b50f:
+
+Function get_physical_plan(std::string, Context&)
+=================================================
+
+- Defined in :ref:`file_engine_src_CalciteInterpreter.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_physical_plan(std::string, Context&)

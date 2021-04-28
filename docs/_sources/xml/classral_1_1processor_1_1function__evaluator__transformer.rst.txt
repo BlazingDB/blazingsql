@@ -12,7 +12,7 @@ Inheritance Relationships
 Base Type
 *********
 
-- ``public parser::node_transformer``
+- ``public node_transformer``
 
 
 Class Documentation
