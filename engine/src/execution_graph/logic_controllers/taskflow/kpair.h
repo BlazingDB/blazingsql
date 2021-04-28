@@ -27,8 +27,6 @@ struct cache_settings {
 	bool is_array_access = false; // is it a cache designated for array access	
 };
 
-using kernel_pair = std::pair<kernel *, std::string>;
-
 /**
 	@brief A temporary object to represent a pair of two kernels linked into the execution graph.
 */

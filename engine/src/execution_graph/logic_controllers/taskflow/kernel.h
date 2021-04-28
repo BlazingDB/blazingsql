@@ -26,7 +26,6 @@ namespace ral {
 namespace cache {
 class kernel;
 class graph;
-using kernel_pair = std::pair<kernel *, std::string>;
 
 /**
  * @brief This interface represents a computation unit in the execution graph.
@@ -71,8 +70,6 @@ public:
 	 */
 	virtual kstatus run() = 0;
 
-
-	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
 
 	/**
 	 * @brief Returns the kernel identifier.

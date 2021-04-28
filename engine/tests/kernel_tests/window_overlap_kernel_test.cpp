@@ -11,6 +11,9 @@
 #include "cudf_test/type_lists.hpp"	 // cudf::test::NumericTypes
 #include <cudf_test/table_utilities.hpp>
 
+#include <cudf/aggregation.hpp>
+#include <cudf/rolling.hpp>
+
 #include "execution_graph/Context.h"
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "execution_graph/logic_controllers/taskflow/graph.h"
@@ -1784,7 +1787,26 @@ TEST_F(WindowOverlapTest, BigWindowSingleNode) {
     }
 }
 
-TEST_F(WindowOverlapTest, BasicSingleNode2) {
+
+class WindowOverlapTestParam :
+   public WindowOverlapTest,
+   public ::testing::WithParamInterface<std::tuple<int, int, std::string>> {
+};
+
+INSTANTIATE_TEST_SUITE_P(
+   TimeoutTests,
+   WindowOverlapTestParam,
+   ::testing::Values(
+	   std::make_tuple(50, 10, "ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING"),
+	   std::make_tuple(0, 0, "ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW"),
+	   std::make_tuple(0, 0, ""),
+	   std::make_tuple(0, 10, "ROWS BETWEEN UNBOUNDED PRECEDING AND 10 FOLLOWING"),
+	   std::make_tuple(10, 0, "ROWS BETWEEN 10 PRECEDING AND UNBOUNDED FOLLOWING"),
+	   std::make_tuple(0, 10, "ROWS BETWEEN CURRENT ROW AND 10 FOLLOWING"),
+	   std::make_tuple(10, 0, "ROWS BETWEEN 10 PRECEDING AND CURRENT ROW")
+   ));
+
+TEST_P(WindowOverlapTestParam, BasicSingleNodeParam) {
 
     size_t size = 100000;
 
@@ -1800,8 +1822,11 @@ TEST_F(WindowOverlapTest, BasicSingleNode2) {
 
     CudfTableView full_data_cudf_view ({col0, col1, col2});
 
-    int preceding_value = 50;
-    int following_value = 10;
+	int preceding_value = std::get<0>(GetParam());
+	int following_value = std::get<1>(GetParam());
+	std::string frame_str = std::get<2>(GetParam());
+	std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 " + frame_str + ")])";
+
     std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
 
     // define how its broken up into batches and overlaps
@@ -1822,8 +1847,6 @@ TEST_F(WindowOverlapTest, BasicSingleNode2) {
 
     auto & communicationData = ral::communication::CommunicationData::getInstance();
     communicationData.initialize("0", "/tmp");
-
-    std::string project_plan = "LogicalProject(min_val=[MIN($0) OVER (ORDER BY $1 ROWS BETWEEN 50 PRECEDING AND 10 FOLLOWING)])";
 
     std::shared_ptr<kernel> overlap_generator_kernel = std::make_shared<ral::batch::OverlapGeneratorKernel>(1, project_plan, context, graph);
 	std::shared_ptr<kernel> overlap_accumulator_kernel = std::make_shared<ral::batch::OverlapAccumulatorKernel>(1, project_plan, context, graph);
@@ -1886,5 +1909,153 @@ TEST_F(WindowOverlapTest, BasicSingleNode2) {
     for (std::size_t i = 0; i < last_batches_pulled.size(); i++) {
         auto table_out = last_batches_pulled[i]->decache();
         cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
+    }
+}
+
+
+std::unique_ptr<BlazingTable> make_expected_window_function_output(CudfTableView full_data_cudf_view,
+																	std::vector<std::string> names,
+																	int preceding_value,
+																	int following_value,
+																	std::vector<int> agg_col_indices,
+																	std::vector<std::unique_ptr<cudf::aggregation>> aggregations){
+
+	std::vector<std::unique_ptr<CudfColumn>> agg_results;
+	for (int col_ind = 0; col_ind < agg_col_indices.size(); col_ind++){
+		std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(full_data_cudf_view.column(col_ind), 
+			preceding_value + 1, following_value, 1, std::move(aggregations[col_ind]));
+		agg_results.push_back(std::move(windowed_col));
+	}
+	std::unique_ptr<cudf::table> result_table = std::make_unique<cudf::table>(std::move(agg_results));
+	return std::make_unique<BlazingTable>(std::move(result_table), names);
+}
+
+
+
+TEST_F(UnboundedWindowNoPartition, BasicSingleNode) {
+	size_t size = 100000;
+
+    // Define full dataset
+    auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
+    auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+    auto iter2 = cudf::detail::make_counting_transform_iterator(1000000, [](auto i) { return int32_t(-i*3);});
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto /*i*/) { return true; });
+
+    cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+    cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+
+    CudfTableView full_data_cudf_view ({col0, col1, col2});
+
+	int preceding_value = 0;
+	int following_value = 0;
+	std::string frame_str = "ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW";
+	std::string project_plan = "LogicalProject(min_val1=[MIN($1) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "max_val1=[MAX($1) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "count_val1=[COUNT($1) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "sum_val1=[SUM($1) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "min_val2=[MIN($2) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "max_val2=[MAX($2) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "count_val2=[COUNT($2) OVER (ORDER BY $0 " + frame_str + ")],";
+	project_plan = project_plan + "sum_val2=[SUM($2) OVER (ORDER BY $0 " + frame_str + ")])";
+
+    std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
+
+    // define how its broken up into batches and overlaps
+    std::vector<std::string> names({"A", "B", "C"});
+    
+    std::vector<std::unique_ptr<BlazingTable>> intput_batches = make_expected_accumulator_output(full_data_cudf_view,
+                                                                                               preceding_value,
+                                                                                               following_value,
+                                                                                               batch_sizes, names);
+
+	// make the expected output
+	std::vector<int> agg_col_indices = {1, 1, 1, 1, 2, 2, 2, 2};
+	std::vector<std::unique_ptr<cudf::aggregation>> aggregations;
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::MIN, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::MAX, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::COUNT_VALID, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::SUM, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::MIN, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::MAX, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::COUNT_VALID, 0));
+	aggregations.push_back(ral::operators::makeCudfAggregation(AggregateKind::SUM, 0));
+
+    std::unique_ptr<BlazingTable> full_expected_out = make_expected_window_function_output(full_data_cudf_view,
+																							names,
+																							preceding_value,
+																							following_value,
+																							agg_col_indices,
+																							std::move(aggregations));
+	std::vector<cudf::size_type> split_indexes = batch_sizes;
+	std::partial_sum(split_indexes.begin(), split_indexes.end(), split_indexes.begin());
+	split_indexes.erase(split_indexes.begin() + split_indexes.size() - 1);
+	auto expected_batch_views = cudf::split(full_expected_out->view(), split_indexes);
+
+
+    // create and start kernel
+    // Context
+    std::shared_ptr<Context> context = make_context(1);
+
+    auto & communicationData = ral::communication::CommunicationData::getInstance();
+    communicationData.initialize("0", "/tmp");
+
+    std::shared_ptr<kernel> compute_window_unbounded_kernel = std::make_shared<ral::batch::ComputeWindowKernelUnbounded>(1, project_plan, context, graph);
+	std::shared_ptr<kernel> window_agg_merger_kernel = std::make_shared<ral::batch::WindowAggMergerKernel>(1, project_plan, context, graph);
+
+    std::shared_ptr<CacheMachine> inputCacheMachine     = std::make_shared<CacheMachine>(context, "1");
+	std::shared_ptr<CacheMachine> batchesCacheMachine   = std::make_shared<CacheMachine>(context, "batches");
+    std::shared_ptr<CacheMachine> cumulativeAggCacheMachine = std::make_shared<CacheMachine>(context, "cumulative_aggregations");    
+    std::shared_ptr<CacheMachine> outputCacheMachine    = std::make_shared<CacheMachine>(context, "1");
+
+    compute_window_unbounded_kernel->input_.register_cache("1", inputCacheMachine);
+    compute_window_unbounded_kernel->output_.register_cache("batches", batchesCacheMachine);
+    compute_window_unbounded_kernel->output_.register_cache("cumulative_aggregations", cumulativeAggCacheMachine);
+    
+    window_agg_merger_kernel->input_.register_cache("batches", batchesCacheMachine);
+    window_agg_merger_kernel->input_.register_cache("cumulative_aggregations", cumulativeAggCacheMachine);
+    window_agg_merger_kernel->output_.register_cache("1", outputCacheMachine);
+    
+
+    // run function in compute_window_unbounded_kernel
+    std::thread run_thread_1 = std::thread([compute_window_unbounded_kernel]() {
+        kstatus process = compute_window_unbounded_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    // run function in window_agg_merger_kernel
+    std::thread run_thread_2 = std::thread([window_agg_merger_kernel](){
+        kstatus process = window_agg_merger_kernel->run();
+        EXPECT_EQ(kstatus::proceed, process);
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // add data into the input CacheMachines
+    for (std::size_t i = 0; i < intput_batches.size(); i++) {
+        inputCacheMachine->addToCache(std::move(intput_batches[i]));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    inputCacheMachine->finish();
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    batchesCacheMachine->finish();
+    cumulativeAggCacheMachine->finish();
+    
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    outputCacheMachine->finish();
+
+    run_thread_1.join();
+    run_thread_2.join();
+
+    // get and validate output
+    auto last_batches_pulled = outputCacheMachine->pull_all_cache_data();
+
+    EXPECT_EQ(last_batches_pulled.size(), expected_batch_views.size());
+
+    for (std::size_t i = 0; i < last_batches_pulled.size(); i++) {
+        auto table_out = last_batches_pulled[i]->decache();
+        cudf::test::expect_tables_equivalent(expected_batch_views[i], table_out->view());
     }
 }

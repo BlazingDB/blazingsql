@@ -327,6 +327,10 @@ OverlapGeneratorKernel::OverlapGeneratorKernel(std::size_t kernel_id, const std:
     this->output_.add_port("batches", "preceding_overlaps", "following_overlaps");
 
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+    
+    // for OverlapGeneratorKernel, we will treat UNBOUNDED windows as having values of 0
+    this->preceding_value = this->preceding_value < 0 ? 0 : this->preceding_value;
+    this->following_value = this->following_value < 0 ? 0 : this->following_value;
 
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 	self_node_index = context->getNodeIndex(self_node);
@@ -467,6 +471,10 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     this->num_batches = 0;
 	
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+
+    // for OverlapAccumulatorKernel, we will treat UNBOUNDED windows as having values of 0
+    this->preceding_value = this->preceding_value < 0 ? 0 : this->preceding_value;
+    this->following_value = this->following_value < 0 ? 0 : this->following_value;
 
     ral::cache::cache_settings cache_machine_config;
 	cache_machine_config.type = ral::cache::CacheType::SIMPLE;
