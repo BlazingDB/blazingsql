@@ -57,6 +57,22 @@ ReadRowCount(SQLHDBC sqlHdbc, const sql_info & sql, std::size_t & row_count) {
   }
 }
 
+static inline std::string MapColumnType(const char buffer[],
+                                        const std::size_t scale) {
+  const std::string dataType{buffer};
+  if (dataType == "text") { return "string"; }
+  // maybe it could be use precision to check size tiny, small, big
+  if (dataType == "number") { return scale ? "int64" : "float64"; }
+  if (dataType == "date") { return "date"; }
+  if (dataType == "boolean") { return "boolean"; }
+  if (dataType == "timestamp_ltz") { return "timestamp"; }
+  if (dataType == "variant") { return "string"; }  // TODO: struct
+
+  std::ostringstream oss;
+  oss << "SnowFlake: unsupported type " << buffer;
+  throw std::runtime_error{oss.str()};
+}
+
 static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
                                      const sql_info & sql,
                                      std::vector<std::string> & column_names,
@@ -71,7 +87,7 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
   }
 
   std::ostringstream oss;
-  oss << "select COLUMN_NAME, DATA_TYPE from \"" << sql.schema
+  oss << "select COLUMN_NAME, DATA_TYPE, NUMERIC_SCALE from \"" << sql.schema
       << "\".\"INFORMATION_SCHEMA\".\"COLUMNS\" where TABLE_SCHEMA = '"
       << sql.sub_schema << "' and TABLE_NAME = '" << sql.table << "';";
   const std::string query = oss.str();
@@ -90,6 +106,7 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
     SQLLEN indicator;
     char buffer[256];
 
+    // column name
     sqlReturn = SQLGetData(sqlHStmt,
                            1,
                            SQL_C_CHAR,
@@ -106,6 +123,7 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
     }
     column_names.emplace_back(buffer);
 
+    // data type
     sqlReturn = SQLGetData(sqlHStmt,
                            2,
                            SQL_C_CHAR,
@@ -125,7 +143,20 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
         std::cend(buffer),
         std::begin(buffer),
         [](const std::string::value_type c) { return std::tolower(c); });
-    column_types.emplace_back(buffer);
+
+    // scale
+    std::size_t scale;
+    sqlReturn = SQLGetData(sqlHStmt,
+                           3,
+                           SQL_C_LONG,
+                           static_cast<SQLPOINTER>(&scale),
+                           static_cast<SQLLEN>(sizeof(scale)),
+                           &indicator);
+    if (!SQL_SUCCEEDED(sqlReturn)) {
+      throw std::runtime_error("SnowFlake: getting scale");
+    }
+
+    column_types.emplace_back(MapColumnType(buffer, scale));
 
     counter++;
   }
@@ -197,12 +228,14 @@ snowflake_data_provider::~snowflake_data_provider() {
 
   sqlReturn = SQLFreeHandle(SQL_HANDLE_ENV, sqlHEnv);
   if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: free hdbc");
+    throw std::runtime_error("SnowFlake: free env");
   }
 }
 
 std::shared_ptr<data_provider> snowflake_data_provider::clone() {
-  return nullptr;
+  return std::static_pointer_cast<data_provider>(
+      std::make_shared<snowflake_data_provider>(
+          sql, total_number_of_nodes, self_node_idx));
 }
 
 bool snowflake_data_provider::has_next() { return !completed; }
@@ -236,12 +269,14 @@ data_handle snowflake_data_provider::get_next(bool open_file) {
     throw std::runtime_error("SnowFlake: exec direct getting next batch");
   }
 
-  // auto sqlHStmt_deleter = [](SQLHSTMT sqlHStmt) {
-  // if (SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt) != SQL_SUCCESS) {
-  // throw std::runtime_error("SnowFlake: free statement for get next batch");
-  //}
-  //};
-  // handle.sql_handle.snowflake_statement.reset(sqlHStmt, sqlHStmt_deleter);
+  auto sqlHStmt_deleter = [](SQLHSTMT * sqlHStmt) {
+    if (SQLFreeHandle(SQL_HANDLE_STMT, *sqlHStmt) != SQL_SUCCESS) {
+      throw std::runtime_error("SnowFlake: free statement for get next batch");
+    }
+    delete sqlHStmt;
+  };
+  handle.sql_handle.snowflake_sqlhdbc.reset(new SQLHSTMT{sqlHStmt},
+                                            sqlHStmt_deleter);
 
   SQLLEN RowCount = 0;
   sqlReturn = SQLRowCount(sqlHStmt, &RowCount);
@@ -250,13 +285,17 @@ data_handle snowflake_data_provider::get_next(bool open_file) {
                              query);
   }
   handle.sql_handle.row_count = static_cast<std::size_t>(RowCount);
+  completed = !RowCount;
 
   handle.uri = Uri("snowflake", "", sql.schema + "/" + sql.table, "", "");
 
   return handle;
 }
 
-std::size_t snowflake_data_provider::get_num_handles() { return 0; }
+std::size_t snowflake_data_provider::get_num_handles() {
+  std::size_t ret = row_count / sql.table_batch_size;
+  return ret == 0 ? ret : 1;
+}
 
 }  // namespace io
 }  // namespace ral
