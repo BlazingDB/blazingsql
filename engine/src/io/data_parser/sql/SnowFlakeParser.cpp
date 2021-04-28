@@ -7,7 +7,7 @@
 #include "SnowFlakeParser.h"
 #include "sqlcommon.h"
 
-#define	BOOL int
+#define BOOL int
 #include <sql.h>
 #include <sqlext.h>
 
@@ -25,10 +25,56 @@ static inline bool postgresql_is_cudf_string(const std::string & hint) {
   return result != std::cend(postgresql_string_type_hints);
 }
 
-static inline void ThrowParseError[[noreturn]](const std::size_t col) {
+static inline void ThrowParseError[[noreturn]](const std::size_t col,
+                                               const std::size_t row) {
   std::ostringstream oss;
-  oss << "SnowFlake: parsing col " << col << " as int64";
+  oss << "SnowFlake: parsing col " << col << " and row " << row;
   throw std::runtime_error{oss.str()};
+}
+
+namespace {
+
+template <class T>
+class Traits {
+public:
+  template <class U = T>
+  static constexpr typename std::enable_if_t<std::is_integral_v<U>, T>
+  strtot(const char * s) {
+    char * end = nullptr;
+    return static_cast<T>(std::strtoll(s, &end, 10));
+  }
+
+  template <class U = T>
+  static constexpr typename std::enable_if_t<std::is_floating_point_v<U>, T>
+  strtot(const char * s) {
+    char * end = nullptr;
+    return static_cast<T>(std::strtod(s, &end));
+  }
+};
+
+}  // namespace
+
+template <class T>
+static inline std::uint8_t ParseCudfType(void * src,
+                                         const std::size_t col,
+                                         const std::size_t row,
+                                         std::vector<std::int64_t> * v) {
+  SQLHDBC sqlHStmt = *static_cast<SQLHDBC *>(src);
+  SQLLEN indicator;
+  SQLCHAR buffer[512];
+  SQLRETURN sqlReturn = SQLGetData(sqlHStmt,
+                                   col + 1,
+                                   SQL_C_CHAR,
+                                   static_cast<SQLPOINTER>(&buffer),
+                                   static_cast<SQLLEN>(sizeof(buffer)),
+                                   &indicator);
+  if (SQL_SUCCEEDED(sqlReturn)) {
+    if (indicator == SQL_NULL_DATA) { return 0; }
+    const T value = Traits<T>::strtot(reinterpret_cast<const char *>(buffer));
+    v->at(row) = value;
+    return 1;
+  }
+  ThrowParseError(col, row);
 }
 
 snowflake_parser::snowflake_parser()
@@ -43,13 +89,17 @@ void snowflake_parser::read_sql_loop(
     std::vector<void *> & host_cols,
     std::vector<std::vector<cudf::bitmask_type>> & null_masks) {
   SQLHDBC sqlHStmt = *static_cast<SQLHDBC *>(src);
-  SQLLEN RowCount = 0;
-  SQLRETURN sqlReturn = SQLRowCount(sqlHStmt, &RowCount);
-  if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: getting row count for parsing");
+  SQLRETURN sqlReturn;
+
+  std::size_t counter = 0;
+  while (SQL_SUCCEEDED(sqlReturn = SQLFetch(sqlHStmt))) {
+    parse_sql(src, column_indices, cudf_types, counter, host_cols, null_masks);
+    counter++;
   }
-  for (SQLLEN Counter = 0; Counter < RowCount; Counter++) {
-    parse_sql(src, column_indices, cudf_types, Counter, host_cols, null_masks);
+
+  sqlReturn = SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt);
+  if (sqlReturn == SQL_ERROR) {
+    throw std::runtime_error("SnowFlake: parsing loop");
   }
 }
 
@@ -73,122 +123,107 @@ std::uint8_t snowflake_parser::parse_cudf_int8(void *,
                                                std::size_t,
                                                std::size_t,
                                                std::vector<std::int8_t> *) {
-  return 0;
+  return ParseCudfType<std::int8_t>(src, col, row, v);
 }
 std::uint8_t snowflake_parser::parse_cudf_int16(void *,
                                                 std::size_t,
                                                 std::size_t,
                                                 std::vector<std::int16_t> *) {
-  return 0;
+  return ParseCudfType<std::int16_t>(src, col, row, v);
 }
 std::uint8_t snowflake_parser::parse_cudf_int32(void *,
                                                 std::size_t,
                                                 std::size_t,
                                                 std::vector<std::int32_t> *) {
-  return 0;
+  return ParseCudfType<std::int32_t>(src, col, row, v);
 }
 std::uint8_t snowflake_parser::parse_cudf_int64(void * src,
                                                 std::size_t col,
                                                 std::size_t row,
                                                 std::vector<std::int64_t> * v) {
-  SQLHDBC sqlHStmt = *static_cast<SQLHDBC *>(src);
-  SQLLEN indicator;
-  std::int64_t value;
-  SQLRETURN sqlReturn = SQLGetData(sqlHStmt,
-                                   col + 1,
-                                   SQL_C_LONG,
-                                   static_cast<SQLPOINTER>(&value),
-                                   static_cast<SQLLEN>(sizeof(value)),
-                                   &indicator);
-  if (SQL_SUCCEEDED(sqlReturn)) {
-    if (indicator == SQL_NULL_DATA) { return 0; }
-    v->at(row) = value;
-    return 1;
-  }
-
-  ThrowParseError(col);
+  return ParseCudfType<std::int64_t>(src, col, row, v);
 }
 
 std::uint8_t snowflake_parser::parse_cudf_uint8(void *,
                                                 std::size_t,
                                                 std::size_t,
                                                 std::vector<std::uint8_t> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_uint16(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  std::vector<std::uint16_t> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_uint32(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  std::vector<std::uint32_t> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_uint64(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  std::vector<std::uint64_t> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_float32(void *,
                                                   std::size_t,
                                                   std::size_t,
                                                   std::vector<float> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_float64(void *,
                                                   std::size_t,
                                                   std::size_t,
                                                   std::vector<double> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_bool8(void *,
                                                 std::size_t,
                                                 std::size_t,
                                                 std::vector<std::int8_t> *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_timestamp_days(void *,
                                                          std::size_t,
                                                          std::size_t,
                                                          cudf_string_col *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_timestamp_seconds(void *,
                                                             std::size_t,
                                                             std::size_t,
                                                             cudf_string_col *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t
 snowflake_parser::parse_cudf_timestamp_milliseconds(void *,
                                                     std::size_t,
                                                     std::size_t,
                                                     cudf_string_col *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t
 snowflake_parser::parse_cudf_timestamp_microseconds(void *,
                                                     std::size_t,
                                                     std::size_t,
                                                     cudf_string_col *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t
 snowflake_parser::parse_cudf_timestamp_nanoseconds(void *,
                                                    std::size_t,
                                                    std::size_t,
                                                    cudf_string_col *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 std::uint8_t snowflake_parser::parse_cudf_string(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  cudf_string_col *) {
-  return 0;
+  throw std::runtime_error("Unsupported type");
 }
 
 

@@ -53,7 +53,7 @@ ReadRowCount(SQLHDBC sqlHdbc, const sql_info & sql, std::size_t & row_count) {
 
   sqlReturn = SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt);
   if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: free hdbc");
+    throw std::runtime_error("SnowFlake: free stmt for row count");
   }
 }
 
@@ -163,7 +163,7 @@ static inline void PopulateTableInfo(SQLHDBC sqlHdbc,
 
   sqlReturn = SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt);
   if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: free hdbc");
+    throw std::runtime_error("SnowFlake: free stmt for table info");
   }
 
   ReadRowCount(sqlHdbc, sql, row_count);
@@ -222,14 +222,14 @@ snowflake_data_provider::~snowflake_data_provider() {
   SQLRETURN sqlReturn = SQL_ERROR;
 
   sqlReturn = SQLFreeHandle(SQL_HANDLE_DBC, sqlHdbc);
-  if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: free hdbc");
-  }
+  //if (sqlReturn != SQL_SUCCESS) {
+    //throw std::runtime_error("SnowFlake: free hdbc");
+  //}
 
   sqlReturn = SQLFreeHandle(SQL_HANDLE_ENV, sqlHEnv);
-  if (sqlReturn != SQL_SUCCESS) {
-    throw std::runtime_error("SnowFlake: free env");
-  }
+  //if (sqlReturn != SQL_SUCCESS) {
+    //throw std::runtime_error("SnowFlake: free env");
+  //}
 }
 
 std::shared_ptr<data_provider> snowflake_data_provider::clone() {
@@ -271,7 +271,7 @@ data_handle snowflake_data_provider::get_next(bool open_file) {
 
   auto sqlHStmt_deleter = [](SQLHSTMT * sqlHStmt) {
     if (SQLFreeHandle(SQL_HANDLE_STMT, *sqlHStmt) != SQL_SUCCESS) {
-      throw std::runtime_error("SnowFlake: free statement for get next batch");
+      //throw std::runtime_error("SnowFlake: free statement for get next batch");
     }
     delete sqlHStmt;
   };
