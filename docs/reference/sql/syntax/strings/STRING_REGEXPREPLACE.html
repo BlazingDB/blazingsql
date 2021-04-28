@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4351,13 +4351,23 @@
                 
   <section id="regexp-replace">
 <h1>REGEXP_REPLACE<a class="headerlink" href="#regexp-replace" title="Permalink to this headline">¶</a></h1>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a></p>
+<p>Obtain a string with all instances of a Regex pattern are replaced with a specified
+replacement.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The regular expressions pattern rules apply when specifying the pattern.
+For example, to replace a backslash character <code class="code docutils literal notranslate"><span class="pre">\</span> </code> it needs to be <em>escaped</em>
+resulting in the <code class="code docutils literal notranslate"><span class="pre">\\</span></code> pattern.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../../strings.html#sql-string-replace"><span class="std std-ref">REPLACE</span></a></p>
+</div>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">REGEXP_REPLACE</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">pattern</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">replacement</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>

@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4353,11 +4353,34 @@
 <h1>COALESCE<a class="headerlink" href="#coalesce" title="Permalink to this headline">¶</a></h1>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
+<p>This function returns a default if the value in the column is <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The column types and/or literals used in this function need to be of compatible data types or
+types that can be converted to a compatible type.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../../conditional.html#sql-func-nvl"><span class="std std-ref">NVL</span></a>, <a class="reference internal" href="../../conditional.html#sql-func-nullif"><span class="std std-ref">NULLIF</span></a></p>
+</div>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>The simplest example returns a literal for every <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> in a column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">COALESCE</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">literal</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>More than one column can be included and the function will return
+the first value from the series that is not <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The list of columns will be evaluated left-to-right thus,
+i.e. in an expression <code class="code docutils literal notranslate"><span class="pre">COALESCE(&lt;col_1,</span> <span class="pre">&lt;col_2&gt;,</span> <span class="pre">&lt;literal&gt;)</span></code>,
+if <code class="code docutils literal notranslate"><span class="pre">col_1</span></code> is <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> but <code class="code docutils literal notranslate"><span class="pre">col_2</span></code> is not, the value
+found in <code class="code docutils literal notranslate"><span class="pre">col_2</span></code> will be returned, not the <code class="code docutils literal notranslate"><span class="pre">literal</span></code>.</p>
+</div>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">COALESCE</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">literal</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>

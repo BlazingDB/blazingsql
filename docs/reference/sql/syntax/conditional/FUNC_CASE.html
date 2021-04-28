@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>CASE &#8212; BlazingSQL v0.19 documentation</title>
+    <title>CASE expr &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4332,10 +4332,29 @@
         </div>
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example">
-   Example
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   CASE expr
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#case">
+   CASE
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
+     Example
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -4349,15 +4368,45 @@
         
               <div>
                 
-  <section id="case">
+  <section id="case-expr">
+<h1>CASE expr<a class="headerlink" href="#case-expr" title="Permalink to this headline">¶</a></h1>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
+<a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Compare values in a column to each consecutive <code class="code docutils literal notranslate"><span class="pre">WHEN</span></code> clause
+and returns the <em>first</em> match. If no match found in any of the
+<code class="code docutils literal notranslate"><span class="pre">WHEN</span></code> clauses then, if present, the value from the <code class="code docutils literal notranslate"><span class="pre">ELSE</span></code>
+clause is returned. If the <code class="code docutils literal notranslate"><span class="pre">ELSE</span></code> is not present nor any match
+is found, a <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> is returned.</p>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">CASE</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+        <span class="k">WHEN</span> <span class="o">&lt;</span><span class="n">literal_1</span><span class="o">&gt;</span> <span class="k">THEN</span> <span class="o">&lt;</span><span class="n">result_1</span><span class="o">&gt;</span>
+        <span class="k">WHEN</span> <span class="o">&lt;</span><span class="n">literal_2</span><span class="o">&gt;</span> <span class="k">THEN</span> <span class="o">&lt;</span><span class="n">result_2</span><span class="o">&gt;</span>
+        <span class="k">ELSE</span> <span class="o">&lt;</span><span class="n">result_3</span><span class="o">&gt;</span>
+    <span class="k">END</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="case">
 <h1>CASE<a class="headerlink" href="#case" title="Permalink to this headline">¶</a></h1>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Compare values in a column to each consecutive <code class="code docutils literal notranslate"><span class="pre">WHEN</span></code> clause
+and returns the <em>first</em> match. If no match found in any of the
+<code class="code docutils literal notranslate"><span class="pre">WHEN</span></code> clauses then, if present, the value from the <code class="code docutils literal notranslate"><span class="pre">ELSE</span></code>
+clause is returned. If the <code class="code docutils literal notranslate"><span class="pre">ELSE</span></code> is not present nor any match
+is found, a <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> is returned.</p>
+<p>The difference between this function and <a class="reference internal" href="../../conditional.html#sql-func-case"><span class="std std-ref">CASE expr</span></a> is
+that the conditions can mix more than one column and different <a class="reference internal" href="../../operators.html#sql-operators"><span class="std std-ref">operators</span></a>.</p>
+<section id="id1">
+<h2>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">CASE</span> <span class="k">WHEN</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IN</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">literal_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">literal_2</span><span class="p">)</span> <span class="k">THEN</span> <span class="o">&lt;</span><span class="n">result_1</span><span class="o">&gt;</span>
+        <span class="k">WHEN</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">THEN</span> <span class="o">&lt;</span><span class="n">result_2</span><span class="o">&gt;</span>
+        <span class="k">ELSE</span> <span class="o">&lt;</span><span class="n">result_3</span><span class="o">&gt;</span>
+    <span class="k">END</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>

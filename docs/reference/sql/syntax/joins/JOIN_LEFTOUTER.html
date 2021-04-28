@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4353,13 +4353,61 @@
 <h1>LEFT OUTER<a class="headerlink" href="#left-outer" title="Permalink to this headline">¶</a></h1>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">LEFT</span> <span class="pre">OUTER</span> <span class="pre">JOIN</span></code> returns rows from both tables for values
+from the <em>left</em> table and all matching values in the <em>right</em> table
+that are matching based on the matching criteria. <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values are returned for not matched
+rows from the <em>right</em> table.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../../joins.html#sql-join-fullouter"><span class="std std-ref">FULL OUTER</span></a></p>
+</div>
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">A</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">table_1</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">A</span>
+<span class="k">LEFT</span> <span class="k">OUTER</span> <span class="k">JOIN</span> <span class="o">&lt;</span><span class="n">table_2</span><span class="o">&gt;</span> <span class="k">AS</span> <span class="n">B</span>
+    <span class="k">ON</span> <span class="n">A</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">B</span><span class="p">.</span><span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+<p>Using the tables defined <a class="reference internal" href="../../joins.html#sql-joins-tables"><span class="std std-ref">above</span></a>, The following code</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">A</span><span class="p">.</span><span class="n">A</span> <span class="k">AS</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">A</span> <span class="k">AS</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">B</span> <span class="k">AS</span> <span class="n">col_3</span>
+<span class="k">FROM</span> <span class="n">table_1</span> <span class="k">AS</span> <span class="n">A</span>
+<span class="k">LEFT</span> <span class="k">OUTER</span> <span class="k">JOIN</span> <span class="n">table_2</span> <span class="k">AS</span> <span class="n">B</span>
+    <span class="k">ON</span> <span class="n">A</span><span class="p">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">B</span><span class="p">.</span><span class="n">B</span>
+</pre></div>
+</div>
+<p>will return</p>
+<table class="colwidths-given table" id="id1">
+<caption><span class="caption-text">Table 2</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>col_1</p></th>
+<th class="head"><p>col_2</p></th>
+<th class="head"><p>col_3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 

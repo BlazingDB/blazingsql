@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4333,12 +4333,56 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#asdsad">
-   asdsad
+  <a class="reference internal nav-link" href="#is-not-null">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     IS
+    </span>
+    <span class="pre">
+     [NOT]
+    </span>
+    <span class="pre">
+     NULL
+    </span>
+   </code>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#example">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#is-not-true-and-is-not-false">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     IS
+    </span>
+    <span class="pre">
+     [NOT]
+    </span>
+    <span class="pre">
+     TRUE
+    </span>
+   </code>
+   and
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     IS
+    </span>
+    <span class="pre">
+     [NOT]
+    </span>
+    <span class="pre">
+     FALSE
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
      Example
     </a>
    </li>
@@ -4358,15 +4402,50 @@
                 
   <section id="is-operators">
 <h1><code class="code docutils literal notranslate"><span class="pre">IS</span></code> operators<a class="headerlink" href="#is-operators" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="code docutils literal notranslate"><span class="pre">IS</span></code> operators test if something is or is not. These operators never return <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<section id="is-not-null">
+<h2><code class="code docutils literal notranslate"><span class="pre">IS</span> <span class="pre">[NOT]</span> <span class="pre">NULL</span></code><a class="headerlink" href="#is-not-null" title="Permalink to this headline">¶</a></h2>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="asdsad">
-<h2>asdsad<a class="headerlink" href="#asdsad" title="Permalink to this headline">¶</a></h2>
+<p>Tests if values in the column are <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
 <section id="example">
 <h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Check if values are <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">NULL</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Check if values are not <code class="code docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">NULL</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="is-not-true-and-is-not-false">
+<h2><code class="code docutils literal notranslate"><span class="pre">IS</span> <span class="pre">[NOT]</span> <span class="pre">TRUE</span></code> and <code class="code docutils literal notranslate"><span class="pre">IS</span> <span class="pre">[NOT]</span> <span class="pre">FALSE</span></code><a class="headerlink" href="#is-not-true-and-is-not-false" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Tests if values in the column are <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code> or <code class="code docutils literal notranslate"><span class="pre">FALSE</span></code>.</p>
+<section id="id1">
+<h3>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Check if values are <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">TRUE</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>An equivalent would be to test if the values are not <code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">FALSE</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Check if values are <code class="code docutils literal notranslate"><span class="pre">FALSE</span></code>.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">FALSE</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Alternatively:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">TRUE</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>

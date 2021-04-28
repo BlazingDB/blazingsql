@@ -2,14 +2,20 @@ ACOS
 ^^^^
 
 **Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
-:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
 
-Lorem ipsum
+Obtain the degree value (in radians, range :math:`[0,\pi]`) for each row of a numeric column
+where each value represents a value of a cosine function.
+
+.. warning:: Returns :code:`NULL` for :code:`+inf` and :code:`-inf`, and an actual :code:`NULL` value. 
+    Throws an error for values outside of the :math:`[-1,1]` range.
+
+.. seealso:: :ref:`sql_math_asin`, :ref:`sql_math_atan`, :ref:`sql_math_cos`, :ref:`sql_math_sin`, :ref:`sql_math_tan`
+
 
 Example
 """""""
 
 .. code-block:: sql
 
-    SELECT *
-    FROM <foo>
+    SELECT ACOS(<col_1>)
+    FROM <table_name>

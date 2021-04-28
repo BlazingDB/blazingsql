@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
 
-    <title>Window functions &#8212; BlazingSQL v0.19 documentation</title>
+    <title>Analytic functions &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -445,7 +445,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -494,7 +494,7 @@
      </li>
      <li class="toctree-l3 current active collapsible-parent">
       <a class="current reference internal" href="#">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4335,110 +4335,224 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#lead">
-   LEAD
+  <a class="reference internal nav-link" href="#defining-window">
+   Defining window
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#example">
-     Example
+    <a class="reference internal nav-link" href="#syntax">
+     Syntax
     </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#partition-by">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       PARTITION
+      </span>
+      <span class="pre">
+       BY
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#order-by">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       ORDER
+      </span>
+      <span class="pre">
+       BY
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#asc-and-desc-qualifiers">
+       <code class="code docutils literal notranslate">
+        <span class="pre">
+         ASC
+        </span>
+       </code>
+       and
+       <code class="code docutils literal notranslate">
+        <span class="pre">
+         DESC
+        </span>
+       </code>
+       qualifiers
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#handling-of-null-values">
+       Handling of
+       <code class="code docutils literal notranslate">
+        <span class="pre">
+         NULL
+        </span>
+       </code>
+       values
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rows-or-range">
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       ROWS
+      </span>
+     </code>
+     or
+     <code class="code docutils literal notranslate">
+      <span class="pre">
+       RANGE
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#preceding-and-following-qualifiers">
+       <code class="code docutils literal notranslate">
+        <span class="pre">
+         PRECEDING
+        </span>
+       </code>
+       and
+       <code class="code docutils literal notranslate">
+        <span class="pre">
+         FOLLOWING
+        </span>
+       </code>
+       qualifiers
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#between">
+       <code class="code docutils literal notranslate">
+        <span class="pre">
+         BETWEEN
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#lag">
-   LAG
+  <a class="reference internal nav-link" href="#supported-aggregating-functions">
+   Supported aggregating functions
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id1">
-     Example
+    <a class="reference internal nav-link" href="#lead">
+     LEAD
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#examples">
+       Examples
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#first-value">
-   FIRST_VALUE
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id2">
-     Example
+    <a class="reference internal nav-link" href="#lag">
+     LAG
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id1">
+       Examples
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#last-value">
-   LAST_VALUE
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id3">
-     Example
+    <a class="reference internal nav-link" href="#first-value">
+     FIRST_VALUE
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#example">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#row-number">
-   ROW_NUMBER
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id4">
-     Example
+    <a class="reference internal nav-link" href="#last-value">
+     LAST_VALUE
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id2">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#avg">
-   AVG
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id5">
-     Example
+    <a class="reference internal nav-link" href="#row-number">
+     ROW_NUMBER
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id3">
+       Example
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#max">
-   MAX
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id6">
-     Example
+    <a class="reference internal nav-link" href="#avg">
+     AVG
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id4">
+       Examples
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#min">
-   MIN
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id7">
-     Example
+    <a class="reference internal nav-link" href="#max">
+     MAX
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id5">
+       Examples
+      </a>
+     </li>
+    </ul>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#sum">
-   SUM
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id8">
-     Example
+    <a class="reference internal nav-link" href="#min">
+     MIN
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id6">
+       Examples
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sum">
+     SUM
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id7">
+       Examples
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -4454,125 +4568,443 @@
         
               <div>
                 
-  <section id="window-functions">
-<span id="sql-windowing"></span><h1>Window functions<a class="headerlink" href="#window-functions" title="Permalink to this headline">¶</a></h1>
+  <section id="analytic-functions">
+<span id="sql-windowing"></span><h1>Analytic functions<a class="headerlink" href="#analytic-functions" title="Permalink to this headline">¶</a></h1>
+<p>Analytic functions compute values over a list (or a <em>sliding window</em>) of rows and return
+a computed value for each row.</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">OVER</span></code> clause defines a window of rows that are being using to calculate the result:
+for each row the window is different and the aggregating function returns the result
+calculated over that set of rows.</p>
+<p>Analytic functions allow computing moving averages, cumulative sums, or extract first or last values
+from a defined window.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Contrast with <a class="reference internal" href="aggregating.html#sql-aggregating"><span class="std std-ref">aggregating functions</span></a> that return
+a result for a whole group of rows.</p>
+</div>
+<section id="defining-window">
+<h2>Defining window<a class="headerlink" href="#defining-window" title="Permalink to this headline">¶</a></h2>
+<p>In order to use analytic functions a window needs to be defined.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>While ANSI SQL supports windows without specifying partitions
+currently BlazingSQL requires specifying the <code class="code docutils literal notranslate"><span class="pre">PARTITION</span> <span class="pre">BY</span></code> clause.</p>
+</div>
+<section id="syntax">
+<h3>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h3>
+<p>The syntax to use analytic functions in BlazingSQL follows the ANSI standard:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="o">&lt;</span><span class="n">analytic_function</span><span class="o">&gt;</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="n">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+        <span class="p">[</span> <span class="n">ORDER</span> <span class="n">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span> <span class="p">{</span> <span class="n">ASC</span> <span class="o">|</span> <span class="n">DESC</span> <span class="p">}</span> <span class="p">{</span> <span class="n">NULLS</span> <span class="n">FIRST</span> <span class="o">|</span> <span class="n">NULLS</span> <span class="n">LAST</span> <span class="p">}</span> <span class="p">}]</span>
+        <span class="p">[</span> <span class="n">ROWS</span> <span class="o">|</span> <span class="n">RANGE</span> <span class="p">]</span>
+    <span class="p">)</span>
+<span class="n">FROM</span> <span class="o">&lt;</span><span class="n">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="partition-by">
+<h3><code class="code docutils literal notranslate"><span class="pre">PARTITION</span> <span class="pre">BY</span></code><a class="headerlink" href="#partition-by" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="code docutils literal notranslate"><span class="pre">PARTITION</span> <span class="pre">BY</span></code> clause specifies the column (or columns) that
+the window function will further delineate the boundaries of rows; these boundaries
+can further be refined by using <a class="reference internal" href="#sql-window-rowsrange"><span class="std std-ref">ROWS or RANGE</span></a> qualifiers.</p>
+</section>
+<section id="order-by">
+<h3><code class="code docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code><a class="headerlink" href="#order-by" title="Permalink to this headline">¶</a></h3>
+<p>The rows within the specified can be ordered (some of the aggregating functions
+require the rows to be sorted). Just like with the reqular <code class="code docutils literal notranslate"><span class="pre">SELECT</span></code> statement,
+the <code class="code docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clause can be used within the specified window.</p>
+<section id="asc-and-desc-qualifiers">
+<h4><code class="code docutils literal notranslate"><span class="pre">ASC</span></code> and <code class="code docutils literal notranslate"><span class="pre">DESC</span></code> qualifiers<a class="headerlink" href="#asc-and-desc-qualifiers" title="Permalink to this headline">¶</a></h4>
+<p>The rows within window can be sorted by one or more column, and can be mixed and
+matched in terms of the monotonicity.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">ASC</span></code> qualifier is explicit and informs the engine to sort
+the rows in an ascending order. However, if omitted, the engine implicitly
+orders the rows in and ascending order. To sort in a descending order the
+<code class="code docutils literal notranslate"><span class="pre">DESC</span></code> is required.</p>
+</div>
+<p>As an example, the code below sorts the results by <code class="code docutils literal notranslate"><span class="pre">col_3</span></code> descending and
+then by <code class="code docutils literal notranslate"><span class="pre">col_4</span></code> ascending.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span>
+            <span class="p">,</span> <span class="n">col_4</span> <span class="k">ASC</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="handling-of-null-values">
+<h4>Handling of <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values<a class="headerlink" href="#handling-of-null-values" title="Permalink to this headline">¶</a></h4>
+<p>If the columns used to sort the rows contain <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values certain
+aggregating functions will return different result depending on where the
+<code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values appear: either on start or end of the defined window.
+BlazingSQL supports specifying this explicitly using <code class="code docutils literal notranslate"><span class="pre">NULLS</span> <span class="pre">FIRST</span></code>
+or <code class="code docutils literal notranslate"><span class="pre">NULLS</span> <span class="pre">LAST</span></code> clauses.</p>
+<p>As an example, the code below sorts the results by <code class="code docutils literal notranslate"><span class="pre">col_3</span></code> descending and
+<em>pushes</em> the <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values to be top so they appear first in the order.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="rows-or-range">
+<span id="sql-window-rowsrange"></span><h3><code class="code docutils literal notranslate"><span class="pre">ROWS</span></code> or <code class="code docutils literal notranslate"><span class="pre">RANGE</span></code><a class="headerlink" href="#rows-or-range" title="Permalink to this headline">¶</a></h3>
+<p>The partitioning window can further be refined to delineate the range
+that the window covers using the <code class="code docutils literal notranslate"><span class="pre">ROWS</span></code> or <code class="code docutils literal notranslate"><span class="pre">RANGE</span></code>.</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">ROWS</span></code> clause uses the exact specified number of rows to determine the
+window boundries. As an example, it can include 1 row prior and
+2 rows after the current row.
+The <code class="code docutils literal notranslate"><span class="pre">RANGE</span></code> clause, on the other hand, determines the window based
+on a logical range of rows around the current one; the logic of which
+rows to include is derived from the <code class="code docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> column.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">RANGE</span></code> is not currently supported.</p>
+</div>
+<section id="preceding-and-following-qualifiers">
+<h4><code class="code docutils literal notranslate"><span class="pre">PRECEDING</span></code> and <code class="code docutils literal notranslate"><span class="pre">FOLLOWING</span></code> qualifiers<a class="headerlink" href="#preceding-and-following-qualifiers" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="code docutils literal notranslate"><span class="pre">ROWS</span></code> or <code class="code docutils literal notranslate"><span class="pre">RANGE</span></code> qualifiers are normally followed
+by offset qualifiers. These can specify either backward inclusion using
+the <code class="code docutils literal notranslate"><span class="pre">PRECEDING</span></code> clause, for example</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+        <span class="k">ROWS</span> <span class="mi">1</span> <span class="n">PRECEDING</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+        <span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>The latter example includes all the rows for the partition
+up to the current row while the former includes only one row prior.</p>
+<p>Similarly, a forward looking behavior can be achieved.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+        <span class="k">ROWS</span> <span class="mi">1</span> <span class="n">FOLLOWING</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>but this functionality requires specifying an exact number of rows.</p>
+</section>
+<section id="between">
+<h4><code class="code docutils literal notranslate"><span class="pre">BETWEEN</span></code><a class="headerlink" href="#between" title="Permalink to this headline">¶</a></h4>
+<p>It is also possible to specify a symmetrical or asymmetrical window around
+the current row.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+        <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">1</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="mi">1</span> <span class="n">FOLLOWING</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>A special case where <code class="code docutils literal notranslate"><span class="pre">CURRENT</span> <span class="pre">ROW</span></code> is specified explicitly can be used
+to create a backward</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+        <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">1</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="n">CURERENT</span> <span class="k">ROW</span>
+</pre></div>
+</div>
+<p>of forward looking windows.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">col_1</span>
+    <span class="p">,</span> <span class="n">col_2</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">col_5</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">col_1</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">col_3</span> <span class="k">DESC</span> <span class="n">NULLS</span> <span class="k">FIRST</span>
+        <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="k">CURRENT</span> <span class="k">ROW</span> <span class="k">AND</span> <span class="mi">1</span> <span class="n">FOLLOWING</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="supported-aggregating-functions">
+<h2>Supported aggregating functions<a class="headerlink" href="#supported-aggregating-functions" title="Permalink to this headline">¶</a></h2>
 <section id="lead">
-<span id="sql-window-lead"></span><h2>LEAD<a class="headerlink" href="#lead" title="Permalink to this headline">¶</a></h2>
+<span id="sql-window-lead"></span><h3>LEAD<a class="headerlink" href="#lead" title="Permalink to this headline">¶</a></h3>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="example">
-<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Return the value from the following row (or rows, if offset specified) in the specified window.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-lag"><span class="std std-ref">LAG</span></a></p>
+</div>
+<section id="examples">
+<h4>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h4>
+<p>Return value from the following row.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">LEAD</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Offset by 2 rows.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">LEAD</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="lag">
-<span id="sql-window-lag"></span><h2>LAG<a class="headerlink" href="#lag" title="Permalink to this headline">¶</a></h2>
+<span id="sql-window-lag"></span><h3>LAG<a class="headerlink" href="#lag" title="Permalink to this headline">¶</a></h3>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
+<p>Return the value from the preceding row (or rows, if offset specified) in the specified window.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-lead"><span class="std std-ref">LEAD</span></a></p>
+</div>
 <section id="id1">
-<h3>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<h4>Examples<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<p>Return value from the previous row.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">LAG</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Offset by 2 rows.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">LAG</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="first-value">
-<span id="sql-window-firstvalue"></span><h2>FIRST_VALUE<a class="headerlink" href="#first-value" title="Permalink to this headline">¶</a></h2>
+<span id="sql-window-firstvalue"></span><h3>FIRST_VALUE<a class="headerlink" href="#first-value" title="Permalink to this headline">¶</a></h3>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id2">
-<h3>Example<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Return the first value from the specified window.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function includes <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values and if the <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values is
+first, <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> will be returned.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-lastvalue"><span class="std std-ref">LAST_VALUE</span></a></p>
+</div>
+<section id="example">
+<h4>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">FIRST_VALUE</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="last-value">
-<span id="sql-window-lastvalue"></span><h2>LAST_VALUE<a class="headerlink" href="#last-value" title="Permalink to this headline">¶</a></h2>
+<span id="sql-window-lastvalue"></span><h3>LAST_VALUE<a class="headerlink" href="#last-value" title="Permalink to this headline">¶</a></h3>
 <p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
 <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id3">
-<h3>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Return the last value from the specified window.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function includes <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values and if the <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> values is
+last, <code class="code docutils literal notranslate"><span class="pre">NULL</span></code> will be returned.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-firstvalue"><span class="std std-ref">FIRST_VALUE</span></a></p>
+</div>
+<section id="id2">
+<h4>Example<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">LAST_VALUE</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="row-number">
-<span id="sql-window-rownumber"></span><h2>ROW_NUMBER<a class="headerlink" href="#row-number" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id4">
-<h3>Example<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span id="sql-window-rownumber"></span><h3>ROW_NUMBER<a class="headerlink" href="#row-number" title="Permalink to this headline">¶</a></h3>
+<p>Obtain a row number per partition. This function does not
+require <code class="code docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clause but the results are then
+non-deterministic.</p>
+<section id="id3">
+<h4>Example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="avg">
-<span id="sql-window-avg"></span><h2>AVG<a class="headerlink" href="#avg" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id5">
-<h3>Example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span id="sql-window-avg"></span><h3>AVG<a class="headerlink" href="#avg" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a></p>
+<p>Calculate average of a numeric column.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-max"><span class="std std-ref">MAX</span></a>, <a class="reference internal" href="#sql-window-min"><span class="std std-ref">MIN</span></a>, <a class="reference internal" href="#sql-window-sum"><span class="std std-ref">SUM</span></a></p>
+</div>
+<section id="id4">
+<h4>Examples<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<p>Average of values per partition.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">AVG</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Moving average.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">AVG</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+        <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">2</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="mi">2</span> <span class="n">FOLLOWING</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="max">
-<span id="sql-window-max"></span><h2>MAX<a class="headerlink" href="#max" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id6">
-<h3>Example<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span id="sql-window-max"></span><h3>MAX<a class="headerlink" href="#max" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a></p>
+<p>Calculate maximum value of a numeric column.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-avg"><span class="std std-ref">AVG</span></a>, <a class="reference internal" href="#sql-window-min"><span class="std std-ref">MIN</span></a>, <a class="reference internal" href="#sql-window-sum"><span class="std std-ref">SUM</span></a></p>
+</div>
+<section id="id5">
+<h4>Examples<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<p>Maximum of values per partition.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">MAX</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Maximum of values in a moving window.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">MAX</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+        <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">2</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="mi">2</span> <span class="n">FOLLOWING</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="min">
-<span id="sql-window-min"></span><h2>MIN<a class="headerlink" href="#min" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id7">
-<h3>Example<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span id="sql-window-min"></span><h3>MIN<a class="headerlink" href="#min" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a></p>
+<p>Calculate minimum value of a numeric column.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-avg"><span class="std std-ref">AVG</span></a>, <a class="reference internal" href="#sql-window-max"><span class="std std-ref">MAX</span></a>, <a class="reference internal" href="#sql-window-sum"><span class="std std-ref">SUM</span></a></p>
+</div>
+<section id="id6">
+<h4>Examples<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<p>Minimum of values per partition.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">MIN</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Minimum of values in a moving window.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">MIN</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+        <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">2</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="mi">2</span> <span class="n">FOLLOWING</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="sum">
-<span id="sql-window-sum"></span><h2>SUM<a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="id8">
-<h3>Example<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<span id="sql-window-sum"></span><h3>SUM<a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h3>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a></p>
+<p>Calculate sum of values of a numeric column.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-window-avg"><span class="std std-ref">AVG</span></a>, <a class="reference internal" href="#sql-window-max"><span class="std std-ref">MAX</span></a>, <a class="reference internal" href="#sql-window-min"><span class="std std-ref">MIN</span></a></p>
+</div>
+<section id="id7">
+<h4>Examples<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
+<p>Sum of values per partition. This is useful to later compute share of each
+value in the total value per partition.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Calculate cumulative sum.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span>
+    <span class="p">,</span> <span class="k">MIN</span><span class="p">(</span><span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span>
+        <span class="n">PARTITION</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_2</span><span class="o">&gt;</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="o">&lt;</span><span class="n">col_3</span><span class="o">&gt;</span>
+        <span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span>
+    <span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <div class="toctree-wrapper compound">
 </div>
+</section>
 </section>
 </section>
 </section>

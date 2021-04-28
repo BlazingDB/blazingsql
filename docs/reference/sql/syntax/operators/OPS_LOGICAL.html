@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4333,8 +4333,44 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#sdfsdf">
-   sdfsdf
+  <a class="reference internal nav-link" href="#and">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     AND
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#examples">
+     Examples
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#or">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     OR
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
+     Examples
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#not">
+   <code class="code docutils literal notranslate">
+    <span class="pre">
+     NOT
+    </span>
+   </code>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -4358,14 +4394,178 @@
                 
   <section id="logical-operators">
 <h1>Logical operators<a class="headerlink" href="#logical-operators" title="Permalink to this headline">¶</a></h1>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<section id="sdfsdf">
-<h2>sdfsdf<a class="headerlink" href="#sdfsdf" title="Permalink to this headline">¶</a></h2>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
+<p>Logical operators allow to chain multiple boolean columns or expressions that return boolean
+value to obtain more complex logical expressions.</p>
+<section id="and">
+<span id="sql-logical-and"></span><h2><code class="code docutils literal notranslate"><span class="pre">AND</span></code><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h2>
+<p>The logical conjunction operator returns <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code> value if and only if both
+inputs are <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
+<table class="colwidths-auto table" id="id2">
+<caption><span class="caption-text">Truth table for <code class="code docutils literal notranslate"><span class="pre">AND</span></code></span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Input 1</p></th>
+<th class="head"><p>Input 2</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-logical-or"><span class="std std-ref">OR</span></a>, <a class="reference internal" href="#sql-logical-not"><span class="std std-ref">NOT</span></a></p>
+</div>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>Simple conjunction of two boolean columns.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1_bool</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="o">&lt;</span><span class="n">col_2_bool</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Negated column syntax.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1_bool</span><span class="o">&gt;</span> <span class="k">AND</span> <span class="k">NOT</span> <span class="o">&lt;</span><span class="n">col_2_bool</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="or">
+<span id="sql-logical-or"></span><h2><code class="code docutils literal notranslate"><span class="pre">OR</span></code><a class="headerlink" href="#or" title="Permalink to this headline">¶</a></h2>
+<p>The logical disjunction (or alternative) operator returns <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code> value if one
+of the inputs is <code class="code docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
+<table class="colwidths-auto table" id="id3">
+<caption><span class="caption-text">Truth table for <code class="code docutils literal notranslate"><span class="pre">OR</span></code></span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Input 1</p></th>
+<th class="head"><p>Input 2</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-logical-and"><span class="std std-ref">AND</span></a>, <a class="reference internal" href="#sql-logical-not"><span class="std std-ref">NOT</span></a></p>
+</div>
+<section id="id1">
+<h3>Examples<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Simple disjunction of two boolean columns.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1_bool</span><span class="o">&gt;</span> <span class="k">OR</span> <span class="o">&lt;</span><span class="n">col_2_bool</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Negated column syntax.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">&lt;</span><span class="n">col_1_bool</span><span class="o">&gt;</span> <span class="k">OR</span> <span class="k">NOT</span> <span class="o">&lt;</span><span class="n">col_2_bool</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="not">
+<span id="sql-logical-not"></span><h2><code class="code docutils literal notranslate"><span class="pre">NOT</span></code><a class="headerlink" href="#not" title="Permalink to this headline">¶</a></h2>
+<p>The logical negation operator returns the reverse truth value.</p>
+<table class="colwidths-auto table" id="id4">
+<caption><span class="caption-text">Truth table for <code class="code docutils literal notranslate"><span class="pre">NOT</span></code></span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Input</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">TRUE</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">FALSE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#sql-logical-and"><span class="std std-ref">AND</span></a>, <a class="reference internal" href="#sql-logical-or"><span class="std std-ref">OR</span></a></p>
+</div>
 <section id="example">
 <h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p>Simple negation of a boolean column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">NOT</span> <span class="o">&lt;</span><span class="n">col_1_bool</span><span class="o">&gt;</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>

@@ -1,15 +1,18 @@
 SUBSTRING
 ^^^^^^^^^
 
-**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
-:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
+**Supported datatypes:** :ref:`VARCHAR<sql_dtypes>`
 
-Lorem ipsum
+Obtain a substring of a string with a specified number of characters starting at a specified position.
+
+.. seealso:: :ref:`sql_string_left`, :ref:`sql_string_right`
 
 Example
 """""""
 
+Retrieve 3 characters from a string starting at position 4.
+
 .. code-block:: sql
 
-    SELECT *
-    FROM <foo>
+    SELECT SUBSTRING(<col_1>, 4, 3)
+    FROM <table_name>

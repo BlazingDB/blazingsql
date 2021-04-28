@@ -443,7 +443,7 @@
        </li>
        <li class="toctree-l4 collapsible-parent">
         <a class="reference internal" href="../../conditional.html">
-         Conditional operators
+         Conditional functions
         </a>
         <ul class="simple collapse-ul">
         </ul>
@@ -492,7 +492,7 @@
      </li>
      <li class="toctree-l3 collapsible-parent">
       <a class="reference internal" href="../../windowing.html">
-       Window functions
+       Analytic functions
       </a>
       <ul class="simple collapse-ul">
       </ul>
@@ -4333,8 +4333,8 @@
         <nav id="bd-toc-nav">
             <ul class="nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example">
-   Example
+  <a class="reference internal nav-link" href="#examples">
+   Examples
   </a>
  </li>
 </ul>
@@ -4351,13 +4351,63 @@
                 
   <section id="extract">
 <h1>EXTRACT<a class="headerlink" href="#extract" title="Permalink to this headline">¶</a></h1>
-<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TINYINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">SMALLINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">INT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BIGINT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DECIMAL</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">FLOAT</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">DOUBLE</span></a>
-<a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">VARCHAR</span></a>, <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">BOOLEAN</span></a></p>
-<p>Lorem ipsum</p>
-<section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="o">&lt;</span><span class="n">foo</span><span class="o">&gt;</span>
+<p><strong>Supported datatypes:</strong> <a class="reference internal" href="../../dtypes.html#sql-dtypes"><span class="std std-ref">TIMESTAMP</span></a></p>
+<p>Extract the value from a <code class="code docutils literal notranslate"><span class="pre">TIMESTAMP</span></code> column specified by the qualifier.</p>
+<p>This functionality is compatible with the other <code class="code docutils literal notranslate"><span class="pre">TIMESTAMP</span></code> functions.</p>
+<table class="colwidths-given table" id="id1">
+<caption><span class="caption-text">Functionality mapping</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Datetime part</p></th>
+<th class="head"><p>SQL function</p></th>
+<th class="head"><p><code class="code docutils literal notranslate"><span class="pre">EXTRACT</span></code> qualifier</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Year value</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-year"><span class="std std-ref">YEAR</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">YEAR</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Month value</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-month"><span class="std std-ref">MONTH</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">MONTH</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Day of a month</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-dayofmonth"><span class="std std-ref">DAYOFMONTH</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">DAY</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Day of the week</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-dayofweek"><span class="std std-ref">DAYOFWEEK</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">DAYOFWEEK</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Hour of the day</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-hour"><span class="std std-ref">HOUR</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">HOUR</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Minute of the hour</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-minute"><span class="std std-ref">MINUTE</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">MINUTE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Second of the minute</p></td>
+<td><p><a class="reference internal" href="../../dates.html#sql-date-second"><span class="std std-ref">SECOND</span></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">SECOND</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Extract year value from <code class="code docutils literal notranslate"><span class="pre">TIMESTAMP</span></code> column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="k">YEAR</span> <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Extract second value from <code class="code docutils literal notranslate"><span class="pre">TIMESTAMP</span></code> column.</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="k">SECOND</span> <span class="k">FROM</span> <span class="o">&lt;</span><span class="n">col_1</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="o">&lt;</span><span class="k">table_name</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
