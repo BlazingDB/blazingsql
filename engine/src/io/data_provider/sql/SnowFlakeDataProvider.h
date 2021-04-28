@@ -5,11 +5,8 @@
 #ifndef SNOWFLAKEDATAPROVIDER_H_
 #define SNOWFLAKEDATAPROVIDER_H_
 
-#include <cstddef>
 #include "AbstractSQLDataProvider.h"
 
-#include <sql.h>
-#include <sqlext.h>
 #include <sqltypes.h>
 
 namespace ral {

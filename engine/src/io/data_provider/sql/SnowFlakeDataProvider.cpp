@@ -6,6 +6,13 @@
 
 #include "SnowFlakeDataProvider.h"
 
+// trick to avoid compilation errores from arrow data type bool
+// TODO: change abstractsql_data_provider hierarchy to follow the private
+// implementation patterns to fix the coupling and linking issues
+#define BOOL int
+#include <sql.h>
+#include <sqlext.h>
+
 namespace ral {
 namespace io {
 
@@ -229,13 +236,21 @@ data_handle snowflake_data_provider::get_next(bool open_file) {
     throw std::runtime_error("SnowFlake: exec direct getting next batch");
   }
 
-  auto sqlHStmt_deleter = [](SQLHSTMT sqlHStmt) {
-    if (SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt) != SQL_SUCCESS) {
-      throw std::runtime_error("SnowFlake: free statement for get next batch");
-    }
-  };
-  handle.sql_handle.snowflake_statement.reset(sqlHStmt, sqlHStmt_deleter);
-  //handle.sql_handle.row_count = PQntuples(result);
+  // auto sqlHStmt_deleter = [](SQLHSTMT sqlHStmt) {
+  // if (SQLFreeHandle(SQL_HANDLE_STMT, sqlHStmt) != SQL_SUCCESS) {
+  // throw std::runtime_error("SnowFlake: free statement for get next batch");
+  //}
+  //};
+  // handle.sql_handle.snowflake_statement.reset(sqlHStmt, sqlHStmt_deleter);
+
+  SQLLEN RowCount = 0;
+  sqlReturn = SQLRowCount(sqlHStmt, &RowCount);
+  if (sqlReturn != SQL_SUCCESS) {
+    throw std::runtime_error("SnowFlake: getting row count for query: " +
+                             query);
+  }
+  handle.sql_handle.row_count = static_cast<std::size_t>(RowCount);
+
   handle.uri = Uri("snowflake", "", sql.schema + "/" + sql.table, "", "");
 
   return handle;

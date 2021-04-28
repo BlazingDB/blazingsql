@@ -44,7 +44,8 @@
 #endif
 
 #ifdef SNOWFLAKE_SUPPORT
-#include <sql.h>
+#include <sqltypes.h>
+#undef BOOL  // trick to avoid compilation errores from arrow data type bool
 #endif
 
 namespace ral {
@@ -66,7 +67,7 @@ struct sql_datasource {
   std::shared_ptr<PGresult> postgresql_result = nullptr;
 #endif
 #ifdef SNOWFLAKE_SUPPORT
-  std::shared_ptr<SQLHSTMT> snowflake_statement = nullptr;
+  std::shared_ptr<SQLHSTMT> snowflake_sqlhdbc = nullptr;
 #endif
   // TODO percy c.gonzales add other backends here
 };

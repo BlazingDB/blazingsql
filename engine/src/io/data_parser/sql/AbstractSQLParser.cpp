@@ -26,7 +26,7 @@
 #endif
 
 #ifdef SNOWFLAKE_SUPPORT
-#include <sql.h>
+#include <sqltypes.h>
 #endif
 
 namespace ral {
@@ -75,9 +75,9 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 #endif
   }
 
-  if (type() == DataType::SQLITE) {
+  if (type() == DataType::SNOWFLAKE) {
 #if defined(SNOWFLAKE_SUPPORT)
-    src = handle.sql_handle.snowflake_statement.get();
+    src = handle.sql_handle.snowflake_sqlhdbc.get();
 #else
     throw std::runtime_error(
       "Unsupported SnowFlake parser for this BlazingSQL version");
