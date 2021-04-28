@@ -482,50 +482,8 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         break;
     }
     case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
-    {
-        assert(arg_tokens.size() == 1);
-
-        if (!is_var_column(arg_tokens[0])) {
-            // Will be handled by interops
-            break;
-        }
-
-        cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (is_type_string(column.type().id())) {
-            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}, "%Y-%m-%d %H:%M:%S");
-        }
-        break;
-    }
     case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
-    {
-        assert(arg_tokens.size() == 1);
-
-        if (!is_var_column(arg_tokens[0])) {
-            // Will be handled by interops
-            break;
-        }
-
-        cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (is_type_string(column.type().id())) {
-            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}, "%Y-%m-%d %H:%M:%S");
-        }
-        break;
-    }
     case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
-    {
-        assert(arg_tokens.size() == 1);
-
-        if (!is_var_column(arg_tokens[0])) {
-            // Will be handled by interops
-            break;
-        }
-
-        cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (is_type_string(column.type().id())) {
-            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS}, "%Y-%m-%d %H:%M:%S");
-        }
-        break;
-    }
     case operator_type::BLZ_CAST_TIMESTAMP:
     {
         assert(arg_tokens.size() == 1);
@@ -537,7 +495,24 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (is_type_string(column.type().id())) {
-            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
+            cudf::data_type type;
+            switch (op)
+            {
+            case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
+                type = cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS};
+                break;
+            case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+                type = cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+                break;
+            case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
+                type = cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS};
+                break;
+            default:
+                type = cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
+                break;
+            }    
+
+            computed_col = cudf::strings::to_timestamps(column, type, "%Y-%m-%d %H:%M:%S");
         }
         break;
     }
