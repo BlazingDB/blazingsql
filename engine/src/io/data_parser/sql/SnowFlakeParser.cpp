@@ -148,82 +148,82 @@ std::uint8_t snowflake_parser::parse_cudf_uint8(void *,
                                                 std::size_t,
                                                 std::size_t,
                                                 std::vector<std::uint8_t> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type uint8");
 }
 std::uint8_t snowflake_parser::parse_cudf_uint16(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  std::vector<std::uint16_t> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type uint16");
 }
 std::uint8_t snowflake_parser::parse_cudf_uint32(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  std::vector<std::uint32_t> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type uint3");
 }
 std::uint8_t snowflake_parser::parse_cudf_uint64(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  std::vector<std::uint64_t> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type uint64");
 }
 std::uint8_t snowflake_parser::parse_cudf_float32(void *,
                                                   std::size_t,
                                                   std::size_t,
                                                   std::vector<float> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type float32");
 }
 std::uint8_t snowflake_parser::parse_cudf_float64(void *,
                                                   std::size_t,
                                                   std::size_t,
                                                   std::vector<double> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type float64");
 }
 std::uint8_t snowflake_parser::parse_cudf_bool8(void *,
                                                 std::size_t,
                                                 std::size_t,
                                                 std::vector<std::int8_t> *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type bool8");
 }
 std::uint8_t snowflake_parser::parse_cudf_timestamp_days(void *,
                                                          std::size_t,
                                                          std::size_t,
                                                          cudf_string_col *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type timestamp days");
 }
 std::uint8_t snowflake_parser::parse_cudf_timestamp_seconds(void *,
                                                             std::size_t,
                                                             std::size_t,
                                                             cudf_string_col *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type timestamp seconds");
 }
 std::uint8_t
 snowflake_parser::parse_cudf_timestamp_milliseconds(void *,
                                                     std::size_t,
                                                     std::size_t,
                                                     cudf_string_col *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type timestamp milliseconds");
 }
 std::uint8_t
 snowflake_parser::parse_cudf_timestamp_microseconds(void *,
                                                     std::size_t,
                                                     std::size_t,
                                                     cudf_string_col *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type timestamp microseconds");
 }
 std::uint8_t
 snowflake_parser::parse_cudf_timestamp_nanoseconds(void *,
                                                    std::size_t,
                                                    std::size_t,
                                                    cudf_string_col *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type timestamp nanoseconds");
 }
 std::uint8_t snowflake_parser::parse_cudf_string(void *,
                                                  std::size_t,
                                                  std::size_t,
                                                  cudf_string_col *) {
-  throw std::runtime_error("Unsupported type");
+  throw std::runtime_error("Unsupported type string");
 }
 
 
