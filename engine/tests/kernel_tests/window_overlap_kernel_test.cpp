@@ -41,7 +41,7 @@ struct kernel_test_base : public ::testing::Test {
 		blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 		ral::memory::set_allocation_pools(4000000, 10,
 										4000000, 10, false, {});
-		int executor_threads = 10;
+		int executor_threads = 1; // WMS TODO reset this back to 10
 		ral::execution::executor::init_executor(executor_threads, 0.8);
 
 		graph = std::make_shared<ral::cache::graph>();
@@ -1922,8 +1922,10 @@ std::unique_ptr<BlazingTable> make_expected_window_function_output(CudfTableView
 
 	std::vector<std::unique_ptr<CudfColumn>> agg_results;
 	for (int col_ind = 0; col_ind < agg_col_indices.size(); col_ind++){
-		std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(full_data_cudf_view.column(col_ind), 
-			preceding_value + 1, following_value, 1, std::move(aggregations[col_ind]));
+		std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(full_data_cudf_view.column(agg_col_indices[col_ind]), 
+			preceding_value >= 0 ? preceding_value + 1: full_data_cudf_view.num_rows(),
+			following_value >= 0 ? following_value : full_data_cudf_view.num_rows(),
+			1, std::move(aggregations[col_ind]));
 		agg_results.push_back(std::move(windowed_col));
 	}
 	std::unique_ptr<cudf::table> result_table = std::make_unique<cudf::table>(std::move(agg_results));
@@ -1947,7 +1949,7 @@ TEST_F(UnboundedWindowNoPartition, BasicSingleNode) {
 
     CudfTableView full_data_cudf_view ({col0, col1, col2});
 
-	int preceding_value = 0;
+	int preceding_value = -1;
 	int following_value = 0;
 	std::string frame_str = "ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW";
 	std::string project_plan = "LogicalProject(min_val1=[MIN($1) OVER (ORDER BY $0 " + frame_str + ")],";
@@ -1965,8 +1967,8 @@ TEST_F(UnboundedWindowNoPartition, BasicSingleNode) {
     std::vector<std::string> names({"A", "B", "C"});
     
     std::vector<std::unique_ptr<BlazingTable>> intput_batches = make_expected_accumulator_output(full_data_cudf_view,
-                                                                                               preceding_value,
-                                                                                               following_value,
+                                                                                               preceding_value < 0 ? 0 : preceding_value,
+																							   following_value < 0 ? 0 : following_value,                                                                                               
                                                                                                batch_sizes, names);
 
 	// make the expected output

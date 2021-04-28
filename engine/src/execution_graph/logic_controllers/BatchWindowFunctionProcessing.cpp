@@ -1134,12 +1134,11 @@ std::unique_ptr<CudfColumn> ComputeWindowKernelUnbounded::compute_column_from_wi
             windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, window_aggregation);
         }
     } else {
-        if (window_expression_contains_bounds(this->expression)) {
-            // TODO: for now just ROWS bounds works (not RANGE)
-            windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
-        } else {
-           throw std::runtime_error("Window functions without partitions and without bounded windows are currently not supported");
-        }
+        // TODO: for now just ROWS bounds works (not RANGE)
+        windowed_col = cudf::rolling_window(col_view_to_agg, 
+                    this->preceding_value >= 0 ? this->preceding_value + 1: col_view_to_agg.size(),
+                    this->following_value >= 0 ? this->following_value : col_view_to_agg.size(),
+                    1, window_aggregation);        
     }
 
     return std::move(windowed_col);
