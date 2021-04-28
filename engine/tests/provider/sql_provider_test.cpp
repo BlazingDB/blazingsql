@@ -1,9 +1,11 @@
 #include "io/data_parser/sql/MySQLParser.h"
 #include "io/data_parser/sql/PostgreSQLParser.h"
 #include "io/data_parser/sql/SQLiteParser.h"
+#include "io/data_parser/sql/SnowFlakeParser.h"
 #include "io/data_provider/sql/MySQLDataProvider.h"
 #include "io/data_provider/sql/PostgreSQLDataProvider.h"
 #include "io/data_provider/sql/SQLiteDataProvider.h"
+#include "io/data_provider/sql/SnowFlakeDataProvider.h"
 #include "tests/utilities/BlazingUnitTest.h"
 #include "utilities/DebuggingUtils.h"
 #include <cudf_test/column_utilities.hpp>
@@ -247,4 +249,19 @@ TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   for(cudf::size_type i = 0; i < static_cast<cudf::size_type>(num_cols); i++) {
     cudf::test::print(tv.column(i));
   }
+}
+
+TEST_F(SQLProviderTest, DISABLED_snowflake_select_all) {
+  ral::io::sql_info sql;
+  sql.host = "localhost";
+  sql.port = 5432;
+  sql.user = "myadmin";
+  sql.password = "";
+  sql.schema = "pagila";
+  sql.table = "prueba5";
+  sql.table_filter = "";
+  sql.table_batch_size = 2000;
+
+  auto snowflake_provider =
+      std::make_shared<ral::io::snowflake_data_provider>(sql, 1, 0);
 }
