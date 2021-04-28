@@ -1,6 +1,6 @@
 #include "CalciteInterpreter.h"
-#include "CodeTimer.h"
-#include "execution_graph/logic_controllers/execution_graph/PhysicalPlanGenerator.h"
+#include "utilities/CodeTimer.h"
+#include "execution_graph/PhysicalPlanGenerator.h"
 
 using namespace fmt::literals;
 

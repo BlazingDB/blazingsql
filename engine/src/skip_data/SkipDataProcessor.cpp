@@ -5,11 +5,11 @@
 
 #include "SkipDataProcessor.h"
 
-#include "execution_graph/logic_controllers/blazing_table/BlazingColumnView.h"
+#include "blazing_table/BlazingColumnView.h"
 #include <cudf/column/column_factories.hpp>
-#include "CalciteExpressionParsing.h"
-#include "execution_graph/logic_controllers/execution_kernels/LogicalFilter.h"
-#include "execution_graph/logic_controllers/execution_kernels/LogicalProject.h"
+#include "parser/CalciteExpressionParsing.h"
+#include "execution_kernels/LogicalFilter.h"
+#include "execution_kernels/LogicalProject.h"
 #include "error.hpp"
 
 #include <numeric>

@@ -4,10 +4,10 @@
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
-#include "execution_graph/logic_controllers/cache_machine/CacheMachine.h"
-#include "execution_graph/logic_controllers/execution_kernels/kernel.h"
-#include "execution_graph/logic_controllers/execution_graph/graph.h"
-#include "execution_graph/logic_controllers/execution_kernels/BatchProcessing.h"
+#include "cache_machine/CacheMachine.h"
+#include "execution_kernels/kernel.h"
+#include "execution_graph/graph.h"
+#include "execution_kernels/BatchProcessing.h"
 
 #include <memory>
 #include <cudf_test/base_fixture.hpp>

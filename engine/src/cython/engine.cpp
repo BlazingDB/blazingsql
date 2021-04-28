@@ -11,13 +11,13 @@
 #include "../io/data_provider/ArrowDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
-#include "../execution_graph/logic_controllers/execution_kernels/LogicalFilter.h"
+#include "../execution_kernels/LogicalFilter.h"
 
 #include <numeric>
 #include <map>
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
-#include "CodeTimer.h"
+#include "utilities/CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
 

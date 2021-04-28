@@ -45,14 +45,14 @@
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
-#include "execution_graph/logic_controllers/execution_kernels/kernel.h"
-#include "execution_graph/logic_controllers/execution_graph/executor.h"
+#include "execution_kernels/kernel.h"
+#include "execution_graph/executor.h"
 
 #include "error.hpp"
 
 using namespace fmt::literals;
 
-#include "execution_graph/logic_controllers/cache_machine/CacheMachine.h"
+#include "cache_machine/CacheMachine.h"
 
 #include "engine/initialize.h"
 #include "engine/static.h" // this contains function call for getProductDetails

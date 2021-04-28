@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "cudf/types.hpp"
-#include "execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 namespace ral {
 namespace io {
 

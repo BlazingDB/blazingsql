@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include <execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h>
-#include <execution_graph/logic_controllers/execution_graph/graph.h>
+#include <execution_kernels/LogicPrimitives.h>
+#include <execution_graph/graph.h>
 #include "../../src/error.hpp"
 
 std::string runGeneratePhysicalGraph(uint32_t masterIndex,

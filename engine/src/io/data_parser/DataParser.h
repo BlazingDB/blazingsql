@@ -12,7 +12,7 @@
 #include "../DataType.h"
 #include "../data_provider/DataProvider.h"
 
-#include "execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>

@@ -8,7 +8,7 @@
 #include "node.hpp"
 #include "utilities/ctpl_stl.h"
 #include <arpa/inet.h>
-#include "execution_graph/logic_controllers/execution_graph/graph.h"
+#include "execution_graph/graph.h"
 
 namespace io{
     void read_from_socket(int socket_fd, void * data, size_t read_size);

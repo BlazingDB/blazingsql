@@ -2,7 +2,7 @@
 #include "src/communication/CommunicationInterface/messageReceiver.hpp"
 #include "src/communication/CommunicationInterface/messageSender.hpp"
 #include "src/communication/CommunicationInterface/messageListener.hpp"
-#include <src/execution_graph/logic_controllers/cache_machine/CacheMachine.h>
+#include <src/cache_machine/CacheMachine.h>
 
 
 #include <memory>

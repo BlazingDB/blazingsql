@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
-#include "execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 
 
 namespace ral {

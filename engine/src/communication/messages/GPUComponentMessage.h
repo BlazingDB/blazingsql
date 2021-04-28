@@ -23,8 +23,8 @@
 #include <cudf/types.hpp>
 #include <cudf/strings/strings_column_view.hpp>
 
-#include <execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h>
-#include <execution_graph/logic_controllers/blazing_table/BlazingHostTable.h>
+#include <execution_kernels/LogicPrimitives.h>
+#include <blazing_table/BlazingHostTable.h>
 namespace ral {
 namespace communication {
 namespace messages {

@@ -9,7 +9,7 @@
 #include <regex>
 #include <cudf/types.hpp>
 
-#include "CalciteExpressionParsing.h"
+#include "parser/CalciteExpressionParsing.h"
 #include "utilities/CommonOperations.h"
 #include "skip_data/utils.hpp"
 #include "expression_utils.hpp"

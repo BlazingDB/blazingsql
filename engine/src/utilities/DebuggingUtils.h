@@ -11,7 +11,7 @@
  * cudf test utils and we will be able to use print_* functions
 */
 
-#include "execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 
 namespace ral {
 namespace utilities {

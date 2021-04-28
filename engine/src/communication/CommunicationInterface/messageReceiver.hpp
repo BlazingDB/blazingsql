@@ -8,7 +8,7 @@
 #include <rmm/device_buffer.hpp>
 #include <transport/ColumnTransport.h>
 #include "bmr/BufferProvider.h"
-#include "execution_graph/logic_controllers/cache_machine/CacheMachine.h"
+#include "cache_machine/CacheMachine.h"
 
 
 namespace comm {

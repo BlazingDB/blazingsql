@@ -272,35 +272,35 @@ else()
 endif()
 
 ## Target source files
-set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/blazing_table/BlazingHostTable.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheDataIO.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheDataLocalFile.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/ConcatCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CPUCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/GPUCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/ArrowCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheMachine.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/LogicPrimitives.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/LogicalFilter.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/LogicalProject.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/blazing_table/BlazingColumnOwner.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_graph/port.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/kernel.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_graph/executor.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/distributing_kernel.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/kernel_type.cpp
+set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/blazing_table/BlazingHostTable.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/CacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/CacheDataIO.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/CacheDataLocalFile.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/ConcatCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/CPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/GPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/ArrowCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/cache_machine/CacheMachine.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/LogicPrimitives.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/LogicalFilter.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/LogicalProject.cpp
+              ${PROJECT_SOURCE_DIR}/src/blazing_table/BlazingColumnOwner.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/port.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/executor.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/distributing_kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/kernel_type.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/Context.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/BufferProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_graph/graph.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchAggregationProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchJoinProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchOrderByProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchUnionProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchWindowFunctionProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/graph.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/BatchAggregationProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/BatchJoinProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/BatchOrderByProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/BatchUnionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/BatchWindowFunctionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_kernels/BatchProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
@@ -325,7 +325,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/blazin
               ${PROJECT_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${PROJECT_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
               ${PROJECT_SOURCE_DIR}/src/utilities/transform.cu
-              ${PROJECT_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
+              ${PROJECT_SOURCE_DIR}/src/parser/CalciteExpressionParsing.cpp
               ${PROJECT_SOURCE_DIR}/src/io/DataLoader.cpp
               ${PROJECT_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
               ${PROJECT_SOURCE_DIR}/src/CalciteInterpreter.cpp
@@ -338,7 +338,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/blazin
               ${PROJECT_SOURCE_DIR}/src/cython/io.cpp
               ${PROJECT_SOURCE_DIR}/src/cython/errors.cpp
               ${PROJECT_SOURCE_DIR}/src/cython/engine.cpp
-              ${PROJECT_SOURCE_DIR}/src/distribution/primitives.cpp
+              ${PROJECT_SOURCE_DIR}/src/distribution_utils/primitives.cpp
 
               ${PROJECT_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationData.cpp

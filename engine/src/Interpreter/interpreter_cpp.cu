@@ -9,7 +9,7 @@
 #include <random>
 
 #include "interpreter_ops.cuh"
-#include "CalciteExpressionParsing.h"
+#include "parser/CalciteExpressionParsing.h"
 #include "error.hpp"
 #include <curand_kernel.h>
 
