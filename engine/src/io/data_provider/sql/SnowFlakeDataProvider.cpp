@@ -63,6 +63,7 @@ static inline std::string MapColumnType(const char buffer[],
   if (dataType == "text") { return "string"; }
   // maybe it could be use precision to check size tiny, small, big
   if (dataType == "number") { return scale ? "int64" : "float64"; }
+  if (dataType == "float") { return "float64"; }
   if (dataType == "date") { return "date"; }
   if (dataType == "boolean") { return "boolean"; }
   if (dataType == "timestamp_ltz") { return "timestamp"; }
