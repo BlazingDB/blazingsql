@@ -5,7 +5,7 @@
 
 #include "expression_utils.hpp"
 #include "parser/CalciteExpressionParsing.h"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 bool is_nullary_operator(operator_type op){
 switch (op)

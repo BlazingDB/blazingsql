@@ -11,10 +11,10 @@
 
 #include <spdlog/spdlog.h>
 #include "cudf/types.hpp"
-#include "error.hpp"
+#include "utilities/error.hpp"
 #include "utilities/CodeTimer.h"
-#include <execution_kernels/LogicPrimitives.h>
-#include <execution_graph/Context.h>
+#include "execution_kernels/LogicPrimitives.h"
+#include "execution_graph/Context.h"
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
 #include <exception>

@@ -10,7 +10,7 @@
 #include "parser/CalciteExpressionParsing.h"
 #include "execution_kernels/LogicalFilter.h"
 #include "execution_kernels/LogicalProject.h"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #include <numeric>
 

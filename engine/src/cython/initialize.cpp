@@ -38,7 +38,7 @@
 #include <bmr/initializer.h>
 #include <bmr/BlazingMemoryResource.h>
 
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #include "cudf/detail/gather.hpp"
 #include "communication/CommunicationInterface/node.hpp"
@@ -47,8 +47,6 @@
 #include "communication/CommunicationInterface/messageListener.hpp"
 #include "execution_kernels/kernel.h"
 #include "execution_graph/executor.h"
-
-#include "error.hpp"
 
 using namespace fmt::literals;
 

@@ -1,5 +1,5 @@
 #include "engine/engine.h"
-#include "../CalciteInterpreter.h"
+#include "../execution_graph/CalciteInterpreter.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/GDFParser.h"
@@ -19,7 +19,7 @@
 #include <spdlog/spdlog.h>
 #include "utilities/CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #ifdef MYSQL_SUPPORT
 #include "../io/data_parser/sql/MySQLParser.h"

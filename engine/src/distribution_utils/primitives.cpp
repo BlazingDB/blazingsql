@@ -14,7 +14,7 @@
 #include "utilities/CommonOperations.h"
 #include "operators/OrderBy.h"
 
-#include "error.hpp"
+#include "utilities/error.hpp"
 #include "utilities/ctpl_stl.h"
 #include <numeric>
 

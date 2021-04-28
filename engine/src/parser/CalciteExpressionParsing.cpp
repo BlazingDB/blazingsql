@@ -13,7 +13,7 @@
 #include <regex>
 
 #include <blazingdb/io/Util/StringUtil.h>
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #include "CalciteExpressionParsing.h"
 #include "cudf/binaryop.hpp"

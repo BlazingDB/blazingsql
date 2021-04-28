@@ -4,7 +4,7 @@
 #include "LogicalFilter.h"
 #include "LogicalProject.h"
 #include "parser/expression_utils.hpp"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 namespace ral {
 namespace processor {

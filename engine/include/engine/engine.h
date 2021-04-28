@@ -7,7 +7,7 @@
 
 #include <execution_kernels/LogicPrimitives.h>
 #include <execution_graph/graph.h>
-#include "../../src/error.hpp"
+#include "../../src/utilities/error.hpp"
 
 std::string runGeneratePhysicalGraph(uint32_t masterIndex,
                                      std::vector<std::string> worker_ids,

@@ -24,7 +24,7 @@
 #include <curand_kernel.h>
 
 #include "interpreter_cpp.h"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 namespace interops {
 

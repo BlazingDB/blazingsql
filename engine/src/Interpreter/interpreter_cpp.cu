@@ -10,7 +10,7 @@
 
 #include "interpreter_ops.cuh"
 #include "parser/CalciteExpressionParsing.h"
-#include "error.hpp"
+#include "utilities/error.hpp"
 #include <curand_kernel.h>
 
 namespace interops {

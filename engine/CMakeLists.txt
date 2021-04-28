@@ -328,7 +328,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/blazing_table/BlazingHostTable.cpp
               ${PROJECT_SOURCE_DIR}/src/parser/CalciteExpressionParsing.cpp
               ${PROJECT_SOURCE_DIR}/src/io/DataLoader.cpp
               ${PROJECT_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
-              ${PROJECT_SOURCE_DIR}/src/CalciteInterpreter.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/CalciteInterpreter.cpp
               ${PROJECT_SOURCE_DIR}/src/parser/expression_utils.cpp
               ${PROJECT_SOURCE_DIR}/src/parser/expression_tree.cpp
               ${PROJECT_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp

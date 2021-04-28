@@ -10,7 +10,7 @@
 #include <arrow/table.h>
 #include <memory>
 #include <execution_kernels/LogicPrimitives.h>
-#include "../../src/error.hpp"
+#include "../../src/utilities/error.hpp"
 
 typedef ral::io::DataType DataType;
 

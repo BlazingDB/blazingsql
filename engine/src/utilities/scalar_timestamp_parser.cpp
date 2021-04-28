@@ -3,7 +3,7 @@
 #include <cudf/scalar/scalar_factories.hpp>
 #include <map>
 
-#include "../error.hpp"
+#include "error.hpp"
 
 namespace strings {
 namespace detail {
