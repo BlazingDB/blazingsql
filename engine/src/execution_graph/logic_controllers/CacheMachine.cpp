@@ -789,7 +789,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 
 			auto data = collected_messages[i]->release_data();
 			tables.push_back(data->decache());
-
 			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
 			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables)){
 				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables.back()));

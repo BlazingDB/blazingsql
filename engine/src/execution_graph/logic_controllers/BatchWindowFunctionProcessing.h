@@ -68,6 +68,7 @@ const std::string TASK_ARG_OVERLAP_SIZE="overlap_size";
 const std::string TASK_ARG_SOURCE_BATCH_INDEX="source_batch_index";
 const std::string TASK_ARG_TARGET_BATCH_INDEX="target_batch_index";
 const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
+const std::string TASK_ARG_BATCH_INDEX="batch_index";
 
 const std::string PRECEDING_OVERLAP_TYPE="preceding";
 const std::string FOLLOWING_OVERLAP_TYPE="following";
@@ -76,10 +77,12 @@ const std::string PRECEDING_REQUEST="preceding_request";
 const std::string FOLLOWING_REQUEST="following_request";
 const std::string PRECEDING_RESPONSE="preceding_response";
 const std::string FOLLOWING_RESPONSE="following_response";
+const std::string MERGE_EXPRESSIONS="merge_expressions";
+const std::string MERGE_AGGREGATION="merge_aggregation";
 
 
 /**
-* The OverlapGeneratorKernel is only used for window functions that have no partition by clause and that also have bounded window frames.
+* @brief The OverlapGeneratorKernel is only used for window functions that have no partition by clause and that also have bounded window frames.
 * The OverlapGeneratorKernel assumes that it will be following by OverlapAccumulatorKernel and has three output caches:
 * - "batches"
 * - "preceding_overlaps"
@@ -118,7 +121,7 @@ private:
 
 
 /**
-* The OverlapAccumulatorKernel assumes three input caches:
+* @brief The OverlapAccumulatorKernel assumes three input caches:
 * - "batches"
 * - "preceding_overlaps"
 * - "following_overlaps"
@@ -188,6 +191,101 @@ private:
 	std::vector<std::string> col_names;
 	std::vector<cudf::data_type> schema;
 };
+
+
+
+/**
+* @brief The ComputeWindowKernelUnbounded is only used for window functions that have no partition by clause and that also have unbounded window frames.
+* The ComputeWindowKernelUnbounded assumes that it will be followed by WindowAggMergerKernel and has two output caches:
+* - "batches"
+* - "cumulative_aggregations"
+*
+* Its purpose is to take is to compute the main Window Function (ROW_NUMBER, LAG, LEAD, MIN, ...) to each batch 
+* which has already pattitioned and sorted, much like ComputeWindowKernel. Additionally it will calculate partial aggregation values and send them all to the 
+* mater node. The master node will accumulate the partial aggregation values and calculate cumulative aggregation values for the whole cluster.
+* Then the master node will send back out to all other nodes the cumulative aggregation values that correspond to each node and add them to the cumulative_aggregations CacheMachine. 
+*/
+
+class ComputeWindowKernelUnbounded : public distributing_kernel {
+public:
+	ComputeWindowKernelUnbounded(std::size_t kernel_id, const std::string & queryString,
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
+
+	std::unique_ptr<CudfColumn> compute_column_from_window_function(
+		cudf::table_view input_cudf_view,
+		cudf::column_view input_col_view,
+		std::size_t pos);
+
+	std::string kernel_name() { return "ComputeWindowUnbounded";}
+
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+
+	kstatus run() override;
+
+private:
+// ComputeWindowKernelUnbounded(min_keys=[MIN($0) OVER (ORDER BY $3 DESC)], lag_col=[MAX($0) OVER (PARTITION BY $1)], n_name=[$2])
+	std::vector<int> column_indices_partitioned;   // column indices to be partitioned: [1]
+	std::vector<int> column_indices_ordered;   	   // column indices to be ordered: [3]
+	std::vector<int> column_indices_to_agg;        // column indices to be agg: [0, 0]
+	std::vector<int> agg_param_values;     		   // due to LAG or LEAD: [0, 0]
+	int preceding_value;     	                   // X PRECEDING
+	int following_value;     		               // Y FOLLOWING
+	std::string frame_type;                        // ROWS or RANGE
+	std::vector<std::string> type_aggs_as_str;     // ["MIN", "MAX"]
+	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::MAX]
+	bool remove_overlap; 						   // If we need to remove the overlaps after computing the windows
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> partial_aggregations;   // container to hold single row tables of the partial_aggregation values for each batch
+};
+
+
+
+/**
+* @brief The WindowAggMergerKernel is only used for window functions that have no partition by clause and that also have unbounded window frames.
+* The WindowAggMergerKernel assumes that it was preceded by ComputeWindowKernelUnbounded and has two input caches:
+* - "batches"
+* - "cumulative_aggregations"
+*
+* Its purpose is to take the cumulative_aggregations and merge them with each corresponding batch. 
+*/
+class WindowAggMergerKernel : public kernel {
+public:
+	WindowAggMergerKernel(std::size_t kernel_id, const std::string & queryString,
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
+
+	std::string kernel_name() { return "WindowAggMerger";}
+
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+
+	kstatus run() override;
+
+private:
+
+	std::vector<std::vector<std::string>> get_merge_expressions_per_batch(
+    	const std::vector<std::vector<std::string>> & cumulative_aggregations_str);
+
+	std::vector<std::vector<std::string>> get_cumulative_aggregations_as_strings(cudf::table_view cumulative_aggregations_view);
+
+	// WindowAggMergerKernel(min_keys=[MIN($0) OVER (ORDER BY $3 DESC)], lag_col=[MAX($0) OVER (PARTITION BY $1)], n_name=[$2])
+	std::vector<int> column_indices_partitioned;   // column indices to be partitioned: [1]
+	std::vector<int> column_indices_ordered;   	   // column indices to be ordered: [3]
+	std::vector<int> column_indices_to_agg;        // column indices to be agg: [0, 0]
+	std::vector<int> agg_param_values;     		   // due to LAG or LEAD: [0, 0]
+	int preceding_value;     	                   // X PRECEDING
+	int following_value;     		               // Y FOLLOWING
+	std::string frame_type;                        // ROWS or RANGE
+	std::vector<std::string> type_aggs_as_str;     // ["MIN", "MAX"]
+	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::MAX]
+
+	std::vector<std::vector<std::string>> merge_expressions_per_batch;
+
+};
+
 
 
 } // namespace batch

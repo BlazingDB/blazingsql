@@ -34,9 +34,9 @@ std::shared_ptr<ral::cache::CacheMachine> kernel::output_cache(std::string cache
     return this->output_.get_cache(cache_id);
 }
 
-std::shared_ptr<ral::cache::CacheMachine> kernel::input_cache() {
-    auto kernel_id = std::to_string(this->get_id());
-    return this->input_.get_cache(kernel_id);
+std::shared_ptr<ral::cache::CacheMachine> kernel::input_cache(std::string cache_id) {
+    cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+    return this->input_.get_cache(cache_id);
 }
 
 bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id, bool always_add) {

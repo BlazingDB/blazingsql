@@ -310,7 +310,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 	for (auto && cache_data : _cache_datas){
 		tables.push_back(cache_data->decache());
-		
+	
 		RAL_EXPECTS(!ral::utilities::checkIfConcatenatingStringsWillOverflow(tables), "Concatenating tables will overflow");
 	}
 	return ral::utilities::concatTables(std::move(tables));

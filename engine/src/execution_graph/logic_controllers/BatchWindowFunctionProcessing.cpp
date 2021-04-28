@@ -4,6 +4,7 @@
 
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/CacheData.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
 #include "taskflow/executor.h"
 #include "CodeTimer.h"
 
@@ -15,14 +16,19 @@
 #include <cudf/stream_compaction.hpp>
 #include "cudf/column/column_view.hpp"
 #include <cudf/rolling.hpp>
-#include <cudf/filling.hpp>
+#include <cudf/reduction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/types.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/filling.hpp>
 #include <cudf/aggregation.hpp>
 #include <cudf/search.hpp>
 #include <cudf/join.hpp>
 #include <cudf/sorting.hpp>
+
+
+// WSM this could be a problematic dependency
+#include <cudf_test/column_utilities.hpp> 
 
 namespace ral {
 namespace batch {
@@ -230,11 +236,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         } 
         
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
-
-        if (windowed_table) {
-            cudf::size_type num_rows = windowed_table->num_rows();
-            std::size_t num_bytes = windowed_table->sizeInBytes();
-        }
 
         output->addToCache(std::move(windowed_table));
     }catch(const rmm::bad_alloc& e){
@@ -996,6 +997,624 @@ In the future, when we can have CacheData's shared between nodes, then we can re
 */
 
 // END OverlapAccumulatorKernel
+
+
+
+// BEGIN ComputeWindowKernelUnbounded
+
+ComputeWindowKernelUnbounded::ComputeWindowKernelUnbounded(std::size_t kernel_id, const std::string & queryString,
+    std::shared_ptr<Context> context,
+    std::shared_ptr<ral::cache::graph> query_graph)
+    : distributing_kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
+    this->query_graph = query_graph;
+    std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+    this->frame_type = get_frame_type_from_over_clause(this->expression);
+
+    std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
+                                        get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
+    std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
+    std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
+
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
+    // if the window function has no partitioning but does have order by and a bounded window, then we need to remove the overlaps that are present in the data
+    if (column_indices_partitioned.size() == 0 && column_indices_ordered.size() > 0 && this->preceding_value > 0 && this->following_value > 0){
+        this->remove_overlap = true;
+    } else {
+        this->remove_overlap = false;
+    }
+
+    // batches is for the regular computed window function results
+    // cumulative_aggregations is the cumulative aggregation values
+    this->output_.add_port("batches", "cumulative_aggregations");    
+}
+
+// TODO: Support for RANK() and DENSE_RANK()
+std::unique_ptr<CudfColumn> ComputeWindowKernelUnbounded::compute_column_from_window_function(
+    cudf::table_view input_table_cudf_view,
+    cudf::column_view col_view_to_agg,
+    std::size_t pos) {
+
+    // we want firs get the type of aggregation
+    std::unique_ptr<cudf::aggregation> window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->agg_param_values[pos]);
+
+    // want all columns to be partitioned
+    std::vector<cudf::column_view> columns_to_partition;
+    for (std::size_t col_i = 0; col_i < this->column_indices_partitioned.size(); ++col_i) {
+        columns_to_partition.push_back(input_table_cudf_view.column(this->column_indices_partitioned[col_i]));
+    }
+
+    cudf::table_view partitioned_table_view(columns_to_partition);
+
+    std::unique_ptr<CudfColumn> windowed_col;
+    if (window_expression_contains_partition_by(this->expression)) {
+        if (is_first_value_window(this->type_aggs_as_str[pos]) || is_last_value_window(this->type_aggs_as_str[pos])) {
+
+            if (is_last_value_window(this->type_aggs_as_str[pos])) {
+                // We want also all the ordered columns
+                for (std::size_t col_i = 0; col_i < this->column_indices_ordered.size(); ++col_i) {
+                    columns_to_partition.push_back(input_table_cudf_view.column(this->column_indices_ordered[col_i]));
+                }
+
+                partitioned_table_view = {{cudf::table_view(columns_to_partition)}};
+            }
+
+            // first: we want to get all the first (or last) values (due to the columns to partition)
+            std::vector<cudf::groupby::aggregation_request> requests;
+            requests.emplace_back(cudf::groupby::aggregation_request());
+            requests[0].values = col_view_to_agg;
+            requests[0].aggregations.push_back(std::move(window_aggregation));
+
+            cudf::groupby::groupby gb_obj(cudf::table_view({partitioned_table_view}), cudf::null_policy::INCLUDE, cudf::sorted::YES, {}, {});
+            std::pair<std::unique_ptr<cudf::table>, std::vector<cudf::groupby::aggregation_result>> result = gb_obj.aggregate(requests);
+
+            windowed_col = std::move(result.second[0].results[0]);
+
+            // if exists duplicated values (in partitioned_table_view) we want to fill `windowed_col` with repeated values
+            // So let's do a join
+            if (windowed_col->size() < col_view_to_agg.size()) {
+                std::vector<std::unique_ptr<cudf::column>> keys_grouped = result.first->release();
+                keys_grouped.push_back(std::move(windowed_col));
+
+                std::unique_ptr<cudf::table> left_table = std::make_unique<cudf::table>(std::move(keys_grouped));
+
+                // Let's get all the necessary params for the join
+                // we just want the key columns, not the values column (which is the last column)
+                std::vector<cudf::size_type> left_column_indices(left_table->num_columns() - 1);
+                std::iota(left_column_indices.begin(), left_column_indices.end(), 0);
+
+                std::vector<cudf::size_type> right_column_indices(partitioned_table_view.num_columns());
+                std::iota(right_column_indices.begin(), right_column_indices.end(), 0);
+
+                std::unique_ptr<cudf::table> join_table = cudf::inner_join(
+                                                            left_table->view(),
+                                                            partitioned_table_view,
+                                                            left_column_indices,
+                                                            right_column_indices
+                                                            );
+
+                // Because the values column is unordered, we want to sort it
+                std::vector<cudf::null_order> null_orders(join_table->num_columns(), cudf::null_order::AFTER);
+
+                // partition by is always in ASCENDING order
+                std::vector<cudf::order> sortOrderTypes(join_table->num_columns(), cudf::order::ASCENDING);
+                std::unique_ptr<cudf::table> sorted_table = cudf::sort(join_table->view(), sortOrderTypes, null_orders);
+
+                size_t position_of_values_column = left_table->num_columns() - 1;
+                windowed_col = std::move(sorted_table->release()[position_of_values_column]);
+            }
+        }
+         else if (window_expression_contains_order_by(this->expression)) {
+            if (window_expression_contains_bounds(this->expression)) {
+                // TODO: for now just ROWS bounds works (not RANGE)
+                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 
+                    this->preceding_value >= 0 ? this->preceding_value + 1: partitioned_table_view.num_rows(), 
+                    this->following_value >= 0 ? this->following_value : partitioned_table_view.num_rows(), 
+                    1, window_aggregation);
+            } else {
+                if (this->type_aggs_as_str[pos] == "LEAD") {
+                    windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 0, col_view_to_agg.size(), 1, window_aggregation);
+                } else {
+                    windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), 0, 1, window_aggregation);
+                }
+            }
+        } else {
+            windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, window_aggregation);
+        }
+    } else {
+        if (window_expression_contains_bounds(this->expression)) {
+            // TODO: for now just ROWS bounds works (not RANGE)
+            windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
+        } else {
+           throw std::runtime_error("Window functions without partitions and without bounded windows are currently not supported");
+        }
+    }
+
+    return std::move(windowed_col);
+}
+
+ral::execution::task_result ComputeWindowKernelUnbounded::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+
+        
+    if (inputs.size() == 0) {
+        return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+
+    try{
+        cudf::table_view input_table_cudf_view = input->view();
+
+        std::vector<std::string> input_names = input->names();
+        
+        std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
+        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+            cudf::column_view col_view_to_agg = input_table_cudf_view.column(column_indices_to_agg[col_i]);
+
+            // calling main window function
+            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_table_cudf_view, col_view_to_agg, col_i);
+            new_wf_cols.push_back(std::move(windowed_col));
+        }
+
+        std::unique_ptr<cudf::table> cudf_table_input = input->releaseCudfTable();
+        std::vector< std::unique_ptr<CudfColumn> > input_cudf_columns = cudf_table_input->release();
+
+        size_t total_output_columns = input_cudf_columns.size() + new_wf_cols.size();
+        size_t num_input_cols = input_cudf_columns.size();
+        std::vector<std::string> output_names;
+        std::vector< std::unique_ptr<CudfColumn> > output_columns;
+        std::vector<int> window_func_col_indices;
+
+        for (size_t col_i = 0; col_i < total_output_columns; ++col_i) {
+            // appending wf columns
+            if (col_i >= num_input_cols) {
+                output_columns.push_back(std::move(new_wf_cols[col_i - num_input_cols]));
+                output_names.push_back("");
+                window_func_col_indices.push_back(col_i);
+            } else {
+                output_columns.push_back(std::move(input_cudf_columns[col_i]));
+                output_names.push_back(input_names[col_i]);
+            }
+        }
+
+        std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
+        if (this->remove_overlap){
+            bool remove_preceding = args.at(TASK_ARG_REMOVE_PRECEDING_OVERLAP) == TRUE;
+            bool remove_following = args.at(TASK_ARG_REMOVE_FOLLOWING_OVERLAP) == TRUE;
+
+            if (remove_preceding || remove_following) {
+                std::vector<cudf::size_type> split_indexes;
+                if (remove_preceding) {
+                    split_indexes.push_back(this->preceding_value);
+                }
+                if (remove_following) {
+                    split_indexes.push_back(cudf_table_window->num_rows() - this->following_value);
+                }
+
+                auto split_window_view = cudf::split(cudf_table_window->view(), split_indexes);
+                std::unique_ptr<cudf::table> temp_table_window;
+                if (remove_preceding){
+                    temp_table_window = std::make_unique<cudf::table>(split_window_view[1]);
+                } else {
+                    temp_table_window = std::make_unique<cudf::table>(split_window_view[0]);
+                }
+                cudf_table_window = std::move(temp_table_window);
+            }
+        } 
+        
+        std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
+
+        // // get partial_aggregations from windowed_table
+        // if (this->aggs_wind_func == AggregateKind::RANK){
+        //     // TODO throw error. not yet implemented
+        //     // partial_aggregation = last rank value of batch + number of elements with that rank value - 1
+        // } else if (this->aggs_wind_func == AggregateKind::DENSE_RANK){
+        //     // TODO throw error. not yet implemented
+        //     // partial_aggregation = last dense rank value of batch
+        // } else {
+            auto windowed_table_cudf_view = windowed_table->view();
+            std::vector<cudf::column_view> window_agg_columns;
+            std::vector<std::string> window_agg_column_names;
+            for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {            
+                window_agg_columns.push_back(windowed_table_cudf_view.column(window_func_col_indices[col_i]));
+                window_agg_column_names.push_back(windowed_table->names()[window_func_col_indices[col_i]]);
+            }
+            cudf::table_view window_agg_table_view(window_agg_columns);
+            cudf::table_view partial_aggregations_table_view;
+            if (window_agg_table_view.num_rows() > 2){
+                if (this->preceding_value == -1) { // is unbounded
+                    // want to get last value
+                    std::vector<cudf::table_view> split_window_view = cudf::split(window_agg_table_view, {window_agg_table_view.num_rows() - 2});
+                    partial_aggregations_table_view = split_window_view[1];
+                } else if (this->following_value == -1) { // is unbounded
+                    // want to get first value
+                    std::vector<cudf::table_view> split_window_view = cudf::split(window_agg_table_view, {1});
+                    partial_aggregations_table_view = split_window_view[0];
+                } else {
+                    // error one of the two should be unbounded otherwise we should not be in this kernel
+                }
+            } else {
+                partial_aggregations_table_view = window_agg_table_view;
+            }
+            ral::frame::BlazingTableView partial_aggregations_BlazingTableView(partial_aggregations_table_view, window_agg_column_names);
+            partial_aggregations.push_back(std::move(partial_aggregations_BlazingTableView.clone()));
+            
+        // }
+        
+        output->addToCache(std::move(windowed_table));
+    }catch(const rmm::bad_alloc& e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(const std::exception& e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+}
+
+kstatus ComputeWindowKernelUnbounded::run() {
+    CodeTimer timer;
+
+    int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+    int num_nodes = context->getTotalNodes();
+
+    bool is_first_batch = true;
+    bool is_last_batch = false;
+    bool is_first_node = self_node_idx == 0;
+    bool is_last_node = self_node_idx == num_nodes - 1;
+    
+    std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+
+    if (this->remove_overlap){
+        while (cache_data != nullptr ){
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            cache_data = this->input_cache()->pullCacheData();
+            if (cache_data == nullptr){
+                is_last_batch = true;
+            }
+
+            std::map<std::string, std::string> task_args;
+            task_args[TASK_ARG_REMOVE_PRECEDING_OVERLAP] = !(is_first_batch && is_first_node) ? TRUE : FALSE;
+            task_args[TASK_ARG_REMOVE_FOLLOWING_OVERLAP] = !(is_last_batch && is_last_node) ? TRUE : FALSE;            
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this, 
+                    task_args);
+
+            is_first_batch = false;
+        }
+    } else {
+        while (cache_data != nullptr ){
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+
+            cache_data = this->input_cache()->pullCacheData();
+        }
+    }
+
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
+
+    // WSM TODO we dont really want concatTables to be in the run function. This whole block of code below should probably be a task
+	std::unique_ptr<ral::frame::BlazingTable> partial_aggregations_table = ral::utilities::concatTables(std::move(this->partial_aggregations));
+    partial_aggregations_table->ensureOwnership();
+
+
+    // WSM TODO distributed vs single node????
+    if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
+        std::vector<std::string> agg_column_names = partial_aggregations_table->names();
+        auto nodes = context->getAllNodes();
+        std::vector<std::unique_ptr<ral::frame::BlazingTable>> node_partial_aggregations;
+        std::vector<cudf::size_type> num_batches_per_node;
+        for(std::size_t i = 0; i < nodes.size(); ++i) {
+            if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
+                std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
+                auto partial_aggregations_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
+                num_batches_per_node.push_back(partial_aggregations_cache_data->num_rows());
+                node_partial_aggregations.push_back(std::move(partial_aggregations_cache_data->decache()));
+            } else {
+                num_batches_per_node.push_back(partial_aggregations_table->num_rows());
+                node_partial_aggregations.push_back(std::move(partial_aggregations_table));
+            }
+        }
+
+        std::unique_ptr<ral::frame::BlazingTable> all_partial_aggregations_table = ral::utilities::concatTables(std::move(node_partial_aggregations));
+        // Perform cumulative aggregation 
+        std::vector<std::unique_ptr<cudf::column>> cumulative_agg_columns;
+        std::unique_ptr<cudf::column> reverse_sequence; // if we need it, we only want to create it once, so I will declare it out here
+        for (std::size_t col_i = 0; col_i < this->aggs_wind_func.size(); ++col_i) {
+            std::unique_ptr<cudf::aggregation> window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[col_i], this->agg_param_values[col_i]);
+
+            cudf::column_view partial_agg_column_view = all_partial_aggregations_table->view().column(col_i);
+            std::unique_ptr<cudf::column> cumulative_agg_column;
+            if (this->preceding_value == -1) { // is unbounded
+                cumulative_agg_column = cudf::scan(partial_agg_column_view, window_aggregation, cudf::scan_type::INCLUSIVE);                
+            } 
+            if (this->following_value == -1) { // is unbounded
+                if (this->preceding_value == -1){ // if we already had to do preceding unbounded, we want to use the output of that
+                    partial_agg_column_view = cumulative_agg_column->view();
+                }
+                // before we do the scan, we will want to do a reverse on the data
+                // right now there is no reverse API (https://github.com/rapidsai/cudf/issues/7967) so we need to do a sequense and gather
+                if (reverse_sequence == nullptr){ // if not initialized
+                    reverse_sequence = cudf::sequence(all_partial_aggregations_table->num_rows(), 
+                                                        cudf::numeric_scalar(all_partial_aggregations_table->num_rows() - 1, true),  
+                                                        cudf::numeric_scalar(-1, true));
+                }
+
+                cudf::table_view temp_table_view({partial_agg_column_view});
+                std::unique_ptr<cudf::table> reversed = cudf::gather(temp_table_view, reverse_sequence->view());
+
+                // now we do the inclusive scan on the reversed data.
+                cumulative_agg_column = cudf::scan(reversed->get_column(0).view(), window_aggregation, cudf::scan_type::INCLUSIVE);
+                
+                // after we do the scan, we want to reverse the data back
+                temp_table_view = cudf::table_view({cumulative_agg_column->view()});
+                reversed = cudf::gather(temp_table_view, reverse_sequence->view());
+                std::vector<std::unique_ptr<cudf::column>> temp_released = reversed->release();
+                cumulative_agg_column = std::move(temp_released[0]);
+            }
+            cumulative_agg_columns.push_back(std::move(cumulative_agg_column));
+        }
+        std::unique_ptr<ral::frame::BlazingTable> cumulative_agg_table = std::make_unique<ral::frame::BlazingTable>(
+            std::make_unique<cudf::table>(std::move(cumulative_agg_columns)), agg_column_names);
+
+        std::vector<cudf::size_type> split_indexes(num_batches_per_node.size() - 1);
+        std::partial_sum(num_batches_per_node.begin(), num_batches_per_node.end()-1, split_indexes.begin());
+        std::vector<cudf::table_view> cumulative_agg_per_node = cudf::split(cumulative_agg_table->view(), split_indexes);
+
+        std::vector<ral::frame::BlazingTableView> bsql_cumulative_agg_per_node;
+        for(auto cumulative_agg : cumulative_agg_per_node) {
+            bsql_cumulative_agg_per_node.push_back(ral::frame::BlazingTableView(cumulative_agg, agg_column_names));
+        }
+
+        scatter(bsql_cumulative_agg_per_node,
+				this->output_.get_cache("cumulative_aggregations").get(),
+				"", //message_id_prefix
+				"cumulative_aggregations" //cache_id				
+			);
+        
+        
+    } else {
+        send_message(std::move(partial_aggregations_table),
+                false, //specific_cache
+                "", //cache_id
+                {this->context->getMasterNode().id()}, //target_id
+                "", //message_id_prefix
+                true); //always_add
+                
+    }
+
+    if (logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="ComputeWindowKernelUnbounded Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+    }
+    return kstatus::proceed;
+}
+
+// END ComputeWindowKernelUnbounded
+
+
+// BEGIN WindowAggMergerKernel
+
+WindowAggMergerKernel::WindowAggMergerKernel(std::size_t kernel_id, const std::string & queryString,
+    std::shared_ptr<Context> context,
+    std::shared_ptr<ral::cache::graph> query_graph)
+    : kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
+    this->query_graph = query_graph;
+    std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+    this->frame_type = get_frame_type_from_over_clause(this->expression);
+
+    std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
+                                        get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
+    std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
+    std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
+
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i], true);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
+
+    // batches is for the regular computed window function results
+    // cumulative_aggregations is the cumulative aggregation values
+    this->input_.add_port("batches", "cumulative_aggregations");    
+}
+
+
+ral::execution::task_result WindowAggMergerKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+
+    if (inputs.size() == 0) {
+        return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+    std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+    
+    auto& operation_type = args.at(TASK_ARG_OP_TYPE);    
+    if (operation_type == MERGE_EXPRESSIONS) {
+
+        try{
+            std::vector<std::vector<std::string>> cumulative_aggregations_str = get_cumulative_aggregations_as_strings(input->view());
+
+            RAL_EXPECTS(cumulative_aggregations_str.size() == this->aggs_wind_func.size(), 
+                "In WindowAggMergerKernel the number of aggregation window functions did not match the number of cumulative aggregation values received");
+
+            this->merge_expressions_per_batch = get_merge_expressions_per_batch(cumulative_aggregations_str);
+        }catch(const rmm::bad_alloc& e){
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+        }catch(const std::exception& e){
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        }
+
+    } else if (operation_type == MERGE_AGGREGATION) {
+        auto batch_index_string = args.at(TASK_ARG_BATCH_INDEX);
+        int batch_index = std::stoi(args.at(TASK_ARG_BATCH_INDEX));
+
+        std::vector<std::string> merge_expressions = this->merge_expressions_per_batch[batch_index];
+
+        try{
+            std::unique_ptr<ral::frame::BlazingTable> merged_aggs = std::make_unique<ral::frame::BlazingTable>(
+                ral::processor::evaluate_expressions(input->view(), merge_expressions), input->names());
+            output->addToCache(std::move(merged_aggs));
+        }catch(const rmm::bad_alloc& e){
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+        }catch(const std::exception& e){
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        }
+    } else {
+        throw std::runtime_error("WindowAggMergerKernel::do_process received unexpected operation type");
+    }
+
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+}
+
+
+std::vector<std::vector<std::string>> WindowAggMergerKernel::get_cumulative_aggregations_as_strings(
+    cudf::table_view cumulative_aggregations_view){
+    
+    std::vector<std::vector<std::string>> cumulative_aggregations_str;
+    const std::string DELIM = "{|]~";        
+    for (auto col_idx = 0; col_idx < cumulative_aggregations_view.num_columns(); col_idx++){
+        std::string col_string = cudf::test::to_string(cumulative_aggregations_view.column(col_idx), DELIM);
+        cumulative_aggregations_str.push_back(StringUtil::split(col_string, DELIM) );
+    }
+    return cumulative_aggregations_str;
+}
+
+std::vector<std::vector<std::string>> WindowAggMergerKernel::get_merge_expressions_per_batch(
+    const std::vector<std::vector<std::string>> & cumulative_aggregations_str){
+
+    std::vector<std::vector<std::string>> merge_expressions_per_batch(cumulative_aggregations_str[0].size());
+    for (auto row_idx = 0; merge_expressions_per_batch.size(); row_idx++){
+        merge_expressions_per_batch[row_idx].resize(cumulative_aggregations_str.size());
+    }
+
+    for (auto col_idx = 0; col_idx < this->aggs_wind_func.size(); col_idx++){
+        
+        auto agg_func = this->aggs_wind_func[col_idx];
+        if(agg_func == AggregateKind::SUM || agg_func == AggregateKind::SUM0 ||
+                    agg_func == AggregateKind::COUNT_VALID || agg_func == AggregateKind::COUNT_ALL ||
+                    agg_func == AggregateKind::ROW_NUMBER || agg_func == AggregateKind::COUNT_DISTINCT ||
+                    agg_func == AggregateKind::MIN || agg_func == AggregateKind::MAX){ 
+            for (auto row_idx = 0; cumulative_aggregations_str[col_idx].size(); row_idx++){
+                if (cumulative_aggregations_str[col_idx][row_idx] == "null"){
+                    // if the cumulative_aggregation is null, we will just take the window function value (nothing to merge)
+                    merge_expressions_per_batch[row_idx][col_idx] = "$" + std::to_string(col_idx); 
+                } else {
+                    if(agg_func == AggregateKind::SUM || agg_func == AggregateKind::SUM0 ||
+                        agg_func == AggregateKind::COUNT_VALID || agg_func == AggregateKind::COUNT_ALL ||
+                        agg_func == AggregateKind::ROW_NUMBER || agg_func == AggregateKind::COUNT_DISTINCT){
+                        // +($0, agg)
+                        merge_expressions_per_batch[row_idx][col_idx] = 
+                            "+($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+                    }else if(agg_func == AggregateKind::MIN){
+                        // CASE(<($0, agg),$0,agg)
+                        merge_expressions_per_batch[row_idx][col_idx] =                         
+                            "CASE(<($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+
+                    }else if(agg_func == AggregateKind::MAX){
+                        // CASE(>($0, agg),$0,agg)
+                        merge_expressions_per_batch[row_idx][col_idx] =                         
+                            "CASE(>($" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + "),$" + std::to_string(col_idx) + "," + cumulative_aggregations_str[col_idx][row_idx] + ")";
+
+                    }
+                }
+            }
+       
+        }else if(agg_func == AggregateKind::NTH_ELEMENT && this->agg_param_values[col_idx] == 0){ //FIRST_VALUE
+        // WSM TODO
+        }else if(agg_func == AggregateKind::NTH_ELEMENT && this->agg_param_values[col_idx] == -1){ //LAST_VALUE
+        // WSM TODO
+        } else {
+            // WSM TODO ERROR
+        }
+    }
+    return merge_expressions_per_batch;
+}
+
+kstatus WindowAggMergerKernel::run() {
+    CodeTimer timer;
+
+    int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+    int num_nodes = context->getTotalNodes();
+
+    std::unique_ptr<ral::cache::CacheData> cumulative_aggregations_data = this->input_cache("cumulative_aggregations")->pullCacheData();
+
+    std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+			inputs.push_back(std::move(cumulative_aggregations_data));
+
+    ral::execution::executor::get_instance()->add_task(
+										std::move(inputs),
+										this->output_cache(),
+										this,
+										{{TASK_ARG_OP_TYPE, MERGE_EXPRESSIONS}});
+                                        
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
+    
+    size_t batch_index = 0;
+    std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache("batches")->pullCacheData();
+
+    while (cache_data != nullptr ){
+        std::vector<std::unique_ptr <ral::cache::CacheData> > batch_inputs;
+        batch_inputs.push_back(std::move(cache_data));
+
+        if (batch_index >= this->merge_expressions_per_batch.size()){
+            throw std::runtime_error("ERROR in WindowAggMergerKernel: Received more batches of data than expected from the number of cumulative aggregations");
+        }
+
+        ral::execution::executor::get_instance()->add_task(
+            std::move(batch_inputs),
+            this->output_cache(),
+            this,
+            {{TASK_ARG_OP_TYPE, MERGE_AGGREGATION},{TASK_ARG_BATCH_INDEX, std::to_string(batch_index)}});
+
+        cache_data = this->input_cache()->pullCacheData();
+        batch_index++;
+    }
+    
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
+
+    if (logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="WindowAggMergerKernel Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+    }
+    return kstatus::proceed;
+}
+
+
+// END WindowAggMergerKernel
 
 } // namespace batch
 } // namespace ral
