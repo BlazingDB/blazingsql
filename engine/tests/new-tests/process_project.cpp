@@ -4,9 +4,8 @@
 #include "cudf_test/table_utilities.hpp"
 #include "cudf_test/type_lists.hpp"
 
-#include "execution_graph/logic_controllers/LogicalProject.h"
-
-#include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include "execution_graph/logic_controllers/execution_kernels/LogicalProject.h"
+#include <execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h>
 #include "tests/utilities/BlazingUnitTest.h"
 
 template <typename T>

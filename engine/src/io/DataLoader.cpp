@@ -11,7 +11,7 @@
 #include <cudf/filling.hpp>
 #include <cudf/column/column_factories.hpp>
 #include "CalciteExpressionParsing.h"
-#include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "execution_graph/logic_controllers/execution_kernels/LogicalFilter.h"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;

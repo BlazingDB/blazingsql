@@ -9,7 +9,7 @@
 #include "cudf_test/column_wrapper.hpp"
 #include "cudf_test/table_utilities.hpp"
 #include "cudf_test/type_lists.hpp"
-#include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "execution_graph/logic_controllers/execution_kernels/LogicalFilter.h"
 #include "utilities/DebuggingUtils.h"
 #include "tests/utilities/BlazingUnitTest.h"
 

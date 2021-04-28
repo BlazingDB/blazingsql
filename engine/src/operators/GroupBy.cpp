@@ -10,7 +10,7 @@
 #include "distribution/primitives.h"
 #include "utilities/CommonOperations.h"
 #include <blazingdb/io/Util/StringUtil.h>
-#include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_graph/logic_controllers/execution_kernels/LogicalProject.h"
 #include <regex>
 
 #include <cudf/aggregation.hpp>

@@ -11,7 +11,7 @@
 #include "../io/data_provider/ArrowDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
-#include "../execution_graph/logic_controllers/LogicalFilter.h"
+#include "../execution_graph/logic_controllers/execution_kernels/LogicalFilter.h"
 
 #include <numeric>
 #include <map>

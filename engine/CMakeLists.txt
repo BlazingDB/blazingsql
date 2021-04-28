@@ -272,35 +272,35 @@ else()
 endif()
 
 ## Target source files
-set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheDataIO.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheDataLocalFile.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/ConcatCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CPUCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/GPUCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/ArrowCacheData.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/executor.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/blazing_table/BlazingHostTable.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheDataIO.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheDataLocalFile.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/ConcatCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/GPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/ArrowCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/cache_machine/CacheMachine.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/LogicPrimitives.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/LogicalFilter.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/LogicalProject.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/blazing_table/BlazingColumnOwner.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_graph/port.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_graph/executor.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/distributing_kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/kernel_type.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/Context.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/BufferProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp
-              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_graph/graph.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchAggregationProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchJoinProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchOrderByProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchUnionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchWindowFunctionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/execution_kernels/BatchProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp

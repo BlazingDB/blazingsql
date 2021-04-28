@@ -12,13 +12,13 @@
 #include <cudf_test/table_utilities.hpp>
 
 #include "execution_graph/Context.h"
-#include "execution_graph/logic_controllers/taskflow/kernel.h"
-#include "execution_graph/logic_controllers/taskflow/graph.h"
-#include "execution_graph/logic_controllers/taskflow/port.h"
-#include "execution_graph/logic_controllers/BatchWindowFunctionProcessing.h"
-#include "execution_graph/logic_controllers/taskflow/executor.h"
-#include "execution_graph/logic_controllers/CacheData.h"
-#include "execution_graph/logic_controllers/GPUCacheData.h"
+#include "execution_graph/logic_controllers/execution_kernels/kernel.h"
+#include "execution_graph/logic_controllers/execution_graph/graph.h"
+#include "execution_graph/logic_controllers/execution_graph/port.h"
+#include "execution_graph/logic_controllers/execution_kernels/BatchWindowFunctionProcessing.h"
+#include "execution_graph/logic_controllers/execution_graph/executor.h"
+#include "execution_graph/logic_controllers/cache_machine/CacheData.h"
+#include "execution_graph/logic_controllers/cache_machine/GPUCacheData.h"
 
 using blazingdb::transport::Node;
 using ral::cache::kstatus;

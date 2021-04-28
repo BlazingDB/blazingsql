@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include "parser/expression_tree.hpp"
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h"
 
 namespace ral {
 namespace skip_data {

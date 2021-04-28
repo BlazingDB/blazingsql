@@ -4,10 +4,10 @@
 
 #include "tests/utilities/MemoryConsumer.cuh"
 #include "tests/utilities/BlazingUnitTest.h"
-#include "execution_graph/logic_controllers/BatchProcessing.h"
-#include "execution_graph/logic_controllers/BatchUnionProcessing.h"
-#include "execution_graph/logic_controllers/BatchOrderByProcessing.h"
-#include "execution_graph/logic_controllers/taskflow/executor.h"
+#include "execution_graph/logic_controllers/execution_kernels/BatchProcessing.h"
+#include "execution_graph/logic_controllers/execution_kernels/BatchUnionProcessing.h"
+#include "execution_graph/logic_controllers/execution_kernels/BatchOrderByProcessing.h"
+#include "execution_graph/logic_controllers/execution_graph/executor.h"
 
 using blazingdb::transport::Node;
 using ral::cache::kstatus;

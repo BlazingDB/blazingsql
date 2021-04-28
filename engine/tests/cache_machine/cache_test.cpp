@@ -1,9 +1,9 @@
 #include <spdlog/spdlog.h>
 #include "tests/utilities/BlazingUnitTest.h"
 
-#include <src/execution_graph/logic_controllers/LogicalFilter.h>
-#include <src/execution_graph/logic_controllers/LogicalProject.h>
-#include <src/execution_graph/logic_controllers/CacheMachine.h>
+#include <src/execution_graph/logic_controllers/execution_kernels/LogicalFilter.h>
+#include <src/execution_graph/logic_controllers/execution_kernels/LogicalProject.h>
+#include <src/execution_graph/logic_controllers/cache_machine/CacheMachine.h>
 #include <src/utilities/DebuggingUtils.h>
 
 #include <cudf_test/column_wrapper.hpp>

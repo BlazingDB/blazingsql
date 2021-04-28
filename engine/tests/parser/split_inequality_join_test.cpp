@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
-#include "execution_graph/logic_controllers/BatchJoinProcessing.h"
+#include "execution_graph/logic_controllers/execution_kernels/BatchJoinProcessing.h"
 
 // using ral::batch::split_inequality_join_into_join_and_filter;
 

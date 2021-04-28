@@ -8,7 +8,7 @@
 
 #include "ExceptionHandling/BlazingThread.h"
 #include "node.hpp"
-#include "execution_graph/logic_controllers/CacheMachine.h"
+#include "execution_graph/logic_controllers/cache_machine/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
 #include "protocols.hpp"
 

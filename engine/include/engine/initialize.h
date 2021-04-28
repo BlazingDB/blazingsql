@@ -6,7 +6,7 @@
 #include "../../src/error.hpp"
 
 #include "common.h"
-#include "execution_graph/logic_controllers/CacheMachine.h"
+#include "execution_graph/logic_controllers/cache_machine/CacheMachine.h"
 
 std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,

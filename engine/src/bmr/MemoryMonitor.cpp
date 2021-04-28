@@ -1,7 +1,7 @@
 #include "MemoryMonitor.h"
 #include "BlazingMemoryResource.h"
-#include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
-#include "execution_graph/logic_controllers/taskflow/executor.h"
+#include "execution_graph/logic_controllers/execution_graph/PhysicalPlanGenerator.h"
+#include "execution_graph/logic_controllers/execution_graph/executor.h"
 
 namespace ral {
 

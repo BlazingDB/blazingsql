@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_graph/logic_controllers/execution_kernels/LogicPrimitives.h"
 #include "cudf/column/column_factories.hpp"
 
 namespace ral {
