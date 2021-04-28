@@ -185,6 +185,107 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # Tests for `CURRENT_DATE`, `CURRENT_TIME` and `CURRENT_TIMESTAMP`
+            queryId = "TEST_06"
+            query = """with current_table as (
+                            select o_orderkey, current_date, o_custkey
+                            from orders where o_orderkey < 350
+                    )
+                    select o_orderkey, o_custkey
+                    from current_table"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Note: As we don't have support for time dtype, then `current_time` will
+            # return the same as `current_timestamp`
+            queryId = "TEST_07"
+            query = """with current_table as (
+                            select o_orderkey, current_time, o_custkey, current_timestamp
+                            from orders where o_orderkey < 750
+                    )
+                    select o_orderkey, o_custkey
+                    from current_table limit 50"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # As `current_date`, `current_time` and `current_timestamp` always will return
+            # different values by each new execution, let's not compare
+            queryId = "TEST_08"
+            query = """select current_date, o_orderkey, current_time, current_timestamp
+                        from orders where o_orderkey < 750"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                comparing="false"
+            )
+
+            queryId = "TEST_09"
+            query = """select orders.o_orderkey, CURRENT_DATE, orders.o_orderdate,
+                    lineitem.l_receiptdate, orders.o_orderstatus
+                    from orders inner join lineitem
+                    on lineitem.l_receiptdate = orders.o_orderdate
+                    where orders.o_orderkey < 40 and lineitem.l_orderkey < 30
+                    order by orders.o_orderkey, lineitem.l_linenumber"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                comparing="false"
+            )
+
+            # This test just compare the `CURRENT_DATE` value got from Blazing
+            # against the `CURRENT DATE` from python (to validate the we get the righ current date)
+            queryId = "TEST_10"
+            query = """select CURRENT_DATE from region"""
+            result = bc.sql(query)
+
+            import dask_cudf
+            if isinstance(result, dask_cudf.core.DataFrame):
+                result = result.compute()
+
+            current_blaz_date = result.to_pandas()['CURRENT_DATE'].astype('str').iloc[0]
+
+            from datetime import date
+            current_python_date = str(date.today())
+            
+            if current_blaz_date != current_python_date:
+                raise Exception("Blazing CURRENT_DATE and python CURRENT DATE are differents")
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break

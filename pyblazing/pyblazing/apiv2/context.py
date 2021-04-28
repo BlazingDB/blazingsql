@@ -4,7 +4,7 @@ import cudf
 
 from cudf.core.column.column import build_column
 from dask.distributed import get_worker
-
+from datetime import datetime
 
 from collections import OrderedDict
 
@@ -300,6 +300,7 @@ def generateGraphs(
     algebra,
     config_options,
     sql,
+    current_timestamp,
 ):
 
     worker = get_worker()
@@ -331,6 +332,7 @@ def generateGraphs(
             algebra,
             config_options,
             sql,
+            current_timestamp,
         )
         graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
@@ -478,7 +480,14 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = []
     n_cols = len(curr_table.column_names)
 
-    dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+    dtypes = []
+    for t in curr_table.column_types:
+        # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
+        # so just for this case let's get TIMESTAMP_SECONDS
+        if t != 12:
+            dtypes.append(cio.cudf_type_int_to_np_types(t))
+        else:
+            dtypes.append(cio.cudf_type_int_to_np_types(13))
 
     columns = curr_table.column_names
     for index in range(n_cols):
@@ -922,7 +931,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "port",
             "username",
             "password",
-            "schema",
+            "database",
             "table_filter",
             "table_batch_size",
         ]
@@ -3077,6 +3086,9 @@ class BlazingContext(object):
 
         table_names = []
 
+        # Make sure the timestamp value be unique for all the nodes
+        current_timestamp = str(datetime.now()).encode()
+
         if len(config_options) == 0:
             query_config_options = self.config_options
         else:
@@ -3142,7 +3154,7 @@ class BlazingContext(object):
             elif (
                 query_table.fileType == DataType.MYSQL
                 or query_table.fileType == DataType.SQLITE
-                # or query_table.fileType == DataType.
+                or query_table.fileType == DataType.POSTGRESQL
             ):
                 if query_table.has_metadata():
                     currentTableNodes = self._optimize_skip_data_getSlices(
@@ -3179,6 +3191,7 @@ class BlazingContext(object):
                     algebra,
                     query_config_options,
                     query,
+                    current_timestamp,
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
                 self.graphs[ctxToken] = graph
@@ -3214,6 +3227,7 @@ class BlazingContext(object):
                         algebra,
                         query_config_options,
                         query,
+                        current_timestamp,
                         workers=[worker],
                         pure=False,
                     )

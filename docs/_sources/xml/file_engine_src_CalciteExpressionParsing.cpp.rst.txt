@@ -56,8 +56,6 @@ Includes
 
 - ``spdlog/spdlog.h``
 
-- ``utilities/scalar_timestamp_parser.hpp`` (:ref:`file_engine_src_utilities_scalar_timestamp_parser.hpp`)
-
 
 
 

@@ -1,0 +1,13 @@
+.. _exhale_function_PostgreSQLParser_8cpp_1ab341b6ba54ffe1b6fa9699f8542565c4:
+
+Function ral::io::read_postgresql
+=================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::read_postgresql(const std::shared_ptr<PGresult>&, const std::vector<int>&, const std::vector<cudf::type_id>&, const std::vector<std::size_t>&)

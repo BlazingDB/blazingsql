@@ -293,12 +293,16 @@ struct tree_processor {
 			}
 		}
 		else if (is_project(expr) && is_window_function(expr) && first_windowed_call) {
+			
+			// Calcite for some reason makes double UNBOUNDED windows always be set as RANGE. If we treat them as ROWS its easier and equivalent
+			StringUtil::findAndReplaceAll(expr, "RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING", "ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING");
+
 			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
-				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
+				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently. Expression found is: " + expr);
 			}
 
 			if (window_expression_contains_bounds_by_range(expr)) {
-                throw std::runtime_error("In Window Function: RANGE is not currently supported");
+                throw std::runtime_error("In Window Function: RANGE is not currently supported. Expression found is: " + expr);
             }
 
 			if (window_expression_contains_partition_by(expr)) {

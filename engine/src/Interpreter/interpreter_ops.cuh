@@ -398,12 +398,20 @@ private:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<bool>*>(scalar_ptr)->value());
 		case cudf::type_id::INT8:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<int8_t>*>(scalar_ptr)->value());
+		case cudf::type_id::UINT8:
+			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<uint8_t>*>(scalar_ptr)->value());
 		case cudf::type_id::INT16:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<int16_t>*>(scalar_ptr)->value());
+		case cudf::type_id::UINT16:
+			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<uint16_t>*>(scalar_ptr)->value());
 		case cudf::type_id::INT32:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<int32_t>*>(scalar_ptr)->value());
+		case cudf::type_id::UINT32:
+			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<uint32_t>*>(scalar_ptr)->value());
 		case cudf::type_id::INT64:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<int64_t>*>(scalar_ptr)->value());
+		case cudf::type_id::UINT64:
+			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<uint64_t>*>(scalar_ptr)->value());
 		case cudf::type_id::FLOAT32:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<float>*>(scalar_ptr)->value());
 		case cudf::type_id::FLOAT64:
@@ -762,9 +770,13 @@ private:
 					switch (left_type_id)
 					{
 						case cudf::type_id::INT8:
+						case cudf::type_id::UINT8:
 						case cudf::type_id::INT16:
+						case cudf::type_id::UINT16:
 						case cudf::type_id::INT32:
+						case cudf::type_id::UINT32:
 						case cudf::type_id::INT64:
+						case cudf::type_id::UINT64:
 						case cudf::type_id::FLOAT32:
 						case cudf::type_id::FLOAT64:
 						case cudf::type_id::TIMESTAMP_DAYS:
@@ -795,9 +807,13 @@ private:
 					switch (left_type_id)
 					{
 						case cudf::type_id::INT8:
+						case cudf::type_id::UINT8:
 						case cudf::type_id::INT16:
+						case cudf::type_id::UINT16:
 						case cudf::type_id::INT32:
+						case cudf::type_id::UINT32:
 						case cudf::type_id::INT64:
+						case cudf::type_id::UINT64:
 						case cudf::type_id::FLOAT32:
 						case cudf::type_id::FLOAT64:
 						case cudf::type_id::TIMESTAMP_NANOSECONDS:
