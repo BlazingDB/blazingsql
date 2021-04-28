@@ -1,13 +1,12 @@
 import os
-import docker
-from time import sleep
+
 from blazingsql import DataType, S3EncryptionType
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
 from Runner import runTest
-from Utils import Execution, gpuMemory, init_context, skip_test
+from Utils import Execution, gpuMemory, init_context, skip_test, storageBackends
 
 
 def main(dask_client, drill, dir_data_lc, bc, nRals):
@@ -17,31 +16,24 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     queryType = "File System S3"
 
     def start_s3mock(access_key_id, secret_access_key):
-        print("Start Minio server")
-        client = docker.from_env()
+        print("Starting s3 mock server")
         conda_prefix = os.getenv("CONDA_PREFIX", "/data")
-        mount_path = conda_prefix + "/blazingsql-testing-files"
-        container = client.containers.run(image='minio/minio',
-                                        detach=True,
-                                        auto_remove=True,
-                                        environment=[f"MINIO_ACCESS_KEY={access_key_id}",
-                                                     f"MINIO_SECRET_KEY={secret_access_key}"],
-                                        ports={ '9000/tcp': 9000 },
-                                        remove=True,
-                                        volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
-                                        command='server /data')
-        print('Starting minio docker container for tests...')
-        sleep(20)
-        container.logs()
-        return container
+        mount_path = Settings.data["TestSettings"]["dataDirectory"]
 
-    def stop_s3mock(container):
-        if container:
-            container.kill()
+        container = storageBackends.start_backend(backendType="S3", image='minio/minio',
+                            detach=True,
+                            auto_remove=True,
+                            environment=[f"MINIO_ACCESS_KEY={access_key_id}",f"MINIO_SECRET_KEY={secret_access_key}"],
+                            ports={ '9000/tcp': 9000 },
+                            remove=True,
+                            volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
+                            command='server /data')
+
+        return container
 
     def executionTest(queryType):
         # Read Data TPCH------------------------------------------------------
-        authority = "data"
+        authority = "tpch"
 
         awsS3BucketName = Settings.data["TestSettings"]["awsS3BucketName"]
         awsS3AccessKeyId = Settings.data["TestSettings"]["awsS3AccessKeyId"]
@@ -49,7 +41,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         awsS3OverrideEndpoint = None
 
         if not awsS3BucketName:
-            awsS3BucketName = "data"
+            awsS3BucketName = "tpch"
             awsS3OverrideEndpoint = "http://127.0.0.1:9000"
 
         mock_server = start_s3mock(awsS3AccessKeyId, awsS3SecretKey)
@@ -477,7 +469,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 break
 
         if mock_server:
-            stop_s3mock(mock_server)
+            storageBackends.stop_backend(mock_server)
 
     executionTest(queryType)
 

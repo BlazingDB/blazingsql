@@ -72,7 +72,6 @@ def run_query(bc, engine, query, queryId, queryType, worder, orderBy,  acceptabl
             stringResult = print_query_results(pdf, pdf2,  acceptable_difference, use_percentage, engine)
 
     return stringResult
-          
 
 def print_query_results(pdf1, pdf2,  acceptable_difference, use_percentage, engine):
 
