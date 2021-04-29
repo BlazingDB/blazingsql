@@ -51,12 +51,12 @@ class TestCase():
         if "SETUP" in self.data:
             setup = self.data["SETUP"]
 
-            if setup.get("ORDERBY") is not None: self.configLocal.apply_order = setup.get("ORDERBY")
-            if setup.get("SKIP_WITH") is not None: self.configLocal.apply_order = setup.get("SKIP_WITH")
+            if setup.get("ORDERBY") is not None: self.configLocal.orderby = setup.get("ORDERBY")
+            # if setup.get("SKIP_WITH") is not None: self.configLocal.skip = setup.get("SKIP_WITH")
+            if setup.get("COMPARE_WITH") is not None: self.configLocal.engine = setup.get("COMPARE_WITH")
             if setup.get("APPLY_ORDER") is not None: self.configLocal.apply_order = setup.get("APPLY_ORDER")
-            if setup.get("COMPARE_WITH") is not None: self.configLocal.apply_order = setup.get("COMPARE_WITH")
-            if setup.get("USE_PERCENTAGE") is not None: self.configLocal.apply_order = setup.get("USE_PERCENTAGE")
-            if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configLocal.apply_order = setup.get("ACCEPTABLE_DIFFERENCE")
+            if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
+            if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configLocal.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
 
             self.data.pop("SETUP", None)
 
