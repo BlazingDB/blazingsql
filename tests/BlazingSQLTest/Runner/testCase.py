@@ -20,6 +20,7 @@ class ConfigTest():
     orderby = None
     print_result = None
     data_types = None
+    compare_with = None
 
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
@@ -52,9 +53,9 @@ class TestCase():
             setup = self.data["SETUP"]
 
             if setup.get("ORDERBY") is not None: self.configLocal.orderby = setup.get("ORDERBY")
-            # if setup.get("SKIP_WITH") is not None: self.configLocal.skip = setup.get("SKIP_WITH")
-            if setup.get("COMPARE_WITH") is not None: self.configLocal.engine = setup.get("COMPARE_WITH")
             if setup.get("APPLY_ORDER") is not None: self.configLocal.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("PRINT_RESULT") is not None: self.configLocal.print_result = setup.get("PRINT_RESULT")
+            if setup.get("COMPARE_WITH") is not None: self.configLocal.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configLocal.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
 
@@ -88,9 +89,9 @@ class TestCase():
             setup = self.data[test_name]["SETUP"]
 
             if setup.get("ORDERBY") is not None: config.orderby = setup.get("ORDERBY")
-            # if setup.get("SKIP_WITH") is not None: config.apply_order = setup.get("SKIP_WITH")
-            if setup.get("COMPARE_WITH") is not None: config.engine = setup.get("COMPARE_WITH")
             if setup.get("APPLY_ORDER") is not None: config.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("PRINT_RESULT") is not None: config.print_result = setup.get("PRINT_RESULT")
+            if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
 
