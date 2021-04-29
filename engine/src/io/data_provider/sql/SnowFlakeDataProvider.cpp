@@ -66,7 +66,7 @@ static inline std::string MapColumnType(const char buffer[],
   if (dataType == "float") { return "float64"; }
   if (dataType == "date") { return "date"; }
   if (dataType == "boolean") { return "boolean"; }
-  if (dataType == "timestamp_ltz") { return "timestamp"; }
+  if (!dataType.rfind("timestamp", 0)) { return "timestamp"; }
   if (dataType == "variant") { return "string"; }  // TODO: struct
 
   std::ostringstream oss;
