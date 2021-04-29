@@ -109,36 +109,43 @@ class TestCase():
 
             createSchema.create_tables(self.bc, self.dir_data_file, fileSchemaType, tables=list(self.tables))
 
-            for test in listCase:
-                test_case = self.data[test]
+            for test_name in listCase:
+                test_case = self.data[test_name]
 
                 if Settings.execution_mode == ExecutionMode.GENERATOR:
                     print("==============================")
                     break_flag = True
                     break
 
-                query = test_case.sql
-                worder = test_case.order
-                use_percentage = test_case.use_percentage
-                acceptable_difference = test_case.acceptable_difference
-                engine = test_case.compare_with
-                test_suite = self.testSuite
+                configTest = self.__loadTestCaseConfig(test_name)
 
-                print("==>> Run query for test case", testcase_id)
+                query = test_case["SQL"]
+                apply_order = configTest.apply_order
+                use_percentage = configTest.use_percentage
+                acceptable_difference = configTest.acceptable_difference
+                test_suite = self.name
+                testCase_id = test_name
+                print_result = configTest.print_result
+                if self.configLocal.engine == "drill":
+                    engine = self.drill
+                else:
+                    engine = self.spark
+
+                print("==>> Run query for test case", self.name)
                 print("PLAN:")
-                print(bc.explain(query, True))
+                print(self.bc.explain(query, True))
                 runTest.run_query(
-                    bc,
+                    self.bc,
                     engine,
                     query,
-                    test_case.testCase_id,
-                    test_suite,
-                    worder,
+                    testCase_id,
+                    "Case",
+                    apply_order,
                     "",
                     acceptable_difference,
                     use_percentage,
                     fileSchemaType,
-                    print_result=True
+                    print_result=print_result
                 )
 
     def run(self, bc, dask_client, drill, spark):
