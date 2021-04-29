@@ -131,7 +131,7 @@ class TestCase():
                 print(self.bc.explain(query, True))
                 runTest.run_query(
                     self.bc,
-                    self.configLocal.compare_with,
+                    engine,
                     query,
                     test_name,
                     self.name,
