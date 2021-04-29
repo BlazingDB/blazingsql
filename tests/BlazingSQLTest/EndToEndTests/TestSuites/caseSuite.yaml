@@ -1,11 +1,9 @@
-# caseSuit.yaml file
-
-TEST_SUITE: # CASE TESTS
+TEST_SUITE:
   SETUP:
-    ORDER: true
+    APPLY_ORDER: True
     USE_PERCENTAGE: false
     ACCEPTABLE_DIFFERENCE: 0.01
-    COMPARE_WITH: drill # values: drill, spark
+    COMPARE_WITH: drill
     SKIP_WITH: ORC
 
   TEST_01:
@@ -13,12 +11,6 @@ TEST_SUITE: # CASE TESTS
         select case when o_custkey > 20 then o_orderkey
                     else o_custkey - 20 end
                     from orders where o_orderkey <= 50
-    SETUP: 
-      ORDER: true
-      USE_PERCENTAGE: false
-      ACCEPTABLE_DIFFERENCE: 0.01
-      COMPARE_WITH: drill # values: drill, spark
-      SKIP_WITH: ORC
 
   TEST_02:
     SQL: |
@@ -33,6 +25,8 @@ TEST_SUITE: # CASE TESTS
                     AND l.l_receiptdate >= date '1994-01-01'
                     GROUP BY l.l_shipmode
                     ORDER BY l.l_shipmode
+    SETUP:
+      APPLY_ORDER: True
 
   TEST_03:
     SQL: |
@@ -42,5 +36,4 @@ TEST_SUITE: # CASE TESTS
                     where ( case when r_name = 'AFRICA' then
                     r_name  else 'AFROBEAT' end ) = 'AFROBEAT'
     SETUP:
-      ORDER: true
-      USE_PERCENTAGE: false
+      COMPARE_WITH: drill

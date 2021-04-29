@@ -1,6 +1,4 @@
-# caseSuit.yaml file
-
-TEST_SUITE: # CAST TESTS
+TEST_SUITE:
 
   TEST_01:
     SQL: |
@@ -8,10 +6,10 @@ TEST_SUITE: # CAST TESTS
                     cast(cast(p_retailprice as VARCHAR) as DOUBLE)
                     from part order by p_partkey limit 10
     SETUP:
-      ORDER: 1
+      APPLY_ORDER: True
       USE_PERCENTAGE: false
       ACCEPTABLE_DIFFERENCE: 0.01
-      COMPARE_WITH: drill # values: drill, spark
+      COMPARE_WITH: drill
       SKIP_WITH: ORC
 
   TEST_02:
@@ -19,10 +17,10 @@ TEST_SUITE: # CAST TESTS
         select CAST(c_custkey as BIGINT), c_acctbal
                     from customer order by c_acctbal desc, c_custkey
     SETUP:    
-      ORDER: 1
+      APPLY_ORDER: True
       USE_PERCENTAGE: false
       ACCEPTABLE_DIFFERENCE: 0.01
-      COMPARE_WITH: drill # values: drill, spark
+      COMPARE_WITH: drill
 
   TEST_03:
     SQL: |
