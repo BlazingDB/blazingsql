@@ -22,6 +22,7 @@ class TestSuites():
         self.dataTestSuite = None
 
         self.__setupTest()
+        self.__loadTargetTestDataFromFile()
 
     def __setupTest(self):
         self.config.apply_order = True
@@ -35,15 +36,16 @@ class TestSuites():
             DataType.ORC
         ]
 
-    def __loadTargetTestFromFile(self):
+    def __loadTargetTestDataFromFile(self):
         fileName = "Runner/targetTest.yml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
                 fileYaml = yaml.safe_load(stream)
 
             self.dataTestSuite = fileYaml["LIST_TEST"]
-            return list(fileYaml["LIST_TEST"].keys())
-        return []
+            return
+
+        raise RuntimeError("ERROR: Runner/targetTest.yml not found")
 
     def __existTestData(self, test):
         fileName = "EndToEndTests/TestSuites/"
@@ -65,7 +67,7 @@ class TestSuites():
 
     def runE2ETest(self):
         if len(self.targetTestList) == 0:
-            self.targetTestList = self.__loadTargetTestFromFile()
+            self.targetTestList = list(self.dataTestSuite.keys())
 
         for testSuite in self.targetTestList:
             if self.__existTestData(testSuite):
