@@ -102,7 +102,7 @@ class TestCase():
             if ext.upper() in formatList:
                 config.compare_with = config.compare_with[ext.upper()]
             else:
-                config.compare_with = self.configGlobal.compare_with
+                config.compare_with = config.compare_with["OTHER"]
 
         return config
 
