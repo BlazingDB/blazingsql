@@ -348,23 +348,108 @@ bool is_number(const std::string & token) {
 	return std::regex_match(token, re);
 }
 
-bool is_date(const std::string & token) {
-	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
-	return std::regex_match(token, re);
-}
-
 bool is_hour(const std::string & token) {
 	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2})"};
 	return std::regex_match(token, re);
 }
 
-bool is_timestamp(const std::string & token) {
-	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})");
+bool is_date_with_dash(const std::string & token) {
+	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
+	return std::regex_match(token, re);
+}
+
+bool is_date_with_bar(const std::string & token) {
+	static const std::regex re{R"([0-9]{4}/[0-9]{2}/[0-9]{2})"};
+	return std::regex_match(token, re);
+}
+
+bool is_date(const std::string & token) {
+	return (is_date_with_bar(token) || is_date_with_dash(token));
+}
+
+bool is_timestamp_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2})?[Z]?");
 	bool ret = std::regex_match(token, re);
 	return ret;
 }
 
+bool is_timestamp_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp(const std::string & token) {
+	return (is_timestamp_with_bar(token) || is_timestamp_with_dash(token));
+}
+
+bool is_timestamp_ms_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ms_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ms(const std::string & token) {
+	return (is_timestamp_ms_with_bar(token) || is_timestamp_ms_with_dash(token));
+}
+
+bool is_timestamp_us_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_us_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_us(const std::string & token) {
+	return (is_timestamp_us_with_bar(token) || is_timestamp_us_with_dash(token));
+}
+
+bool is_timestamp_ns_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ns_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ns(const std::string & token) {
+	return (is_timestamp_ns_with_bar(token) || is_timestamp_ns_with_dash(token));
+}
+
+bool is_timestamp_with_decimals(const std::string & token) {
+	return (is_timestamp_ms(token) || is_timestamp_us(token) || is_timestamp_ns(token));
+}
+
+bool is_timestamp_with_decimals_and_dash(const std::string & token) {
+	return (is_timestamp_ns_with_dash(token) || is_timestamp_us_with_dash(token) || is_timestamp_ms_with_dash(token));
+}
+
+bool is_timestamp_with_decimals_and_bar(const std::string & token) {
+	return (is_timestamp_ns_with_bar(token) || is_timestamp_us_with_bar(token) || is_timestamp_ms_with_bar(token));
+}
+
 bool is_bool(const std::string & token) { return (token == "true" || token == "false"); }
+
+bool is_join_expression(const std::string & token) {
+	static const std::regex re("=[/(][/$][0-9]{1,4},[ ][/$][0-9]{1,4}[/)]");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
 
 bool is_SQL_data_type(const std::string & token) {
 	static std::vector<std::string> CALCITE_DATA_TYPES = {
@@ -672,19 +757,35 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 
 	// getting the first limit value
 	std::string between_expr = "BETWEEN ";
-	std::string preceding_expr = " PRECEDING";
+	std::string and_expr = "AND ";
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
-	size_t end_pos = over_clause.find(preceding_expr);
-	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	preceding_value = std::stoi(first_limit);
+	size_t end_pos = over_clause.find(and_expr);
+
+	std::string preceding_clause = over_clause.substr(start_pos, end_pos - start_pos);
+	std::string following_clause = over_clause.substr(end_pos + and_expr.size());
+
+	if (preceding_clause.find("CURRENT ROW") != std::string::npos){
+		preceding_value = 0;
+	} else if (preceding_clause.find("UNBOUNDED") != std::string::npos){
+		preceding_value = -1;
+	} else {
+		std::string preceding_expr = " PRECEDING";
+		end_pos = preceding_clause.find(preceding_expr);
+		std::string str_value = preceding_clause.substr(0, end_pos);
+		preceding_value = std::stoi(str_value);
+	}
 
 	// getting the second limit value
-	std::string and_expr = "AND ";
-	std::string following_expr = " FOLLOWING";
-	start_pos = over_clause.find(and_expr) + and_expr.size();
-	end_pos = over_clause.find(following_expr);
-	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	following_value = std::stoi(second_limit);
+	if (following_clause.find("CURRENT ROW") != std::string::npos){
+		following_value = 0;
+	} else if (following_clause.find("UNBOUNDED") != std::string::npos){
+		following_value = -1;
+	} else {
+		std::string following_expr = " FOLLOWING";
+		end_pos = following_clause.find(following_expr);
+		std::string str_value = following_clause.substr(0, end_pos);
+		following_value = std::stoi(str_value);
+	}
 
 	return std::make_tuple(preceding_value, following_value);
 }
@@ -747,48 +848,57 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 // input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             max_keys=[MAX(4) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)])
-// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [3] >
+// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [0, 0, 3] >
 std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<std::string> aggregations;
-	std::vector<int> agg_param_values;
+	std::vector<int> agg_param_values; // will be set to 0 when not actually used
 
 	std::string query_part = get_query_part(logical_plan);
 	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
 
 	// we want all expressions that contains an OVER clause
 	for (size_t i = 0; i < project_expressions.size(); ++i) {
-		if (project_expressions[i].find("OVER") != std::string::npos) {
-			std::string express_i = project_expressions[i];
-			size_t start_pos = express_i.find("[") + 1;
-			size_t end_pos = express_i.find("OVER");
-			express_i = express_i.substr(start_pos, end_pos - start_pos);
-			std::string express_i_wo_trim = StringUtil::trim(express_i);
-			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
-			if (split_parts[0] == "ROW_NUMBER()") {
-				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
-				column_index.push_back(0);
-			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
-				// we need to get the constant values
-				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
-				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
-				aggregations.push_back(split_parts[0]);
-				column_index.push_back(std::stoi(inside_parts[0]));
-				agg_param_values.push_back(std::stoi(inside_parts[1]));
-			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
-				aggregations.push_back("COUNT");
-				aggregations.push_back("$SUM0");
-				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
-				column_index.push_back(std::stoi(indice));
-				column_index.push_back(std::stoi(indice));
-			} else {
+ 		if (project_expressions[i].find("OVER") != std::string::npos) {
+ 			std::string express_i = project_expressions[i];
+ 			size_t start_pos = express_i.find("[") + 1;
+ 			size_t end_pos = express_i.find("OVER");
+ 			express_i = express_i.substr(start_pos, end_pos - start_pos);
+ 			std::string express_i_wo_trim = StringUtil::trim(express_i);
+ 			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
+ 			if (split_parts[0] == "ROW_NUMBER()") {
+ 				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
+ 				column_index.push_back(0);
+				agg_param_values.push_back(0);
+ 			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
+ 				// we need to get the constant values
+ 				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
+ 				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
+ 				aggregations.push_back(split_parts[0]);
+ 				column_index.push_back(std::stoi(inside_parts[0]));
+ 				agg_param_values.push_back(std::stoi(inside_parts[1]));
+ 			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
+ 				aggregations.push_back("COUNT");
+ 				aggregations.push_back("$SUM0");
+ 				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
+ 				column_index.push_back(std::stoi(indice));
+ 				column_index.push_back(std::stoi(indice));
+				agg_param_values.push_back(0);
+				agg_param_values.push_back(0);
+			} else if (is_last_value_window(project_expressions[i])) {
 				aggregations.push_back(split_parts[0]);
 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
 				column_index.push_back(std::stoi(col_index));
-			}
-		}
-	}
+				agg_param_values.push_back(-1);			
+ 			} else {
+ 				aggregations.push_back(split_parts[0]);
+ 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
+ 				column_index.push_back(std::stoi(col_index));
+				agg_param_values.push_back(0);
+ 			}
+ 		}
+ 	}
 
 	return std::make_tuple(column_index, aggregations, agg_param_values);
 }
@@ -1039,4 +1149,94 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 	}
 
 	return new_expression;
+}
+
+const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string) {
+	if (scalar_string[0] != '\'' && scalar_string[scalar_string.size() - 1] != '\'') {
+		return scalar_string;
+	}
+
+	std::string temp_str = scalar_string;
+	const std::string cleaned_timestamp = temp_str.substr(1, temp_str.size() - 2);
+
+	return cleaned_timestamp;
+}
+
+// Calcite translates the `col_1 IS NOT DISTINCT FROM col_3` subquery to the
+//     OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))  
+// expression. So let's do the same here
+// input: IS_NOT_DISTINCT_FROM($1, $3)
+// output: OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))
+std::string replace_is_not_distinct_as_calcite(std::string expression) {
+	if (expression.find("IS_NOT_DISTINCT_FROM") == expression.npos) {
+		return expression;
+	}
+	
+	size_t start_pos = expression.find("(") + 1;
+	size_t end_pos = expression.find(")");
+	
+	// $1, $3
+	std::string reduced_expr = expression.substr(start_pos, end_pos - start_pos);
+	std::vector<std::string> var_str = get_expressions_from_expression_list(reduced_expr);
+
+	if (var_str.size() != 2) {
+		throw std::runtime_error("IS_NOT_DISTINCT_FROM must contains only 2 variables.");
+	}
+    
+    return "OR(AND(IS NULL(" + var_str[0] + "), IS NULL(" + var_str[1] + ")), IS TRUE(=(" + var_str[0] + " , " + var_str[1] + ")))";
+}
+
+// input: AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))
+// output: ["=($0, $3)" , "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))"]
+std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string & expression) {
+
+	std::string origin_expr = expression;
+	size_t total_is_not_distinct_expr = StringUtil::findAndCountAllMatches(origin_expr, "IS_NOT_DISTINCT_FROM");
+	
+	std::string left_expr = origin_expr.substr(0, 4);
+	if (!(left_expr == "AND(") || (total_is_not_distinct_expr == 0)) {
+		return std::make_tuple(origin_expr, "");
+	}
+
+	// "=($0, $3), IS_NOT_DISTINCT_FROM($1, $3)"
+	std::string reduced_expr = origin_expr.erase(0, left_expr.size());
+	reduced_expr = reduced_expr.substr(0, reduced_expr.size() - 1);
+	std::vector<std::string> all_expressions = get_expressions_from_expression_list(reduced_expr);
+
+	// Let's get the index of the join condition (using regex) if exists
+	size_t join_pos_operation;
+	bool contains_join_express = false;
+	for (size_t i = 0; i < all_expressions.size(); ++i) {
+		if (is_join_expression(all_expressions[i])) {
+			join_pos_operation = i;
+			contains_join_express = true;
+			break;
+		}
+	}
+
+	if (!contains_join_express) {
+		return std::make_tuple(expression, "");
+	}
+
+	size_t total_filter_conditions = all_expressions.size() - 1;
+
+	std::string new_join_statement_express = all_expressions[join_pos_operation], filter_statement_expression;
+
+	assert(total_filter_conditions > 0);
+
+	if (total_filter_conditions == 1) {
+		size_t not_join_pos = (join_pos_operation == 0) ? 1 : 0;
+		filter_statement_expression = replace_is_not_distinct_as_calcite(all_expressions[not_join_pos]);
+	} else {
+		filter_statement_expression = "AND(";
+		for (size_t i = 0; i < all_expressions.size(); ++i) {
+			if (i != join_pos_operation) {
+				filter_statement_expression += replace_is_not_distinct_as_calcite(all_expressions[i]) + ", ";
+			}
+		}
+		filter_statement_expression = filter_statement_expression.substr(0, filter_statement_expression.size() - 2);
+		filter_statement_expression += ")";
+	}
+
+	return std::make_tuple(new_join_statement_express, filter_statement_expression);
 }

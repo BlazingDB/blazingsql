@@ -346,6 +346,83 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_15"
+            query = """select n.n_nationkey, COALESCE(r.r_regionkey,-1)
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_16"
+            query = """select COALESCE(orders.o_orderkey, 100),
+                    COALESCE(orders.o_totalprice, 0.01) from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_17"
+            query = """select MIN(COALESCE(n.n_nationkey, r.r_regionkey)),
+                    MAX(COALESCE(n.n_nationkey, 8)) from nation as n
+                    right outer join region as r
+                    on n.n_nationkey = r.r_regionkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_18"
+            query = """select AVG(CAST(COALESCE(n.n_nationkey,
+                    r.r_regionkey) AS DOUBLE)),
+                    MAX(COALESCE(n.n_nationkey, 8)),
+                    COUNT(COALESCE(n.n_nationkey, 12)), n.n_nationkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    GROUP BY n.n_nationkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
