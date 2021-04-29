@@ -37,9 +37,9 @@ class TestSuites():
         fileName = "Runner/targetTest.yml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
-                testListYaml = yaml.safe_load(stream)
+                fileYaml = yaml.safe_load(stream)
 
-            return testListYaml["test"]
+            return list(fileYaml["LIST_TEST"].keys())
         return []
 
     def __existTestData(self, test):
