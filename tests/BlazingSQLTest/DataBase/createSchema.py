@@ -1247,6 +1247,8 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     ext = get_extension(fileSchemaType)
 
     tables = kwargs.get("tables", tpchTables)
+    tables = tables and tpchTables
+
     table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
 
