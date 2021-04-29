@@ -18,19 +18,19 @@ class TestSuites():
         self.tables = set()
         self.compare_engine = "spark"
 
-        self.config = ConfigTest()
+        self.globalConfig = ConfigTest()
         self.dataTestSuite = None
 
         self.__setupTest()
         self.__loadTargetTestDataFromFile()
 
     def __setupTest(self):
-        self.config.apply_order = True
-        self.config.use_percentage = False
-        self.config.acceptable_difference = 0.01
-        self.config.orderby = ""
-        self.config.print_result = True
-        self.config.data_types = [
+        self.globalConfig.apply_order = True
+        self.globalConfig.use_percentage = False
+        self.globalConfig.acceptable_difference = 0.01
+        self.globalConfig.orderby = ""
+        self.globalConfig.print_result = True
+        self.globalConfig.data_types = [
             DataType.CSV,
             DataType.PARQUET,
             DataType.ORC
@@ -69,7 +69,7 @@ class TestSuites():
         if len(self.targetTestList) == 0:
             self.targetTestList = list(self.dataTestSuite.keys())
 
-        for testSuite in self.targetTestList:
-            if self.__existTestData(testSuite):
-                testCase = TestCase(test, "EndToEndTests/TestSuites/" + test + ".yaml", self.config)
+        for testSuiteName in self.targetTestList:
+            if self.__existTestData(testSuiteName):
+                testCase = TestCase(testSuiteName, self.dataTestSuite[testSuiteName], self.globalConfig)
                 testCase.run(self.bc, self.dask_client, self.drill, self.spark)
