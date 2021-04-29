@@ -137,10 +137,7 @@ class TestCase():
                     continue
 
                 query = test_case["SQL"]
-                if configTest.compare_with == "drill":
-                    engine = self.drill
-                else:
-                    engine = self.spark
+                engine = self.drill if configTest.compare_with == "drill" else self.spark
 
                 print("==>> Run query for test case", self.name)
                 print("PLAN:")
