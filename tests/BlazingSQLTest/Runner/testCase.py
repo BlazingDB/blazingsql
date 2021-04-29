@@ -1,6 +1,7 @@
 from Configuration import Settings
 from Utils import gpuMemory
 from Runner import runner
+from DataBase import createSchema
 
 from os import listdir
 from os.path import isfile, join
