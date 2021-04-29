@@ -12,24 +12,24 @@ TEST_SUITE:
                     else o_custkey - 20 end
                     from orders where o_orderkey <= 50
 
-#  TEST_02:
-#    SQL: |
-#        SELECT l.l_shipmode, sum(case
-#                        when o.o_orderpriority = '1-URGENT'
-#                        OR o.o_orderpriority = '2-HIGH' then 1
-#                        else 0 end) as high_line_count
-#                    FROM orders o
-#                    inner join lineitem l on o.o_orderkey = l.l_orderkey
-#                    WHERE l.l_commitdate < l.l_receiptdate
-#                    AND l.l_shipdate < l.l_commitdate
-#                    AND l.l_receiptdate >= date '1994-01-01'
-#                    GROUP BY l.l_shipmode
-#                    ORDER BY l.l_shipmode
-#    SETUP:
-#      APPLY_ORDER: True
-#      COMPARE_WITH:
-#        ORC: spark
-#        OTHER: drill
+  TEST_02:
+    SQL: |
+        SELECT l.l_shipmode, sum(case
+                        when o.o_orderpriority = '1-URGENT'
+                        OR o.o_orderpriority = '2-HIGH' then 1
+                        else 0 end) as high_line_count
+                    FROM orders o
+                    inner join lineitem l on o.o_orderkey = l.l_orderkey
+                    WHERE l.l_commitdate < l.l_receiptdate
+                    AND l.l_shipdate < l.l_commitdate
+                    AND l.l_receiptdate >= date '1994-01-01'
+                    GROUP BY l.l_shipmode
+                    ORDER BY l.l_shipmode
+    SETUP:
+      APPLY_ORDER: True
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
 
   TEST_04:
     SQL: |
@@ -45,26 +45,26 @@ TEST_SUITE:
                           when o_custkey > 10 then o_custkey - 20 else
                           o_custkey - 10 end from orders where o_orderkey <= 50
 
-#  TEST_07:
-#    SQL: |
-#        SELECT l.l_shipmode, sum(case when
-#                          o.o_orderpriority = '1-URGENT'
-#                          OR o.o_orderpriority = '2-HIGH'then 1 else 0 end)
-#                          as high_line_count,
-#                          sum(case when o.o_orderpriority <> '1-URGENT'
-#                          AND o.o_orderpriority <> '2-HIGH' then 1 else 0 end)
-#                          AS low_line_count
-#                          FROM orders o
-#                          INNER JOIN lineitem l ON o.o_orderkey = l.l_orderkey
-#                          WHERE l.l_commitdate < l.l_receiptdate
-#                          AND l.l_shipdate < l.l_commitdate
-#                          AND l.l_receiptdate < date '1994-01-01'
-#                          GROUP BY l.l_shipmode
-#                          ORDER BY l.l_shipmode
-#    SETUP:
-#      COMPARE_WITH:
-#        ORC: spark
-#        OTHER: drill
+  TEST_07:
+    SQL: |
+        SELECT l.l_shipmode, sum(case when
+                          o.o_orderpriority = '1-URGENT'
+                          OR o.o_orderpriority = '2-HIGH'then 1 else 0 end)
+                          as high_line_count,
+                          sum(case when o.o_orderpriority <> '1-URGENT'
+                          AND o.o_orderpriority <> '2-HIGH' then 1 else 0 end)
+                          AS low_line_count
+                          FROM orders o
+                          INNER JOIN lineitem l ON o.o_orderkey = l.l_orderkey
+                          WHERE l.l_commitdate < l.l_receiptdate
+                          AND l.l_shipdate < l.l_commitdate
+                          AND l.l_receiptdate < date '1994-01-01'
+                          GROUP BY l.l_shipmode
+                          ORDER BY l.l_shipmode
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
 
   TEST_08:
     SQL: |
