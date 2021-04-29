@@ -801,7 +801,8 @@ private:
 					}	
 
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
-				} else if(oper == operator_type::BLZ_CAST_TIMESTAMP) {
+				} else if(oper == operator_type::BLZ_CAST_TIMESTAMP || oper == operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS
+						 || oper == operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS || oper == operator_type::BLZ_CAST_TIMESTAMP_SECONDS) {
 					int64_t val = static_cast<int64_t>(left_value);
 					cudf::timestamp_ns computed;
 					switch (left_type_id)

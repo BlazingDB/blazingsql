@@ -6,7 +6,7 @@ from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
-queryType = "Timestampdiff"
+queryType = "Timestampadd"
 
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):
@@ -40,9 +40,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             # (at least 1.15). So, when using with ExecutionMode != GPUCI, is expected to
             # crash in Drill side if you have an older version for Drill.
             queryId = "TEST_01"
-            query = """select l_commitdate, l_shipdate, 
-                            timestampdiff(DAY, l_commitdate, l_shipdate) as diff_day_col
-                        from lineitem limit 420"""
+            query = """select o_orderdate, TIMESTAMPADD(DAY, 4, o_orderdate) as add_day_col
+                        from orders order by o_orderkey limit 150"""
             runTest.run_query(
                 bc,
                 drill,
@@ -57,9 +56,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_02"
-            query = """select l_commitdate, l_shipdate, 
-                            timestampdiff(HOUR, l_commitdate, l_shipdate) as diff_hour_col
-                        from lineitem limit 420"""
+            query = """select o_orderdate, TIMESTAMPADD(HOUR, 12, o_orderdate) as add_hour_col
+                        from orders order by o_orderkey limit 450"""
             runTest.run_query(
                 bc,
                 drill,
@@ -74,9 +72,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_03"
-            query = """select l_commitdate, l_shipdate, 
-                            timestampdiff(MINUTE, l_commitdate, l_shipdate) as diff_minute_col
-                        from lineitem limit 420"""
+            query = """select o_orderdate, TIMESTAMPADD(MINUTE, 42, o_orderdate) as add_minute_col
+                        from orders order by o_orderkey limit 350"""
             runTest.run_query(
                 bc,
                 drill,
@@ -91,9 +88,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_04"
-            query = """select l_commitdate, l_shipdate, 
-                            timestampdiff(SECOND, l_commitdate, l_shipdate) as diff_second_col
-                        from lineitem limit 420"""
+            query = """select o_orderdate, TIMESTAMPADD(SECOND, 21, o_orderdate) as add_second_col
+                        from orders order by o_orderkey limit 250"""
             runTest.run_query(
                 bc,
                 drill,
@@ -107,10 +103,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # Tests: [05 - 12] are just to ensure TIMESTAMPDIFF works with constant values
             queryId = "TEST_05"
-            query = """select TIMESTAMPDIFF(DAY, date '1995-07-06', date '1995-02-06') as constant_col
-                        from nation"""
+            query = """select o_orderdate, 
+                            TIMESTAMPADD(DAY, 18, CAST(o_orderdate AS TIMESTAMP)) as add_day_col
+                        from orders order by o_orderkey limit 250"""
             runTest.run_query(
                 bc,
                 drill,
@@ -124,9 +120,16 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # Tests: [06 - 09] are to consider multiple cases
+            # when using different type of TIMESTAMP unit
             queryId = "TEST_06"
-            query = """select TIMESTAMPDIFF(DAY, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
-                        from nation"""
+            query = """with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 10000
+                        ) 
+                        select my_date, 
+                                timestampadd(DAY, 17, cast(my_date as timestamp)) as add_day_col
+                        from date_table limit 450"""
             runTest.run_query(
                 bc,
                 drill,
@@ -141,8 +144,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_07"
-            query = """select TIMESTAMPDIFF(HOUR, date '1995-07-06', date '1995-02-06') as constant_col
-                        from nation"""
+            query = """with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 10000
+                        ) 
+                        select my_date, 
+                                timestampadd(HOUR, 48, cast(my_date as timestamp)) as add_hour_col
+                        from date_table limit 450"""
             runTest.run_query(
                 bc,
                 drill,
@@ -157,8 +165,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_08"
-            query = """select TIMESTAMPDIFF(HOUR, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
-                        from nation"""
+            query = """with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 12000
+                        ) 
+                        select my_date, 
+                                timestampadd(MINUTE, 75, cast(my_date as timestamp)) as add_minute_col
+                        from date_table limit 400"""
             runTest.run_query(
                 bc,
                 drill,
@@ -173,8 +186,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_09"
-            query = """select TIMESTAMPDIFF(MINUTE, date '1995-07-06', date '1995-02-06') as constant_col
-                        from nation"""
+            query = """with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 12000
+                        ) 
+                        select my_date, 
+                                timestampadd(SECOND, 150, cast(my_date as timestamp)) as add_second_col
+                        from date_table limit 400"""
             runTest.run_query(
                 bc,
                 drill,
@@ -188,8 +206,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # Tests: [10 - 17] are just to ensure that TIMESTAMPADD works with constant values
             queryId = "TEST_10"
-            query = """select TIMESTAMPDIFF(MINUTE, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
+            query = """select TIMESTAMPADD(DAY, 22, TIMESTAMP '1995-12-10 02:06:17') as constant_col
                         from nation"""
             runTest.run_query(
                 bc,
@@ -205,7 +224,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_11"
-            query = """select TIMESTAMPDIFF(SECOND, date '1995-07-06', date '1995-02-06') as constant_col
+            query = """select TIMESTAMPADD(DAY, 92, date '1995-07-06') as constant_col
                         from nation"""
             runTest.run_query(
                 bc,
@@ -221,7 +240,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_12"
-            query = """select TIMESTAMPDIFF(SECOND, TIMESTAMP '1995-03-06 10:50:00', TIMESTAMP '1995-12-03 19:50:00') as constant_col
+            query = """select TIMESTAMPADD(HOUR, 21, TIMESTAMP '1995-12-10 02:06:17') as constant_col
                         from nation"""
             runTest.run_query(
                 bc,
@@ -237,9 +256,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_13"
-            query = """select o_orderdate, 
-                            timestampdiff(DAY, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
-                        from orders"""
+            query = """select TIMESTAMPADD(HOUR, 78, date '1995-07-06') as constant_col
+                        from nation"""
             runTest.run_query(
                 bc,
                 drill,
@@ -254,9 +272,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_14"
-            query = """select o_orderdate, 
-                            timestampdiff(HOUR, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
-                        from orders"""
+            query = """select TIMESTAMPADD(MINUTE, 72, TIMESTAMP '1995-12-10 02:06:17') as constant_col
+                        from nation"""
             runTest.run_query(
                 bc,
                 drill,
@@ -271,9 +288,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_15"
-            query = """select o_orderdate, 
-                            timestampdiff(MINUTE, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
-                        from orders"""
+            query = """select TIMESTAMPADD(MINUTE, 47, date '1995-07-06') as constant_col
+                        from nation"""
             runTest.run_query(
                 bc,
                 drill,
@@ -288,9 +304,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_16"
-            query = """select o_orderdate, 
-                            timestampdiff(SECOND, o_orderdate, TIMESTAMP '1996-12-01 12:00:01') as diff
-                        from orders"""
+            query = """select TIMESTAMPADD(SECOND, 105, TIMESTAMP '1995-12-10 02:06:17') as constant_col
+                        from nation"""
             runTest.run_query(
                 bc,
                 drill,
@@ -305,111 +320,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_17"
-            query = """select o_orderdate, 
-                            timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', o_orderdate) as diff
-                        from orders"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            # Tests: [18 - 22] are to consider multiple cases
-            # when using different type of TIMESTAMP unit
-            queryId = "TEST_18"
-            query = """with date_table as (
-                            select cast(o_orderdate as date) as my_date
-                            from orders order by o_orderkey limit 10000
-                        ) select my_date, 
-                            timestampdiff(DAY, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_day_col
-                        from date_table limit 450"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            queryId = "TEST_19"
-            query = """with date_table as (
-                            select cast(o_orderdate as date) as my_date
-                            from orders order by o_orderkey limit 10000
-                        ) select my_date,
-                            timestampdiff(HOUR, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_hour_col
-                        from date_table limit 450"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            queryId = "TEST_20"
-            query = """with date_table as (
-                            select cast(o_orderdate as date) as my_date from
-                            orders order by o_orderkey limit 12000
-                        ) select my_date,
-                            timestampdiff(MINUTE, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_minute_col
-                        from date_table limit 400"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            queryId = "TEST_21"
-            query = """with date_table as (
-                            select cast(o_orderdate as date) as my_date
-                            from orders order by o_orderkey limit 12000
-                        ) select my_date,
-                            timestampdiff(SECOND, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_second_col
-                        from date_table limit 400"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
-
-            queryId = "TEST_22"
-            query = """with date_table as (
-                            select cast(o_orderdate as date) as my_date
-                            from orders order by o_orderkey limit 12000
-                        ) select my_date,
-                            timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', CAST(my_date AS TIMESTAMP)) as diff_second_col
-                        from date_table limit 400"""
+            query = """select TIMESTAMPADD(SECOND, 16, date '1995-07-06') as constant_col
+                        from nation"""
             runTest.run_query(
                 bc,
                 drill,
@@ -461,7 +373,7 @@ if __name__ == "__main__":
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
 
-        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        spark = SparkSession.builder.appName("timestampAddTest").getOrCreate()
         cs.init_spark_schema(spark,
                              Settings.data["TestSettings"]["dataDirectory"])
 

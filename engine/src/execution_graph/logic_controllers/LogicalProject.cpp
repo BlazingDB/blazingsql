@@ -481,6 +481,9 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
         break;
     }
+    case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
+    case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+    case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
     case operator_type::BLZ_CAST_TIMESTAMP:
     {
         assert(arg_tokens.size() == 1);
@@ -492,7 +495,15 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (is_type_string(column.type().id())) {
-            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
+            if (op == operator_type::BLZ_CAST_TIMESTAMP_SECONDS) {
+                computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS}, "%Y-%m-%d %H:%M:%S");
+            } else if (op == operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS) {
+                computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS}, "%Y-%m-%d %H:%M:%S");
+            } else if (op == operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS) {
+                computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS}, "%Y-%m-%d %H:%M:%S");
+            } else {
+                computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
+            }
         }
         break;
     }
@@ -973,6 +984,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         expression = fill_minus_op_with_zero(expression);
         expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
         expression = get_current_date_or_timestamp(expression, context);
+        expression = convert_ms_to_ns_units(expression);
+        expression = reinterpret_timestamp(expression, blazing_table_in->get_schema());
 
         expressions[i] = expression;
         out_column_names[i] = name;

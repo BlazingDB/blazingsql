@@ -294,14 +294,15 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   if (token_value == "SMALLINT") {
     return cudf::data_type{cudf::type_id::INT16};
   }
-
-  if (token_value == "INTEGER"
-      //INTERVALS MONTH AND YEAR ARE NOT CURRENTLY SUPPORTED
-      || token_value == "INTERVAL SECOND"
-      || token_value == "INTERVAL MINUTE"
-      || token_value == "INTERVAL HOUR"
-      || token_value == "INTERVAL DAY" ) {
+  if (token_value == "INTEGER") {
     return cudf::data_type{cudf::type_id::INT32};
+  }
+  if (token_value == "INTERVAL SECOND" || token_value == "INTERVAL MINUTE"
+      || token_value == "INTERVAL HOUR" || token_value == "INTERVAL DAY") {
+    return cudf::data_type{cudf::type_id::INT64};
+  }
+  if (token_value == "INTERVAL MONTH" || token_value == "INTERVAL YEAR") {
+    throw std::runtime_error("TIMESTAMPADD is not currently supported for MONTH or YEAR units.");
   }
   if (token_value == "BIGINT") {
     return cudf::data_type{cudf::type_id::INT64};
@@ -314,6 +315,15 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   }
   if (token_value == "DATE") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
+  }
+  if (token_value == "TIMESTAMP_SECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS};
+  }
+  if (token_value == "TIMESTAMP_MILLISECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+  }
+  if (token_value == "TIMESTAMP_MICROSECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS};
   }
   if (token_value == "TIMESTAMP") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};

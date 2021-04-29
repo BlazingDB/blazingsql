@@ -52,6 +52,9 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_FLOAT:
 	case operator_type::BLZ_CAST_DOUBLE:
 	case operator_type::BLZ_CAST_DATE:
+	case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
+	case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+	case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -137,6 +140,12 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::FLOAT64;
 	case operator_type::BLZ_CAST_DATE:
 		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
+		return cudf::type_id::TIMESTAMP_SECONDS;
+	case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+		return cudf::type_id::TIMESTAMP_MILLISECONDS;
+	case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
+		return cudf::type_id::TIMESTAMP_MICROSECONDS;
 	case operator_type::BLZ_CAST_TIMESTAMP:
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	case operator_type::BLZ_STR_LOWER:
@@ -293,6 +302,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_FLOAT", operator_type::BLZ_CAST_FLOAT},
 		{"CAST_DOUBLE", operator_type::BLZ_CAST_DOUBLE},
 		{"CAST_DATE", operator_type::BLZ_CAST_DATE},
+		{"CAST_TIMESTAMP_SECONDS", operator_type::BLZ_CAST_TIMESTAMP_SECONDS},
+		{"CAST_TIMESTAMP_MILLISECONDS", operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS},
+		{"CAST_TIMESTAMP_MICROSECONDS", operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS},
 		{"CAST_TIMESTAMP", operator_type::BLZ_CAST_TIMESTAMP},
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
@@ -1239,4 +1251,98 @@ std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_
 	}
 
 	return std::make_tuple(new_join_statement_express, filter_statement_expression);
+}
+
+bool is_cast_to_timestamp(std::string expression) {
+	return (expression.find("CAST(") != expression.npos && expression.find(":TIMESTAMP") != expression.npos);
+}
+
+bool is_cast_to_date(std::string expression) {
+	return (expression.find("CAST(") != expression.npos && expression.find(":DATE") != expression.npos);
+}
+
+// Calcite by default returns units in milliseconds, as we are getting a
+// TIMESTAMP_NANOSECONDS from BLZ_TO_TIMESTAMP, we want to convert these to nanoseconds units
+// input: CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER
+// output: CAST(/INT(Reinterpret(-(2020-11-10 12:00:01, CAST($0):TIMESTAMP(0))), 86400000000000)):INTEGER
+std::string convert_ms_to_ns_units(std::string expression) {
+	if (!is_cast_to_timestamp(expression) && !is_cast_to_date(expression) ) {
+		return expression;
+	}
+
+	std::string ns_str_to_concat = "000000";
+	// For timestampdiff
+	if (expression.find("Reinterpret(") != expression.npos) {
+		std::string day_ms = "86400000", hour_ms = "3600000", min_ms = "60000", sec_ms = "1000";
+		if (expression.find(day_ms) != expression.npos) {
+			return StringUtil::replace(expression, day_ms, day_ms + ns_str_to_concat);
+		} else if(expression.find(hour_ms) != expression.npos) {
+			return StringUtil::replace(expression, hour_ms, hour_ms + ns_str_to_concat);
+		} else if(expression.find(min_ms) != expression.npos) {
+			return StringUtil::replace(expression, min_ms, min_ms + ns_str_to_concat);
+		} else if(expression.find(sec_ms) != expression.npos) {
+			return StringUtil::replace(expression, sec_ms, sec_ms + ns_str_to_concat);
+		}
+	}
+
+	// For timestampdadd
+	size_t start_interval_pos = expression.find(":INTERVAL");
+	if (start_interval_pos != expression.npos) {
+		size_t start_pos = expression.find(", ") + 2;
+		std::string time_value_str = expression.substr(start_pos, start_interval_pos - start_pos);
+		return StringUtil::replace(expression, time_value_str, time_value_str + ns_str_to_concat);	 
+	}
+
+	return expression;	
+}
+
+// By default any TIMESTAMP literal expression is handled as TIMESTAMP_NANOSECONDS
+// Using the `Reinterpret` clause we can get the right TIMESTAMP unit using the expression
+// expression: CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $0)), 86400000)):INTEGER
+std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema) {
+	if (table_schema.size() == 0) return expression;
+
+	std::string reint_express = "Reinterpret(-(";
+	size_t start_reint_pos = expression.find(reint_express);
+	if (start_reint_pos == expression.npos) {
+		return expression;
+	}
+
+	size_t remove_until_pos = start_reint_pos + reint_express.size();
+	std::string reduced_expr = expression.substr(remove_until_pos, expression.size() - remove_until_pos);
+	size_t start_closing_parent_pos = reduced_expr.find("))");
+
+	// 1996-12-01 12:00:01, $0
+	reduced_expr = reduced_expr.substr(0, start_closing_parent_pos);
+
+	std::vector<std::string> reduced_expressions = get_expressions_from_expression_list(reduced_expr);
+	std::string left_expression = reduced_expressions[0], right_expression = reduced_expressions[1];
+	std::string timest_str;
+	int col_indice;
+
+	assert(reduced_expressions.size() == 2);
+
+	// Case 1:  Reinterpret(-(1996-12-01 12:00:01, $0))
+	if (is_timestamp(left_expression) && right_expression[0] == '$') {
+		timest_str = left_expression;
+		right_expression.erase(right_expression.begin());
+		col_indice = std::stoi(right_expression);
+	} // Case 2:  Reinterpret(-($0, 1996-12-01 12:00:01))
+	else if (left_expression[0] == '$' && is_timestamp(right_expression)) {
+		timest_str = right_expression;
+		left_expression.erase(left_expression.begin());
+		col_indice = std::stoi(left_expression);
+	} else {
+		return expression;
+	}
+
+	if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_SECONDS) {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_SECONDS");
+	} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_MILLISECONDS");
+	} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MICROSECONDS) {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_MICROSECONDS");
+	} // by default it will be TIMESTAMP_NANOSECONDS as before
+
+	return expression;
 }
