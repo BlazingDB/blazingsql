@@ -77,6 +77,55 @@ class TestCase():
 
         return queries
 
+    def __datasources(self, del_dtype):
+        if nrals > 1 and not del_dtype == "":
+            self.configLocal.data_types.remove(del_dtype)
+
+    def __executionTest(self):
+        listCase = list(self.data.keys())
+
+        print("######## Starting queries ...########")
+
+        # self.__datasources()
+
+        for n in range(0, len(self.configLocal.data_types)):
+
+            fileSchemaType = self.configLocal.data_types[n]
+
+            createSchema.create_tables(self.bc, self.dir_data_file, fileSchemaType, tables=list(self.tables))
+
+            for test in listCase:
+                test_case = self.data[test]
+
+                if Settings.execution_mode == ExecutionMode.GENERATOR:
+                    print("==============================")
+                    break_flag = True
+                    break
+
+                query = test_case.sql
+                worder = test_case.order
+                use_percentage = test_case.use_percentage
+                acceptable_difference = test_case.acceptable_difference
+                engine = test_case.compare_with
+                test_suite = self.testSuite
+
+                print("==>> Run query for test case", testcase_id)
+                print("PLAN:")
+                print(bc.explain(query, True))
+                runTest.run_query(
+                    bc,
+                    engine,
+                    query,
+                    test_case.testCase_id,
+                    test_suite,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                    print_result=True
+                )
+
     def run(self, bc, dask_client, drill, spark):
         self.bc = bc
         self.dask_client = dask_client
@@ -84,7 +133,9 @@ class TestCase():
         self.spark = spark
 
         start_mem = gpuMemory.capture_gpu_memory_usage()
-        runner.executionTest(bc, dask_client, drill, spark, nRals, dir_data_file, self.name)
+
+        self.__executionTest()
+
         end_mem = gpuMemory.capture_gpu_memory_usage()
         gpuMemory.log_memory_usage(self.name, start_mem, end_mem)
 
