@@ -10,6 +10,7 @@ import sql_metadata
 import os
 import yaml
 import re
+import copy
 
 __all__ = ["TestCase", "ConfigTest"]
 
@@ -27,8 +28,8 @@ class TestCase():
         self.name = name
         self.dataTargetTest = dataTargetTest
         self.data = None
-        self.configGlobal = globalConfig
-        self.configLocal = globalConfig
+        self.configGlobal = copy.deepcopy(globalConfig)
+        self.configLocal = copy.deepcopy(globalConfig)
         self.tables = set()
 
         self.bc = None
@@ -83,8 +84,8 @@ class TestCase():
         if nrals > 1 and not del_dtype == "":
             self.configLocal.data_types.remove(del_dtype)
 
-    def __loadTestCaseConfig(self, test_name):
-        config = self.configLocal
+    def __loadTestCaseConfig(self, test_name, fileSchemaType):
+        config = copy.deepcopy(self.configLocal)
         if "SETUP" in self.data[test_name]:
             setup = self.data[test_name]["SETUP"]
 
@@ -94,6 +95,14 @@ class TestCase():
             if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
+
+        if isinstance(config.compare_with, dict):
+            formatList = list(config.compare_with.keys())
+            ext = createSchema.get_extension(fileSchemaType)
+            if ext.upper() in formatList:
+                config.compare_with = config.compare_with[ext.upper()]
+            else:
+                config.compare_with = self.configGlobal.compare_with
 
         return config
 
@@ -118,10 +127,10 @@ class TestCase():
                     break_flag = True
                     break
 
-                configTest = self.__loadTestCaseConfig(test_name)
+                configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
 
                 query = test_case["SQL"]
-                if self.configLocal.compare_with == "drill":
+                if configTest.compare_with == "drill":
                     engine = self.drill
                 else:
                     engine = self.spark
