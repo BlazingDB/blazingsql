@@ -21,7 +21,7 @@ class TestSuites():
         self.__setupTest()
 
     def __setupTest(self):
-        self.config.worder = 1
+        self.config.apply_order = True
         self.config.use_percentage = False
         self.config.acceptable_difference = 0.01
         self.config.orderby = ""
