@@ -31,6 +31,8 @@ class TestSuites():
         self.globalConfig.orderby = ""
         self.globalConfig.print_result = True
         self.globalConfig.data_types = [
+            DataType.DASK_CUDF,
+            DataType.CUDF,
             DataType.CSV,
             DataType.PARQUET,
             DataType.ORC
