@@ -51,7 +51,8 @@ from EndToEndTests import (
     substringTest,
     stringCaseTest,
     tablesFromPandasTest,
-    # timestampdiffTest,
+    timestampdiffTest,
+    timestampaddTest,
     timestampTest,
     toTimestampTest,
     tpchQueriesTest,
@@ -288,7 +289,11 @@ def main():
     if runAllTests or ("loggingTest" in targetTestGroups):
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
-    # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
+    if runAllTests or ("timestampdiffTest" in targetTestGroups):
+        timestampdiffTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("timestampaddTest" in targetTestGroups):
+        timestampaddTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     #TODO re enable this test once we have the new version of dask
     # https://github.com/dask/distributed/issues/4645

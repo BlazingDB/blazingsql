@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8hpp_1a19ad650baee03e8aa937e5d7e1318201:
+
+Function is_timestamp_ns_with_bar(const std::string&)
+=====================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_timestamp_ns_with_bar(const std::string&)

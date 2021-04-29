@@ -15,10 +15,12 @@ Base Type
 - ``public ral::io::data_parser`` (:ref:`exhale_class_classral_1_1io_1_1data__parser`)
 
 
-Derived Type
-************
+Derived Types
+*************
 
 - ``public ral::io::mysql_parser`` (:ref:`exhale_class_classral_1_1io_1_1mysql__parser`)
+- ``public ral::io::postgresql_parser`` (:ref:`exhale_class_classral_1_1io_1_1postgresql__parser`)
+- ``public ral::io::sqlite_parser`` (:ref:`exhale_class_classral_1_1io_1_1sqlite__parser`)
 
 
 Class Documentation
