@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a6f088a4a7da1c9ed79c0e8785a673c7b:
+
+Function is_timestamp_with_decimals_and_bar(const std::string&)
+===============================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_timestamp_with_decimals_and_bar(const std::string&)

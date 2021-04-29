@@ -12,7 +12,7 @@ Inheritance Relationships
 Base Type
 *********
 
-- ``public ral::io::data_parser`` (:ref:`exhale_class_classral_1_1io_1_1data__parser`)
+- ``public ral::io::abstractsql_parser`` (:ref:`exhale_class_classral_1_1io_1_1abstractsql__parser`)
 
 
 Class Documentation

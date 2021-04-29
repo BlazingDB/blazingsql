@@ -24,7 +24,11 @@ Includes
 --------
 
 
+- ``io/Schema.h`` (:ref:`file_engine_src_io_Schema.h`)
+
 - ``io/data_provider/DataProvider.h`` (:ref:`file_engine_src_io_data_provider_DataProvider.h`)
+
+- ``parser/expression_tree.hpp`` (:ref:`file_engine_src_parser_expression_tree.hpp`)
 
 
 
@@ -68,6 +72,8 @@ Classes
 Functions
 ---------
 
+
+- :ref:`exhale_function_AbstractSQLDataProvider_8h_1af5b9318083c8e3fe94f0165548022932`
 
 - :ref:`exhale_function_AbstractSQLDataProvider_8h_1ab569754458a8d843d0826295afdda8be`
 

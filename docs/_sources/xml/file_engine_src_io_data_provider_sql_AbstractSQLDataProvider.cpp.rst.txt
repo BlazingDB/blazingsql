@@ -26,6 +26,8 @@ Includes
 
 - ``AbstractSQLDataProvider.h`` (:ref:`file_engine_src_io_data_provider_sql_AbstractSQLDataProvider.h`)
 
+- ``compatibility/SQLTranspiler.h`` (:ref:`file_engine_src_io_data_provider_sql_compatibility_SQLTranspiler.h`)
+
 
 
 

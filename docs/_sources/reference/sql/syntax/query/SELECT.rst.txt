@@ -1,5 +1,5 @@
-SELECT
-------
+SELECT function
+^^^^^^^^^^^^^^^
 
 **Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
 :ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
@@ -12,7 +12,7 @@ Examples
 :code:`SELECT *`
 ~~~~~~~~~~~~~~~~
 
-Selects all the data from the data, including all the columns and all the rows.
+Selects all the data from a table, including all the columns and all the rows.
 
 .. code-block:: sql
 
@@ -43,11 +43,11 @@ table.
 
 .. code-block:: sql
 
-    SELECT t.<col_1>
-        , t.<col_2> AS <bar>
-    FROM <table_name> AS t
+    SELECT T.<col_1>
+        , T.<col_2> AS <bar>
+    FROM <table_name> AS T
 
-The :code:`SELECT expr` further allows for including unary and binary functions such as :ref:`arithmetic<sql_arithmetic>`,
+The :code:`SELECT expr` further allows for including unary and binary functions such as :ref:`mathematical<sql_math>`,
 :ref:`string<sql_strings>`, :ref:`timestamp<sql_dates>`, :ref:`windowing<sql_windowing>`, and :ref:`conditional<sql_functions>`.
 
 :code:`LIMIT`
@@ -62,3 +62,4 @@ table.
     SELECT *
     FROM <table_name>
     LIMIT <number_of_rows>
+

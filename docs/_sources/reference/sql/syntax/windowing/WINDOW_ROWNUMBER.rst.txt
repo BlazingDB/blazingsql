@@ -1,15 +1,18 @@
-WINDOW ROWNUMBER
-----------------
+ROW_NUMBER
+~~~~~~~~~~
 
-**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
-:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
-
-Lorem ipsum
+Obtain a row number per partition. This function does not
+require :code:`ORDER BY` clause but the results are then 
+non-deterministic.
 
 Example
 """""""
 
 .. code-block:: sql
 
-    SELECT *
-    FROM <foo>
+    SELECT <col_1>
+        , ROW_NUMBER() OVER (
+            PARTITION BY <col_2> 
+            ORDER BY <col_3>
+        )
+    FROM <table_name>

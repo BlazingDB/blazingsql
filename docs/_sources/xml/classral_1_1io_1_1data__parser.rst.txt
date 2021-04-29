@@ -19,8 +19,6 @@ Derived Types
 - ``public ral::io::json_parser`` (:ref:`exhale_class_classral_1_1io_1_1json__parser`)
 - ``public ral::io::orc_parser`` (:ref:`exhale_class_classral_1_1io_1_1orc__parser`)
 - ``public ral::io::parquet_parser`` (:ref:`exhale_class_classral_1_1io_1_1parquet__parser`)
-- ``public ral::io::postgresql_parser`` (:ref:`exhale_class_classral_1_1io_1_1postgresql__parser`)
-- ``public ral::io::sqlite_parser`` (:ref:`exhale_class_classral_1_1io_1_1sqlite__parser`)
 
 
 Class Documentation
