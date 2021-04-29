@@ -1,7 +1,8 @@
 from blazingsql import DataType
 from Runner import TestCase, ConfigTest
 
-import sql_metadata
+from os import listdir
+from os.path import isfile, join
 import yaml
 import os
 
@@ -18,6 +19,7 @@ class TestSuites():
         self.compare_engine = "spark"
 
         self.config = ConfigTest()
+        self.dataTestSuite = None
 
         self.__setupTest()
 
@@ -39,17 +41,23 @@ class TestSuites():
             with open(fileName, 'r') as stream:
                 fileYaml = yaml.safe_load(stream)
 
+            self.dataTestSuite = fileYaml["LIST_TEST"]
             return list(fileYaml["LIST_TEST"].keys())
         return []
 
     def __existTestData(self, test):
-        fileName = "EndToEndTests/TestSuites/" + test + ".yaml"
-        if os.path.isfile(fileName):
-            with open(fileName, 'r') as stream:
-                queriesYaml = yaml.safe_load(stream)
+        fileName = "EndToEndTests/TestSuites/"
+        if self.dataTestSuite is not None:
+            if "FILE" in self.dataTestSuite[test]:
+                fileName += self.dataTestSuite[test]["FILE"]
+            else:
+                print("ERROR: " + test + " configuration not found in targetTest.yaml, i.e. FILE: " + test + ".yaml")
+                return False
 
+        if os.path.isfile(fileName):
             return True
 
+        print("ERROR: " + fileName + " file not found")
         return False
 
     def setTargetTest(self, testList):
@@ -59,7 +67,7 @@ class TestSuites():
         if len(self.targetTestList) == 0:
             self.targetTestList = self.__loadTargetTestFromFile()
 
-        for test in self.targetTestList:
-            if self.__existTestData(test):
+        for testSuite in self.targetTestList:
+            if self.__existTestData(testSuite):
                 testCase = TestCase(test, "EndToEndTests/TestSuites/" + test + ".yaml", self.config)
                 testCase.run(self.bc, self.dask_client, self.drill, self.spark)
