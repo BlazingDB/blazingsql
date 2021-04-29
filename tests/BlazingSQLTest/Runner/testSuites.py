@@ -1,9 +1,11 @@
 from blazingsql import DataType
-from Runner import testSuite
+from Runner import TestCase, ConfigTest
 
 import sql_metadata
 import yaml
 import os
+
+__all__ = ["TestSuites"]
 
 def getAllQueries():
     return [
@@ -25,9 +27,7 @@ def getAllQueries():
         "select l.l_orderkey, l.l_linenumber from lineitem as l inner join orders as o on l.l_orderkey = o.o_orderkey and l.l_commitdate < o.o_orderdate and l.l_receiptdate > o.o_orderdate"
     ]
 
-class testSuites():
-    # compareEngine
-
+class TestSuites():
     def __init__(self, bc, dask_client, drill, spark):
         self.bc = bc
         self.dask_client = dask_client
@@ -36,7 +36,7 @@ class testSuites():
         self.targetTestList = []
         self.tables = set()
 
-        self.config = testSuite.configTest()
+        self.config = ConfigTest()
 
         self.__setupTest()
         self.__loadTables()
@@ -86,5 +86,5 @@ class testSuites():
 
         for test in self.targetTestList:
             if self.__existTestData(test):
-                testData = testSuite.testSuite(test, "EndToEndTests/TestSuites/" + test + ".yaml", self.config)
-                testData.run(self.bc, self.dask_client, self.drill, self.spark)
+                testCase = TestCase(test, "EndToEndTests/TestSuites/" + test + ".yaml", self.config)
+                testCase.run(self.bc, self.dask_client, self.drill, self.spark)

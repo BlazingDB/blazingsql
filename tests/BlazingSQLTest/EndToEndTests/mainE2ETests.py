@@ -6,7 +6,7 @@ from pynvml import nvmlInit
 from Utils import Execution, init_context, init_comparators, gpuMemory
 from blazingsql import DataType
 from Runner import runTest
-from Runner import testSuites
+from Runner import TestSuites
 import sys
 import time
 
@@ -71,7 +71,7 @@ def checkErrors(result, error_msgs):
 def runE2ETest(bc, dask_client, drill, spark):
     # runLegacyTest(bc, dask_client, drill, spark)
 
-    runnerTest = testSuites.testSuites(bc, dask_client, drill, spark)
+    runnerTest = TestSuites(bc, dask_client, drill, spark)
     runnerTest.setTargetTest(Settings.data["RunSettings"]["targetTestGroups"])
     runnerTest.runE2ETest()
 

@@ -5,7 +5,9 @@ from Runner import runner
 import os
 import yaml
 
-class configTest():
+__all__ = ["TestCase", "ConfigTest"]
+
+class ConfigTest():
     worder = None
     use_percentage = None
     acceptable_difference = None
@@ -13,13 +15,13 @@ class configTest():
     print_result = None
     data_types = None
 
-class testSuite():
+class TestCase():
     def __init__(self, name, configFile, default):
         self.name = name
         self.configFile = configFile
         self.data = None
         self.defaultConfig = default
-        self.config = configTest()
+        self.config = ConfigTest()
 
         self.bc = None
         self.dask_client = None
@@ -35,7 +37,7 @@ class testSuite():
 
         if "config" in self.data:
             if "worder" in self.data["config"]:
-                self.config.worder = self.data["config"]["worder"]
+                self.config.apply_order = self.data["config"]["apply_order"]
             if "use_percentage" in self.data["config"]:
                 self.config.use_percentage = self.data["config"]["use_percentage"]
             if "acceptable_difference" in self.data["config"]:
@@ -48,10 +50,10 @@ class testSuite():
                 self.config.data_types = self.data["config"]["data_types"]
 
     def __loadConfigQuery(self, name):
-        configQuery = configTest()
+        configQuery = ConfigTest()
         if "config" in self.data["listTest"][name]:
             if "worder" in self.data["listTest"][name]["config"]:
-                configQuery.worder = self.data["config"]["worder"]
+                configQuery.apply_order = self.data["config"]["apply_order"]
             if "use_percentage" in self.data["listTest"][name]["config"]:
                 configQuery.use_percentage = self.data["listTest"][name]["config"]["use_percentage"]
             if "acceptable_difference" in self.data["listTest"][name]["config"]:
