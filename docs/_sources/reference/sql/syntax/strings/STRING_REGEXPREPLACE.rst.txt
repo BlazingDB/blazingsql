@@ -1,21 +1,15 @@
-REGEXP_REPLACE
-^^^^^^^^^^^^^^
+STRING REGEXPREPLACE
+--------------------
 
-**Supported datatypes:** :ref:`VARCHAR<sql_dtypes>`
+**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
+:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
 
-Obtain a string with all instances of a Regex pattern are replaced with a specified
-replacement.
-
-.. note:: The regular expressions pattern rules apply when specifying the pattern.
-    For example, to replace a backslash character :code:`\ ` it needs to be *escaped*
-    resulting in the :code:`\\` pattern.
-
-.. seealso:: :ref:`sql_string_replace`
+Lorem ipsum
 
 Example
 """""""
 
 .. code-block:: sql
 
-    SELECT REGEXP_REPLACE(<col_1>, <pattern>, <replacement>)
-    FROM <table_name>
+    SELECT *
+    FROM <foo>

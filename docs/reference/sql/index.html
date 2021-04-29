@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,13 +41,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/d3.v3.min.js"></script>
-    <script src="../../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <script src="../../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="../../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Data types" href="dtypes.html" />
+    <link rel="next" title="Engine C++ API Reference" href="../../xml/library_root.html" />
     <link rel="prev" title="Query Plain Text Files" href="../python/tables/text-files.html" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -392,122 +392,14 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2 current active collapsible-parent">
+   <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
      SQL API Reference
     </a>
-    <ul class="collapse-ul">
-     <li class="toctree-l3">
-      <a class="reference internal" href="dtypes.html">
-       Data types
-      </a>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="query.html">
-       Querying data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="casting.html">
-       Converting data types
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="aggregating.html">
-       Aggregating data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="functions.html">
-       Functions and operators
-      </a>
-      <ul class="collapse-ul">
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="operators.html">
-         Operators
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="conditional.html">
-         Conditional functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="math.html">
-         Mathematical functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="strings.html">
-         String functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="dates.html">
-         Date and timestamp functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="joins.html">
-       Joining data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="windowing.html">
-       Analytic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-    </ul>
-    <i class="fas fa-chevron-down">
-    </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../../xml/library_root.html">
-     C++ API Reference
+     Engine C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4338,18 +4230,7 @@
                 
   <section id="sql-api-reference">
 <span id="sql"></span><h1>SQL API Reference<a class="headerlink" href="#sql-api-reference" title="Permalink to this headline">¶</a></h1>
-<p>Below topics cover all the SQL functionality currently supported by BlazingSQL.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="dtypes.html">Data types</a></li>
-<li class="toctree-l1"><a class="reference internal" href="query.html">Querying data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="casting.html">Converting data types</a></li>
-<li class="toctree-l1"><a class="reference internal" href="aggregating.html">Aggregating data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions and operators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="joins.html">Joining data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="windowing.html">Analytic functions</a></li>
-</ul>
-</div>
+<p><em>In preparation.</em></p>
 </section>
 
 
@@ -4359,7 +4240,7 @@
         <div class='prev-next-bottom'>
             
     <a class='left-prev' id="prev-link" href="../python/tables/text-files.html" title="previous page">Query Plain Text Files</a>
-    <a class='right-next' id="next-link" href="dtypes.html" title="next page">Data types</a>
+    <a class='right-next' id="next-link" href="../../xml/library_root.html" title="next page">Engine C++ API Reference</a>
 
         </div>
         

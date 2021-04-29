@@ -1,14 +1,15 @@
-CHAR_LENGTH
-^^^^^^^^^^^
+STRING CHARLENGTH
+-----------------
 
-**Supported datatypes:** :ref:`VARCHAR<sql_dtypes>`
+**Supported datatypes:** :ref:`TINYINT<sql_dtypes>`, :ref:`SMALLINT<sql_dtypes>`, :ref:`INT<sql_dtypes>`, :ref:`BIGINT<sql_dtypes>`, :ref:`DECIMAL<sql_dtypes>`, :ref:`FLOAT<sql_dtypes>`, :ref:`DOUBLE<sql_dtypes>`
+:ref:`TIMESTAMP<sql_dtypes>`, :ref:`VARCHAR<sql_dtypes>`, :ref:`BOOLEAN<sql_dtypes>`
 
-Obtain the count of characters of the string for each row of a text column.
+Lorem ipsum
 
 Example
 """""""
 
 .. code-block:: sql
 
-    SELECT CHAR_LENGTH(<col_1>)
-    FROM <table_name>
+    SELECT *
+    FROM <foo>

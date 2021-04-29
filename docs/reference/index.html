@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,9 +41,9 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -392,122 +392,14 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2 collapsible-parent">
+   <li class="toctree-l2">
     <a class="reference internal" href="sql/index.html">
      SQL API Reference
     </a>
-    <ul class="collapse-ul">
-     <li class="toctree-l3">
-      <a class="reference internal" href="sql/dtypes.html">
-       Data types
-      </a>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/query.html">
-       Querying data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/casting.html">
-       Converting data types
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/aggregating.html">
-       Aggregating data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/functions.html">
-       Functions and operators
-      </a>
-      <ul class="collapse-ul">
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="sql/operators.html">
-         Operators
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="sql/conditional.html">
-         Conditional functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="sql/math.html">
-         Mathematical functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="sql/strings.html">
-         String functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="sql/dates.html">
-         Date and timestamp functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/joins.html">
-       Joining data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="sql/windowing.html">
-       Analytic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-    </ul>
-    <i class="fas fa-chevron-down">
-    </i>
    </li>
    <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../xml/library_root.html">
-     C++ API Reference
+     Engine C++ API Reference
     </a>
     <ul class="collapse-ul">
      <li class="toctree-l3">
@@ -4341,23 +4233,45 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="python/index.html">Python API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="python/blazing_context.html">BlazingContext()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python/storage_plugins.html">Storage Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python/tables.html">Create tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/blazing_context.html">BlazingContext()</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#constructor">Constructor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#managing-tables">Managing tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#querying-tables">Querying tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/blazing_context.html#ancillary-methods">Ancillary methods</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="sql/index.html">SQL API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="sql/dtypes.html">Data types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/query.html">Querying data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/casting.html">Converting data types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/aggregating.html">Aggregating data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/functions.html">Functions and operators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/joins.html">Joining data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sql/windowing.html">Analytic functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/storage_plugins.html">Storage Plugins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.gs.html">blazingsql.BlazingContext.gs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.hdfs.html">blazingsql.BlazingContext.hdfs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.localfs.html">blazingsql.BlazingContext.localfs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.s3.html">blazingsql.BlazingContext.s3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/api/blazingsql.BlazingContext.show_filesystems.html">blazingsql.BlazingContext.show_filesystems</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../xml/library_root.html">C++ API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../xml/library_root.html#full-api">Full API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python/tables.html">Create tables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/apache-hive.html">Query Hive Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/apache-orc.html">Query Apache ORC Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/apache-parquet.html">Query Apache Parquet Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/pandas-df.html">Query pandas DataFrames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/rapidsai-cudf.html">Query cuDF DataFrames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/rapidsai-cudf.html#query-dask-cudf-dataframes">Query dask_cudf DataFrames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python/tables/text-files.html">Query Plain Text Files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sql/index.html">SQL API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../xml/library_root.html">Engine C++ API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../xml/library_root.html#full-api">Full API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#classes-and-structs">Classes and Structs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#defines">Defines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../xml/library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

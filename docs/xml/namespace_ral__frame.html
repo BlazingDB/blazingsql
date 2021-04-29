@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -41,9 +41,9 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -392,122 +392,14 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2 collapsible-parent">
+   <li class="toctree-l2">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
-    <ul class="collapse-ul">
-     <li class="toctree-l3">
-      <a class="reference internal" href="../reference/sql/dtypes.html">
-       Data types
-      </a>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/query.html">
-       Querying data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/casting.html">
-       Converting data types
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/aggregating.html">
-       Aggregating data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/functions.html">
-       Functions and operators
-      </a>
-      <ul class="collapse-ul">
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="../reference/sql/operators.html">
-         Operators
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="../reference/sql/conditional.html">
-         Conditional functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="../reference/sql/math.html">
-         Mathematical functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="../reference/sql/strings.html">
-         String functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-       <li class="toctree-l4 collapsible-parent">
-        <a class="reference internal" href="../reference/sql/dates.html">
-         Date and timestamp functions
-        </a>
-        <ul class="simple collapse-ul">
-        </ul>
-        <i class="fas fa-chevron-down">
-        </i>
-       </li>
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/joins.html">
-       Joining data
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-     <li class="toctree-l3 collapsible-parent">
-      <a class="reference internal" href="../reference/sql/windowing.html">
-       Analytic functions
-      </a>
-      <ul class="simple collapse-ul">
-      </ul>
-      <i class="fas fa-chevron-down">
-      </i>
-     </li>
-    </ul>
-    <i class="fas fa-chevron-down">
-    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     C++ API Reference
+     Engine C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -4397,8 +4289,8 @@
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="function_LogicPrimitives_8cpp_1a588406653839278d006e5b49da47428c.html#exhale-function-logicprimitives-8cpp-1a588406653839278d006e5b49da47428c"><span class="std std-ref">Function ral::frame::createEmptyBlazingTable(std::vector&lt;cudf::data_type&gt;, std::vector&lt;std::string&gt;)</span></a></p></li>
 <li><p><a class="reference internal" href="function_LogicPrimitives_8cpp_1acb272107c87ccddf4404c130f173ad84.html#exhale-function-logicprimitives-8cpp-1acb272107c87ccddf4404c130f173ad84"><span class="std std-ref">Function ral::frame::createEmptyBlazingTable(std::vector&lt;cudf::type_id&gt;, std::vector&lt;std::string&gt;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_LogicPrimitives_8cpp_1a588406653839278d006e5b49da47428c.html#exhale-function-logicprimitives-8cpp-1a588406653839278d006e5b49da47428c"><span class="std std-ref">Function ral::frame::createEmptyBlazingTable(std::vector&lt;cudf::data_type&gt;, std::vector&lt;std::string&gt;)</span></a></p></li>
 <li><p><a class="reference internal" href="function_LogicPrimitives_8cpp_1a0529cc4b0903b226668d178c35ef27f5.html#exhale-function-logicprimitives-8cpp-1a0529cc4b0903b226668d178c35ef27f5"><span class="std std-ref">Function ral::frame::cudfTableViewToBlazingColumns</span></a></p></li>
 </ul>
 </section>
