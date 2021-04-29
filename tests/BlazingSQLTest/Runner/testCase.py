@@ -121,13 +121,7 @@ class TestCase():
                 configTest = self.__loadTestCaseConfig(test_name)
 
                 query = test_case["SQL"]
-                apply_order = configTest.apply_order
-                use_percentage = configTest.use_percentage
-                acceptable_difference = configTest.acceptable_difference
-                test_suite = self.name
-                testCase_id = test_name
-                print_result = configTest.print_result
-                if self.configLocal.engine == "drill":
+                if self.configLocal.compare_with == "drill":
                     engine = self.drill
                 else:
                     engine = self.spark
@@ -137,16 +131,16 @@ class TestCase():
                 print(self.bc.explain(query, True))
                 runTest.run_query(
                     self.bc,
-                    engine,
+                    self.configLocal.compare_with,
                     query,
-                    testCase_id,
-                    "Case",
-                    apply_order,
+                    test_name,
+                    self.name,
+                    configTest.apply_order,
                     "",
-                    acceptable_difference,
-                    use_percentage,
+                    configTest.acceptable_difference,
+                    configTest.use_percentage,
                     fileSchemaType,
-                    print_result=print_result
+                    print_result=configTest.print_result
                 )
 
     def run(self, bc, dask_client, drill, spark):
