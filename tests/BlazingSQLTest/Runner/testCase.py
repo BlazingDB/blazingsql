@@ -82,6 +82,20 @@ class TestCase():
         if nrals > 1 and not del_dtype == "":
             self.configLocal.data_types.remove(del_dtype)
 
+    def __loadTestCaseConfig(self, test_name):
+        config = self.configLocal
+        if "SETUP" in self.data[test_name]:
+            setup = self.data[test_name]["SETUP"]
+
+            if setup.get("ORDERBY") is not None: config.orderby = setup.get("ORDERBY")
+            # if setup.get("SKIP_WITH") is not None: config.apply_order = setup.get("SKIP_WITH")
+            if setup.get("COMPARE_WITH") is not None: config.engine = setup.get("COMPARE_WITH")
+            if setup.get("APPLY_ORDER") is not None: config.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
+            if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
+
+        return config
+
     def __executionTest(self):
         listCase = list(self.data.keys())
 
