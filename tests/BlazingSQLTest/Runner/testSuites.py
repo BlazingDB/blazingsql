@@ -15,6 +15,7 @@ class TestSuites():
         self.spark = spark
         self.targetTestList = []
         self.tables = set()
+        self.compare_engine = "spark"
 
         self.config = ConfigTest()
 
