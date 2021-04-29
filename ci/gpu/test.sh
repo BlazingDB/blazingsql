@@ -185,7 +185,7 @@ else
             cd ${WORKSPACE}/tests/BlazingSQLTest/
             SECONDS=0
 
-            python -m EndToEndTests.allE2ETest-v2
+            python -m EndToEndTests.mainE2ETests
 
             duration=$SECONDS
             logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
@@ -203,7 +203,7 @@ else
                 cd ${WORKSPACE}/tests/BlazingSQLTest/
                 SECONDS=0
 
-                python -m EndToEndTests.allE2ETest-v2
+                python -m EndToEndTests.mainE2ETests
 
                 duration=$SECONDS
                 logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
