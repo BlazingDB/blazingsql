@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import time
+import yaml
 
 import blazingsql
 from blazingsql import DataType
@@ -261,66 +262,16 @@ def get_resultId(resultComparisson):
 
 
 def get_codTest(test_name):
-    switcher = {
-        "Aggregations without group by": "AGGWOGRBY",
-        "Coalesce": "COALESCE",
-        "Column Basis": "COLBAS",
-        "Bindable Alias": "BALIAS",
-        "Boolean": "BOOL",
-        "Case": "CASE",
-        "Cast": "CAST",
-        "Common Table Expressions": "COMTABLEX",
-        "Concat": "CONCAT",
-        "Count Distinct": "COUNTD",
-        "Count without group by": "COUNTWOGRBY",
-        "Cross join": "CROSSJOIN",
-        "Date": "DATE",
-        "DayOfWeek": "DAYOFWEEK",
-        "Dir": "DIR",
-        "File System Google Storage": "FSGS",
-        "Hdfs FileSystem": "FSHDFS",
-        "Hive FileSystem": "FSHIVE",
-        "Hive File": "FILEHIVE",
-        "File System Local": "FSLOCAL",
-        "File System S3": "FSS3",
-        "Full outer join": "FOUTJOIN",
-        "Group by": "GROUPBY",
-        "Group by without aggregations": "GRBYWOAGG",
-        "Inner join": "INNERJOIN",
-        "Left outer join": "LOUTJOIN",
-        "Like": "LIKE",
-        "Literal": "LITERAL",
-        "Nested Queries": "NESTEDQ",
-        "Non-EquiJoin Queries": "NEQUIJOIN",
-        "Order by": "ORDERBY",
-        "Predicates With Nulls": "PREDWNULLS",
-        "Round": "ROUND",
-        "Replace": "REPLACE",
-        "Smiles Test": "SMILES",
-        "Substring": "SUBSTRING",
-        "Tables from Pandas": "TBLPANDAS",
-        "Timestampdiff": "TIMESTAMPD",
-        "Timestamp": "TIMESTAMP",
-        "To_timestamp": "TO_TIMESTAMP",
-        "TPCH Queries": "TPCH",
-        "Config Options": "TPCH", # we want the same outputs as the tpch test
-        "Unary ops": "UNARYOPS",
-        "Unify Tables": "UNIFYTBL",
-        "Union": "UNION",
-        "Limit": "LIMIT",
-        "Where clause": "WHERE",
-        "Window Function": "WINDOWFUNCTION",
-        "Window Functions With No Partition": "WINDOW_NO_PARTITION",
-        "Wild Card": "WILDCARD",
-        "Simple String": "SSTRING",
-        "String case": "STRINGCASE",
-        "Message Validation": "MESSAGEVAL",
-        "Json tests": "JSON",
-        "Concurrent": "CONCUR",
-        "TablesFromSQL": "TABFROMSQL",
-    }
+    fileName = "Runner/targetTest.yml"
+    if os.path.isfile(fileName):
+        with open(fileName, 'r') as stream:
+            fileYaml = yaml.safe_load(stream)["LIST_TEST"]
 
-    return switcher.get(test_name)
+    if "CODE" in fileYaml[test_name]:
+        return fileYaml[test_name]["CODE"]
+
+    print("ERROR: CODE configuration not found in targetTest.yaml, i.e. CODE: BALIAS")
+    return "NONE"
 
 def print_fixed_log(
     logger,
