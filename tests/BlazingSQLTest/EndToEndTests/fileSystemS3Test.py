@@ -17,17 +17,16 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
     def start_s3mock(access_key_id, secret_access_key):
         print("Starting s3 mock server")
-        conda_prefix = os.getenv("CONDA_PREFIX", "/data")
-        mount_path = Settings.data["TestSettings"]["dataDirectory"]
+        mount_path = Settings.data["TestSettings"]["dataDirectory"].replace('data/','')
 
-        container = storageBackends.start_backend(backendType="S3", image='minio/minio',
-                            detach=True,
-                            auto_remove=True,
-                            environment=[f"MINIO_ACCESS_KEY={access_key_id}",f"MINIO_SECRET_KEY={secret_access_key}"],
-                            ports={ '9000/tcp': 9000 },
-                            remove=True,
-                            volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
-                            command='server /data')
+        container = storageBackends.start_backend(backendType="S3",
+                                                    image='minio/minio',
+                                                    environment=[f"MINIO_ACCESS_KEY={access_key_id}",
+                                                                    f"MINIO_SECRET_KEY={secret_access_key}"],
+                                                    ports={ '9000/tcp': 9000 },
+                                                    volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
+                                                    command='server /data'
+                                                    )
 
         return container
 
@@ -41,7 +40,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         awsS3OverrideEndpoint = None
 
         if not awsS3BucketName:
-            awsS3BucketName = "tpch"
+            awsS3BucketName = "data"
             awsS3OverrideEndpoint = "http://127.0.0.1:9000"
 
         mock_server = start_s3mock(awsS3AccessKeyId, awsS3SecretKey)

@@ -1,12 +1,10 @@
-import docker
-from time import sleep
 from collections import OrderedDict
 from blazingsql import DataType
 from DataBase import createSchema
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from Runner import runTest
-from Utils import gpuMemory, skip_test
+from Utils import gpuMemory, skip_test, storageBackends
 from EndToEndTests import tpchQueries
 
 
@@ -108,40 +106,30 @@ acceptable_difference = 0.01
 # example: {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
 datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tables)) for ds in data_types)
 
-def start_mysql(user, password, database, port):
-    client = docker.from_env()
-    container = client.containers.run(image='mysql:8.0.24',
-                                      detach=True,
-                                      auto_remove=True,
-                                      environment=[f"MYSQL_USER={user}",
-                                                    f"MYSQL_ROOT_PASSWORD={password}",
-                                                    f"MYSQL_PASSWORD={password}",
-                                                    f"MYSQL_DATABASE={database}"],
-                                      ports={ '3306/tcp': port },
-                                      remove=True,
-                                      command='--local-infile=1')
-    print('Starting mysql docker container for tests...')
-    sleep(20)
-    container.logs()
-    return container
+def start_database(databaseType, user, password, database, port):
+    if databaseType=="mysql":
+        image='mysql:8.0.24'
+        env = [f"MYSQL_USER={user}",
+                f"MYSQL_ROOT_PASSWORD={password}",
+                f"MYSQL_PASSWORD={password}",
+                f"MYSQL_DATABASE={database}"]
+        ports = { '3306/tcp': port }
+        command = '--local-infile=1'
+    if databaseType=="postgres":
+        image = 'postgres:9.6.21'
+        env = [f"POSTGRES_USER={user}",
+                f"POSTGRES_PASSWORD={password}",
+                f"POSTGRES_DB={database}"]
+        ports = { '5432/tcp': port }
+        command = None
+    container = storageBackends.start_backend(backendType=databaseType,
+                                                image=image,
+                                                environment=env,
+                                                ports=ports,
+                                                command=command
+                                                )
 
-def start_postgres(user, password, database, port):
-    client = docker.from_env()
-    container = client.containers.run(image='postgres:9.6.21',
-                                      detach=True,
-                                      auto_remove=True,
-                                      environment=[f"POSTGRES_USER={user}",
-                                                    f"POSTGRES_PASSWORD={password}",
-                                                    f"POSTGRES_DB={database}"],
-                                      ports={ '5432/tcp': port },
-                                      remove=True)
-    print('Starting postgres docker container for tests...')
-    sleep(20)
-    container.logs()
     return container
-
-def stop_container(container):
-  container.kill()
 
 def datasources(dask_client, nRals):
     for fileSchemaType in data_types:
@@ -246,7 +234,7 @@ def setup_test(data_type: DataType) -> createSchema.sql_connection:
 
     if data_type is DataType.MYSQL:
       from DataBase import mysqlSchema
-      mysql_container = start_mysql(sql.username, sql.password, sql.database, sql.port)
+      mysql_container = start_database(data_type.name, sql.username, sql.password, sql.database, sql.port)
       mysqlSchema.create_and_load_tpch_schema(sql)
       return sql, mysql_container
 
@@ -257,7 +245,7 @@ def setup_test(data_type: DataType) -> createSchema.sql_connection:
 
     if data_type is DataType.POSTGRESQL:
       from DataBase import postgreSQLSchema
-      postgres_container = start_postgres(sql.username, sql.password, sql.database, sql.port)
+      postgres_container = start_database(data_type.name, sql.username, sql.password, sql.database, sql.port)
       postgreSQLSchema.create_and_load_tpch_schema(sql)
       return sql, postgres_container
 
@@ -283,12 +271,12 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             is_file_ds = True
         else:
             sql, container = setup_test(data_type)
-   
+
         if sql or is_file_ds:
             start_mem = gpuMemory.capture_gpu_memory_usage()
             executionTest(dask_client, drill, spark, dir_data_lc, bc, nRals, sql)
             end_mem = gpuMemory.capture_gpu_memory_usage()
             gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
-  
+
         if container:
-          stop_container(container)
+            storageBackends.stop_backend(container)
