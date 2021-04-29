@@ -34,6 +34,9 @@ class TestCase():
         self.drill = None
         self.spark = None
 
+        self.nRals = Settings.data["RunSettings"]["nRals"]
+        self.dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
+
         self.__loadFileSuite()
         self.__loadConfigTest()
         self.__loadTables()
@@ -79,9 +82,6 @@ class TestCase():
         self.dask_client = dask_client
         self.drill = drill
         self.spark = spark
-
-        dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
-        nRals = Settings.data["RunSettings"]["nRals"]
 
         start_mem = gpuMemory.capture_gpu_memory_usage()
         runner.executionTest(bc, dask_client, drill, spark, nRals, dir_data_file, self.name)
