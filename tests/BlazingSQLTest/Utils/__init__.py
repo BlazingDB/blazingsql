@@ -6,8 +6,8 @@ from dask.distributed import Client
 from dask_cuda import LocalCUDACluster
 from dask_cuda.utils import CPUAffinity, get_cpu_affinity
 
-from Configuration import Settings as Settings
-from DataBase.createSchema import get_extension
+from Configuration import ExecutionMode
+from Configuration import Settings
 from DataBase import createSchema
 
 test_name_delimiter = " $$0_0$$ "
@@ -23,7 +23,7 @@ def dquery(nRals, single_node_sql, distrubuted_sql):
 
 
 def test_name(queryType, fileSchemaType):
-    ext = get_extension(fileSchemaType)
+    ext = createSchema.get_extension(fileSchemaType)
     tname = "%s%s%s" % (queryType, test_name_delimiter, ext)
     return tname
 

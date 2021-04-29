@@ -90,7 +90,7 @@ def main():
 
     print("Using progress bar: ", useProgressBar)
 
-    drill, spark = init_Comparators()
+    drill, spark = init_comparators()
 
     bc, dask_client = init_context(useProgressBar = useProgressBar)
 
