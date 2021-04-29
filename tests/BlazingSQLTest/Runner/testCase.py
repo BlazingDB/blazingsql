@@ -11,7 +11,7 @@ import yaml
 __all__ = ["TestCase", "ConfigTest"]
 
 class ConfigTest():
-    worder = None
+    apply_order = None
     use_percentage = None
     acceptable_difference = None
     orderby = None
@@ -19,70 +19,49 @@ class ConfigTest():
     data_types = None
 
 class TestCase():
-    def __init__(self, name, configFile, default):
+    def __init__(self, name, dataTargetTest, globalConfig):
         self.name = name
-        self.configFile = configFile
+        self.dataTargetTest = dataTargetTest
         self.data = None
-        self.defaultConfig = default
-        self.config = ConfigTest()
+        self.configGlobal = globalConfig
 
         self.bc = None
         self.dask_client = None
         self.drill = None
         self.spark = None
 
-        self.__loadConfig()
+        self.__loadFileSuite()
+        self.__loadConfigTest()
         self.__loadTables()
 
-    def __getAllQueries():
-        dir = "EndToEndTests/TestSuites/"
-        onlyfiles = [f for f in listdir(dir) if isfile(join(dir, f))]
-        print(onlyfiles)
-        if os.path.isfile(fileName):
-            with open(fileName, 'r') as stream:
-                queriesYaml = yaml.safe_load(stream)
+    def __loadFileSuite(self):
+        fileName = "EndToEndTests/TestSuites/" + self.dataTargetTest["FILE"]
+        with open(fileName, 'r') as stream:
+            self.data = yaml.safe_load(stream)["TEST_SUITE"]
+
+    def __loadConfigTest(self):
+        if "SETUP" in self.data:
+            setup = self.data["SETUP"]
+
+            if setup.get("ORDERBY") is not None: self.configGlobal.apply_order = setup.get("ORDERBY")
+            if setup.get("SKIP_WITH") is not None: self.configGlobal.apply_order = setup.get("SKIP_WITH")
+            if setup.get("APPLY_ORDER") is not None: self.configGlobal.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("COMPARE_WITH") is not None: self.configGlobal.apply_order = setup.get("COMPARE_WITH")
+            if setup.get("USE_PERCENTAGE") is not None: self.configGlobal.apply_order = setup.get("USE_PERCENTAGE")
+            if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configGlobal.apply_order = setup.get("ACCEPTABLE_DIFFERENCE")
 
     def __loadTables(self):
         queries = __getAllQueries()
         for query in queries:
             self.tables.update(sql_metadata.get_query_tables(query))
 
-    def __loadConfig(self):
-        if os.path.isfile(self.configFile):
-            with open(self.configFile, 'r') as stream:
-                self.data = yaml.safe_load(stream)[self.name]
-
-        if "config" in self.data:
-            if "worder" in self.data["config"]:
-                self.config.apply_order = self.data["config"]["apply_order"]
-            if "use_percentage" in self.data["config"]:
-                self.config.use_percentage = self.data["config"]["use_percentage"]
-            if "acceptable_difference" in self.data["config"]:
-                self.config.acceptable_difference = self.data["config"]["acceptable_difference"]
-            if "orderby" in self.data["config"]:
-                self.config.orderby = self.data["config"]["orderby"]
-            if "print_result" in self.data["config"]:
-                self.config.print_result = self.data["config"]["print_result"]
-            if "data_types" in self.data["config"]:
-                self.config.data_types = self.data["config"]["data_types"]
-
-    def __loadConfigQuery(self, name):
-        configQuery = ConfigTest()
-        if "config" in self.data["listTest"][name]:
-            if "worder" in self.data["listTest"][name]["config"]:
-                configQuery.apply_order = self.data["config"]["apply_order"]
-            if "use_percentage" in self.data["listTest"][name]["config"]:
-                configQuery.use_percentage = self.data["listTest"][name]["config"]["use_percentage"]
-            if "acceptable_difference" in self.data["listTest"][name]["config"]:
-                configQuery.acceptable_difference = self.data["listTest"][name]["config"]["acceptable_difference"]
-            if "orderby" in self.data["listTest"][name]["config"]:
-                configQuery.orderby = self.data["listTest"][name]["config"]["orderby"]
-            if "print_result" in self.data["listTest"][name]["config"]:
-                configQuery.print_result = self.data["listTest"][name]["config"]["print_result"]
-            if "data_types" in self.data["listTest"][name]["config"]:
-                configQuery.data_types = self.data["listTest"][name]["config"]["data_types"]
-
-        return configQuery
+    def __getAllQueries(self):
+        dir = "EndToEndTests/TestSuites/"
+        onlyfiles = [f for f in listdir(dir) if isfile(join(dir, f))]
+        print(onlyfiles)
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                queriesYaml = yaml.safe_load(stream)
 
     def run(self, bc, dask_client, drill, spark):
         self.bc = bc
