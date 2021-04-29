@@ -7,10 +7,11 @@ TEST_SUITE:
                     from part order by p_partkey limit 10
     SETUP:
       APPLY_ORDER: True
-      USE_PERCENTAGE: false
+      USE_PERCENTAGE: False
       ACCEPTABLE_DIFFERENCE: 0.01
       COMPARE_WITH: drill
-      SKIP_WITH: ORC
+      SKIP_WITH:
+        - ORC
 
   TEST_02:
     SQL: |
@@ -18,7 +19,7 @@ TEST_SUITE:
                     from customer order by c_acctbal desc, c_custkey
     SETUP:    
       APPLY_ORDER: True
-      USE_PERCENTAGE: false
+      USE_PERCENTAGE: False
       ACCEPTABLE_DIFFERENCE: 0.01
       COMPARE_WITH: drill
 
