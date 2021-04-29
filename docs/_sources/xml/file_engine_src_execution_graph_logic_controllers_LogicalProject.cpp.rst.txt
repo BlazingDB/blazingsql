@@ -99,7 +99,9 @@ Functions
 
 - :ref:`exhale_function_LogicalProject_8cpp_1a2000b070ee41c757de240fbb4959c232`
 
-- :ref:`exhale_function_LogicalProject_8cpp_1ab9f260d10cbd5a19467bf7c131a1fe6d`
+- :ref:`exhale_function_LogicalProject_8cpp_1a557ae179f279d2666561cd56af0544eb`
+
+- :ref:`exhale_function_LogicalProject_8cpp_1a9b92c91275b2c26121f6b0f3238970fa`
 
 - :ref:`exhale_function_LogicalProject_8cpp_1a7fb707a934a4fa57400675a0727b0d5c`
 

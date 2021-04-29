@@ -30,6 +30,8 @@ Includes
 
 - ``Util/StringUtil.h``
 
+- ``array``
+
 - ``arrow/io/file.h``
 
 - ``numeric``
@@ -64,11 +66,12 @@ Functions
 
 - :ref:`exhale_function_SQLiteParser_8cpp_1a30ff69324193dcd34c64a3a1f98be83d`
 
-- :ref:`exhale_function_SQLiteParser_8cpp_1a91330a47ecc677dd33c179da38c9dd0c`
-
-- :ref:`exhale_function_SQLiteParser_8cpp_1a51930bbcbe2e9ce51112551717675126`
-
-- :ref:`exhale_function_SQLiteParser_8cpp_1a5cce860014ee8527375dea0a9eea1730`
-
 - :ref:`exhale_function_SQLiteParser_8cpp_1a48b9d7e35c29e9848fe1f527034aab82`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_SQLiteParser_8cpp_1a9e5b28e07afa4dab8920d4ed96ca859c`
 

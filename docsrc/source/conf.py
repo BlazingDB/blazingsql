@@ -12,7 +12,17 @@
 #
 import os
 import sys
+import sphinx  # isort:skip
+from sphinx.util import rpartition  # isort:skip
+from sphinx.ext.autodoc import (  # isort:skip
+    AttributeDocumenter,
+    Documenter,
+    MethodDocumenter,
+)
+from sphinx.ext.autosummary import Autosummary  # isort:skip
+
 sys.path.insert(0, os.path.abspath('../../pyblazing'))
+sys.path.insert(0, os.path.abspath('../../pyblazing/blazingsql'))
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
@@ -37,8 +47,9 @@ language = "en"
 version = '0.19'
 release = f'v{version}'
 
-
 # -- General configuration ---------------------------------------------------
+
+generate_cpp = int(os.environ['SPHINX_NO_CPP'])  ## SPEEDS UP docs generation as we don't read xml each time
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -48,31 +59,33 @@ extensions = ['recommonmark',
                 'sphinx.ext.todo',
                 'sphinx.ext.autodoc',
                 "sphinx.ext.autosummary",
-                'breathe',
-                'exhale'
                 ]
 
 autosummary_generate = True 
 autosummary_imported_members = False
 
-# # Setup the exhale extension
-exhale_args = {
-    # These arguments are required
-    "containmentFolder":     "./xml",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Engine C++ API Reference",
-    "doxygenStripFromPath":  "..",
-    # Suggested optional arguments
-    "createTreeView":        True,
-    # TIP: if using the sphinx-bootstrap-theme, you need
-    #"treeViewIsBootstrap": True
-}
 
-# Setup the breathe extension
-breathe_projects = {
-    "BlazingSQL Engine": "./xml"
-}
-breathe_default_project = "BlazingSQL Engine"
+if generate_cpp:
+    extensions = extensions + ['breathe', 'exhale']
+    
+    # Setup the exhale extension
+    exhale_args = {
+        # These arguments are required
+        "containmentFolder":     "./xml",
+        "rootFileName":          "library_root.rst",
+        "rootFileTitle":         "C++ API Reference",
+        "doxygenStripFromPath":  "..",
+        # Suggested optional arguments
+        "createTreeView":        True,
+        # TIP: if using the sphinx-bootstrap-theme, you need
+        "treeViewIsBootstrap": True
+    }
+
+    # Setup the breathe extension
+    breathe_projects = {
+        "BlazingSQL Engine": "./xml"
+    }
+    breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -146,24 +159,62 @@ html_context = {
     "github_repo": "blazingsql",
     "github_version": "feedback",
     "doc_path": "docsrc/source",
+    "sql": {
+        "query": ['SELECT','SELECT_ALL','SELECT_DISTINCT', 'WHERE', 'ORDERBY_']
+        , "operators": [
+            'OPS_ARITHMETIC','OPS_COMPARISON','OPS_LOGICAL','OPS_IN','OPS_IS'
+            , 'OPS_CONCAT'
+        ]
+        , "math": [
+            'MATH_ABS'
+            ,'MATH_CEIL','MATH_FLOOR','MATH_ROUND'
+            ,'MATH_GREATEST','MATH_LEAST'
+            ,'MATH_LN','MATH_LOG10'
+            ,'MATH_MOD'
+            ,'MATH_POWER','MATH_SQRT'
+            ,'MATH_RAND'
+            ,'MATH_COS','MATH_ACOS'
+            ,'MATH_SIN','MATH_ASIN'
+            ,'MATH_TAN','MATH_ATAN'
+        ]
+        , "strings": [
+            'STRING_CHARACTERLENGTH','STRING_CHARLENGTH'
+            ,'STRING_CONCAT'
+            ,'STRING_INITCAP','STRING_LOWER','STRING_UPPER'
+            ,'STRING_LEFT','STRING_RIGHT','STRING_SUBSTRING'
+            ,'STRING_LTRIM','STRING_RTRIM','STRING_TRIM'
+            ,'STRING_REGEXPREPLACE','STRING_REPLACE'
+            ,'STRING_REVERSE'
+            
+        ]
+        , "dates": [
+            'DATE_DAYOFMONTH','DATE_DAYOFWEEK','DATE_HOUR','DATE_MINUTE','DATE_MONTH','DATE_SECOND','DATE_YEAR','DATE_EXTRACT'
+        ]
+        , "conditional": [
+            "FUNC_CASE","FUNC_COALESCE","FUNC_NULLIF","FUNC_NVL"
+        ]
+        , "aggregating": [
+            'AGG_AVG','AGG_COUNT','AGG_MAX','AGG_MIN','AGG_STDDEV','AGG_STDDEVPOP','AGG_STDDEVSAMP','AGG_SUM'
+            ,'AGG_VARIANCE','AGG_VARPOP','AGG_VARSAMP'            
+        ]
+        , "windowing": [
+            'WINDOW_LEAD','WINDOW_LAG','WINDOW_FIRSTVALUE','WINDOW_LASTVALUE'
+            ,'WINDOW_ROWNUMBER','WINDOW_AVG','WINDOW_MAX','WINDOW_MIN','WINDOW_SUM'
+        ]
+        , "joins": ['JOIN_CROSS','JOIN_INNER','JOIN_FULLOUTER','JOIN_LEFTOUTER']
+    }
 }
+
+skip_methods = ['add_remove_table', 'partition', 'do_progress_bar', 'localfs']
 
 def skip(app, what, name, obj, would_skip, options):
     if name == "__init__":
         return True
     elif name[0] == '_':
         return True
+    elif name in skip_methods:
+        return True
     return would_skip
-
-import sphinx  # isort:skip
-from sphinx.util import rpartition  # isort:skip
-from sphinx.ext.autodoc import (  # isort:skip
-    AttributeDocumenter,
-    Documenter,
-    MethodDocumenter,
-)
-from sphinx.ext.autosummary import Autosummary  # isort:skip
-
 
 class AccessorDocumenter(MethodDocumenter):
     """
@@ -272,13 +323,16 @@ def rstjinja(app, docname, source):
     if app.builder.format != "html":
         return
     src = source[0]
+    # print(docname, source)
     rendered = app.builder.templates.render_string(src, app.config.html_context)
+    # print(rendered)
     source[0] = rendered
 
 def setup(app):
     app.add_js_file("js/d3.v3.min.js")
     app.connect("autodoc-skip-member", skip)
-    # app.connect("source-read", rstjinja)
+    app.connect("source-read", rstjinja)
+    # app.connect("env-get-outdated", test2)
     # app.connect("autodoc-process-docstring", remove_flags_docstring)
     # app.connect("autodoc-process-docstring", process_class_docstrings)
     # app.connect("autodoc-process-docstring", process_business_alias_docstrings)

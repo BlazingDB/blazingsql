@@ -1,0 +1,13 @@
+.. _exhale_function_CommonOperations_8cpp_1a9b925ef2cbecff9f6ed70ddf1b77f2f1:
+
+Function ral::utilities::concatTables(std::vector<std::unique_ptr<BlazingTable>>)
+=================================================================================
+
+- Defined in :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::utilities::concatTables(std::vector<std::unique_ptr<BlazingTable>>)

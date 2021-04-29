@@ -19,11 +19,13 @@ Functions
 
 - :ref:`exhale_function_DebuggingUtils_8cpp_1aae53a21cf9e4abfde92c313eba5765f4`
 
-- :ref:`exhale_function_CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30`
-
 - :ref:`exhale_function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec`
 
+- :ref:`exhale_function_CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30`
+
 - :ref:`exhale_function_CommonOperations_8h_1a99f694b7d74f1626bb7f610a2c6e9451`
+
+- :ref:`exhale_function_CommonOperations_8cpp_1a9b925ef2cbecff9f6ed70ddf1b77f2f1`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4`
 

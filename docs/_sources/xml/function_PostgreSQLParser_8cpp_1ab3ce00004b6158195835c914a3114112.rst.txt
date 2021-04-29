@@ -1,0 +1,13 @@
+.. _exhale_function_PostgreSQLParser_8cpp_1ab3ce00004b6158195835c914a3114112:
+
+Function ral::io::date_to_string
+================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::date_to_string(std::int32_t)
