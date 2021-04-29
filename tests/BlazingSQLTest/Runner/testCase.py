@@ -7,6 +7,7 @@ from os.path import isfile, join
 import sql_metadata
 import os
 import yaml
+import re
 
 __all__ = ["TestCase", "ConfigTest"]
 
@@ -24,6 +25,7 @@ class TestCase():
         self.dataTargetTest = dataTargetTest
         self.data = None
         self.configGlobal = globalConfig
+        self.tables = set()
 
         self.bc = None
         self.dask_client = None
@@ -51,17 +53,22 @@ class TestCase():
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configGlobal.apply_order = setup.get("ACCEPTABLE_DIFFERENCE")
 
     def __loadTables(self):
-        queries = __getAllQueries()
+        queries = self.__getAllQueries()
         for query in queries:
             self.tables.update(sql_metadata.get_query_tables(query))
 
     def __getAllQueries(self):
-        dir = "EndToEndTests/TestSuites/"
-        onlyfiles = [f for f in listdir(dir) if isfile(join(dir, f))]
-        print(onlyfiles)
-        if os.path.isfile(fileName):
-            with open(fileName, 'r') as stream:
-                queriesYaml = yaml.safe_load(stream)
+        listCase = list(self.data.keys())
+        if "SETUP" in listCase: listCase.remove("SETUP")
+
+        queries = []
+        for testCase in listCase:
+            if "SQL" in self.data[testCase]:
+                sql = self.data[testCase]["SQL"]
+                sql = re.sub('\s{2,}', ' ', sql)
+                queries.append(sql)
+
+        return queries
 
     def run(self, bc, dask_client, drill, spark):
         self.bc = bc
