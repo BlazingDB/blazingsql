@@ -2,6 +2,9 @@ from Configuration import Settings
 from Utils import gpuMemory
 from Runner import runner
 
+from os import listdir
+from os.path import isfile, join
+import sql_metadata
 import os
 import yaml
 
@@ -29,6 +32,20 @@ class TestCase():
         self.spark = None
 
         self.__loadConfig()
+        self.__loadTables()
+
+    def __getAllQueries():
+        dir = "EndToEndTests/TestSuites/"
+        onlyfiles = [f for f in listdir(dir) if isfile(join(dir, f))]
+        print(onlyfiles)
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                queriesYaml = yaml.safe_load(stream)
+
+    def __loadTables(self):
+        queries = __getAllQueries()
+        for query in queries:
+            self.tables.update(sql_metadata.get_query_tables(query))
 
     def __loadConfig(self):
         if os.path.isfile(self.configFile):
