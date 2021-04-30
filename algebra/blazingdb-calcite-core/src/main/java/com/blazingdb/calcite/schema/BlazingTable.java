@@ -73,7 +73,8 @@ public class BlazingTable implements ProjectableFilterableTable {
 	@Override
 	public Statistic
 	getStatistic() {
-		return Statistics.UNKNOWN;
+//		return Statistics.UNKNOWN;
+		return new BlazingStatistic(catalogTable.getRowCount());
 	}
 
 	@Override

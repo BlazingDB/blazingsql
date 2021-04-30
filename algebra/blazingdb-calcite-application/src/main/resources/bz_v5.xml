@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <changeSet id="1"
+               author="Percy Camilo Triveño Aucahuasi - percy@blazingdb.com, Felipe Aramburu felipe@blazingdb.com">
+
+
+
+
+        <createTable tableName="blazing_catalog_columns">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)"> <!-- whether col name is too long -->
+                <constraints nullable="false" />
+            </column>
+            <column name="data_type" type="smallint">
+                <constraints nullable="false" />
+            </column>
+            <column name="table_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="order_value" type="INTEGER">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+
+
+        <createTable tableName="blazing_catalog_tables">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="database_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="rowcount" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+
+        <addForeignKeyConstraint
+                constraintName="fk_columns_table"
+                baseTableName="blazing_catalog_columns" baseColumnNames="table_id"
+                referencedTableName="blazing_catalog_tables"
+                referencedColumnNames="id" />
+
+        <createIndex tableName="blazing_catalog_columns"
+                     indexName="ix_blazing_catalog_columns_name">
+            <column name="name" />
+        </createIndex>
+
+
+        <createIndex tableName="blazing_catalog_tables"
+                     indexName="ix_blazing_catalog_tables_name">
+            <column name="name" />
+        </createIndex>
+
+        <createTable tableName="blazing_catalog_database">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+            <!--		<column name="schema_id" type="BIGINT">
+                        <constraints nullable="false" />
+                    </column> -->
+        </createTable>
+
+        <addForeignKeyConstraint
+                constraintName="fk_tables_database"
+                baseTableName="blazing_catalog_tables" baseColumnNames="database_id"
+                referencedTableName="blazing_catalog_database"
+                referencedColumnNames="id" />
+
+        <!--  Dont think we need schemas
+            <createTable tableName="blazing_catalog_schema">
+                <column name="id" type="BIGINT" autoIncrement="true">
+                    <constraints primaryKey="true" nullable="false" />
+                </column>
+                <column name="name" type="varchar(50)">
+                    <constraints nullable="false" />
+                </column>
+
+            </createTable>
+
+            <addForeignKeyConstraint
+                constraintName="fk_database_schema"
+                baseTableName="blazing_catalog_database" baseColumnNames="schema_id"
+                referencedTableName="blazing_catalog_schema"
+                referencedColumnNames="id" />
+    -->
+
+
+    </changeSet>
+
+</databaseChangeLog>

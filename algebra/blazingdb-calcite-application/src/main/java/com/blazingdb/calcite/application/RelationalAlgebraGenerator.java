@@ -8,27 +8,24 @@ import com.blazingdb.calcite.rules.ReduceExpressionsRule;
 import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
+import org.apache.calcite.adapter.enumerable.EnumerableConvention;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.Lex;
+import org.apache.calcite.interpreter.BindableConvention;
+import org.apache.calcite.interpreter.Bindables;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
+import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.rules.FilterJoinRule;
-import org.apache.calcite.rel.rules.AggregateExpandDistinctAggregatesRule;
-import org.apache.calcite.rel.rules.FilterAggregateTransposeRule;
-import org.apache.calcite.rel.rules.FilterRemoveIsNotDistinctFromRule;
-import org.apache.calcite.rel.rules.FilterMergeRule;
-import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
-import org.apache.calcite.rel.rules.ProjectMergeRule;
-import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
-import org.apache.calcite.rel.rules.ProjectToWindowRule;
+import org.apache.calcite.rel.rules.*;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
@@ -84,6 +81,8 @@ public class RelationalAlgebraGenerator {
 	private FrameworkConfig config;
 
 	private List<RelOptRule> rules;
+
+	private List<RelOptRule> rulesCBO;
 
 	/**
 	 * Constructor for the relational algebra generator class. It will take the
@@ -148,6 +147,11 @@ public class RelationalAlgebraGenerator {
 	public void
 	setRules(List<RelOptRule> rules) {
 		this.rules = rules;
+	}
+
+	public void
+	setRulesCBO(List<RelOptRule> rulesCBO) {
+		this.rulesCBO = rulesCBO;
 	}
 
 	public SqlNode
@@ -241,6 +245,30 @@ public class RelationalAlgebraGenerator {
 		planner.close();
 
 		return hepPlanner.findBestExp();
+	}
+
+	public RelNode
+	getOptimizedRelationalAlgebraCBO(RelNode rboOptimizedPlan) throws RelConversionException {
+		VolcanoPlanner planner = (VolcanoPlanner) rboOptimizedPlan.getCluster().getPlanner();
+		planner.clear();
+
+		if(rulesCBO == null){
+			planner.addRule(Bindables.BINDABLE_TABLE_SCAN_RULE);
+			planner.addRule(Bindables.BINDABLE_FILTER_RULE);
+			planner.addRule(Bindables.BINDABLE_JOIN_RULE);
+			planner.addRule(Bindables.BINDABLE_PROJECT_RULE);
+			planner.addRule(Bindables.BINDABLE_SORT_RULE);
+			planner.addRule(JoinAssociateRule.INSTANCE);
+		} else {
+			for(RelOptRule ruleCBO : rulesCBO) {
+				planner.addRule(ruleCBO);
+			}
+		}
+
+		rboOptimizedPlan = planner.changeTraits(rboOptimizedPlan, rboOptimizedPlan.getCluster().traitSet().replace(BindableConvention.INSTANCE));
+		rboOptimizedPlan.getCluster().getPlanner().setRoot(rboOptimizedPlan);
+
+		return planner.chooseDelegate().findBestExp();
 	}
 
 	/**

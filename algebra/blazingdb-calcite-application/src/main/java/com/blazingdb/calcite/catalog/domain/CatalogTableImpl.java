@@ -58,6 +58,24 @@ public class CatalogTableImpl implements CatalogTable {
 
 	/**
 	 * This constructor is used to fill in all the values for the table.
+	 *
+	 * @param name the name of the table that is being created
+	 * @param db the database this table is being added to
+	 * @param columns list of columns to be added to the table.
+	 */
+	public CatalogTableImpl(String name, CatalogDatabaseImpl db, List<CatalogColumnImpl> columns, Double rowcount) {
+		this.name = name;
+		this.database = db;
+		this.tableColumns = new HashMap<String, CatalogColumnImpl>();
+		for(CatalogColumnImpl column : columns) {
+			column.setTable(this);
+			this.tableColumns.put(column.getColumnName(), column);
+		}
+		this.rowcount = rowcount;
+	}
+
+	/**
+	 * This constructor is used to fill in all the values for the table.
 	 * @param name the name of the table that is being created
 	 * @param db the database this table is being added to
 	 * @param columnNames a list of strings with column names
@@ -85,7 +103,10 @@ public class CatalogTableImpl implements CatalogTable {
 	 * The name of the table.
 	 */
 	@Column(name = "name", nullable = false) private String name;
-
+	/**
+	 * The number of row of the table.
+	 */
+	@Column(name = "rowcount", nullable = false) private Double rowcount;
 
 	/**
 	 * A map of name to {@see CatalogColumnImpl}
@@ -130,6 +151,15 @@ public class CatalogTableImpl implements CatalogTable {
 	public void
 	setTableName(String name) {
 		this.name = name;
+	}
+
+	@Override
+	public Double getRowCount() {
+		return this.rowcount;
+	}
+
+	public void setRowcount(Double rowcount) {
+		this.rowcount = rowcount;
 	}
 
 	/**

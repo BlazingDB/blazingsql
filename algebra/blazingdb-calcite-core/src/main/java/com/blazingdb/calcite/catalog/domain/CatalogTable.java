@@ -11,4 +11,7 @@ public interface CatalogTable {
 
 	public CatalogDatabase
 	getDatabase();
+
+	public Double
+	getRowCount();
 }

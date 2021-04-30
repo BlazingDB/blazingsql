@@ -6,7 +6,7 @@
 	<!-- Include a new file for each release. Right before each release optimize 
 		this file to support migrating only from the previous releases to minimize 
 		redundant changes introduced by refactoring. -->
-	<include file="bz_v3.xml" />
+<!--	<include file="bz_v3.xml" />-->
 <!-- 	<include file="bz_v4.xml" /> -->
-
+	<include file="bz_v5.xml" />
 </databaseChangeLog>
