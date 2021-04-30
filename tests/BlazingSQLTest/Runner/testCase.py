@@ -22,6 +22,7 @@ class ConfigTest():
     print_result = None
     data_types = None
     compare_with = None
+    skip_with = []
 
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
@@ -54,6 +55,7 @@ class TestCase():
             setup = self.data["SETUP"]
 
             if setup.get("ORDERBY") is not None: self.configLocal.orderby = setup.get("ORDERBY")
+            if setup.get("SKIP_WITH") is not None: self.configLocal.skip_with = setup.get("SKIP_WITH")
             if setup.get("APPLY_ORDER") is not None: self.configLocal.apply_order = setup.get("APPLY_ORDER")
             if setup.get("PRINT_RESULT") is not None: self.configLocal.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: self.configLocal.compare_with = setup.get("COMPARE_WITH")
@@ -80,9 +82,9 @@ class TestCase():
 
         return queries
 
-    def __datasources(self, del_dtype):
-        if nrals > 1 and not del_dtype == "":
-            self.configLocal.data_types.remove(del_dtype)
+    def __loadDataTypes(self):
+        if self.nRals > 1:
+            self.configLocal.data_types.remove(DataType.DASK_CUDF)
 
     def __loadTestCaseConfig(self, test_name, fileSchemaType):
         config = copy.deepcopy(self.configLocal)
@@ -90,6 +92,7 @@ class TestCase():
             setup = self.data[test_name]["SETUP"]
 
             if setup.get("ORDERBY") is not None: config.orderby = setup.get("ORDERBY")
+            if setup.get("SKIP_WITH") is not None: config.skip_with = setup.get("SKIP_WITH")
             if setup.get("APPLY_ORDER") is not None: config.apply_order = setup.get("APPLY_ORDER")
             if setup.get("PRINT_RESULT") is not None: config.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
@@ -111,7 +114,7 @@ class TestCase():
 
         print("######## Starting queries ...########")
 
-        # self.__datasources()
+        self.__loadDataTypes()
 
         for n in range(0, len(self.configLocal.data_types)):
 
@@ -129,11 +132,12 @@ class TestCase():
 
                 configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
 
+                ext = createSchema.get_extension(fileSchemaType)
+                if ext.upper() in configTest.skip_with:
+                    continue
+
                 query = test_case["SQL"]
-                if configTest.compare_with == "drill":
-                    engine = self.drill
-                else:
-                    engine = self.spark
+                engine = self.drill if configTest.compare_with == "drill" else self.spark
 
                 print("==>> Run query for test case", self.name)
                 print("PLAN:")
