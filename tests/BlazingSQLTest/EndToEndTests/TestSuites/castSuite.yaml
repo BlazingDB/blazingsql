@@ -1,29 +1,90 @@
+# Cast Test Suite
+
 TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH: CUDF
 
   TEST_01:
     SQL: |
         select p_partkey, p_retailprice,
                     cast(cast(p_retailprice as VARCHAR) as DOUBLE)
                     from part order by p_partkey limit 10
-    SETUP:
-      APPLY_ORDER: True
-      USE_PERCENTAGE: false
-      ACCEPTABLE_DIFFERENCE: 0.01
-      COMPARE_WITH: drill
-      SKIP_WITH: ORC
 
   TEST_02:
     SQL: |
         select CAST(c_custkey as BIGINT), c_acctbal
                     from customer order by c_acctbal desc, c_custkey
-    SETUP:    
-      APPLY_ORDER: True
-      USE_PERCENTAGE: false
-      ACCEPTABLE_DIFFERENCE: 0.01
-      COMPARE_WITH: drill
 
   TEST_03:
     SQL: |
         select SUM(c_custkey), CAST(c_custkey as VARCHAR)
                     from customer where c_custkey between 123 and 125
                     group by c_custkey
+
+  TEST_04:
+    SQL: |
+        select cast(o_totalprice AS DOUBLE) * o_orderkey
+                    from orders where o_orderkey between 990 and 1010
+
+  TEST_05:
+    SQL: |
+        select o_custkey, o_orderkey,
+                    cast(o_custkey AS FLOAT) * o_orderkey from orders
+                    where o_custkey between 998 and 1000
+                    order by o_custkey, o_orderkey
+    SETUP:
+      APPLY_ORDER: False
+      USE_PERCENTAGE: True
+
+  TEST_06:
+    SQL: |
+        select cast(c_nationkey AS INTEGER) from customer
+                where c_custkey < 100 and c_nationkey in (19, 20)
+
+  TEST_07:
+    SQL: |
+        select cast(o_orderkey AS FLOAT) * o_totalprice from
+                    orders where o_orderkey < 10 order by o_orderkey
+    SETUP:
+      APPLY_ORDER: False
+      USE_PERCENTAGE: True
+      
+  TEST_08:
+    SQL: |
+        select cast(o_orderkey AS TINYINT) from orders
+                    where o_orderkey < 120
+
+  TEST_09:
+    SQL: |
+        select cast(o_orderkey AS SMALLINT) from orders
+                    where o_orderkey < 32000
+
+  TEST_10:
+    SQL: |
+        select cast(o_totalprice AS INTEGER) * o_orderkey
+                    from orders where o_orderkey < 10
+
+  TEST_11:
+    SQL: |
+        select cast(o_orderdate AS TIMESTAMP)
+                    from orders where o_orderkey < 10
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
+
+  TEST_12:
+    SQL: |
+        select cast(o_orderdate AS TIMESTAMP) from orders
+                    where cast(o_orderdate as TIMESTAMP)
+                    between '1995-01-01' and '1995-01-05'
+
+  TEST_13:
+    SQL: |
+        select cast(o_totalprice AS INTEGER), 4 as scan_type, 4.0 as scan_type2, 
+                        5 as scan_type3, o_comment, o_comment as comento, 'hello' as greeting 
+                        from orders where o_orderkey < 10

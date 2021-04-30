@@ -1,10 +1,12 @@
+# Case Test Suite
+
 TEST_SUITE:
   SETUP:
     APPLY_ORDER: True
-    USE_PERCENTAGE: false
+    USE_PERCENTAGE: False
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
-    SKIP_WITH: ORC
+    SKIP_WITH: CUDF
 
   TEST_01:
     SQL: |
@@ -25,11 +27,6 @@ TEST_SUITE:
                     AND l.l_receiptdate >= date '1994-01-01'
                     GROUP BY l.l_shipmode
                     ORDER BY l.l_shipmode
-    SETUP:
-      APPLY_ORDER: True
-      COMPARE_WITH:
-        ORC: spark
-        OTHER: drill
 
   TEST_04:
     SQL: |
@@ -61,10 +58,6 @@ TEST_SUITE:
                           AND l.l_receiptdate < date '1994-01-01'
                           GROUP BY l.l_shipmode
                           ORDER BY l.l_shipmode
-    SETUP:
-      COMPARE_WITH:
-        ORC: spark
-        OTHER: drill
 
   TEST_08:
     SQL: |
