@@ -274,6 +274,12 @@ endif()
 ## Target source files
 set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheDataIO.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheDataLocalFile.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/ConcatCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/GPUCacheData.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/ArrowCacheData.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
@@ -302,6 +308,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/AbstractSQLDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/ArrowDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/AbstractSQLParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp

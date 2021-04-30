@@ -3,7 +3,8 @@
 #include <iterator>
 
 #include "execution_graph/logic_controllers/BlazingColumn.h"
-#include "execution_graph/logic_controllers/CacheData.h"
+#include "execution_graph/logic_controllers/GPUCacheData.h"
+#include "execution_graph/logic_controllers/ConcatCacheData.h"
 #include "taskflow/executor.h"
 #include "CodeTimer.h"
 

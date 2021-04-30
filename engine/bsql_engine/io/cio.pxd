@@ -171,18 +171,22 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
             void set_values(map[string,string] new_values)
             map[string,string] get_values()
             void print() nogil
-        cdef cppclass CacheData:
-            unique_ptr[BlazingTable] decache()
-            MetadataDictionary getMetadata()
-        cdef cppclass GPUCacheData:
-            unique_ptr[BlazingTable] decache()
-            MetadataDictionary getMetadata()
         cdef cppclass CacheMachine:
             void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add ) nogil except +
             void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add) nogil except+
             unique_ptr[CacheData] pullCacheData() nogil  except +
             unique_ptr[CacheData] pullCacheData(string message_id) nogil except +
             bool has_next_now() except +
+
+cdef extern from "../src/execution_graph/logic_controllers/CacheData.h" namespace "ral::cache":
+        cdef cppclass CacheData:
+            unique_ptr[BlazingTable] decache()
+            MetadataDictionary getMetadata()
+
+cdef extern from "../src/execution_graph/logic_controllers/GPUCacheData.h" namespace "ral::cache":
+        cdef cppclass GPUCacheData:
+            unique_ptr[BlazingTable] decache()
+            MetadataDictionary getMetadata()
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function

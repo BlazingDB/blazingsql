@@ -187,7 +187,8 @@ kstatus TableScan::run() {
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now
             std::unique_ptr<ral::cache::CacheData> input =
-                std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
+                CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
+
             std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
             inputs.push_back(std::move(input));
             auto output_cache = this->output_cache();
@@ -348,8 +349,8 @@ kstatus BindableTableScan::run() {
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now
             std::unique_ptr<ral::cache::CacheData> input =
-                std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
-            std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+                CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
+            std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
             inputs.push_back(std::move(input));
 
             auto output_cache = this->output_cache();

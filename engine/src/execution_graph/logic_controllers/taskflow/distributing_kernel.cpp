@@ -1,6 +1,8 @@
 #include "distributing_kernel.h"
 #include "utilities/CommonOperations.h"
 #include <src/utilities/DebuggingUtils.h>
+#include "execution_graph/logic_controllers/CPUCacheData.h"
+
 namespace ral {
 namespace cache {
 

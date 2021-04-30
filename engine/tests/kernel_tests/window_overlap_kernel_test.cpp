@@ -17,6 +17,8 @@
 #include "execution_graph/logic_controllers/taskflow/port.h"
 #include "execution_graph/logic_controllers/BatchWindowFunctionProcessing.h"
 #include "execution_graph/logic_controllers/taskflow/executor.h"
+#include "execution_graph/logic_controllers/CacheData.h"
+#include "execution_graph/logic_controllers/GPUCacheData.h"
 
 using blazingdb::transport::Node;
 using ral::cache::kstatus;
