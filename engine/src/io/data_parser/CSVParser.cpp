@@ -53,11 +53,10 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		} 
 		else args.set_header(-1);
 
-		// Overrride `byte_range_offset` and `byte_range_size`
+		// Overrride `byte_range_size` to read just `max_bytes_chunk_read` bytes (note: always reads complete rows)
 		auto iter = args_map.find("max_bytes_chunk_read");
-		if(iter != args_map.end() && !row_groups.empty()) {
+		if(iter != args_map.end()) {
 			auto chunk_size = std::stoll(iter->second);
-			args.set_byte_range_offset(chunk_size * row_groups[0]);
 			args.set_byte_range_size(chunk_size);
 		}
 
