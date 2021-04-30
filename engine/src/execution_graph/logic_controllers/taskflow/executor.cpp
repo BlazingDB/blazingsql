@@ -1,4 +1,5 @@
 #include "executor.h"
+#include "execution_graph/logic_controllers/GPUCacheData.h"
 
 using namespace fmt::literals;
 

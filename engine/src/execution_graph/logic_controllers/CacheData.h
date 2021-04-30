@@ -10,7 +10,6 @@
 #include <map>
 
 #include <spdlog/spdlog.h>
-#include "cudf/types.hpp"
 #include "error.hpp"
 #include "CodeTimer.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
@@ -22,8 +21,6 @@
 #include "io/data_parser/DataParser.h"
 
 #include "communication/messages/GPUComponentMessage.h"
-
-using namespace std::chrono_literals;
 
 namespace ral {
 namespace cache {
@@ -38,7 +35,7 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE, CONCATENATING, PINNED };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE, CONCATENATING, PINNED, ARROW };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
 const std::string RAL_ID_METADATA_LABEL = "ral_id"; /**< A message metadata field that indicates RAL ran this. */
@@ -172,6 +169,7 @@ public:
 	CacheData()
 	{
 	}
+
 	/**
 	* Remove the payload from this CacheData. A pure virtual function.
 	* This removes the payload for the CacheData. After this the CacheData will
@@ -266,323 +264,6 @@ protected:
     MetadataDictionary metadata; /**< The metadata used for routing and planning. */
 };
 
-/**
-* A CacheData that keeps its dataframe in GPU memory.
-* This is a CacheData representation that wraps a ral::frame::BlazingTable. It
-* is the most performant since its construction and decaching are basically
-* no ops.
-*/
-class GPUCacheData : public CacheData {
-public:
-	/**
-	* Constructor
-	* @param table The BlazingTable that is moved into the CacheData.
-	*/
-	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
-		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
-
-	/**
-	* Constructor
-	* @param table The BlazingTable that is moved into the CacheData.
-	* @param metadata The metadata that will be used in transport and planning.
-	*/
-	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
-		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {
-			this->metadata = metadata;
-		}
-    
-	/**
-	* Move the BlazingTable out of this Cache
-	* This function only exists so that we can interact with all cache data by
-	* calling decache on them.
-	* @return The BlazingTable that was used to construct this CacheData.
-	*/
-	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
-
-	/**
-	* Get the amount of GPU memory consumed by this CacheData
-	* Having this function allows us to have one api for seeing the consumption
-	* of all the CacheData objects that are currently in Caches.
-	* @return The number of bytes the BlazingTable consumes.
-	*/
-	size_t sizeInBytes() const override { return data->sizeInBytes(); }
-
-	/**
-	* Set the names of the columns of a BlazingTable.
-	* @param names a vector of the column names.
-	*/
-	void set_names(const std::vector<std::string> & names) override {
-		data->setNames(names);
-	}
-
-	/**
-	* Destructor
-	*/
-	virtual ~GPUCacheData() {}
-
-	/**
-	* Get a ral::frame::BlazingTableView of the underlying data.
-	* This allows you to read the data while it remains in cache.
-	* @return a view of the data in this instance.
-	*/
-	ral::frame::BlazingTableView getTableView(){
-		return this->data->toBlazingTableView();
-	}
-
-	void set_data(std::unique_ptr<ral::frame::BlazingTable> table ){
-		this->data = std::move(table);
-	}
-protected:
-	std::unique_ptr<ral::frame::BlazingTable> data; /**< Stores the data to be returned in decache */
-};
-
-
-/**
-* A CacheData that keeps its dataframe in CPU memory.
-* This is a CacheData representation that wraps a ral::frame::BlazingHostTable.
-* It is the more performant than most file based caching strategies but less
-* efficient than a GPUCacheData.
-*/
- class CPUCacheData : public CacheData {
- public:
-	/**
- 	* Constructor
-	* Takes a GPU based ral::frame::BlazingTable and converts it CPU version
-	* that is stored in a ral::frame::BlazingHostTable.
-	* @param table The BlazingTable that is converted to a BlazingHostTable and
-	* stored.
- 	*/
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table, bool use_pinned = false);
-
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table,const MetadataDictionary & metadata, bool use_pinned = false);
-
-	CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
-    		    std::vector<ral::memory::blazing_chunked_column_info> && chunked_column_infos,
-        		std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations,
-				const MetadataDictionary & metadata);
-
-	/**
- 	* Constructor
- 	* Takes a GPU based ral::frame::BlazingHostTable and stores it in this
- 	* CacheData instance.
-	* @param table The BlazingHostTable that is moved into the CacheData.
- 	*/
-	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table);
-
-	/**
-	* Decache from a BlazingHostTable to BlazingTable and return the BlazingTable.
-	* @return A unique_ptr to a BlazingTable
- 	*/
- 	std::unique_ptr<ral::frame::BlazingTable> decache() override {
- 		return std::move(host_table->get_gpu_table());
- 	}
-
-	/**
- 	* Release this BlazingHostTable from this CacheData
-	* If you want to allow this CacheData to be destroyed but want to keep the
-	* memory in CPU this allows you to pull it out as a BlazingHostTable.
-	* @return a unique_ptr to the BlazingHostTable that this was either
-	* constructed with or which was generated during construction from a
-	* BlazingTable.
- 	*/
-	std::unique_ptr<ral::frame::BlazingHostTable> releaseHostTable() {
- 		return std::move(host_table);
- 	}
-
-	/**
-	* Get the amount of CPU memory consumed by this CacheData
-	* Having this function allows us to have one api for seeing the consumption
-	* of all the CacheData objects that are currently in Caches.
-	* @return The number of bytes the BlazingHostTable consumes.
-	*/
- 	size_t sizeInBytes() const override { return host_table->sizeInBytes(); }
-
-	/**
-	* Set the names of the columns of a BlazingHostTable.
-	* @param names a vector of the column names.
-	*/
-	void set_names(const std::vector<std::string> & names) override
-	{
-		host_table->set_names(names);
-	}
-
-	/**
-	* Destructor
-	*/
- 	virtual ~CPUCacheData() {}
-
-protected:
-	std::unique_ptr<ral::frame::BlazingHostTable> host_table; /**< The CPU representation of a DataFrame  */ 	
- };
-
-
-/**
-* A CacheData that stores is data in an ORC file.
-* This allows us to cache onto filesystems to allow larger queries to run on
-* limited resources. This is the least performant cache in most instances.
-*/
-class CacheDataLocalFile : public CacheData {
-public:
-
-	/**
-	* Constructor
-	* @param table The BlazingTable that is converted into an ORC file and stored
-	* on disk.
-	* @ param orc_files_path The path where the file should be stored.
-	* @ param ctx_id The context token to identify the query that generated the file.
-	*/
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token);
-
-	/**
-	* Constructor
-	* @param table The BlazingTable that is converted into an ORC file and stored
-	* on disk.
-	* @ param orc_files_path The path where the file should be stored.
-	*/
-	std::unique_ptr<ral::frame::BlazingTable> decache() override;
-
-	/**
- 	* Get the amount of GPU memory that the decached BlazingTable WOULD consume.
- 	* Having this function allows us to have one api for seeing how much GPU
-	* memory is necessary to decache the file from disk.
- 	* @return The number of bytes needed for the BlazingTable decache would
-	* generate.
- 	*/
-	size_t sizeInBytes() const override;
-	/**
-	* Get the amount of disk space consumed by this CacheData
-	* Having this function allows us to have one api for seeing the consumption
-	* of all the CacheData objects that are currently in Caches.
-	* @return The number of bytes the ORC file consumes.
-	*/
-	size_t fileSizeInBytes() const;
-
-	/**
-	* Set the names of the columns to pass when decache if needed.
-	* @param names a vector of the column names.
-	*/
-	void set_names(const std::vector<std::string> & names) override {
-		this->col_names = names;
-	}
-
-	/**
-	* Destructor
-	*/
-	virtual ~CacheDataLocalFile() {}
-
-	/**
-	* Get the file path of the ORC file.
-	* @return The path to the ORC file.
-	*/
-	std::string filePath() const { return filePath_; }
-
-private:
-	std::vector<std::string> col_names; /**< The names of the columns, extracted from the ORC file. */
-	std::string filePath_; /**< The path to the ORC file. Is usually generated randomly. */
-	size_t size_in_bytes; /**< The size of the file being stored. */
-};
-
-
-/**
-* A CacheData that stores is data in an ORC file.
-* This allows us to cache onto filesystems to allow larger queries to run on
-* limited resources. This is the least performant cache in most instances.
-*/
-class CacheDataIO : public CacheData {
-public:
-
-	/**
-	* Constructor
-	* @param table The BlazingTable that is converted into an ORC file and stored
-	* on disk.
-	* @ param orc_files_path The path where the file should be stored.
-	*/
-	 CacheDataIO(ral::io::data_handle handle,
-	 	std::shared_ptr<ral::io::data_parser> parser,
-	 	ral::io::Schema schema,
-		ral::io::Schema file_schema,
-		std::vector<int> row_group_ids,
-		std::vector<int> projections
-		 );
-
-	/**
-	* Constructor
-	* @param table The BlazingTable that is converted into an ORC file and stored
-	* on disk.
-	* @ param orc_files_path The path where the file should be stored.
-	*/
-	std::unique_ptr<ral::frame::BlazingTable> decache() override;
-
-	/**
- 	* Get the amount of GPU memory that the decached BlazingTable WOULD consume.
- 	* Having this function allows us to have one api for seeing how much GPU
-	* memory is necessary to decache the file from disk.
- 	* @return The number of bytes needed for the BlazingTable decache would
-	* generate.
- 	*/
-	size_t sizeInBytes() const override;
-
-	/**
-	* Set the names of the columns from the schema.
-	* @param names a vector of the column names.
-	*/
-	void set_names(const std::vector<std::string> & names) override {
-		this->schema.set_names(names);
-	}
-
-	/**
-	* Destructor
-	*/
-	virtual ~CacheDataIO() {}
-
-
-private:
-	ral::io::data_handle handle;
-	std::shared_ptr<ral::io::data_parser> parser;
-	ral::io::Schema schema;
-	ral::io::Schema file_schema;
-	std::vector<int> row_group_ids;
-	std::vector<int> projections;
-};
-
-class ConcatCacheData : public CacheData {
-public:
-	/**
-	* Constructor
-	* @param table The cache_datas that will be concatenated when decached.
-	* @param col_names The names of the columns in the dataframe.
-	* @param schema The types of the columns in the dataframe.
-	*/
-	ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema);
-
-	/**
-	* Decaches all caches datas and concatenates them into one BlazingTable
-	* @return The BlazingTable that results from concatenating all cache datas.
-	*/
-	std::unique_ptr<ral::frame::BlazingTable> decache() override;
-
-	/**
-	* Get the amount of GPU memory consumed by this CacheData
-	* Having this function allows us to have one api for seeing the consumption
-	* of all the CacheData objects that are currently in Caches.
-	* @return The number of bytes the BlazingTable consumes.
-	*/
-	size_t sizeInBytes() const override;
-
-	/**
-	* Set the names of the columns.
-	* @param names a vector of the column names.
-	*/
-	void set_names(const std::vector<std::string> & names) override;
-
-	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();
-
-	virtual ~ConcatCacheData() {}
-	
-protected:
-	std::vector<std::unique_ptr<CacheData>> _cache_datas;
-};
-
 
 /**
 * A wrapper for a CacheData object with a message_id.
@@ -611,6 +292,4 @@ protected:
 };
 
 }  // namespace cache
-
-
 } // namespace ral

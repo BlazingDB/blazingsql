@@ -44,9 +44,10 @@
 - #1444 Updating GCP to >= version
 - #1349 Add e2e test for Hive Partitioned Data
 - #1447 Improve getting estimated output num rows
-- #1473 Added Warning to Window Functions 
+- #1473 Added Warning to Window Functions
 - #1482 Improve test script for blazingsql-testing-file
 - #1480 Improve dependencies script
+- #1433 Adding ArrowCacheData, refactoring CacheData files
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
