@@ -113,16 +113,14 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
         num_batches = 0;
         size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
         if (max_bytes_chunk_size > 0) {
-            int file_idx = 0;
             while (provider->has_next()) {
                 auto data_handle = provider->get_next();
                 int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
                 size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
                 std::vector<int> file_row_groups(num_chunks);
                 std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
-                schema.get_rowgroups()[file_idx] = std::move(file_row_groups);
+                schema.get_rowgroups().push_back(std::move(file_row_groups));
                 num_batches += num_chunks;
-                file_idx++;
             }
             provider->reset();
         } else {
