@@ -1,7 +1,7 @@
 #include "messageReceiver.hpp"
 #include "protocols.hpp"
 #include <spdlog/spdlog.h>
-#include "execution_graph/logic_controllers/CPUCacheData.h"
+#include "cache_machine/CPUCacheData.h"
 
 
 namespace comm {

@@ -9,8 +9,8 @@
 #include <set>
 #include <arrow/table.h>
 #include <memory>
-#include <execution_graph/logic_controllers/LogicPrimitives.h>
-#include "../../src/error.hpp"
+#include <execution_kernels/LogicPrimitives.h>
+#include "../../src/utilities/error.hpp"
 
 typedef ral::io::DataType DataType;
 

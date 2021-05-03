@@ -1,5 +1,5 @@
 #include "tests/utilities/BlazingUnitTest.h"
-#include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
+#include "execution_graph/PhysicalPlanGenerator.h"
 #include <transport/Node.h>
 #include "execution_graph/Context.h"
 
