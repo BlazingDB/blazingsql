@@ -4,14 +4,13 @@
 #include <numeric>
 
 #include "utilities/CommonOperations.h"
-
-#include <CodeTimer.h>
+#include "utilities/CodeTimer.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "ExceptionHandling/BlazingThread.h"
 #include <cudf/filling.hpp>
 #include <cudf/column/column_factories.hpp>
-#include "CalciteExpressionParsing.h"
-#include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "parser/CalciteExpressionParsing.h"
+#include "execution_kernels/LogicalFilter.h"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;

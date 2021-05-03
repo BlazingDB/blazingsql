@@ -4,8 +4,8 @@
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "expression_utils.hpp"
-#include "CalciteExpressionParsing.h"
-#include "error.hpp"
+#include "parser/CalciteExpressionParsing.h"
+#include "utilities/error.hpp"
 
 bool is_nullary_operator(operator_type op){
 switch (op)

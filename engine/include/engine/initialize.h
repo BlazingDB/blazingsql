@@ -3,10 +3,10 @@
 #include <map>
 #include <memory>
 #include <cstdint>
-#include "../../src/error.hpp"
+#include "../../src/utilities/error.hpp"
 
 #include "common.h"
-#include "execution_graph/logic_controllers/CacheMachine.h"
+#include "cache_machine/CacheMachine.h"
 
 std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,

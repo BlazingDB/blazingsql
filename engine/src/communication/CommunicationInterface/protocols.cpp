@@ -4,14 +4,14 @@
 
 #include "protocols.hpp"
 #include "messageReceiver.hpp"
-#include "CodeTimer.h"
+#include "utilities/CodeTimer.h"
 
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
 #include <thread>
 
 
-#include "execution_graph/logic_controllers/CacheMachine.h"
+#include "cache_machine/CacheMachine.h"
 
 using namespace fmt::literals;
 using namespace std::chrono_literals;
