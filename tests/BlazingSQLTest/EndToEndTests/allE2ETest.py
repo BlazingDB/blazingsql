@@ -14,9 +14,9 @@ from EndToEndTests import (
     castTest,
     countDistinctTest,
 )
-from EndToEndTests import coalesceTest as coalesceTest
-from EndToEndTests import columnBasisTest as columnBasisTest
 from EndToEndTests import (
+    coalesceTest,
+    columnBasisTest,
     commonTableExpressionsTest,
     concatTest,
     configOptionsTest,
@@ -27,6 +27,7 @@ from EndToEndTests import (
     fileSystemGSTest,
     fileSystemLocalTest,
     fileSystemS3Test,
+    intervalTest,
 )
 from EndToEndTests import (
     crossJoinsTest,
@@ -137,6 +138,9 @@ def main():
 
     if runAllTests or ("unsignedTypeTest" in targetTestGroups):
         unsignedTypeTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("intervalTest" in targetTestGroups):
+        intervalTest.main(dask_client, drill, dir_data_file, bc, nRals)
     
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(

@@ -287,6 +287,7 @@ def get_codTest(test_name):
         "Group by": "GROUPBY",
         "Group by without aggregations": "GRBYWOAGG",
         "Inner join": "INNERJOIN",
+        "Interval": "INTERVAL",
         "Left outer join": "LOUTJOIN",
         "Like": "LIKE",
         "Literal": "LITERAL",

@@ -73,6 +73,11 @@ cudfTypeToCsvType = {
     14: "timestamp[ms]",
     15: "timestamp[us]",
     16: "timestamp[ns]",
+    17: "timedelta[D]",
+    18: "timedelta64[s]",
+    19: "timedelta64[ms]",
+    20: "timedelta64[us]",
+    21: "timedelta64[ns]",
     23: "str",
 }
 

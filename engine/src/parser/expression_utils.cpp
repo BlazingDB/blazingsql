@@ -479,7 +479,7 @@ bool is_operator_token(const std::string & token) {
 
 bool is_literal(const std::string & token) {
 	return is_null(token) || is_bool(token) || is_number(token) || is_date(token) || is_string(token) ||
-		   is_timestamp(token);
+		   is_timestamp(token) || is_hour(token);
 }
 
 bool is_var_column(const std::string& token){
@@ -1345,4 +1345,20 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 	} // by default it will be TIMESTAMP_NANOSECONDS as before
 
 	return expression;
+}
+
+// By default Calcite returns Interval types in ms unit. So we want to convert them to the right INTERVAL unit
+// input: 4000:INTERVAL SECOND
+// output: 4:INTERVAL SECOND
+std::string apply_interval_conversion(std::string expression) {
+	if (expression.find(":INTERVAL") == expression.npos) {
+		return expression;
+	}
+
+	// TODO: cordova improve this 
+	expression = StringUtil::replace(expression, "DAY TO SECOND", "SECOND");
+	expression = StringUtil::replace(expression, "HOUR TO SECOND", "SECOND");
+	expression = StringUtil::replace(expression, "MINUTE TO SECOND", "SECOND");
+
+	return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
 }
