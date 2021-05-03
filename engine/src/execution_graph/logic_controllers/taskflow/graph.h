@@ -121,6 +121,8 @@ public:
 
 	void set_kernels_order();
 
+	bool is_scan_with_limit(size_t min_index_valid);
+	bool is_bindablescan_with_limit_without_filter(size_t min_index_valid);
 	void check_for_simple_scan_with_limit_query();
 	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
 	void clear_kernels(); 
