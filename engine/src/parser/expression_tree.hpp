@@ -9,11 +9,11 @@
 #include <regex>
 #include <cudf/types.hpp>
 
-#include "CalciteExpressionParsing.h"
+#include "parser/CalciteExpressionParsing.h"
 #include "utilities/CommonOperations.h"
 #include "skip_data/utils.hpp"
 #include "expression_utils.hpp"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 namespace ral {
 namespace parser {

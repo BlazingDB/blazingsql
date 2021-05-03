@@ -9,11 +9,11 @@
 #include "cudf_test/type_lists.hpp"	 // cudf::test::NumericTypes
 
 #include "execution_graph/Context.h"
-#include "execution_graph/logic_controllers/taskflow/kernel.h"
-#include "execution_graph/logic_controllers/taskflow/graph.h"
-#include "execution_graph/logic_controllers/taskflow/port.h"
-#include "execution_graph/logic_controllers/BatchProcessing.h"
-#include "execution_graph/logic_controllers/taskflow/executor.h"
+#include "execution_kernels/kernel.h"
+#include "execution_graph/graph.h"
+#include "execution_graph/port.h"
+#include "execution_kernels/BatchProcessing.h"
+#include "execution_graph/executor.h"
 
 #include "parser/expression_utils.hpp"
 

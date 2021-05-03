@@ -9,6 +9,7 @@
 
 ## Improvements
 - #1464 Better Support for unsigned types in C++ side
+- #1511 Folder refactoring related to caches, kernels, execution_graph, BlazingTable
 
 
 ## Bug Fixes
