@@ -1,7 +1,9 @@
 package com.blazingdb.calcite.schema;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.RelDistribution;
+import org.apache.calcite.rel.RelDistributionTraitDef;
 import org.apache.calcite.rel.RelReferentialConstraint;
 import org.apache.calcite.schema.Statistic;
 import org.apache.calcite.util.ImmutableBitSet;
@@ -27,21 +29,21 @@ public class BlazingStatistic implements Statistic {
 
     @Override
     public List<ImmutableBitSet> getKeys() {
-        return null;
+        return ImmutableList.of();
     }
 
     @Override
     public List<RelReferentialConstraint> getReferentialConstraints() {
-        return null;
+        return ImmutableList.of();
     }
 
     @Override
     public List<RelCollation> getCollations() {
-        return null;
+        return ImmutableList.of();
     }
 
     @Override
     public RelDistribution getDistribution() {
-        return null;
+        return RelDistributionTraitDef.INSTANCE.getDefault();
     }
 }

@@ -201,7 +201,7 @@ public class BlazingRulesTest {
 		checkTable(schema, "customer");
 		checkTable(schema, "orders");
 
-		RelNode nonOptimizedPlan;
+		RelNode nonOptimizedPlanTmp;
 		RelNode optimizedPlan;
 		RelNode optimizedPlanCBO;
 
@@ -249,7 +249,7 @@ public class BlazingRulesTest {
 //					"select l.l_orderkey, l.l_partkey, l.l_suppkey, l.l_linenumber" +
 //							" from lineitem l, supplier s, part p " +
 //							" where l.l_suppkey = s.s_suppkey and  l.l_partkey=p.p_partkey";
-			nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+			RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
 			System.out.println("non optimized\n");
 //			System.out.println(RelOptUtil.toString(nonOptimizedPlan) + "\n");
 			System.out.println(RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
