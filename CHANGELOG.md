@@ -9,7 +9,7 @@
 
 ## Improvements
 - #1464 Better Support for unsigned types in C++ side
-
+- #1522 Improve data loading when the algebra contains only BindableScan/Scan and Limit
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
