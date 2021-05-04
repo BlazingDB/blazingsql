@@ -5,12 +5,12 @@
 
 #include "GroupBy.h"
 #include "parser/expression_utils.hpp"
-#include "CalciteExpressionParsing.h"
-#include "CodeTimer.h"
-#include "distribution/primitives.h"
+#include "parser/CalciteExpressionParsing.h"
+#include "utilities/CodeTimer.h"
+#include "distribution_utils/primitives.h"
 #include "utilities/CommonOperations.h"
 #include <blazingdb/io/Util/StringUtil.h>
-#include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_kernels/LogicalProject.h"
 #include <regex>
 
 #include <cudf/aggregation.hpp>

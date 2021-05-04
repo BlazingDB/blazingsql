@@ -4,8 +4,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Function to_dtype(parquet::Type::type, parquet::ConvertedType::type) &#8212; BlazingSQL v0.18 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>Function to_dtype(parquet::Type::type, parquet::ConvertedType::type) &#8212; BlazingSQL v0.19 documentation</title>
     
   <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
@@ -26,12 +27,12 @@
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/sphinx-book-theme.c441f2ba0852f4cabcb80105e3a46ae6.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.e7340bb3dbd8dde6db86f25597f54a1b.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-treeview/bootstrap-treeview.min.css" />
     
   <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
@@ -40,9 +41,9 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/js/d3.v3.min.js"></script>
-    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/bootstrap-treeview/bootstrap-treeview.min.js"></script>
     <script src="../_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -69,7 +70,7 @@
   <img src="../_static/blazingsql_logo.svg" class="logo" alt="logo">
   
   
-  <h1 class="site-logo" id="site-title">BlazingSQL v0.18 documentation</h1>
+  <h1 class="site-logo" id="site-title">BlazingSQL v0.19 documentation</h1>
   
 </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -77,7 +78,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search BlazingSQL Docs" aria-label="Search BlazingSQL Docs" autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-    <p class="caption collapsible-parent">
+    <p>
  <span class="caption-text">
   Contents:
  </span>
@@ -391,14 +392,122 @@
     <i class="fas fa-chevron-down">
     </i>
    </li>
-   <li class="toctree-l2">
+   <li class="toctree-l2 collapsible-parent">
     <a class="reference internal" href="../reference/sql/index.html">
      SQL API Reference
     </a>
+    <ul class="collapse-ul">
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/sql/dtypes.html">
+       Data types
+      </a>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/query.html">
+       Querying data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/casting.html">
+       Converting data types
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/aggregating.html">
+       Aggregating data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/functions.html">
+       Functions and operators
+      </a>
+      <ul class="collapse-ul">
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/operators.html">
+         Operators
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/conditional.html">
+         Conditional functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/math.html">
+         Mathematical functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/strings.html">
+         String functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+       <li class="toctree-l4 collapsible-parent">
+        <a class="reference internal" href="../reference/sql/dates.html">
+         Date and timestamp functions
+        </a>
+        <ul class="simple collapse-ul">
+        </ul>
+        <i class="fas fa-chevron-down">
+        </i>
+       </li>
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/joins.html">
+       Joining data
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+     <li class="toctree-l3 collapsible-parent">
+      <a class="reference internal" href="../reference/sql/windowing.html">
+       Analytic functions
+      </a>
+      <ul class="simple collapse-ul">
+      </ul>
+      <i class="fas fa-chevron-down">
+      </i>
+     </li>
+    </ul>
+    <i class="fas fa-chevron-down">
+    </i>
    </li>
    <li class="toctree-l2 current active collapsible-parent">
     <a class="reference internal" href="library_root.html">
-     Library API
+     C++ API Reference
     </a>
     <ul class="current collapse-ul">
      <li class="toctree-l3">
@@ -462,11 +571,6 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="namespace_parser.html">
-       Namespace parser
-      </a>
-     </li>
-     <li class="toctree-l3">
       <a class="reference internal" href="namespace_ral.html">
        Namespace ral
       </a>
@@ -517,8 +621,18 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="namespace_ral__io__%40115.html">
-       Namespace ral::io::@115
+      <a class="reference internal" href="namespace_ral__io__%40127.html">
+       Namespace ral::io::@127
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__io__%40134.html">
+       Namespace ral::io::@134
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="namespace_ral__io__sql_tools.html">
+       Namespace ral::io::sql_tools
       </a>
      </li>
      <li class="toctree-l3">
@@ -532,8 +646,8 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="namespace_ral__operators__%40122.html">
-       Namespace ral::operators::@122
+      <a class="reference internal" href="namespace_ral__operators__%40141.html">
+       Namespace ral::operators::@141
       </a>
      </li>
      <li class="toctree-l3">
@@ -567,28 +681,13 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="namespace_ral__skip_data__%40127.html">
-       Namespace ral::skip_data::@127
+      <a class="reference internal" href="namespace_ral__skip_data__%40146.html">
+       Namespace ral::skip_data::@146
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="namespace_ral__utilities.html">
        Namespace ral::utilities
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="namespace_rmm.html">
-       Namespace rmm
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="namespace_rmm__mr.html">
-       Namespace rmm::mr
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="namespace_std.html">
-       Namespace std
       </a>
      </li>
      <li class="toctree-l3">
@@ -607,8 +706,8 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="namespace_strings__detail__%40142.html">
-       Namespace strings::detail::@142
+      <a class="reference internal" href="namespace_strings__detail__%40161.html">
+       Namespace strings::detail::@161
       </a>
      </li>
      <li class="toctree-l3">
@@ -707,8 +806,53 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1callb.html">
+       Struct callb
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1cudf__string__col.html">
+       Struct cudf_string_col
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="structral_1_1io_1_1data__handle.html">
        Struct data_handle
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1mysql__columns__info.html">
+       Struct mysql_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1mysql__table__info.html">
+       Struct mysql_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sql__datasource.html">
+       Struct sql_datasource
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sql__info.html">
+       Struct sql_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sql__tools_1_1operator__info.html">
+       Struct operator_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sqlite__columns__info.html">
+       Struct sqlite_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="structral_1_1io_1_1sqlite__table__info.html">
+       Struct sqlite_table_info
       </a>
      </li>
      <li class="toctree-l3">
@@ -927,6 +1071,16 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1OverlapAccumulatorKernel.html">
+       Class OverlapAccumulatorKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1batch_1_1OverlapGeneratorKernel.html">
+       Class OverlapGeneratorKernel
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="classral_1_1batch_1_1PartitionKernel.html">
        Class PartitionKernel
       </a>
@@ -1122,6 +1276,16 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1abstractsql__data__provider.html">
+       Class abstractsql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1abstractsql__parser.html">
+       Class abstractsql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="classral_1_1io_1_1arrow__parser.html">
        Class arrow_parser
       </a>
@@ -1162,6 +1326,16 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1mysql__data__provider.html">
+       Class mysql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1mysql__parser.html">
+       Class mysql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="classral_1_1io_1_1orc__parser.html">
        Class orc_parser
       </a>
@@ -1172,8 +1346,33 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1postgresql__data__provider.html">
+       Class postgresql_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1postgresql__parser.html">
+       Class postgresql_parser
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="classral_1_1io_1_1Schema.html">
        Class Schema
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1sql__tools_1_1default__predicate__transformer.html">
+       Class default_predicate_transformer
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1sqlite__data__provider.html">
+       Class sqlite_data_provider
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="classral_1_1io_1_1sqlite__parser.html">
+       Class sqlite_parser
       </a>
      </li>
      <li class="toctree-l3">
@@ -1282,17 +1481,17 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="enum_namespacestrings_1_1detail_1_1_0d142_1ab534198e293c2ef4002cc3170e1b1ac5.html">
+      <a class="reference internal" href="enum_scalar__timestamp__parser_8cpp_1a0b502cf4d8c319b2f0d00676a7632ef0.html">
        Enum format_char_type
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="enum_namespacestrings_1_1detail_1_1_0d142_1aac14ad84ac0459beb277fc7fb085a806.html">
+      <a class="reference internal" href="enum_scalar__timestamp__parser_8cpp_1acc52cc2f43ee0df310f0aebfcec857b6.html">
        Enum timestamp_parse_component
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="enum_namespacestrings_1_1detail_1_1_0d142_1ab361c31c84ed3d4eddc82c80c6132fd8.html">
+      <a class="reference internal" href="enum_scalar__timestamp__parser_8cpp_1aba6dc7f5b2ba2e4ce4af9deed4b1c960.html">
        Enum timestamp_units
       </a>
      </li>
@@ -1307,8 +1506,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aeb1417d8928ac4574cd35044c8f384ef.html">
+       Function bypassingProject(std::string, std::vector&lt;std::string&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aeb1417d8928ac4574cd35044c8f384ef.html">
-       Function bypassingProject
+       Function bypassingProject(std::string, std::vector&lt;std::string&gt;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1322,8 +1526,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html">
+       Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a095fe3fa4fce4c95ba8732d5b6c03512.html">
-       Function clean_window_function_expressions
+       Function clean_window_function_expressions(const std::vector&lt;std::string&gt;&amp;, size_t)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1379,6 +1588,16 @@
      <li class="toctree-l3">
       <a class="reference internal" href="function_orc__metadata_8cpp_1a61842c811e058f656a82826436a9cb43.html">
        Function concat_strings
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html">
+       Function convert_concat_expression_into_multiple_binary_concat_ops(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aa1bdbd62a9ef23452ecf6eb9098ba87e.html">
+       Function convert_concat_expression_into_multiple_binary_concat_ops(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1462,13 +1681,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html">
+       Function extract_table_name(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aed91b8cdf4752cfa1ee1e198324d0f1d.html">
-       Function extract_table_name
+       Function extract_table_name(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a6a7604747742d1add660479363811c83.html">
+       Function fill_minus_op_with_zero(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a6a7604747742d1add660479363811c83.html">
-       Function fill_minus_op_with_zero
+       Function fill_minus_op_with_zero(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1532,13 +1761,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a62bf30cccd461f0bac29cc88754776cf.html">
+       Function get_bounds_from_window_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a62bf30cccd461f0bac29cc88754776cf.html">
-       Function get_bounds_from_window_expression
+       Function get_bounds_from_window_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a2b1e69e6cea639ec9f5d532633517d94.html">
+       Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aefc329cc8388433f71eae7c2c27cc91c.html">
-       Function get_cols_to_apply_window_and_cols_to_apply_agg
+       Function get_cols_to_apply_window_and_cols_to_apply_agg(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1552,18 +1791,33 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a5f1ff4a556cb62777dc69e7bcd2a9aa4.html">
+       Function get_expressions_from_expression_list(std::string&amp;, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a037e087cf09c08d4f13f4649830f6657.html">
-       Function get_expressions_from_expression_list
+       Function get_expressions_from_expression_list(std::string&amp;, bool)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a37f2c7a268cd308b36040855417b5478.html">
+       Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a37f2c7a268cd308b36040855417b5478.html">
-       Function get_first_over_expression_from_logical_plan
+       Function get_first_over_expression_from_logical_plan(const std::string&amp;, const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html">
+       Function get_frame_type_from_over_clause(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a1ef7228ac2a25aa1f4192e6a448c065c.html">
-       Function get_frame_type_from_over_clause
+       Function get_frame_type_from_over_clause(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1582,7 +1836,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="function_engine_8cpp_1aea74327f086d9d7e9a518185228197ef.html">
+      <a class="reference internal" href="function_engine_8cpp_1ac2b1eeed6311019103cc8f10f8694db3.html">
        Function get_loaders_and_schemas
       </a>
      </li>
@@ -1657,18 +1911,43 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae67a78cff7624957f904219c398e23f2.html">
+       Function get_over_expression(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1ae67a78cff7624957f904219c398e23f2.html">
-       Function get_over_expression
+       Function get_over_expression(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8cpp_1a6873292cd0f9ef043baef8ebd8c7b50f.html">
+       Function get_physical_plan(std::string, Context&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteInterpreter_8h_1a6873292cd0f9ef043baef8ebd8c7b50f.html">
+       Function get_physical_plan(std::string, Context&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1acc0723ef2e4e69f89a2981faf824a1ea.html">
+       Function get_projections(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1acc0723ef2e4e69f89a2981faf824a1ea.html">
-       Function get_projections
+       Function get_projections(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a49e1001e3fadb90c5544936a91034cd2.html">
+       Function get_query_part(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a49e1001e3fadb90c5544936a91034cd2.html">
-       Function get_query_part
+       Function get_query_part(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1692,8 +1971,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1affb6494edf6b343f4923af9f32568046.html">
+       Function get_table_index(std::vector&lt;std::string&gt;, std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1affb6494edf6b343f4923af9f32568046.html">
-       Function get_table_index
+       Function get_table_index(std::vector&lt;std::string&gt;, std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1797,8 +2081,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a31705d370349370602c5743126ddc79e.html">
+       Function is_accumulate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a31705d370349370602c5743126ddc79e.html">
+       Function is_accumulate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html">
+       Function is_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1ada3cee4b992cd5c8cf84c41d15db16ba.html">
-       Function is_aggregate
+       Function is_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1817,8 +2116,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a905843d5854f28d64d11d068c560eb43.html">
+       Function is_avg_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a905843d5854f28d64d11d068c560eb43.html">
-       Function is_avg_window_function
+       Function is_avg_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1832,8 +2136,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aebb79ccbb09d16dd354a47758d73d3ad.html">
+       Function is_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aebb79ccbb09d16dd354a47758d73d3ad.html">
-       Function is_bindable_scan
+       Function is_bindable_scan(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1847,8 +2156,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html">
+       Function is_compute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aa2a2d9fa19f2f92ab2d2cc65ef34aa07.html">
-       Function is_compute_aggregate
+       Function is_compute_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1862,28 +2176,78 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a834e1b9526e52e958cdf77f29140673b.html">
+       Function is_date_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a834e1b9526e52e958cdf77f29140673b.html">
+       Function is_date_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a005318b00073cffeb00da36239cf4fd7.html">
+       Function is_date_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a005318b00073cffeb00da36239cf4fd7.html">
+       Function is_date_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_orc__metadata_8cpp_1acf54d81974786b8070761033ef88496f.html">
        Function is_decimal_or_empty_dtype
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1add695985ea62e084e6adea25ab83be07.html">
+       Function is_distribute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1add695985ea62e084e6adea25ab83be07.html">
-       Function is_distribute_aggregate
+       Function is_distribute_aggregate(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1add5b2070f13ed2236f41b253e48dec8b.html">
+       Function is_filter(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1add5b2070f13ed2236f41b253e48dec8b.html">
-       Function is_filter
+       Function is_filter(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html">
+       Function is_filtered_bindable_scan(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a0e1e8b58cea5520264bcc9d1df6bcf8c.html">
-       Function is_filtered_bindable_scan
+       Function is_filtered_bindable_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html">
+       Function is_first_value_window(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a2dc3bc65e274a73bbaf7064c1c49905b.html">
-       Function is_first_value_window
+       Function is_first_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html">
+       Function is_generate_overlaps(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a9a73a20e2b1ae1125ee83383fe30d1be.html">
+       Function is_generate_overlaps(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1907,28 +2271,63 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a76bda2ebba29bae334d70942fdec351f.html">
+       Function is_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a76bda2ebba29bae334d70942fdec351f.html">
-       Function is_join
+       Function is_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa06f2b427b4e420e2ad018496a88875c.html">
+       Function is_join_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aa06f2b427b4e420e2ad018496a88875c.html">
+       Function is_join_expression(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1af38bfef0c126d5c26423f15024e67c3b.html">
+       Function is_join_partition(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1af38bfef0c126d5c26423f15024e67c3b.html">
-       Function is_join_partition
+       Function is_join_partition(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1abff4609e5199a159ad8706438f77a4c4.html">
+       Function is_lag_or_lead_aggregation(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1abff4609e5199a159ad8706438f77a4c4.html">
-       Function is_lag_or_lead_aggregation
+       Function is_lag_or_lead_aggregation(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a144a7c17ea2ddd80a2322757ebba3866.html">
+       Function is_last_value_window(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a144a7c17ea2ddd80a2322757ebba3866.html">
-       Function is_last_value_window
+       Function is_last_value_window(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a16cf2520ed490282e4fb912c2edbbf01.html">
+       Function is_limit(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a16cf2520ed490282e4fb912c2edbbf01.html">
-       Function is_limit
+       Function is_limit(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1942,18 +2341,33 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html">
+       Function is_logical_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a87381db3c9b956e9a3542bb55b3e2ce1.html">
-       Function is_logical_scan
+       Function is_logical_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1af05d71851eaa16ae1d4058b7d89fd0af.html">
+       Function is_merge(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1af05d71851eaa16ae1d4058b7d89fd0af.html">
-       Function is_merge
+       Function is_merge(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ac788da52f08887a8fcc4b1591a4385ef.html">
+       Function is_merge_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1ac788da52f08887a8fcc4b1591a4385ef.html">
-       Function is_merge_aggregate
+       Function is_merge_aggregate(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -1997,38 +2411,73 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a5f3e50a94e10e3a584ae2b653246f578.html">
+       Function is_pairwise_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a5f3e50a94e10e3a584ae2b653246f578.html">
-       Function is_pairwise_join
+       Function is_pairwise_join(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1af61507198dee2ef50fcc681bd0bf8458.html">
+       Function is_partition(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1af61507198dee2ef50fcc681bd0bf8458.html">
-       Function is_partition
+       Function is_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae02fa9a1efd1b6d55d185996d6f43745.html">
+       Function is_project(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1ae02fa9a1efd1b6d55d185996d6f43745.html">
-       Function is_project
+       Function is_project(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html">
+       Function is_scan(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a3dd66eb27dcba968c62e8bb23ccf6c48.html">
-       Function is_scan
+       Function is_scan(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1affc551196389065e03323e6b78f0fab5.html">
+       Function is_single_node_partition(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1affc551196389065e03323e6b78f0fab5.html">
-       Function is_single_node_partition
+       Function is_single_node_partition(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ae9006e3701a532dd3129a89830a0e318.html">
+       Function is_sort(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1ae9006e3701a532dd3129a89830a0e318.html">
-       Function is_sort
+       Function is_sort(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a8b285991517b5466f58f9eb8311791df.html">
+       Function is_sort_and_sample(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a8b285991517b5466f58f9eb8311791df.html">
-       Function is_sort_and_sample
+       Function is_sort_and_sample(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2052,8 +2501,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html">
+       Function is_sum_window_function(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a9a2e99998e24152f2ed4ce94eb5c19e6.html">
-       Function is_sum_window_function
+       Function is_sum_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2064,6 +2518,146 @@
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a311f3203dd6a06578df17bae7acb6d2f.html">
        Function is_timestamp(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a578e2363c746b654e6ce276fdb2b90a2.html">
+       Function is_timestamp_ms(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a578e2363c746b654e6ce276fdb2b90a2.html">
+       Function is_timestamp_ms(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a122f5743a8cbedd74c6c666623b44c07.html">
+       Function is_timestamp_ms_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a122f5743a8cbedd74c6c666623b44c07.html">
+       Function is_timestamp_ms_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a648edbd4ab2b7abef9b2f91fd3adb455.html">
+       Function is_timestamp_ms_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a648edbd4ab2b7abef9b2f91fd3adb455.html">
+       Function is_timestamp_ms_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a6167630fd1fe1e238d7f1adbdbc58dff.html">
+       Function is_timestamp_ns(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a6167630fd1fe1e238d7f1adbdbc58dff.html">
+       Function is_timestamp_ns(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a19ad650baee03e8aa937e5d7e1318201.html">
+       Function is_timestamp_ns_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a19ad650baee03e8aa937e5d7e1318201.html">
+       Function is_timestamp_ns_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a429c6cc2de70e642987fa3f6a93bb1b8.html">
+       Function is_timestamp_ns_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a429c6cc2de70e642987fa3f6a93bb1b8.html">
+       Function is_timestamp_ns_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a992ce337348f1a97aff7317ae1970dae.html">
+       Function is_timestamp_us(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a992ce337348f1a97aff7317ae1970dae.html">
+       Function is_timestamp_us(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a31d6d53f47f0680ce347e629504d8a2b.html">
+       Function is_timestamp_us_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a31d6d53f47f0680ce347e629504d8a2b.html">
+       Function is_timestamp_us_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a373c463dc1c2fe934c01e9c12f7eac26.html">
+       Function is_timestamp_us_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a373c463dc1c2fe934c01e9c12f7eac26.html">
+       Function is_timestamp_us_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aef67d07e6b4e5eadc7466bef14c31f37.html">
+       Function is_timestamp_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aef67d07e6b4e5eadc7466bef14c31f37.html">
+       Function is_timestamp_with_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aaaea4dbae3d52a4336df0bba76e64555.html">
+       Function is_timestamp_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1aaaea4dbae3d52a4336df0bba76e64555.html">
+       Function is_timestamp_with_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a25fbf51858e132226dba2f3109c20b62.html">
+       Function is_timestamp_with_decimals(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a25fbf51858e132226dba2f3109c20b62.html">
+       Function is_timestamp_with_decimals(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a6f088a4a7da1c9ed79c0e8785a673c7b.html">
+       Function is_timestamp_with_decimals_and_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a6f088a4a7da1c9ed79c0e8785a673c7b.html">
+       Function is_timestamp_with_decimals_and_bar(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a666066b535199285019b9265a974c815.html">
+       Function is_timestamp_with_decimals_and_dash(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a666066b535199285019b9265a974c815.html">
+       Function is_timestamp_with_decimals_and_dash(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2127,8 +2721,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a376ff51e92d4b5122403877ee04296ee.html">
+       Function is_union(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a376ff51e92d4b5122403877ee04296ee.html">
-       Function is_union
+       Function is_union(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2142,13 +2741,23 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a1cef7edbacff6b28adcf455e7872a414.html">
+       Function is_window_compute(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a1cef7edbacff6b28adcf455e7872a414.html">
-       Function is_window_compute
+       Function is_window_compute(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aded092ec0380f864d0f987ad0234417f.html">
+       Function is_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aded092ec0380f864d0f987ad0234417f.html">
-       Function is_window_function
+       Function is_window_function(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2222,6 +2831,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11.html">
+       Function ral::batch::get_projections_wrapper
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1ade67fb087235e4bf129578219d5fc9ee.html">
        Function ral::batch::parseExpressionToGetTypeAndCondition
       </a>
@@ -2229,6 +2843,16 @@
      <li class="toctree-l3">
       <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1a08af1d3b63504448c6807539bbc9cbf1.html">
        Function ral::batch::parseJoinConditionToColumnIndices
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1a0a59fd08580e65c57d3ad38f4f62da3d.html">
+       Function ral::batch::parseJoinConditionToEqualityTypes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_BatchJoinProcessing_8cpp_1ab83d8958750d6e018565d3cbd170d376.html">
+       Function ral::batch::reordering_columns_due_to_right_join
       </a>
      </li>
      <li class="toctree-l3">
@@ -2362,6 +2986,61 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_sqlcommon_8h_1a120578126fcff3de4d23965d615c0bd6.html">
+       Template Function ral::io::build_fixed_width_cudf_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1a3feeae468f8b368ac13593ab411b0dbe.html">
+       Function ral::io::build_jdbc_mysql_connection
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_sqlcommon_8h_1a67cc2d2d4088b95b4222aad45051b333.html">
+       Function ral::io::build_str_cudf_col
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1ab3ce00004b6158195835c914a3114112.html">
+       Function ral::io::date_to_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1af863e9f9884515ce95100a53d3cc174c.html">
+       Function ral::io::date_to_ymd
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1afdc5c32667ae478e005074735a4b0c43.html">
+       Function ral::io::execute_mysql_query
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1a1334deadf69c63744aa384b5a571ca7f.html">
+       Function ral::io::execute_sqlite_query
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1a5d8b0c2b3f702d2b9be6521fc4583977.html">
+       Function ral::io::get_mysql_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLDataProvider_8cpp_1adde9bd75afe5d21ece4caf24550219cc.html">
+       Function ral::io::get_mysql_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1afb9ce85746d015d5b21ead6c14d14e15.html">
+       Function ral::io::get_sqlite_columns_info
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1a86bdd6590cc468ce776fd73cf5a09c47.html">
+       Function ral::io::get_sqlite_table_info
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_ArgsUtil_8cpp_1abe1a7bf84069fedb46ce55b5f4c53cec.html">
        Function ral::io::getCsvReaderOptions
       </a>
@@ -2382,6 +3061,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_ArgsUtil_8cpp_1a6a2454f923e9cbab2585b8207b836345.html">
+       Function ral::io::getSqlInfo
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856.html">
        Function ral::io::in
       </a>
@@ -2397,13 +3081,113 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_AbstractSQLParser_8cpp_1a4bbde01b60ea6ff5fab3fb8c627b7302.html">
+       Function ral::io::init
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_ArgsUtil_8cpp_1a7f1968d0bacaf231959ee970bea24e07.html">
        Function ral::io::map_contains
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLParser_8cpp_1a48201ceddcb66049e9188abc33dcddf4.html">
+       Function ral::io::mysql_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_ArgsUtil_8cpp_1a73013ac0c543a4481db2c9c35f0ded90.html">
        Function ral::io::ord
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLParser_8cpp_1a8332073c1d15bdeab02a92e44f399253.html">
+       Function ral::io::parse_mysql_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_MySQLParser_8cpp_1af72f1ce9d491b8aaa52ac1e8bb20b07d.html">
+       Function ral::io::parse_mysql_column_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1ae56bd450936abaef62c285aff2f82ed8.html">
+       Function ral::io::parse_postgresql_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a30ff69324193dcd34c64a3a1f98be83d.html">
+       Function ral::io::parse_sqlite_column_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1a7785b44de601e632b2717a1b3e44176a.html">
+       Function ral::io::postgresql_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_AbstractSQLDataProvider_8h_1af5b9318083c8e3fe94f0165548022932.html">
+       Template Function ral::io::set_sql_predicate_pushdown
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_AbstractSQLDataProvider_8h_1ab569754458a8d843d0826295afdda8be.html">
+       Template Function ral::io::set_sql_projections
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLTranspiler_8cpp_1ae6852ffc55264291aaa2957a3c7b656e.html">
+       Function ral::io::sql_tools::generate_predicate
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLTranspiler_8cpp_1af01807bd3cd601e780d21de3f96d12ef.html">
+       Function ral::io::sql_tools::get_default_operators
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLTranspiler_8cpp_1a4391a1a09bad96d9816326e1d2b4e269.html">
+       Function ral::io::sql_tools::in_order
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLTranspiler_8cpp_1a81a7ff37ef4a362628708ea8f2b5befd.html">
+       Function ral::io::sql_tools::parse_blazingsql_predicate
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLTranspiler_8cpp_1a25677eb34f3469718ba9899a7333ccbc.html">
+       Function ral::io::sql_tools::transform_predicate
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLTranspiler_8cpp_1a3863af5be7029992f9c23c02fecad7de.html">
+       Function ral::io::sql_tools::transpile_predicate
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteParser_8cpp_1a48b9d7e35c29e9848fe1f527034aab82.html">
+       Function ral::io::sqlite_is_cudf_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_SQLiteDataProvider_8cpp_1a5f1eadcb2076bf78ade1d20e16dfe502.html">
+       Function ral::io::sqlite_is_string_col_type
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1ad4fb8d09dc0779bebc6945736974c083.html">
+       Function ral::io::time_to_hms
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1ae93af28cc62d122d172f33e3d23a0e01.html">
+       Function ral::io::timestamp_to_string
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_PostgreSQLParser_8cpp_1a7f0cec735be5347a90eb671423e1ab2e.html">
+       Function ral::io::timestamp_to_tm
       </a>
      </li>
      <li class="toctree-l3">
@@ -2472,11 +3256,6 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="function_OrderBy_8cpp_1a3273d9cca104bc4a02f011fdd105be80.html">
-       Function ral::operators::determine_local_limit
-      </a>
-     </li>
-     <li class="toctree-l3">
       <a class="reference internal" href="function_OrderBy_8cpp_1ad6786cf03e9b20d173638c2c5a633f8e.html">
        Function ral::operators::generate_partition_plan
       </a>
@@ -2537,12 +3316,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="function_OrderBy_8cpp_1aed9ddaff30a0f877247c63c6fc74bfe0.html">
-       Function ral::operators::logicalLimit
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="function_OrderBy_8cpp_1a91fadf05c2a0d303373bf852d8a99bda.html">
+      <a class="reference internal" href="function_OrderBy_8cpp_1aefa6928eb43dd6584cade9b96ec6f6d9.html">
        Function ral::operators::logicalSort
       </a>
      </li>
@@ -2567,7 +3341,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="function_OrderBy_8cpp_1a7d23f9f2057526b7d27932843faff210.html">
+      <a class="reference internal" href="function_OrderBy_8cpp_1a003f3bf11e12ac853bffc039d2d7312c.html">
        Function ral::operators::partition_table
       </a>
      </li>
@@ -2607,6 +3381,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a557ae179f279d2666561cd56af0544eb.html">
+       Function ral::processor::get_current_date_or_timestamp
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_LogicalFilter_8cpp_1a0db26593dd6dc92737c463ac2eb32da9.html">
        Function ral::processor::is_logical_filter
       </a>
@@ -2622,7 +3401,7 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="function_LogicalProject_8cpp_1ab9f260d10cbd5a19467bf7c131a1fe6d.html">
+      <a class="reference internal" href="function_LogicalProject_8cpp_1a9b92c91275b2c26121f6b0f3238970fa.html">
        Function ral::processor::process_project
       </a>
      </li>
@@ -2702,8 +3481,13 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a9b925ef2cbecff9f6ed70ddf1b77f2f1.html">
+       Function ral::utilities::concatTables(std::vector&lt;std::unique_ptr&lt;BlazingTable&gt;&gt;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4.html">
-       Function ral::utilities::concatTables
+       Function ral::utilities::concatTables(const std::vector&lt;BlazingTableView&gt;&amp;)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2729,6 +3513,11 @@
      <li class="toctree-l3">
       <a class="reference internal" href="function_CommonOperations_8cpp_1acce09bf9c7e7c2a7dabec6b1970b8ecd.html">
        Function ral::utilities::get_common_types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CommonOperations_8cpp_1a47a8023cd1fd53c7fb45e6371e1c2fd6.html">
+       Function ral::utilities::getLimitedRows
       </a>
      </li>
      <li class="toctree-l3">
@@ -2812,23 +3601,63 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ad4e6c023e485a8cc458d95c6c94eae64.html">
+       Function remove_over_expr(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1ad4e6c023e485a8cc458d95c6c94eae64.html">
-       Function remove_over_expr
+       Function remove_over_expr(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1ad2baa5b4b1db0f5a947c7e5c1d1c95d4.html">
+       Function remove_quotes_from_timestamp_literal(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1ad2baa5b4b1db0f5a947c7e5c1d1c95d4.html">
+       Function remove_quotes_from_timestamp_literal(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a110a8755e64db53f18657e989dd0809f.html">
+       Function replace_calcite_regex(const std::string&amp;)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a110a8755e64db53f18657e989dd0809f.html">
-       Function replace_calcite_regex
+       Function replace_calcite_regex(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html">
+       Function replace_count_expr_with_right_index(std::string, size_t)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a4ad5912cf476d1707e48fb2f8dbb3b60.html">
-       Function replace_count_expr_with_right_index
+       Function replace_count_expr_with_right_index(std::string, size_t)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a75341339dbed287573006411b012bfac.html">
+       Function replace_is_not_distinct_as_calcite(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a75341339dbed287573006411b012bfac.html">
+       Function replace_is_not_distinct_as_calcite(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a64f3303a4196a53aa669481b15ede1c7.html">
+       Function replace_sum0_expr_with_right_index(std::string, size_t)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a64f3303a4196a53aa669481b15ede1c7.html">
-       Function replace_sum0_expr_with_right_index
+       Function replace_sum0_expr_with_right_index(std::string, size_t)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2837,8 +3666,13 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="function_engine_8cpp_1aab327dfacfc0728976ed61e8eeae2164.html">
+      <a class="reference internal" href="function_engine_8cpp_1ac833c2a918a97ab38a7944f025c8d726.html">
        Function runGenerateGraph
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_engine_8cpp_1a5a5b8584b329f37e496ab364caf10f1b.html">
+       Function runGeneratePhysicalGraph
       </a>
      </li>
      <li class="toctree-l3">
@@ -2892,6 +3726,21 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ae9d8d35edcf2b83c37b67f566a879d3e.html">
+       Function str_to_timestamp_scalar_with_day_format
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a06fce747707ac50e4bf002f67cf3db1d.html">
+       Function str_to_timestamp_scalar_with_decimal_format
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ab2ab3439b65763f857631d5d4ea2a3cc.html">
+       Function str_to_timestamp_scalar_with_second_format
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_scalar__timestamp__parser_8cpp_1aea190a30495a035e344fd1cad4866174.html">
        Function strings::detail::str_to_timestamp_scalar
       </a>
@@ -2917,33 +3766,68 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a14d9889e21c510bcee21341026b2f964.html">
+       Function update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8hpp_1a14d9889e21c510bcee21341026b2f964.html">
+       Function update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string&amp;)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_io_8cpp_1a9ae3ccdf9e5ace49e9166605d5df54ae.html">
        Function visitPartitionFolder
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aad5753dfce608e546bdb1c634029bfdd.html">
+       Function window_expression_contains_bounds(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aad5753dfce608e546bdb1c634029bfdd.html">
-       Function window_expression_contains_bounds
+       Function window_expression_contains_bounds(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html">
+       Function window_expression_contains_bounds_by_range(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1aa5f14d5d9508f7e08520ed6461c17fe8.html">
-       Function window_expression_contains_bounds_by_range
+       Function window_expression_contains_bounds_by_range(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a9dbf8f491c6a558b22be5306ef76df52.html">
+       Function window_expression_contains_multiple_diff_over_clauses(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a7d6f41ac5863f117a57fc4b73dce2df4.html">
-       Function window_expression_contains_multiple_diff_over_clauses
+       Function window_expression_contains_multiple_diff_over_clauses(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1a13f4990818a06d1e1d1f4218486fa30b.html">
+       Function window_expression_contains_order_by(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1a13f4990818a06d1e1d1f4218486fa30b.html">
-       Function window_expression_contains_order_by
+       Function window_expression_contains_order_by(std::string)
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="function_expression__utils_8cpp_1abe34792b84222a73751f700fa68cea1f.html">
+       Function window_expression_contains_partition_by(std::string)
       </a>
      </li>
      <li class="toctree-l3">
       <a class="reference internal" href="function_expression__utils_8hpp_1abe34792b84222a73751f700fa68cea1f.html">
-       Function window_expression_contains_partition_by
+       Function window_expression_contains_partition_by(std::string)
       </a>
      </li>
      <li class="toctree-l3">
@@ -2954,6 +3838,21 @@
      <li class="toctree-l3">
       <a class="reference internal" href="variable_expression__utils_8hpp_1a33d38bd6d82887e47cd9bca39d749485.html">
        Variable BINDABLE_SCAN_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLDataProvider_8cpp_1aebe162a581a50180a3d5f7170bade175.html">
+       Variable column_bytes
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLDataProvider_8cpp_1a6cfe23662037bc20c86fb97a29d6b5aa.html">
+       Variable column_names
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLDataProvider_8cpp_1a776e765c396e9f226fe6eb5c3029d5c1.html">
+       Variable column_types
       </a>
      </li>
      <li class="toctree-l3">
@@ -3022,6 +3921,11 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a1a53bfe0e48ec7977d54934f1518a2c7.html">
+       Variable LOGICAL_ACCUMULATE_OVERLAPS_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="variable_expression__utils_8hpp_1a8703c67a8c057d48a22f946e95ecd973.html">
        Variable LOGICAL_AGGREGATE_TEXT
       </a>
@@ -3044,6 +3948,11 @@
      <li class="toctree-l3">
       <a class="reference internal" href="variable_expression__utils_8hpp_1ac0e0d121196bdb6add4389d7f4bea22c.html">
        Variable LOGICAL_FILTER_TEXT
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_expression__utils_8hpp_1a7d5c1dac9820f316a2f637341c7f8634.html">
+       Variable LOGICAL_GENERATE_OVERLAPS_TEXT
       </a>
      </li>
      <li class="toctree-l3">
@@ -3117,8 +4026,43 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a362f64188be5aec6c228cc0f69dd0cdb.html">
+       Variable ral::batch::BOTH_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a023e63d9a3fbff1b27f9662be176e9e9.html">
        Variable ral::batch::CROSS_JOIN
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1addb756e52d468826fe4d2ebb5b1bcdd2.html">
+       Variable ral::batch::DONE_OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a99917a232e4ec46caa409e6040c24587.html">
+       Variable ral::batch::FALSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a97e82b19410ad68a80de7fe227acf90c.html">
+       Variable ral::batch::FOLLOWING_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a4f0140148d776c0891662317cda49808.html">
+       Variable ral::batch::FOLLOWING_REQUEST
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a091010238ede364e6f1fdc1eed343e88.html">
+       Variable ral::batch::FOLLOWING_RESPONSE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1acea0ed4ee664db21921408cb44d773ec.html">
+       Variable ral::batch::INCOMPLETE_OVERLAP_STATUS
       </a>
      </li>
      <li class="toctree-l3">
@@ -3142,6 +4086,21 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a1224aa7f88ca85a260b0851179389da2.html">
+       Variable ral::batch::PRECEDING_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a2a4b87d82278c94ef4b6ea0b168bf706.html">
+       Variable ral::batch::PRECEDING_REQUEST
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1ab656bb76fbb9a7d078a72b6216213d09.html">
+       Variable ral::batch::PRECEDING_RESPONSE
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="variable_BatchJoinProcessing_8h_1afe34315964f2d43b8653f9657730ecea.html">
        Variable ral::batch::RIGHT_JOIN
       </a>
@@ -3149,6 +4108,56 @@
      <li class="toctree-l3">
       <a class="reference internal" href="variable_BatchJoinProcessing_8h_1a1df8dbe7a9c986c319228696561c167c.html">
        Variable ral::batch::RIGHT_TABLE_IDX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1af2335a23b10905a34f543998a27d7a31.html">
+       Variable ral::batch::TASK_ARG_OP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a1ef3b7cc27b7a64f39cd1ca1bfa5be72.html">
+       Variable ral::batch::TASK_ARG_OVERLAP_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1ab9db7eeef6e657d71ec92d475acefc02.html">
+       Variable ral::batch::TASK_ARG_OVERLAP_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a23a04b2a7df2cec935856a5f9d7443e3.html">
+       Variable ral::batch::TASK_ARG_REMOVE_FOLLOWING_OVERLAP
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1ab4e7ce1df1375a61567c3814866e3e78.html">
+       Variable ral::batch::TASK_ARG_REMOVE_PRECEDING_OVERLAP
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a2c908bcf66f0bbdf6a3a7013831c55ff.html">
+       Variable ral::batch::TASK_ARG_SOURCE_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a36a1e5ed8d22f34c1023b8fed8b16ea7.html">
+       Variable ral::batch::TASK_ARG_TARGET_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1adfd502a643a9c61131fa65756cf98ac3.html">
+       Variable ral::batch::TASK_ARG_TARGET_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a4da1ea4521c357f879baadfc29e17c5a.html">
+       Variable ral::batch::TRUE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_BatchWindowFunctionProcessing_8h_1a3cdb81347cd3be6e17266b3d5d583f29.html">
+       Variable ral::batch::UNKNOWN_OVERLAP_STATUS
       </a>
      </li>
      <li class="toctree-l3">
@@ -3207,6 +4216,36 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a3a1d5af0ac1e0271fbe0b6abba7da98d.html">
+       Variable ral::cache::OVERLAP_MESSAGE_TYPE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a7f54fe4fe7c387ba968f63ff36609860.html">
+       Variable ral::cache::OVERLAP_SIZE
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1a5e0c2d7708387aa6059f0f21678c016c.html">
+       Variable ral::cache::OVERLAP_SOURCE_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1aaf2672ad471f8af206c01952b1e9cdef.html">
+       Variable ral::cache::OVERLAP_STATUS
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1af88a1f1f4e6a1d4295790a12fcb28c3d.html">
+       Variable ral::cache::OVERLAP_TARGET_BATCH_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_CacheData_8h_1ad6bda7369df03c1c5f78814325a1e6d4.html">
+       Variable ral::cache::OVERLAP_TARGET_NODE_INDEX
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="variable_CacheData_8h_1a29674a4c7028bf58df89486f31769f3c.html">
        Variable ral::cache::PARTITION_COUNT
       </a>
@@ -3242,8 +4281,18 @@
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="variable_ucx__init_8h_1a925a856e0d1b7b8a778089a48599c835.html">
+      <a class="reference internal" href="variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc.html">
        Variable ral::communication::err_handling_opt
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_SQLiteParser_8cpp_1a9e5b28e07afa4dab8920d4ed96ca859c.html">
+       Variable ral::io::mysql_string_types_hints
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="variable_PostgreSQLParser_8cpp_1a351a3a4e1cb8a7cb6c7ba54ab5bc4dc9.html">
+       Variable ral::io::postgresql_string_type_hints
       </a>
      </li>
      <li class="toctree-l3">
@@ -3587,12 +4636,12 @@
         
               <div>
                 
-  <div class="section" id="function-to-dtype-parquet-type-type-parquet-convertedtype-type">
+  <section id="function-to-dtype-parquet-type-type-parquet-convertedtype-type">
 <span id="exhale-function-parquet-metadata-8cpp-1a4f7f8f11a65553e2e1e8998891ffb5fa"></span><h1>Function to_dtype(parquet::Type::type, parquet::ConvertedType::type)<a class="headerlink" href="#function-to-dtype-parquet-type-type-parquet-convertedtype-type" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p>Defined in <a class="reference internal" href="file_engine_src_io_data_parser_metadata_parquet_metadata.cpp.html#file-engine-src-io-data-parser-metadata-parquet-metadata-cpp"><span class="std std-ref">File parquet_metadata.cpp</span></a></p></li>
 </ul>
-<div class="section" id="function-documentation">
+<section id="function-documentation">
 <h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -3603,8 +4652,8 @@ Potential matches:
 </pre></div>
 </div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
               </div>

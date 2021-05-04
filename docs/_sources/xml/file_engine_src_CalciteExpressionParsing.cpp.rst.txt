@@ -56,8 +56,6 @@ Includes
 
 - ``spdlog/spdlog.h``
 
-- ``utilities/scalar_timestamp_parser.hpp`` (:ref:`file_engine_src_utilities_scalar_timestamp_parser.hpp`)
-
 
 
 
@@ -96,4 +94,10 @@ Functions
 - :ref:`exhale_function_CalciteExpressionParsing_8cpp_1aa9e7eab73fe2077667b40a97422b9621`
 
 - :ref:`exhale_function_CalciteExpressionParsing_8cpp_1a1f19d4b8aab24ad6bd20c38b89845f1b`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8cpp_1ae9d8d35edcf2b83c37b67f566a879d3e`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8cpp_1a06fce747707ac50e4bf002f67cf3db1d`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8cpp_1ab2ab3439b65763f857631d5d4ea2a3cc`
 

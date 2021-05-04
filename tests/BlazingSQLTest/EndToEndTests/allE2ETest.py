@@ -28,12 +28,12 @@ from EndToEndTests import (
     fileSystemLocalTest,
     fileSystemS3Test,
 )
-from EndToEndTests import fullOuterJoinsTest as fullOuterJoinsTest
-from EndToEndTests import groupByTest as groupByTest
-from EndToEndTests import innerJoinsTest as innerJoinsTest
-from EndToEndTests import crossJoinsTest as crossJoinsTest
-from EndToEndTests import leftOuterJoinsTest as leftOuterJoinsTest
 from EndToEndTests import (
+    crossJoinsTest,
+    fullOuterJoinsTest,
+    groupByTest,
+    innerJoinsTest,
+    leftOuterJoinsTest,
     likeTest,
     literalTest,
     loggingTest,
@@ -41,19 +41,22 @@ from EndToEndTests import (
     messageValidationTest,
     nestedQueriesTest,
     nonEquiJoinsTest,
+    rightOuterJoinsTest,
 )
 from EndToEndTests import orderbyTest as orderbyTest
 from EndToEndTests import (
-    predicatesWithNulls,
+    predicatesWithNullsTest,
     roundTest,
     stringTests,
     substringTest,
     stringCaseTest,
     tablesFromPandasTest,
-    # timestampdiffTest,
+    timestampdiffTest,
+    timestampaddTest,
     timestampTest,
     toTimestampTest,
     tpchQueriesTest,
+    unsignedTypeTest
 )
 from EndToEndTests import unaryOpsTest as unaryOpsTest
 from EndToEndTests import unifyTablesTest
@@ -132,6 +135,9 @@ def main():
     if runAllTests or ("hiveFileTest" in targetTestGroups):
         hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
+    if runAllTests or ("unsignedTypeTest" in targetTestGroups):
+        unsignedTypeTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
             dask_client, drill, dir_data_file, bc, nRals
@@ -182,6 +188,9 @@ def main():
     if runAllTests or ("leftOuterJoinsTest" in targetTestGroups):
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
+    if runAllTests or ("rightOuterJoinsTest" in targetTestGroups):
+        rightOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
         nonEquiJoinsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
@@ -193,8 +202,8 @@ def main():
     if runAllTests or ("orderbyTest" in targetTestGroups):
         orderbyTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if runAllTests or ("predicatesWithNulls" in targetTestGroups):
-        predicatesWithNulls.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+    if runAllTests or ("predicatesWithNullsTest" in targetTestGroups):
+        predicatesWithNullsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("stringTests" in targetTestGroups):
         stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -280,7 +289,11 @@ def main():
     if runAllTests or ("loggingTest" in targetTestGroups):
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
-    # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
+    if runAllTests or ("timestampdiffTest" in targetTestGroups):
+        timestampdiffTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("timestampaddTest" in targetTestGroups):
+        timestampaddTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     #TODO re enable this test once we have the new version of dask
     # https://github.com/dask/distributed/issues/4645

@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include <execution_graph/logic_controllers/LogicPrimitives.h>
-#include <execution_graph/logic_controllers/taskflow/graph.h>
-#include "../../src/error.hpp"
+#include <execution_kernels/LogicPrimitives.h>
+#include <execution_graph/graph.h>
+#include "../../src/utilities/error.hpp"
 
 std::string runGeneratePhysicalGraph(uint32_t masterIndex,
                                      std::vector<std::string> worker_ids,

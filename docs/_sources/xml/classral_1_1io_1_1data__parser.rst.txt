@@ -12,6 +12,7 @@ Inheritance Relationships
 Derived Types
 *************
 
+- ``public ral::io::abstractsql_parser`` (:ref:`exhale_class_classral_1_1io_1_1abstractsql__parser`)
 - ``public ral::io::arrow_parser`` (:ref:`exhale_class_classral_1_1io_1_1arrow__parser`)
 - ``public ral::io::csv_parser`` (:ref:`exhale_class_classral_1_1io_1_1csv__parser`)
 - ``public ral::io::gdf_parser`` (:ref:`exhale_class_classral_1_1io_1_1gdf__parser`)

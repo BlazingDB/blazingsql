@@ -1,5 +1,5 @@
 #include "engine/engine.h"
-#include "../CalciteInterpreter.h"
+#include "../execution_graph/CalciteInterpreter.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/GDFParser.h"
@@ -8,17 +8,18 @@
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_provider/GDFDataProvider.h"
+#include "../io/data_provider/ArrowDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
-#include "../execution_graph/logic_controllers/LogicalFilter.h"
+#include "../execution_kernels/LogicalFilter.h"
 
 #include <numeric>
 #include <map>
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
-#include "CodeTimer.h"
+#include "utilities/CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #ifdef MYSQL_SUPPORT
 #include "../io/data_parser/sql/MySQLParser.h"
@@ -83,7 +84,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == ral::io::DataType::CSV) {
 			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
-	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
+			parser = std::make_shared<ral::io::arrow_parser>();
 		} else if(fileType == ral::io::DataType::MYSQL) {
 #ifdef MYSQL_SUPPORT
       parser = std::make_shared<ral::io::mysql_parser>();
@@ -112,22 +113,25 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     }
-
 		std::vector<Uri> uris;
 		for(size_t fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
 			schema.add_file(filesAll[i][fileIndex]);
 		}
 
-    if (!isSqlProvider) {
-      if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
-        // is gdf
-        provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
-      } else {
-        // is file (this includes the case where fileType is UNDEFINED too)
-        provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
-      }
-    }
+		if (!isSqlProvider) {
+			if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
+				// is gdf
+				provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
+			} else if (fileType == ral::io::DataType::ARROW) {
+				std::vector<std::shared_ptr<arrow::Table>> arrow_tables = {tableSchema.arrow_table};
+				provider = std::make_shared<ral::io::arrow_data_provider>(arrow_tables, uri_values[i]);
+			} else {
+				// is file (this includes the case where fileType is UNDEFINED too)
+				provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
+			}
+		}
+
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
 		schemas.push_back(schema);

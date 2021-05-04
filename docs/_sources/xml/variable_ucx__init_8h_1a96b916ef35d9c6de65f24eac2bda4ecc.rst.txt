@@ -1,0 +1,13 @@
+.. _exhale_variable_ucx__init_8h_1a96b916ef35d9c6de65f24eac2bda4ecc:
+
+Variable ral::communication::err_handling_opt
+=============================================
+
+- Defined in :ref:`file_engine_src_communication_ucx_init.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::communication::err_handling_opt

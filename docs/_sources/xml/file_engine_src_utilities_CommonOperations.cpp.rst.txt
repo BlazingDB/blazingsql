@@ -68,9 +68,11 @@ Functions
 ---------
 
 
+- :ref:`exhale_function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec`
+
 - :ref:`exhale_function_CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30`
 
-- :ref:`exhale_function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec`
+- :ref:`exhale_function_CommonOperations_8cpp_1a9b925ef2cbecff9f6ed70ddf1b77f2f1`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4`
 
@@ -83,6 +85,8 @@ Functions
 - :ref:`exhale_function_CommonOperations_8cpp_1a4e6f3dc33119de69fdf488a1dd3c10dc`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1acce09bf9c7e7c2a7dabec6b1970b8ecd`
+
+- :ref:`exhale_function_CommonOperations_8cpp_1a47a8023cd1fd53c7fb45e6371e1c2fd6`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1a49683cfdf8de653c9d617ec7a18cbf98`
 

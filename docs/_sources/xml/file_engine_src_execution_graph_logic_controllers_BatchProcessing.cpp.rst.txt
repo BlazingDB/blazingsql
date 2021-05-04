@@ -38,6 +38,8 @@ Includes
 
 - ``io/data_parser/CSVParser.h`` (:ref:`file_engine_src_io_data_parser_CSVParser.h`)
 
+- ``io/data_provider/sql/AbstractSQLDataProvider.h`` (:ref:`file_engine_src_io_data_provider_sql_AbstractSQLDataProvider.h`)
+
 - ``parser/expression_utils.hpp`` (:ref:`file_engine_src_parser_expression_utils.hpp`)
 
 - ``src/execution_graph/logic_controllers/LogicalFilter.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicalFilter.h`)
@@ -58,4 +60,11 @@ Namespaces
 - :ref:`namespace_ral`
 
 - :ref:`namespace_ral__batch`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_BatchProcessing_8cpp_1abb49240922021c644717dda17b916b11`
 

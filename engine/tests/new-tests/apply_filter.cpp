@@ -23,7 +23,7 @@
 #include <cudf_test/type_lists.hpp>
 #include <cudf_test/column_wrapper.hpp>
 #include <cudf_test/table_utilities.hpp>
-#include <execution_graph/logic_controllers/LogicalFilter.h>
+#include <execution_kernels/LogicalFilter.h>
 #include "cudf/stream_compaction.hpp"
 #include <cudf/datetime.hpp>
 #include "tests/utilities/BlazingUnitTest.h"

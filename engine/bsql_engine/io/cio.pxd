@@ -137,7 +137,7 @@ cdef extern from "../include/io/io.h" nogil:
     vector[FolderPartitionMetadata] inferFolderPartitionMetadata(string folder_path) except +raiseInferFolderPartitionMetadataError
 
 
-cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
+cdef extern from "../src/execution_kernels/LogicPrimitives.h" namespace "ral::frame":
         cdef cppclass BlazingTable:
             BlazingTable(unique_ptr[CudfTable] table, const vector[string] & columnNames)
             BlazingTable(const CudfTableView & table, const vector[string] & columnNames)
@@ -154,7 +154,7 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             CudfTableView view()
             vector[string] names()
 
-cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" namespace "ral::cache":
+cdef extern from "../src/execution_graph/graph.h" namespace "ral::cache":
         cdef struct graph_progress:
             vector[string] kernel_descriptions
             vector[bool] finished
@@ -166,23 +166,27 @@ cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" nam
             bool query_is_complete()
             graph_progress get_progress()
 
-cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
+cdef extern from "../src/cache_machine/CacheMachine.h" namespace "ral::cache":
         cdef cppclass MetadataDictionary:
             void set_values(map[string,string] new_values)
             map[string,string] get_values()
             void print() nogil
-        cdef cppclass CacheData:
-            unique_ptr[BlazingTable] decache()
-            MetadataDictionary getMetadata()
-        cdef cppclass GPUCacheData:
-            unique_ptr[BlazingTable] decache()
-            MetadataDictionary getMetadata()
         cdef cppclass CacheMachine:
             void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add ) nogil except +
             void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add) nogil except+
             unique_ptr[CacheData] pullCacheData() nogil  except +
             unique_ptr[CacheData] pullCacheData(string message_id) nogil except +
             bool has_next_now() except +
+
+cdef extern from "../src/cache_machine/CacheData.h" namespace "ral::cache":
+        cdef cppclass CacheData:
+            unique_ptr[BlazingTable] decache()
+            MetadataDictionary getMetadata()
+
+cdef extern from "../src/cache_machine/GPUCacheData.h" namespace "ral::cache":
+        cdef cppclass GPUCacheData:
+            unique_ptr[BlazingTable] decache()
+            MetadataDictionary getMetadata()
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function

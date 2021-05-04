@@ -45,6 +45,9 @@ enum class operator_type {
 	BLZ_CAST_FLOAT,
 	BLZ_CAST_DOUBLE,
 	BLZ_CAST_DATE,
+	BLZ_CAST_TIMESTAMP_SECONDS,
+	BLZ_CAST_TIMESTAMP_MILLISECONDS,
+	BLZ_CAST_TIMESTAMP_MICROSECONDS,
 	BLZ_CAST_TIMESTAMP,
 	BLZ_CAST_VARCHAR,
 	BLZ_CHAR_LENGTH,
@@ -121,6 +124,7 @@ bool is_timestamp_with_decimals_and_dash(const std::string & token);
 bool is_timestamp_with_decimals_and_bar(const std::string & token);
 bool is_string(const std::string & token);
 bool is_bool(const std::string & token);
+bool is_join_expression(const std::string & token);
 bool is_SQL_data_type(const std::string & token);
 bool is_operator_token(const std::string & token);
 bool is_literal(const std::string & token);
@@ -247,3 +251,15 @@ std::string fill_minus_op_with_zero(std::string expression);
 std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
 
 const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string);
+
+std::string replace_is_not_distinct_as_calcite(std::string expression);
+
+std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string & expression);
+
+bool is_cast_to_timestamp(std::string expression);
+
+bool is_cast_to_date(std::string expression);
+
+std::string convert_ms_to_ns_units(std::string expression);
+
+std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema);

@@ -6,7 +6,7 @@
 #include <tuple>
 #include <rmm/device_buffer.hpp>
 #include <transport/ColumnTransport.h>
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 
 namespace comm {
 

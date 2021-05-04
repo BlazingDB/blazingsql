@@ -7,7 +7,7 @@
 #include <transport/ColumnTransport.h>
 
 #include "node.hpp"
-#include "execution_graph/logic_controllers/CacheMachine.h"
+#include "cache_machine/CacheMachine.h"
 
 
 namespace comm {
