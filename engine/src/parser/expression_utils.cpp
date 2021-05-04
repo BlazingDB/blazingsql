@@ -1355,10 +1355,14 @@ std::string apply_interval_conversion(std::string expression) {
 		return expression;
 	}
 
-	// TODO: cordova improve this 
+	// TODO: cordova improve (handle better) this cases
 	expression = StringUtil::replace(expression, "DAY TO SECOND", "SECOND");
 	expression = StringUtil::replace(expression, "HOUR TO SECOND", "SECOND");
 	expression = StringUtil::replace(expression, "MINUTE TO SECOND", "SECOND");
+
+	if (expression.find("+") != expression.npos || expression.find("-") != expression.npos) {
+		return expression;
+	}
 
 	return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
 }

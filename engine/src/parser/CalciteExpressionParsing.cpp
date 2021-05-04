@@ -223,7 +223,8 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 			return cudf::make_string_scalar(scalar_string);
 		}
 	}
-	if(type.id() == cudf::type_id::DURATION_SECONDS) {
+	if(type.id() == cudf::type_id::DURATION_SECONDS || type.id() == cudf::type_id::DURATION_MILLISECONDS
+		|| type.id() == cudf::type_id::DURATION_MICROSECONDS || type.id() == cudf::type_id::DURATION_NANOSECONDS) {
 		auto ret = cudf::make_duration_scalar(type);
 		using T = int64_t;
 		using ScalarType = cudf::scalar_type_t<T>;

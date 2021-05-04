@@ -581,6 +581,113 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # TODO: for now not support for INTERVAL on months and years
 
+            # TODO: Create data with interval dtype (timedelta64[s], timedelta64[ms])
+
+            # TODO: Add tests using o_orderdate column
+            queryId = "TEST_33"
+            query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' SECOND as sec_col
+                        from orders"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True
+            )
+
+            queryId = "TEST_34"
+            query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' MINUTE as min_col
+                        from orders"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True
+            )
+
+            queryId = "TEST_35"
+            query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' HOUR as min_col
+                        from orders"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True
+            )
+
+            queryId = "TEST_36"
+            query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' DAY as min_col
+                        from orders"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True
+            )
+
+            # Not supported MONTH INTERVAL operations
+            # queryId = "TEST_37"
+            # query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' HOUR as min_col
+            #             from orders"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            #     print_result=True
+            # )
+
+            # Not supported YEAR INTERVAL operations
+            # queryId = "TEST_38"
+            # query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' HOUR as min_col
+            #             from orders"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            #     print_result=True
+            # )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

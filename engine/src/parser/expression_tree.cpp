@@ -309,8 +309,8 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   }
   if (token_value == "INTERVAL SECOND" || token_value == "INTERVAL MINUTE"
       || token_value == "INTERVAL HOUR" || token_value == "INTERVAL DAY") {
-    //return cudf::data_type{cudf::type_id::DURATION_DAYS}; // Not supported
-    return cudf::data_type{cudf::type_id::DURATION_SECONDS};
+    // TODO: wath exaclty duration unit should be returned here. Calcite returns millis unit
+    return cudf::data_type{cudf::type_id::DURATION_MILLISECONDS};
   }
   if (token_value == "INTERVAL MONTH" || token_value == "INTERVAL YEAR") {
     throw std::runtime_error("TIMESTAMPADD is not currently supported for MONTH or YEAR units.");
