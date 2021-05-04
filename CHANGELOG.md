@@ -2,10 +2,10 @@
 
 
 ## New Features
-- #1471 Unbounded partitioned windows 
+- #1471 Unbounded partitioned windows
 - #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 - #1505 Support for right outer join
-
+- #1453 Create tables from SQLite data provider
 
 ## Improvements
 - #1464 Better Support for unsigned types in C++ side
@@ -162,7 +162,7 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-- #1220 Implement string LEFT and RIGHT 
+- #1220 Implement string LEFT and RIGHT
 - #1223 Add support for UNION statement
 - #1250 updated README.md and CHANGELOG and others preparing for 0.17 release
 
@@ -221,7 +221,7 @@
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
-- #1225 Fixed issue due to change in gather API 
+- #1225 Fixed issue due to change in gather API
 - #1254 Fixing support of nightly and stable on localhost
 - #1258 Fixing gtest version issue
 
