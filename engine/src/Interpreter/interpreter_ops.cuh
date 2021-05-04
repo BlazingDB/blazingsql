@@ -298,11 +298,19 @@ private:
 			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).time_since_epoch().count());
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
 																					int64_t * buffer) {
+		}
+
+		template <typename ColType, std::enable_if_t<cudf::is_duration<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer) {
+			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).count());
 		}
 	};
 
@@ -357,19 +365,17 @@ private:
 																					int position) {
 			out_table.column(col_index).element<ColType>(row) =	ColType{typename ColType::duration{*(buffer + (position * blockDim.x + threadIdx.x))}};
 		}
-		// TODO: how to proceed here? Ask felipe
-		/*
+
 		template <typename ColType, std::enable_if_t<cudf::is_duration<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
 																					int64_t * buffer,
 																					int position) {
-
 			out_table.column(col_index).element<ColType>(row) =	ColType{typename ColType::duration{*(buffer + (position * blockDim.x + threadIdx.x))}};
 		}
-		*/
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
+
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
@@ -456,22 +462,15 @@ private:
 		case cudf::type_id::TIMESTAMP_NANOSECONDS:
 			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_ns>*>(scalar_ptr)->value().time_since_epoch().count());
 		case cudf::type_id::DURATION_DAYS:
-			// TODO: how to proceed here? Ask felipe
-			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_D>*>(scalar_ptr)->value().time_since_epoch().count());
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_D>*>(scalar_ptr)->value().count());
 		case cudf::type_id::DURATION_SECONDS:
-			// TODO: how to proceed here? Ask felipe
-			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_s>*>(scalar_ptr)->value().time_since_epoch().count());
-			//return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_s>*>(scalar_ptr)->value());
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_s>*>(scalar_ptr)->value().count());
 		case cudf::type_id::DURATION_MILLISECONDS:
-			// TODO: how to proceed here? Ask felipe
-			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_ms>*>(scalar_ptr)->value().time_since_epoch().count());
-			//return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_s>*>(scalar_ptr)->value());
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_ms>*>(scalar_ptr)->value().count());
 		case cudf::type_id::DURATION_MICROSECONDS:
-			// TODO: how to proceed here? Ask felipe
-			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_us>*>(scalar_ptr)->value().time_since_epoch().count());
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_us>*>(scalar_ptr)->value().count());
 		case cudf::type_id::DURATION_NANOSECONDS:
-			// TODO: how to proceed here? Ask felipe
-			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_ns>*>(scalar_ptr)->value().time_since_epoch().count());
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_ns>*>(scalar_ptr)->value().count());
 		default:
 			return LeftType{};
 		}
