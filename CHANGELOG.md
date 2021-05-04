@@ -10,6 +10,7 @@
 ## Improvements
 - #1464 Better Support for unsigned types in C++ side
 - #1511 Folder refactoring related to caches, kernels, execution_graph, BlazingTable
+- #1522 Improve data loading when the algebra contains only BindableScan/Scan and Limit
 
 
 ## Bug Fixes

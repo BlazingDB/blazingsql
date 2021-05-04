@@ -300,20 +300,33 @@ namespace cache {
 		}
 	}
 
-	// This function will work when the Relational Algebra only contains: TableScan (or BindableTableScan) and Limit
+	bool graph::is_scan_with_limit(size_t min_index_valid) {
+		return (get_node(min_index_valid)->get_type_id() == kernel_type::LimitKernel && 
+				get_node(min_index_valid + 1)->get_type_id() == kernel_type::TableScanKernel &&
+				get_node(min_index_valid + 2)->expression == "OutputKernel");
+	}
+
+	bool graph::is_bindablescan_with_limit_without_filter(size_t min_index_valid) {
+		std::string kernel_expression = get_node(min_index_valid + 1)->expression;
+		bool not_contains_filters = (kernel_expression.find("filters=[") == kernel_expression.npos);
+
+		return (get_node(min_index_valid)->get_type_id() == kernel_type::LimitKernel && 
+				get_node(min_index_valid + 1)->get_type_id() == kernel_type::BindableTableScanKernel && not_contains_filters &&
+				get_node(min_index_valid + 2)->expression == "OutputKernel");
+	}
+
+	// This function will work only when the Relational Algebra contains: a TableScan and a Limit
+	// sql = "select * from table limit N"
+	// or a BindableTableScan (without filters) and a Limit
+	// sql = "select col_a, col_b, col_c from table limit N"
 	void graph::check_for_simple_scan_with_limit_query() {
 		auto first_iterator = container_.begin();
 		first_iterator++;
-		int32_t min_index_valid = first_iterator->first;
+		size_t min_index_valid = first_iterator->first;
 		size_t total_kernels = container_.size();
 
 		if (total_kernels == 4) { // LimitKernel, TableScanKernel (or BindableTableScan), OutputKernel and null
-			if ( get_node(min_index_valid)->get_type_id() == kernel_type::LimitKernel &&
-				(get_node(min_index_valid + 1)->get_type_id() == kernel_type::TableScanKernel ||
-				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::BindableTableScanKernel) &&
-				 get_node(min_index_valid + 2)->expression == "OutputKernel"
-				)
-			{
+			if ( is_scan_with_limit(min_index_valid) || is_bindablescan_with_limit_without_filter(min_index_valid) ) {
 				get_node(min_index_valid + 1)->has_limit_ = true;
 				// get the limit value from LogicalLimit
 				std::string LimitExpression = get_node(min_index_valid)->expression;
