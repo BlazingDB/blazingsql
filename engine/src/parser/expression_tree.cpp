@@ -11,6 +11,8 @@ constexpr char lexer::NULL_REGEX_STR[];
 constexpr char lexer::BOOLEAN_REGEX_STR[];
 constexpr char lexer::NUMBER_REGEX_STR[];
 constexpr char lexer::DURATION_S_REGEX_STR[];
+constexpr char lexer::DURATION_MS_REGEX_STR[];
+constexpr char lexer::DURATION_NS_REGEX_STR[];
 constexpr char lexer::TIMESTAMP_D_REGEX_STR[];
 constexpr char lexer::TIMESTAMP_S_REGEX_STR[];
 constexpr char lexer::TIMESTAMP_MS_REGEX_STR[];
@@ -85,6 +87,17 @@ lexer::token lexer::next_token() {
     return {lexer::token_type::Duration_s, match.str()};
   }
 
+  if (std::regex_search(remainder, match, duration_ms_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Duration_ms, match.str()};
+  }
+
+  if (std::regex_search(remainder, match, duration_ns_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Duration_ms, match.str()};
+  }
   if (std::regex_search(remainder, match, timestamp_ns_regex)) {
     advance(match.length());
     assert(pos_ <= text_.length());
@@ -233,6 +246,8 @@ std::unique_ptr<node> expr_parser::literal() {
       || accept(lexer::token_type::Boolean)
       || accept(lexer::token_type::Number)
       || accept(lexer::token_type::Duration_s)
+      || accept(lexer::token_type::Duration_ms)
+      || accept(lexer::token_type::Duration_ns)
       || accept(lexer::token_type::Timestamp_d)
       || accept(lexer::token_type::Timestamp_s)
       || accept(lexer::token_type::Timestamp_ms)
@@ -277,6 +292,10 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
     }
   } else if (token.type == lexer::token_type::Duration_s) {
     return cudf::data_type{cudf::type_id::DURATION_SECONDS};
+  } else if (token.type == lexer::token_type::Duration_ms) {
+    return cudf::data_type{cudf::type_id::DURATION_MILLISECONDS};
+  } else if (token.type == lexer::token_type::Duration_ns) {
+    return cudf::data_type{cudf::type_id::DURATION_NANOSECONDS};
   } else if (token.type == lexer::token_type::Timestamp_ns) {
     return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
   } else if (token.type == lexer::token_type::Timestamp_us) {
@@ -309,11 +328,15 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   }
   if (token_value == "INTERVAL SECOND" || token_value == "INTERVAL MINUTE"
       || token_value == "INTERVAL HOUR" || token_value == "INTERVAL DAY") {
-    // TODO: wath exaclty duration unit should be returned here. Calcite returns millis unit
-    return cudf::data_type{cudf::type_id::DURATION_MILLISECONDS};
+    // TODO: Calcite returns ms unit
+    // INTERVAL '1' SECOND (DURATION_NANOSECONDS)  -> 0 days 00:00:00.000000001
+    // INTERVAL '1' SECOND (DURATION_MICROSECONDS) -> 0 days 00:00:00.000001
+    // INTERVAL '1' SECOND (DURATION_MILLISECONDS) -> 0 days 00:00:00.001000
+    // INTERVAL '1' SECOND (DURATION_SECONDS)      -> 0 days 00:00:01
+    return cudf::data_type{cudf::type_id::DURATION_SECONDS}; 
   }
   if (token_value == "INTERVAL MONTH" || token_value == "INTERVAL YEAR") {
-    throw std::runtime_error("TIMESTAMPADD is not currently supported for MONTH or YEAR units.");
+    throw std::runtime_error("operation over MONTH or YEAR units are not currently supported.");
   }
   if (token_value == "BIGINT") {
     return cudf::data_type{cudf::type_id::INT64};
