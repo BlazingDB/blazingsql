@@ -1351,33 +1351,40 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 }
 
 // By default Calcite returns Interval types in ms unit. So we want to convert them to the right INTERVAL unit
-// input: 4000:INTERVAL SECOND
-// output: 4:INTERVAL SECOND
+// to do correct operations
+// TODO: any issue related with INTERVAL operations (and parsing expressions) should be handled here
 std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema) {
-	if (table_schema.size() == 0 || expression.find(":INTERVAL") == expression.npos) return expression;
+	std::string interval_expr = ":INTERVAL";
+	if (table_schema.size() == 0 || expression.find(interval_expr) == expression.npos) return expression;
 
+	// op with intervals
 	if (expression.find("+") != expression.npos || expression.find("-") != expression.npos) {
-		std::string searched_expr = "+($", comma = ", "; // TODO: - op
-		size_t start_pos = expression.find(searched_expr) + searched_expr.size();
+		std::string plus_expr = "+($", sub_expr = "-($";
+
+		size_t start_pos = 0;
+		if (expression.find(plus_expr) != expression.npos) {
+			start_pos = expression.find(plus_expr) + plus_expr.size();
+		} else if (expression.find(sub_expr) != expression.npos) {
+			start_pos = expression.find(sub_expr) + sub_expr.size();
+		}
+		
 		std::string new_expr = expression.substr(start_pos, expression.size() - start_pos);
-		size_t last_pos = new_expr.find(comma);
+		size_t last_pos = new_expr.find(", ");
 		new_expr = new_expr.substr(0, last_pos);
 		int col_indice =  std::stoi(new_expr);
 
 		if (table_schema[col_indice].id() == cudf::type_id::DURATION_SECONDS) {
-			return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
+			return StringUtil::replace(expression, "000" + interval_expr, interval_expr);
 		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_MICROSECONDS) {
-			return StringUtil::replace(expression, "000:INTERVAL", "000000:INTERVAL");
+			return StringUtil::replace(expression, "000" + interval_expr, "000000" + interval_expr);
 		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_NANOSECONDS) {
-			return StringUtil::replace(expression, "000:INTERVAL", "000000000:INTERVAL");
-		}
-
-		return expression;
+			return StringUtil::replace(expression, "000" + interval_expr, "000000000" + interval_expr);
+		} else return expression; // duration ms
 	}
 
 	// Literal interval
 	if (expression.find("$") == expression.npos && expression.find("000:INTERVAL") != expression.npos) {
-		return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
+		return StringUtil::replace(expression, "000" + interval_expr, interval_expr);
 	}
 
 	return expression;

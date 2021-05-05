@@ -986,7 +986,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         expression = get_current_date_or_timestamp(expression, context);
         expression = convert_ms_to_ns_units(expression);
         expression = reinterpret_timestamp(expression, blazing_table_in->get_schema());
-        expression = apply_interval_conversion(expression);
+        expression = apply_interval_conversion(expression, blazing_table_in->get_schema());
 
         expressions[i] = expression;
         out_column_names[i] = name;
