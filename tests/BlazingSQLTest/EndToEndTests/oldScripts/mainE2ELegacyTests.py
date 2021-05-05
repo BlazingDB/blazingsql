@@ -1,9 +1,7 @@
 from Configuration import Settings
 from Configuration import ExecutionMode
 
-from EndToEndTests.oldScripts import aggregationsWithoutGroupByTest
 from EndToEndTests.oldScripts import fileSystemGSTest
-from EndToEndTests.oldScripts import fileSystemLocalTest
 from EndToEndTests.oldScripts import fileSystemS3Test
 from EndToEndTests.oldScripts import columnBasisTest
 from EndToEndTests.oldScripts import hiveFileTest

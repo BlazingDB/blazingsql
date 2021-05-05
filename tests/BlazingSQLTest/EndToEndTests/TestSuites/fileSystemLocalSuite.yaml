@@ -113,12 +113,12 @@ TEST_SUITE:
                     where o_orderkey < 10 and o_orderkey >= 1
 
   TEST_14:
-  SQL: |
-      select 100168549 - avg(o_orderkey),
-                        56410984/sum(o_totalprice),
-                        (123 - 945/max(o_orderkey)) /
-                        avg(81619.0/o_orderkey)
-                        from orders
+    SQL: |
+        select 100168549 - avg(o_orderkey),
+                          56410984/sum(o_totalprice),
+                          (123 - 945/max(o_orderkey)) /
+                          avg(81619.0/o_orderkey)
+                          from orders
     SETUP:
       USE_PERCENTAGE: True
 
@@ -129,7 +129,6 @@ TEST_SUITE:
                     group by o_orderstatus, o_orderkey                 
     SETUP:
       USE_PERCENTAGE: True
-      SKIP_WITH: spark
       
   TEST_16:
     SQL: |
@@ -176,34 +175,3 @@ TEST_SUITE:
                     select regionTemp.r_name, nationTemp.n_name
                     from regionTemp inner join nationTemp
                     on regionTemp.r_regionkey = nationTemp.fkey
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -9,6 +9,9 @@ TEST_SUITE:
     SKIP_WITH:
       - MULTINODE:
         - CUDF
+      - CSV
+      - PARQUET
+      - CUDF
 
   TEST_01:
     SQL: |
@@ -75,6 +78,4 @@ TEST_SUITE:
         select 2+2, o_orderdate from orders
                     order by o_orderkey nulls last limit 5
     SETUP:
-      COMPARE_WITH:
-        ORC: spark
-        OTHER: drill
+      COMPARE_WITH: spark
