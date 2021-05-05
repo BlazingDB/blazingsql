@@ -76,3 +76,28 @@ TEST_SUITE:
                     from nation as n left outer join region as r
                     on n.n_nationkey = r.r_regionkey
                     WHERE n.n_name IS NOT NULL
+
+  TEST_09:
+    SQL: |
+      select MIN(n.n_nationkey), MAX(r.r_regionkey),
+                    AVG(CAST((n.n_nationkey + r.r_regionkey) AS DOUBLE))
+                    from nation as n
+                    right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey IS NULL
+
+  TEST_10:
+    SQL: |
+      select n.n_nationkey, n.n_name, r.r_regionkey,
+                        r.r_name
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE r.r_name IS NULL
+
+  TEST_11:
+    SQL: |
+      select n.n_nationkey, n.n_name, r.r_regionkey,
+                        r.r_name
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE n.n_name IS NOT NULL

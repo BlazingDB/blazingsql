@@ -50,3 +50,23 @@ TEST_SUITE:
   TEST_05:
     SQL: |
       select ROUND(AVG(o_totalprice)) from orders
+
+  TEST_06:
+    SQL: |
+      select ROUND(orders.o_totalprice, 2),
+                        ROUND(orders.o_totalprice, -2)
+                    from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_07:
+    SQL: |
+      select customer.c_custkey, orders.o_orderkey,
+                    ROUND(orders.o_custkey,0)
+                    from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
