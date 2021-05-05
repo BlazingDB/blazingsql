@@ -7,7 +7,8 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01 #0.1
     COMPARE_WITH: drill
     SKIP_WITH:
-      - MULTINODE: CUDF
+      - MULTINODE:
+        - CUDF
 
   TEST_01:
     SQL: |
@@ -37,13 +38,17 @@ TEST_SUITE:
         select count(distinct(o_custkey)), avg(o_totalprice),
                 (o_orderkey + o_custkey) as num from orders
                 where o_custkey < 100 group by o_custkey, o_orderkey
-  #ACCEPTABLE_DIFFERENCE: 0.01
+    SETUP:
+#      ACCEPTABLE_DIFFERENCE: 0.01
+
   TEST_05:
     SQL: |
         select count(distinct(o_custkey)), max(o_totalprice),
                     min(o_totalprice), avg(o_totalprice)
                     from orders group by o_custkey
-  #ACCEPTABLE_DIFFERENCE: 0.01
+    SETUP:
+#      ACCEPTABLE_DIFFERENCE: 0.01
+
   TEST_06:
     SQL: |
         select n_nationkey, count(distinct(

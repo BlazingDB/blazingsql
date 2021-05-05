@@ -7,7 +7,8 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: spark
     SKIP_WITH:
-      - MULTINODE: CUDF
+      - MULTINODE:
+        - CUDF
 
   TEST_01:
     SQL: |
@@ -62,6 +63,7 @@ TEST_SUITE:
                     from dayofweektable order by o_orderkey nulls last limit 100
     SETUP:
       APPLY_ORDER: False
+      COMPARE_WITH: spark
 
   TEST_05:
     SQL: |
