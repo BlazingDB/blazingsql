@@ -140,7 +140,7 @@ def main():
         unsignedTypeTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("intervalTest" in targetTestGroups):
-        intervalTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        intervalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
