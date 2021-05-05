@@ -1574,10 +1574,10 @@ def run_query(
                             engine_time,
                             total_time,
                         )
-            else:
-                print_query_results2(
-                    query_spark, queryId, queryType, result_gdf.error_message
-                )
+                else:
+                    print_query_results2(
+                        query_spark, queryId, queryType, result_gdf.error_message
+                    )
     else:  # GPUCI
 
         compareResults = True
