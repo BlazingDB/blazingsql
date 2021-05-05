@@ -1084,6 +1084,9 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(BOTH),", "TRIM(\"BOTH\",");
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(LEADING),", "TRIM(\"LEADING\",");
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
+	StringUtil::findAndReplaceAll(ret, "DAY TO SECOND", "SECOND");
+	StringUtil::findAndReplaceAll(ret, "HOUR TO SECOND", "SECOND");
+	StringUtil::findAndReplaceAll(ret, "MINUTE TO SECOND", "SECOND");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 
@@ -1350,19 +1353,32 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 // By default Calcite returns Interval types in ms unit. So we want to convert them to the right INTERVAL unit
 // input: 4000:INTERVAL SECOND
 // output: 4:INTERVAL SECOND
-std::string apply_interval_conversion(std::string expression) {
-	if (expression.find(":INTERVAL") == expression.npos) {
-		return expression;
-	}
-
-	// TODO: cordova improve (handle better) this cases
-	expression = StringUtil::replace(expression, "DAY TO SECOND", "SECOND");
-	expression = StringUtil::replace(expression, "HOUR TO SECOND", "SECOND");
-	expression = StringUtil::replace(expression, "MINUTE TO SECOND", "SECOND");
+std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema) {
+	if (table_schema.size() == 0 || expression.find(":INTERVAL") == expression.npos) return expression;
 
 	if (expression.find("+") != expression.npos || expression.find("-") != expression.npos) {
+		std::string searched_expr = "+($", comma = ", "; // TODO: - op
+		size_t start_pos = expression.find(searched_expr) + searched_expr.size();
+		std::string new_expr = expression.substr(start_pos, expression.size() - start_pos);
+		size_t last_pos = new_expr.find(comma);
+		new_expr = new_expr.substr(0, last_pos);
+		int col_indice =  std::stoi(new_expr);
+
+		if (table_schema[col_indice].id() == cudf::type_id::DURATION_SECONDS) {
+			return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
+		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_MICROSECONDS) {
+			return StringUtil::replace(expression, "000:INTERVAL", "000000:INTERVAL");
+		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_NANOSECONDS) {
+			return StringUtil::replace(expression, "000:INTERVAL", "000000000:INTERVAL");
+		}
+
 		return expression;
 	}
 
-	return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
+	// Literal interval
+	if (expression.find("$") == expression.npos && expression.find("000:INTERVAL") != expression.npos) {
+		return StringUtil::replace(expression, "000:INTERVAL", ":INTERVAL");
+	}
+
+	return expression;
 }
