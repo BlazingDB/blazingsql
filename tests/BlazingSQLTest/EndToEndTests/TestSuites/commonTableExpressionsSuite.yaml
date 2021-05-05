@@ -6,7 +6,9 @@ TEST_SUITE:
     USE_PERCENTAGE: false
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
-    SKIP_WITH: CUDF
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
 
   TEST_01:
     SQL: |

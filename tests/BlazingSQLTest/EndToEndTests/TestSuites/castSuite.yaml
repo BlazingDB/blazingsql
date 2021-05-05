@@ -6,7 +6,9 @@ TEST_SUITE:
     USE_PERCENTAGE: False
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
-    SKIP_WITH: CUDF
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
 
   TEST_01:
     SQL: |
@@ -20,8 +22,6 @@ TEST_SUITE:
     SQL: |
         select CAST(c_custkey as BIGINT), c_acctbal
                     from customer order by c_acctbal desc, c_custkey
-    SETUP:    
-      APPLY_ORDER: False
 
   TEST_03:
     SQL: |
@@ -61,16 +61,22 @@ TEST_SUITE:
     SQL: |
         select cast(o_orderkey AS TINYINT) from orders
                     where o_orderkey < 120
+    SETUP:
+      COMPARE_WITH: spark
 
   TEST_09:
     SQL: |
         select cast(o_orderkey AS SMALLINT) from orders
                     where o_orderkey < 32000
+    SETUP:
+      COMPARE_WITH: spark
 
   TEST_10:
     SQL: |
         select cast(o_totalprice AS INTEGER) * o_orderkey
                     from orders where o_orderkey < 10
+    SETUP:
+      COMPARE_WITH: spark
 
   TEST_11:
     SQL: |
@@ -81,14 +87,21 @@ TEST_SUITE:
         ORC: spark
         OTHER: drill
 
-  TEST_12:
-    SQL: |
-        select cast(o_orderdate AS TIMESTAMP) from orders
-                    where cast(o_orderdate as TIMESTAMP)
-                    between '1995-01-01' and '1995-01-05'
+#  TEST_12:
+#    SQL: |
+#        select cast(o_orderdate AS TIMESTAMP) from orders
+#                    where cast(o_orderdate as TIMESTAMP)
+#                    between '1995-01-01' and '1995-01-05'
+#    SETUP:
+#      COMPARE_WITH:
+#        ORC: spark
+#        OTHER: drill
+
 
   TEST_13:
     SQL: |
         select cast(o_totalprice AS INTEGER), 4 as scan_type, 4.0 as scan_type2, 
                         5 as scan_type3, o_comment, o_comment as comento, 'hello' as greeting 
                         from orders where o_orderkey < 10
+    SETUP:
+      COMPARE_WITH: spark
