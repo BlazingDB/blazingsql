@@ -3,7 +3,9 @@ from Utils import gpuMemory
 from Runner import runTest
 from DataBase import createSchema
 from Configuration import ExecutionMode, Settings
+from blazingsql import DataType
 
+from itertools import chain
 from os import listdir
 from os.path import isfile, join
 import sql_metadata
@@ -18,11 +20,12 @@ class ConfigTest():
     apply_order = None
     use_percentage = None
     acceptable_difference = None
-    orderby = None
+    order_by_col = None
     print_result = None
     data_types = None
     compare_with = None
     skip_with = []
+    spark_query = None
 
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
@@ -54,9 +57,9 @@ class TestCase():
         if "SETUP" in self.data:
             setup = self.data["SETUP"]
 
-            if setup.get("ORDERBY") is not None: self.configLocal.orderby = setup.get("ORDERBY")
             if setup.get("SKIP_WITH") is not None: self.configLocal.skip_with = setup.get("SKIP_WITH")
             if setup.get("APPLY_ORDER") is not None: self.configLocal.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("ORDER_BY_COL") is not None: self.configLocal.order_by_col = setup.get("ORDER_BY_COL")
             if setup.get("PRINT_RESULT") is not None: self.configLocal.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: self.configLocal.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
@@ -84,24 +87,23 @@ class TestCase():
 
         return queries
 
-    def __loadDataTypes(self):
-        if self.nRals > 1:
-            self.configLocal.data_types.remove(DataType.DASK_CUDF)
-
     def __loadTestCaseConfig(self, test_name, fileSchemaType):
         config = copy.deepcopy(self.configLocal)
         if "SETUP" in self.data[test_name]:
             setup = self.data[test_name]["SETUP"]
 
-            if setup.get("ORDERBY") is not None: config.orderby = setup.get("ORDERBY")
             if setup.get("SKIP_WITH") is not None: config.skip_with = setup.get("SKIP_WITH")
             if setup.get("APPLY_ORDER") is not None: config.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("ORDER_BY_COL") is not None: config.order_by_col = setup.get("ORDER_BY_COL")
             if setup.get("PRINT_RESULT") is not None: config.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
             if setup.get("RUN_WITH_NULLS") is not None: self.config.acceptable_difference = setup.get("RUN_WITH_NULLS")
             if setup.get("SQL_NULLS") is not None: self.config.acceptable_difference = setup.get("SQL_NULLS")
+
+        if "SPARK" in self.data[test_name]:
+            config.spark_query = self.data[test_name]["SPARK"]
 
         if isinstance(config.compare_with, dict):
             formatList = list(config.compare_with.keys())
@@ -113,12 +115,38 @@ class TestCase():
 
         return config
 
+    def __skip_test(self, fileSchemaType, configTest):
+        if not isinstance(configTest.skip_with, list):
+            print("ERROR: Bad format for 'skip_with' (It must be a list)")
+            return true
+
+        # ext = createSchema.get_extension(fileSchemaType).upper()
+
+        allList = [item for item in configTest.skip_with if isinstance(item, str)]
+        allList = [DataType[item] for item in allList]
+
+        multinode = [item["MULTINODE"] for item in configTest.skip_with if isinstance(item, dict) and "MULTINODE" in item]
+        multinode = [DataType[item] for item in chain.from_iterable(multinode)]
+
+        singlenode = [item["SINGLENODE"] for item in configTest.skip_with if isinstance(item, dict) and "SINGLENODE" in item]
+        singlenode = [DataType[item] for item in chain.from_iterable(singlenode)]
+
+        if fileSchemaType in allList:
+            return True
+
+        if self.nRals > 1:
+            if multinode and fileSchemaType in multinode:
+                return True
+        else:
+            if singlenode and fileSchemaType in singlenode:
+                return True
+
+        return False
+
     def __executionTest(self):
         listCase = list(self.data.keys())
 
         print("######## Starting queries ...########")
-
-        self.__loadDataTypes()
 
         for n in range(0, len(self.configLocal.data_types)):
 
@@ -136,9 +164,7 @@ class TestCase():
 
                 configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
 
-                ext = createSchema.get_extension(fileSchemaType)
-                if ext.upper() in configTest.skip_with:
-                    continue
+                if self.__skip_test(fileSchemaType, configTest): continue
 
                 query = test_case["SQL"]
                 engine = self.drill if configTest.compare_with == "drill" else self.spark
@@ -153,11 +179,12 @@ class TestCase():
                     test_name,
                     self.name,
                     configTest.apply_order,
-                    "",
+                    configTest.order_by_col,
                     configTest.acceptable_difference,
                     configTest.use_percentage,
                     fileSchemaType,
-                    print_result=configTest.print_result
+                    print_result=configTest.print_result,
+                    query_spark=configTest.spark_query
                 )
 
     def run(self, bc, dask_client, drill, spark):

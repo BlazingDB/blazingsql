@@ -27,9 +27,10 @@ class TestSuites():
         self.globalConfig.apply_order = True
         self.globalConfig.use_percentage = False
         self.globalConfig.acceptable_difference = 0.01
-        self.globalConfig.orderby = ""
+        self.globalConfig.order_by_col = ""
         self.globalConfig.print_result = True
         self.globalConfig.compare_with = 'drill'
+        self.globalConfig.spark_query = ""
         self.globalConfig.data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,

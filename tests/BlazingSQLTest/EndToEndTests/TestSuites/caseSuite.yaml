@@ -7,7 +7,8 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
     SKIP_WITH:
-      - MULTINODE: CUDF
+      - MULTINODE:
+          - CUDF
 
   TEST_01:
     SQL: |
@@ -67,7 +68,7 @@ TEST_SUITE:
       COMPARE_WITH:
         ORC: spark
         OTHER: drill
-        
+
   TEST_08:
     SQL: |
       select 100.00 * sum(case when p.p_type = 'PROMO'

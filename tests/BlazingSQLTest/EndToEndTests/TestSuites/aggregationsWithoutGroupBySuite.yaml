@@ -6,7 +6,8 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
     SKIP_WITH:
-      - MULTINODE: CUDF
+      - MULTINODE:
+          - CUDF
 
   TEST_01:
     SQL: |
@@ -58,4 +59,5 @@ TEST_SUITE:
       select min(o_orderdate), max(o_orderdate)
                     from orders where o_custkey between 10 and 20
     SETUP:
-      SKIP_WITH: ORC
+      SKIP_WITH:
+        - ORC
