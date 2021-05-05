@@ -20,6 +20,7 @@ def E2EResults():
         )
 
         max = 0
+
         for i in range(0, len(Settings.memory_list)):
             if (Settings.memory_list[i].delta) > max:
                 max = Settings.memory_list[i].delta

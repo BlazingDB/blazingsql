@@ -632,6 +632,7 @@ def save_log(gpu_ci_mode=False):
 
 
 def create_summary_detail(df, no_color):
+
     pdf = df
     pdf["Result"] = df["Result"].replace(1, "Success")
     pdf["Result"] = df["Result"].replace(0, "Fail")
