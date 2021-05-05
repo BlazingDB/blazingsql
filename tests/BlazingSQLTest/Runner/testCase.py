@@ -3,7 +3,9 @@ from Utils import gpuMemory
 from Runner import runTest
 from DataBase import createSchema
 from Configuration import ExecutionMode, Settings
+from blazingsql import DataType
 
+from itertools import chain
 from os import listdir
 from os.path import isfile, join
 import sql_metadata
@@ -82,10 +84,6 @@ class TestCase():
 
         return queries
 
-    def __loadDataTypes(self):
-        if self.nRals > 1:
-            self.configLocal.data_types.remove(DataType.DASK_CUDF)
-
     def __loadTestCaseConfig(self, test_name, fileSchemaType):
         config = copy.deepcopy(self.configLocal)
         if "SETUP" in self.data[test_name]:
@@ -99,6 +97,9 @@ class TestCase():
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
 
+        if "SPARK" in self.data[test_name]:
+            config.spark_query = self.data[test_name]["SPARK"]
+
         if isinstance(config.compare_with, dict):
             formatList = list(config.compare_with.keys())
             ext = createSchema.get_extension(fileSchemaType)
@@ -108,6 +109,34 @@ class TestCase():
                 config.compare_with = config.compare_with["OTHER"]
 
         return config
+
+    def __skip_test(self, fileSchemaType, configTest):
+        if not isinstance(configTest.skip_with, list):
+            print("ERROR: Bad format for 'skip_with' (It must be a list)")
+            return true
+
+        # ext = createSchema.get_extension(fileSchemaType).upper()
+
+        allList = [item for item in configTest.skip_with if isinstance(item, str)]
+        allList = [DataType[item] for item in allList]
+
+        multinode = [item["MULTINODE"] for item in configTest.skip_with if isinstance(item, dict) and "MULTINODE" in item]
+        multinode = [DataType[item] for item in chain.from_iterable(multinode)]
+
+        singlenode = [item["SINGLENODE"] for item in configTest.skip_with if isinstance(item, dict) and "SINGLENODE" in item]
+        singlenode = [DataType[item] for item in chain.from_iterable(singlenode)]
+
+        if fileSchemaType in allList:
+            return True
+
+        if self.nRals > 1:
+            if multinode and fileSchemaType in multinode:
+                return True
+        else:
+            if singlenode and fileSchemaType in singlenode:
+                return True
+
+        return False
 
     def __executionTest(self):
         listCase = list(self.data.keys())
@@ -132,9 +161,7 @@ class TestCase():
 
                 configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
 
-                ext = createSchema.get_extension(fileSchemaType)
-                if ext.upper() in configTest.skip_with:
-                    continue
+                if self.__skip_test(fileSchemaType, configTest): continue
 
                 query = test_case["SQL"]
                 engine = self.drill if configTest.compare_with == "drill" else self.spark
