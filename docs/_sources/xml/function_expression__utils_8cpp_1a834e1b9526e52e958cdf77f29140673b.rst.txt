@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a834e1b9526e52e958cdf77f29140673b:
+
+Function is_date_with_bar(const std::string&)
+=============================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_date_with_bar(const std::string&)

@@ -6,6 +6,8 @@
 #define ABSTRACTSQLDATAPROVIDER_H_
 
 #include "io/data_provider/DataProvider.h"
+#include "io/Schema.h"
+#include "parser/expression_tree.hpp"
 
 namespace ral {
 namespace io {
@@ -50,28 +52,36 @@ public:
 	 */
   void set_column_indices(std::vector<int> column_indices) { this->column_indices = column_indices; }
 
-protected:
-  // returns SELECT ... FROM
-  std::string build_select_from() const;
+  bool set_predicate_pushdown(const std::string &queryString);
 
-  // returns LIMIT ... OFFSET
-  std::string build_limit_offset(size_t offset) const;
+protected:
+  virtual std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const = 0;
+
+protected:
+  // returns SELECT ... FROM ... WHERE ... LIMIT ... OFFSET
+  std::string build_select_query(size_t batch_index) const;
 
 protected:
   sql_info sql;
-  std::pair<std::string, std::string> query_parts;
   std::vector<int> column_indices;
   std::vector<std::string> column_names;
   std::vector<std::string> column_types;
-  std::vector<size_t> column_bytes;
   size_t total_number_of_nodes;
   size_t self_node_idx;
+  std::string where;
 };
 
 template<class SQLProvider>
 void set_sql_projections(data_provider *provider, const std::vector<int> &projections) {
   auto sql_provider = static_cast<SQLProvider*>(provider);
   sql_provider->set_column_indices(projections);
+}
+
+template<class SQLProvider>
+bool set_sql_predicate_pushdown(data_provider *provider, const std::string &queryString)
+{
+  auto sql_provider = static_cast<SQLProvider*>(provider);
+  return sql_provider->set_predicate_pushdown(queryString);
 }
 
 } /* namespace io */

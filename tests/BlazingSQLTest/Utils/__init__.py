@@ -30,6 +30,7 @@ def test_name(queryType, fileSchemaType):
 
 def skip_test(dask_client, nRals, fileSchemaType, queryType):
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    executionMode = Settings.data['RunSettings']['executionMode']
 
     if fileSchemaType == DataType.DASK_CUDF:
         # Skipping combination DASK_CUDF and testsWithNulls="true"
@@ -47,6 +48,10 @@ def skip_test(dask_client, nRals, fileSchemaType, queryType):
                 return True
 
         return skip
+
+    if executionMode == 'gpuci':
+        if  fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+            return True
 
     return False
 

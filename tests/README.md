@@ -49,6 +49,27 @@ cd blazingsql
 ./test.sh e2e tests=roundTest,orderbyTest
 ```
 
+### Adding new Tests
+- Make a fork from https://github.com/BlazingDB/blazingsql and create a new branch (example feat/my-new-test)
+- After that make another one from https://github.com/BlazingDB/blazingsql-testing-files and create a new branch with the same name as above (example feat/my-new-test)
+- Write a new test file in blazingsql/tests/BlazingSQLTest/
+- Add new files in blazingsql-testing-files/data/
+- Push your changes of both repositories (example: git push origin feat/my-new-test)
+- Finally make a new Pull Request on https://github.com/BlazingDB/blazingsql/compare
+
+```shell-script
+cd blazingsql
+
+# Run all e2e tests based on your current env settings.
+./test.sh e2e
+
+# Run only the round end to end test group.
+./test.sh e2e tests=roundTest
+
+# Run the round and orderby end to end test groups.
+./test.sh e2e tests=roundTest,orderbyTest
+```
+
 ### Custom settings
 All the behaviour of the end to end test are base on environment variables. So when you want to have more control you need to change some of the default values exporting or defining the target environment variable before run the tests.
 
@@ -132,8 +153,6 @@ BLAZINGSQL_E2E_TEST_WITH_NULLS=true   BLAZINGSQL_E2E_EXEC_MODE="generator" ./tes
 - Only add/modify end to end tests once you have coordinated with QA team.
 
 ### Unit tests
-
-
 
 ```shell-script
 cd blazingsql
@@ -252,12 +271,13 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	```
 
 #### MySQL, PostgreSQL, SQLite testing
-For MySQL you will need to install this lib:
+For MySQL and PostgreSQL you will need to install these libs:
 ```shell-script
 conda install -c conda-forge mysql-connector-python
+conda install -c conda-forge psycopg2
 ```
 
-and run the following line into mysql console:
+and run the following line in the MySQL console:
 ```sql
 SET GLOBAL local_infile = 'ON';
 ```
@@ -265,11 +285,22 @@ SET GLOBAL local_infile = 'ON';
 To run the tests for tables from other SQL databases just define these env vars before run the test:
 
 ```shell-script
-BLAZINGSQL_E2E_SQL_HOSTNAME
-BLAZINGSQL_E2E_SQL_PORT
-BLAZINGSQL_E2E_SQL_USERNAME
-BLAZINGSQL_E2E_SQL_PASSWORD
-BLAZINGSQL_E2E_SQL_SCHEMA
+# for MySQL
+BLAZINGSQL_E2E_MYSQL_HOSTNAME
+BLAZINGSQL_E2E_MYSQL_PORT
+BLAZINGSQL_E2E_MYSQL_USERNAME
+BLAZINGSQL_E2E_MYSQL_PASSWORD
+BLAZINGSQL_E2E_MYSQL_DATABASE
+
+# for PostgreSQL
+BLAZINGSQL_E2E_POSTGRESQL_HOSTNAME
+BLAZINGSQL_E2E_POSTGRESQL_PORT
+BLAZINGSQL_E2E_POSTGRESQL_USERNAME
+BLAZINGSQL_E2E_POSTGRESQL_PASSWORD
+BLAZINGSQL_E2E_POSTGRESQL_DATABASE
+
+# for SQLite
+BLAZINGSQL_E2E_SQLITE_DATABASE
 ```
 
 Note BLAZINGSQL_E2E_SQL_PORT is a number and the other vars are strings!

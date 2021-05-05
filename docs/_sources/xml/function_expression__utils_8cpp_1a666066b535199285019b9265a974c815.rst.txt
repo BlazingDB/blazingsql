@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a666066b535199285019b9265a974c815:
+
+Function is_timestamp_with_decimals_and_dash(const std::string&)
+================================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_timestamp_with_decimals_and_dash(const std::string&)

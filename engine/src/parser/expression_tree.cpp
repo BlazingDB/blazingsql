@@ -10,7 +10,11 @@ constexpr char lexer::VARIABLE_REGEX_STR[];
 constexpr char lexer::NULL_REGEX_STR[];
 constexpr char lexer::BOOLEAN_REGEX_STR[];
 constexpr char lexer::NUMBER_REGEX_STR[];
-constexpr char lexer::TIMESTAMP_REGEX_STR[];
+constexpr char lexer::TIMESTAMP_D_REGEX_STR[];
+constexpr char lexer::TIMESTAMP_S_REGEX_STR[];
+constexpr char lexer::TIMESTAMP_MS_REGEX_STR[];
+constexpr char lexer::TIMESTAMP_US_REGEX_STR[];
+constexpr char lexer::TIMESTAMP_NS_REGEX_STR[];
 constexpr char lexer::STRING_REGEX_STR[];
 
 lexer::lexer(const std::string & str)
@@ -74,10 +78,34 @@ lexer::token lexer::next_token() {
     return {lexer::token_type::Boolean, match.str()};
   }
 
-  if (std::regex_search(remainder, match, timestamp_regex)) {
+  if (std::regex_search(remainder, match, timestamp_ns_regex)) {
     advance(match.length());
     assert(pos_ <= text_.length());
-    return {lexer::token_type::Timestamp, match.str()};
+    return {lexer::token_type::Timestamp_ns, match.str()};
+  }
+
+  if (std::regex_search(remainder, match, timestamp_us_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Timestamp_us, match.str()};
+  }
+
+  if (std::regex_search(remainder, match, timestamp_ms_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Timestamp_ms, match.str()};
+  }
+
+  if (std::regex_search(remainder, match, timestamp_s_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Timestamp_s, match.str()};
+  }
+
+  if (std::regex_search(remainder, match, timestamp_d_regex)) {
+    advance(match.length());
+    assert(pos_ <= text_.length());
+    return {lexer::token_type::Timestamp_d, match.str()};
   }
 
   if (std::regex_search(remainder, match, number_regex)) {
@@ -197,7 +225,11 @@ std::unique_ptr<node> expr_parser::literal() {
   if (accept(lexer::token_type::Null)
       || accept(lexer::token_type::Boolean)
       || accept(lexer::token_type::Number)
-      || accept(lexer::token_type::Timestamp)
+      || accept(lexer::token_type::Timestamp_d)
+      || accept(lexer::token_type::Timestamp_s)
+      || accept(lexer::token_type::Timestamp_ms)
+      || accept(lexer::token_type::Timestamp_us)
+      || accept(lexer::token_type::Timestamp_ns)
       || accept(lexer::token_type::String))
   {
     cudf::data_type type;
@@ -235,11 +267,16 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
         return cudf::data_type{cudf::type_id::INT32};
       }      
     }
-  } else if(token.type == lexer::token_type::Timestamp) {
-    const std::string & token_value = token.value;
-    return token_value.find_first_of(" T") != std::string::npos
-            ? cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}
-            : cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
+  } else if (token.type == lexer::token_type::Timestamp_ns) {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};
+  } else if (token.type == lexer::token_type::Timestamp_us) {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS};
+  } else if (token.type == lexer::token_type::Timestamp_ms) {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+  } else if (token.type == lexer::token_type::Timestamp_s) {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS};
+  } else if(token.type == lexer::token_type::Timestamp_d) {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
   } else { // token.type == lexer::token_type::String
     return cudf::data_type{cudf::type_id::STRING};
   }
@@ -257,14 +294,15 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   if (token_value == "SMALLINT") {
     return cudf::data_type{cudf::type_id::INT16};
   }
-
-  if (token_value == "INTEGER"
-      //INTERVALS MONTH AND YEAR ARE NOT CURRENTLY SUPPORTED
-      || token_value == "INTERVAL SECOND"
-      || token_value == "INTERVAL MINUTE"
-      || token_value == "INTERVAL HOUR"
-      || token_value == "INTERVAL DAY" ) {
+  if (token_value == "INTEGER") {
     return cudf::data_type{cudf::type_id::INT32};
+  }
+  if (token_value == "INTERVAL SECOND" || token_value == "INTERVAL MINUTE"
+      || token_value == "INTERVAL HOUR" || token_value == "INTERVAL DAY") {
+    return cudf::data_type{cudf::type_id::INT64};
+  }
+  if (token_value == "INTERVAL MONTH" || token_value == "INTERVAL YEAR") {
+    throw std::runtime_error("TIMESTAMPADD is not currently supported for MONTH or YEAR units.");
   }
   if (token_value == "BIGINT") {
     return cudf::data_type{cudf::type_id::INT64};
@@ -277,6 +315,15 @@ cudf::data_type type_from_type_token(const lexer::token & token) {
   }
   if (token_value == "DATE") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
+  }
+  if (token_value == "TIMESTAMP_SECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS};
+  }
+  if (token_value == "TIMESTAMP_MILLISECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS};
+  }
+  if (token_value == "TIMESTAMP_MICROSECONDS") {
+    return cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS};
   }
   if (token_value == "TIMESTAMP") {
     return cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS};

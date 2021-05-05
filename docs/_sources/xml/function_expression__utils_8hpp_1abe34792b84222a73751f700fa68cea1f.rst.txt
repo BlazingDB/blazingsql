@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1abe34792b84222a73751f700fa68cea1f:
 
-Function window_expression_contains_partition_by
-================================================
+Function window_expression_contains_partition_by(std::string)
+=============================================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

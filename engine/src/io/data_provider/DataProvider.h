@@ -29,7 +29,8 @@
 #include <vector>
 
 #include <blazingdb/io/FileSystem/Uri.h>
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
+#include <arrow/table.h>
 
 #ifdef MYSQL_SUPPORT
 #include "jdbc/cppconn/resultset.h"
@@ -51,7 +52,6 @@ struct sql_datasource {
   std::string query;
   std::vector<std::string> column_names;
   std::vector<std::string> column_types; // always uppercase
-  std::vector<size_t> column_bytes;
   size_t row_count;
 #ifdef MYSQL_SUPPORT
   std::shared_ptr<sql::ResultSet> mysql_resultset = nullptr;
@@ -70,15 +70,23 @@ struct data_handle {
 	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
 	frame::BlazingTableView table_view;
-  sql_datasource sql_handle;
+	std::shared_ptr<arrow::Table> arrow_table;
+	sql_datasource sql_handle;
 	data_handle(){}
+
 	data_handle(
 		std::shared_ptr<arrow::io::RandomAccessFile> file_handle,
 		std::map<std::string, std::string> column_values,
 		Uri uri,
 		frame::BlazingTableView table_view)
-	: file_handle(file_handle), column_values(column_values), uri(uri), table_view(table_view){
-	}
+	: file_handle(file_handle), column_values(column_values), uri(uri), table_view(table_view) { }
+
+	data_handle(
+		std::shared_ptr<arrow::io::RandomAccessFile> file_handle,
+		std::map<std::string, std::string> column_values,
+		Uri uri,
+		std::shared_ptr<arrow::Table> arrow_table)
+	: file_handle(file_handle), column_values(column_values), uri(uri), arrow_table(arrow_table) { }
 
 	bool is_valid(){
 		return file_handle != nullptr || !uri.isEmpty() ;

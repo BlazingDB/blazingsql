@@ -1,0 +1,13 @@
+.. _exhale_variable_expression__utils_8hpp_1a7d5c1dac9820f316a2f637341c7f8634:
+
+Variable LOGICAL_GENERATE_OVERLAPS_TEXT
+=======================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: LOGICAL_GENERATE_OVERLAPS_TEXT

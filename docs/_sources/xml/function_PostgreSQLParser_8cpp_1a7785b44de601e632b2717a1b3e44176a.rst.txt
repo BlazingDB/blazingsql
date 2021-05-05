@@ -1,0 +1,13 @@
+.. _exhale_function_PostgreSQLParser_8cpp_1a7785b44de601e632b2717a1b3e44176a:
+
+Function ral::io::postgresql_is_cudf_string
+===========================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::postgresql_is_cudf_string(const std::string&)

@@ -1,7 +1,7 @@
 .. _exhale_function_expression__utils_8hpp_1a6a7604747742d1add660479363811c83:
 
-Function fill_minus_op_with_zero
-================================
+Function fill_minus_op_with_zero(std::string)
+=============================================
 
 - Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
 

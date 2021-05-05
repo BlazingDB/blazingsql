@@ -4,10 +4,10 @@
 
 #include "tests/utilities/MemoryConsumer.cuh"
 #include "tests/utilities/BlazingUnitTest.h"
-#include "execution_graph/logic_controllers/BatchProcessing.h"
-#include "execution_graph/logic_controllers/BatchUnionProcessing.h"
-#include "execution_graph/logic_controllers/BatchOrderByProcessing.h"
-#include "execution_graph/logic_controllers/taskflow/executor.h"
+#include "execution_kernels/BatchProcessing.h"
+#include "execution_kernels/BatchUnionProcessing.h"
+#include "execution_kernels/BatchOrderByProcessing.h"
+#include "execution_graph/executor.h"
 
 using blazingdb::transport::Node;
 using ral::cache::kstatus;
@@ -39,7 +39,8 @@ std::shared_ptr<Context> make_context() {
 	Node master_node;
 	std::string logicalPlan;
 	std::map<std::string, std::string> config_options;
-	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options);
+	std::string current_timestamp;
+	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options, current_timestamp);
 
 	return context;
 }

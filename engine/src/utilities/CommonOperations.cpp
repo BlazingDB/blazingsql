@@ -2,7 +2,7 @@
 
 #include "error.hpp"
 
-#include "CalciteExpressionParsing.h"
+#include "parser/CalciteExpressionParsing.h"
 #include <cudf/filling.hpp>
 #include <cudf/concatenate.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
@@ -12,7 +12,7 @@
 #include <cudf/column/column_factories.hpp>
 #include <cudf/strings/strings_column_view.hpp>
 #include <numeric>
-#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
+#include "blazing_table/BlazingColumnOwner.h"
 
 namespace ral {
 namespace utilities {
@@ -75,6 +75,14 @@ bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView>
 	}
 
 	return false;
+}
+
+std::unique_ptr<BlazingTable> concatTables(std::vector<std::unique_ptr<BlazingTable>> tables){
+	std::vector<BlazingTableView> tables_views(tables.size());
+	for (std::size_t i = 0; i < tables.size(); i++){
+		tables_views[i] = tables[i]->toBlazingTableView();
+	}
+	return concatTables(tables_views);
 }
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
@@ -193,6 +201,9 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 			if(type1 == datetime_type || type2 == datetime_type)
 				return datetime_type;
 		}
+	}
+	else if ( is_type_string(type1.id()) && is_type_timestamp(type2.id()) ) {
+		return type2;
 	}
 	if (strict) {
 		RAL_FAIL("No common type between " + std::to_string(static_cast<int32_t>(type1.id())) + " and " + std::to_string(static_cast<int32_t>(type2.id())));

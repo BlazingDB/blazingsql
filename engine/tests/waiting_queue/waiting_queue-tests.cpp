@@ -3,9 +3,10 @@
 #include <thread>
 #include <gtest/gtest.h>
 
-#include "execution_graph/logic_controllers/CacheMachine.h"  // WaitingQueue
-#include "execution_graph/logic_controllers/LogicPrimitives.h"  // BlazingTable
-#include "execution_graph/logic_controllers/BlazingColumn.h"  // BlazingColumn
+#include "cache_machine/CacheMachine.h"  // WaitingQueue
+#include "cache_machine/GPUCacheData.h"
+#include "execution_kernels/LogicPrimitives.h"  // BlazingTable
+#include "blazing_table/BlazingColumn.h"  // BlazingColumn
 
 #define DESCR(d) RecordProperty("description", d)
 

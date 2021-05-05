@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 #include "cudf/column/column_factories.hpp"
 
 namespace ral {
@@ -13,6 +13,7 @@ using namespace ral::frame;
 bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView> & tables);
 bool checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<BlazingTable>> & tables);
 
+std::unique_ptr<BlazingTable> concatTables(std::vector<std::unique_ptr<BlazingTable>> tables);
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables);
 
 std::unique_ptr<BlazingTable> getLimitedRows(const BlazingTableView& table, cudf::size_type num_rows, bool front=true);

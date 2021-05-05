@@ -38,6 +38,8 @@ Included By
 
 - :ref:`file_engine_src_CalciteExpressionParsing.cpp`
 
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+
 - :ref:`file_engine_src_distribution_primitives.cpp`
 
 - :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.cpp`
@@ -49,8 +51,6 @@ Included By
 - :ref:`file_engine_src_operators_GroupBy.cpp`
 
 - :ref:`file_engine_src_operators_OrderBy.cpp`
-
-- :ref:`file_engine_src_parser_expression_tree.hpp`
 
 - :ref:`file_engine_src_parser_expression_utils.cpp`
 

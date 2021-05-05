@@ -38,21 +38,19 @@
 #include <bmr/initializer.h>
 #include <bmr/BlazingMemoryResource.h>
 
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #include "cudf/detail/gather.hpp"
 #include "communication/CommunicationInterface/node.hpp"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
-#include "execution_graph/logic_controllers/taskflow/kernel.h"
-#include "execution_graph/logic_controllers/taskflow/executor.h"
-
-#include "error.hpp"
+#include "execution_kernels/kernel.h"
+#include "execution_graph/executor.h"
 
 using namespace fmt::literals;
 
-#include "execution_graph/logic_controllers/CacheMachine.h"
+#include "cache_machine/CacheMachine.h"
 
 #include "engine/initialize.h"
 #include "engine/static.h" // this contains function call for getProductDetails

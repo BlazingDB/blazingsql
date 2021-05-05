@@ -1,0 +1,13 @@
+.. _exhale_function_PostgreSQLParser_8cpp_1ae56bd450936abaef62c285aff2f82ed8:
+
+Function ral::io::parse_postgresql_column_type
+==============================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_PostgreSQLParser.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::io::parse_postgresql_column_type(const std::string&)

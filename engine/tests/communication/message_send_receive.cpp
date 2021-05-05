@@ -4,10 +4,10 @@
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
-#include "execution_graph/logic_controllers/CacheMachine.h"
-#include "execution_graph/logic_controllers/taskflow/kernel.h"
-#include "execution_graph/logic_controllers/taskflow/graph.h"
-#include "execution_graph/logic_controllers/BatchProcessing.h"
+#include "cache_machine/CacheMachine.h"
+#include "execution_kernels/kernel.h"
+#include "execution_graph/graph.h"
+#include "execution_kernels/BatchProcessing.h"
 
 #include <memory>
 #include <cudf_test/base_fixture.hpp>
@@ -412,8 +412,8 @@ std::shared_ptr<blazingdb::manager::Context> make_context() {
 	blazingdb::transport::Node master_node;
 	std::string logicalPlan;
 	std::map<std::string, std::string> config_options;
-
-	return std::make_shared<blazingdb::manager::Context>(query_id, nodes, master_node, logicalPlan, config_options);
+  std::string current_timestamp;
+	return std::make_shared<blazingdb::manager::Context>(query_id, nodes, master_node, logicalPlan, config_options, current_timestamp);
 }
 
 std::shared_ptr<ral::cache::graph> create_graph(){

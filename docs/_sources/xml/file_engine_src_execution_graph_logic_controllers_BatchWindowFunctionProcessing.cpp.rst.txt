@@ -56,6 +56,10 @@ Includes
 
 - ``execution_graph/logic_controllers/BlazingColumn.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_BlazingColumn.h`)
 
+- ``execution_graph/logic_controllers/CacheData.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_CacheData.h`)
+
+- ``iterator``
+
 - ``parser/expression_utils.hpp`` (:ref:`file_engine_src_parser_expression_utils.hpp`)
 
 - ``src/utilities/CommonOperations.h`` (:ref:`file_engine_src_utilities_CommonOperations.h`)

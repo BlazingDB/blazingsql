@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8hpp_1a31d6d53f47f0680ce347e629504d8a2b:
+
+Function is_timestamp_us_with_bar(const std::string&)
+=====================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: is_timestamp_us_with_bar(const std::string&)

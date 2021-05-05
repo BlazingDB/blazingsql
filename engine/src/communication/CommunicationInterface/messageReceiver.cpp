@@ -1,6 +1,8 @@
 #include "messageReceiver.hpp"
 #include "protocols.hpp"
 #include <spdlog/spdlog.h>
+#include "cache_machine/CPUCacheData.h"
+
 
 namespace comm {
 using namespace fmt::literals;
