@@ -62,7 +62,7 @@ def checkErrors(result, error_msgs):
 
             print(
                 "==>> E2E FAILED against previous run, total time was: "
-                + time_delta_desc
+                + print_delta_time(startTest, endTest)
             )
             return True
     return False
