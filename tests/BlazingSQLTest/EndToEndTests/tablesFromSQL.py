@@ -1,11 +1,10 @@
 from collections import OrderedDict
-
 from blazingsql import DataType
 from DataBase import createSchema
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from Runner import runTest
-from Utils import gpuMemory, skip_test
+from Utils import gpuMemory, skip_test, storageBackends
 from EndToEndTests import tpchQueries
 
 
@@ -90,6 +89,47 @@ sql_table_batch_sizes = {
     "partsupp": 40000,
 }
 
+tpch_queries = [
+    "TEST_13",
+    "TEST_07",
+    "TEST_12",
+    "TEST_04",
+    "TEST_01",
+]
+
+# Parameter to indicate if its necessary to order
+# the resulsets before compare them
+worder = 1
+use_percentage = False
+acceptable_difference = 0.01
+
+# example: {csv: {tb1: tb1_csv, ...}, parquet: {tb1: tb1_parquet, ...}}
+datasource_tables = dict((ds, dict((t, t+"_"+str(ds).split(".")[1]) for t in tables)) for ds in data_types)
+
+def start_database(databaseType, user, password, database, port):
+    if databaseType=="mysql":
+        image='mysql:8.0.24'
+        env = [f"MYSQL_USER={user}",
+                f"MYSQL_ROOT_PASSWORD={password}",
+                f"MYSQL_PASSWORD={password}",
+                f"MYSQL_DATABASE={database}"]
+        ports = { '3306/tcp': port }
+        command = '--local-infile=1'
+    if databaseType=="postgres":
+        image = 'postgres:9.6.21'
+        env = [f"POSTGRES_USER={user}",
+                f"POSTGRES_PASSWORD={password}",
+                f"POSTGRES_DB={database}"]
+        ports = { '5432/tcp': port }
+        command = None
+    container = storageBackends.start_backend(backendType=databaseType,
+                                                image=image,
+                                                environment=env,
+                                                ports=ports,
+                                                command=command
+                                                )
+
+    return container
 
 def datasources(dask_client, nRals):
     for fileSchemaType in data_types:
@@ -186,7 +226,6 @@ def run_queries(bc, dask_client, nRals, drill, spark, dir_data_lc, tables, **kwa
         )
         currrentFileSchemaType = fileSchemaType
 
-
 def setup_test(data_type: DataType) -> createSchema.sql_connection:
     sql = createSchema.get_sql_connection(data_type)
     if not sql:
@@ -195,14 +234,20 @@ def setup_test(data_type: DataType) -> createSchema.sql_connection:
 
     if data_type is DataType.MYSQL:
       from DataBase import mysqlSchema
+      mysql_container = start_database(data_type.name, sql.username, sql.password, sql.database, sql.port)
       mysqlSchema.create_and_load_tpch_schema(sql)
-      return sql
+      return sql, mysql_container
 
     if data_type is DataType.SQLITE:
       from DataBase import sqliteSchema
       sqliteSchema.create_and_load_tpch_schema(sql)
       return sql
 
+    if data_type is DataType.POSTGRESQL:
+      from DataBase import postgreSQLSchema
+      postgres_container = start_database(data_type.name, sql.username, sql.password, sql.database, sql.port)
+      postgreSQLSchema.create_and_load_tpch_schema(sql)
+      return sql, postgres_container
 
 def executionTest(dask_client, drill, spark, dir_data_lc, bc, nRals, sql):
     extra_args = {
@@ -225,9 +270,13 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
         if data_type not in [DataType.MYSQL, DataType.POSTGRESQL, DataType.SQLITE]:
             is_file_ds = True
         else:
-            sql = setup_test(data_type)
+            sql, container = setup_test(data_type)
+
         if sql or is_file_ds:
             start_mem = gpuMemory.capture_gpu_memory_usage()
             executionTest(dask_client, drill, spark, dir_data_lc, bc, nRals, sql)
             end_mem = gpuMemory.capture_gpu_memory_usage()
             gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+
+        if container:
+            storageBackends.stop_backend(container)

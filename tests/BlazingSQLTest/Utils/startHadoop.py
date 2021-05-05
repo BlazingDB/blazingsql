@@ -61,7 +61,8 @@ COMPOSE_FILE = "../KrbHDFS/docker-compose.yml"
 
 
 def stop_hdfs():
-    env = dict()
+    os.environ["PATH"] = os.getenv("PATH")
+    env = dict(os.environ)
     command = ["docker-compose", "-f", COMPOSE_FILE, "down"]
     print("Shutting down docker-compose ...")
     proc = subprocess.Popen(" ".join(command), env=env, shell=True)

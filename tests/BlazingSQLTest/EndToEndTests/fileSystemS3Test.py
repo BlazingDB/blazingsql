@@ -1,10 +1,12 @@
+import os
+
 from blazingsql import DataType, S3EncryptionType
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
 from Runner import runTest
-from Utils import Execution, gpuMemory, init_context, skip_test
+from Utils import Execution, gpuMemory, init_context, skip_test, storageBackends
 
 
 def main(dask_client, drill, dir_data_lc, bc, nRals):
@@ -13,13 +15,35 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
     queryType = "File System S3"
 
+    def start_s3mock(access_key_id, secret_access_key):
+        print("Starting s3 mock server")
+        mount_path = Settings.data["TestSettings"]["dataDirectory"].replace('data/','')
+
+        container = storageBackends.start_backend(backendType="S3",
+                                                    image='minio/minio',
+                                                    environment=[f"MINIO_ACCESS_KEY={access_key_id}",
+                                                                    f"MINIO_SECRET_KEY={secret_access_key}"],
+                                                    ports={ '9000/tcp': 9000 },
+                                                    volumes={f'{mount_path}': {'bind': '/data', 'mode': 'rw'}},
+                                                    command='server /data'
+                                                    )
+
+        return container
+
     def executionTest(queryType):
         # Read Data TPCH------------------------------------------------------
-        authority = "tpch_s3"
+        authority = "tpch"
 
         awsS3BucketName = Settings.data["TestSettings"]["awsS3BucketName"]
         awsS3AccessKeyId = Settings.data["TestSettings"]["awsS3AccessKeyId"]
         awsS3SecretKey = Settings.data["TestSettings"]["awsS3SecretKey"]
+        awsS3OverrideEndpoint = None
+
+        if not awsS3BucketName:
+            awsS3BucketName = "data"
+            awsS3OverrideEndpoint = "http://127.0.0.1:9000"
+
+        mock_server = start_s3mock(awsS3AccessKeyId, awsS3SecretKey)
 
         bc.s3(
             authority,
@@ -27,11 +51,12 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             encryption_type=S3EncryptionType.NONE,
             access_key_id=awsS3AccessKeyId,
             secret_key=awsS3SecretKey,
+            endpoint_override=awsS3OverrideEndpoint
         )
 
         # dir_df = dir_data_lc[dir_data_lc.find("DataSet"):len(dir_data_lc)]
 
-        dir_data_lc = "s3://" + authority + "/" + "DataSet100Mb2part/"
+        dir_data_lc = "s3://" + authority + "/"
 
         tables = ["nation", "region", "supplier", "customer",
                   "lineitem", "orders"]
@@ -56,7 +81,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             queryId = "TEST_01"
             query = """select count(c_custkey) as c1, count(c_acctbal) as c2
                     from customer"""
-            query(
+            runTest.run_query(
                 bc,
                 drill,
                 query,
@@ -382,7 +407,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
             queryId = "TEST_19"
             query = """select sum(o_orderkey)/count(o_orderkey)
-                    rom orders group by o_orderstatus"""
+                    from orders group by o_orderstatus"""
             runTest.run_query(
                 bc,
                 drill,
@@ -441,6 +466,9 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
+
+        if mock_server:
+            storageBackends.stop_backend(mock_server)
 
     executionTest(queryType)
 
