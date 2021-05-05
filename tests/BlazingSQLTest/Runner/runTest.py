@@ -267,8 +267,13 @@ def get_codTest(test_name):
         with open(fileName, 'r') as stream:
             fileYaml = yaml.safe_load(stream)["LIST_TEST"]
 
-    if "CODE" in fileYaml[test_name]:
-        return fileYaml[test_name]["CODE"]
+    if test_name in fileYaml:
+        if "CODE" in fileYaml[test_name]:
+            return fileYaml[test_name]["CODE"]
+    else: #Legacy Test
+        for item in fileYaml:
+            if "NAME" in fileYaml[item] and fileYaml[item]["NAME"] == test_name:
+                return fileYaml[item]["CODE"]
 
     print("ERROR: CODE configuration not found in targetTest.yaml, i.e. CODE: BALIAS")
     return "NONE"
