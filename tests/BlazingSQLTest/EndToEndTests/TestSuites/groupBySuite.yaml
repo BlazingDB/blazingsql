@@ -58,7 +58,8 @@ TEST_SUITE:
                         limit 10000
     SETUP: 
       SKIP_WITH:
-        - SINGLENODE: ORC
+        - SINGLENODE:
+          - ORC
 
   TEST_06:
     SQL: |
@@ -83,7 +84,6 @@ TEST_SUITE:
                     GROUP BY l_partkey, l_suppkey
     SETUP:
       COMPARE_WITH: spark
-      RUN_WITH_NULLS: False
 
   TEST_09:
     SQL: |

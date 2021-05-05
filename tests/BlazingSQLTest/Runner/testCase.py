@@ -118,7 +118,7 @@ class TestCase():
     def __skip_test(self, fileSchemaType, configTest):
         if not isinstance(configTest.skip_with, list):
             print("ERROR: Bad format for 'skip_with' (It must be a list)")
-            return true
+            return True
 
         # ext = createSchema.get_extension(fileSchemaType).upper()
 

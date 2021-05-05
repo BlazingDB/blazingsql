@@ -5,7 +5,7 @@ TEST_SUITE:
     APPLY_ORDER: True
     USE_PERCENTAGE: False
     ACCEPTABLE_DIFFERENCE: 0
-    COMPARE_WITH: drill
+    COMPARE_WITH: spark
     SKIP_WITH:
       - MULTINODE:
         - CUDF
