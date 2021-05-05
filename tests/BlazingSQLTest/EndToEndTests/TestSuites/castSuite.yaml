@@ -7,8 +7,8 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
     SKIP_WITH:
-      - MULTINODE:
-          - CUDF
+      - SINGLENODE:
+          - DASK_CUDF
 
   TEST_01:
     SQL: |
@@ -22,6 +22,8 @@ TEST_SUITE:
     SQL: |
         select CAST(c_custkey as BIGINT), c_acctbal
                     from customer order by c_acctbal desc, c_custkey
+    SETUP:
+      APPLY_ORDER: False
 
   TEST_03:
     SQL: |
@@ -86,8 +88,6 @@ TEST_SUITE:
       COMPARE_WITH:
         ORC: spark
         OTHER: drill
-      SKIP_WITH:
-        - ORC
 
   TEST_12:
     SQL: |
@@ -96,8 +96,7 @@ TEST_SUITE:
                     between '1995-01-01' and '1995-01-05'
     SETUP:
       SKIP_WITH:
-        - ORC # TODO: Fix cast(o_orderdate AS DATE) when fileSchemaType is ORC
-
+        - ORC
 
   TEST_13:
     SQL: |
@@ -106,3 +105,17 @@ TEST_SUITE:
                         from orders where o_orderkey < 10
     SETUP:
       COMPARE_WITH: spark
+
+  TEST_14:
+    SQL: |
+        select CAST('1997-05-02' as date) my_date
+                    from orders  where o_orderkey < 85 limit 12
+
+  TEST_15:
+    SQL: |
+        select r_regionkey, CAST('1997/05/02' as date) as my_date from region
+
+  TEST_16:
+    SQL: |
+        select CAST('1997-05-02 04:12:18' as TIMESTAMP) my_date,
+                        n_nationkey + 2 from nation

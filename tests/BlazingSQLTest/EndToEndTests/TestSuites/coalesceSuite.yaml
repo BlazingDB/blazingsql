@@ -155,3 +155,36 @@ TEST_SUITE:
             )
 
             select * from lastjoin
+
+  TEST_15:
+    SQL: |
+        select n.n_nationkey, COALESCE(r.r_regionkey,-1)
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10
+
+  TEST_16:
+    SQL: |
+        select COALESCE(orders.o_orderkey, 100),
+                    COALESCE(orders.o_totalprice, 0.01) from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_17:
+    SQL: |
+        select MIN(COALESCE(n.n_nationkey, r.r_regionkey)),
+                    MAX(COALESCE(n.n_nationkey, 8)) from nation as n
+                    right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_18:
+    SQL: |
+        select AVG(CAST(COALESCE(n.n_nationkey,
+                    r.r_regionkey) AS DOUBLE)),
+                    MAX(COALESCE(n.n_nationkey, 8)),
+                    COUNT(COALESCE(n.n_nationkey, 12)), n.n_nationkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    GROUP BY n.n_nationkey

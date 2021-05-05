@@ -7,10 +7,10 @@ LIST_TEST:
     NAME: Bindable Alias
     FILE: bindableAliasSuite.yaml
     CODE: BALIAS
-#  booleanSuite:
-#    NAME: Boolean
-#    FILE: booleanSuite.yaml
-#    CODE: BOOL
+  booleanSuite:
+    NAME: Boolean
+    FILE: booleanSuite.yaml
+    CODE: BOOL
   caseSuite:
     NAME: Case
     FILE: caseSuite.yaml
