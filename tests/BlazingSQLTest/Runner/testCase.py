@@ -18,7 +18,7 @@ class ConfigTest():
     apply_order = None
     use_percentage = None
     acceptable_difference = None
-    orderby = None
+    order_by_col = None
     print_result = None
     data_types = None
     compare_with = None
@@ -54,9 +54,9 @@ class TestCase():
         if "SETUP" in self.data:
             setup = self.data["SETUP"]
 
-            if setup.get("ORDERBY") is not None: self.configLocal.orderby = setup.get("ORDERBY")
             if setup.get("SKIP_WITH") is not None: self.configLocal.skip_with = setup.get("SKIP_WITH")
             if setup.get("APPLY_ORDER") is not None: self.configLocal.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("ORDER_BY_COL") is not None: self.configLocal.order_by_col = setup.get("ORDER_BY_COL")
             if setup.get("PRINT_RESULT") is not None: self.configLocal.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: self.configLocal.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
@@ -91,9 +91,9 @@ class TestCase():
         if "SETUP" in self.data[test_name]:
             setup = self.data[test_name]["SETUP"]
 
-            if setup.get("ORDERBY") is not None: config.orderby = setup.get("ORDERBY")
             if setup.get("SKIP_WITH") is not None: config.skip_with = setup.get("SKIP_WITH")
             if setup.get("APPLY_ORDER") is not None: config.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("ORDER_BY_COL") is not None: config.order_by_col = setup.get("ORDER_BY_COL")
             if setup.get("PRINT_RESULT") is not None: config.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
@@ -149,7 +149,7 @@ class TestCase():
                     test_name,
                     self.name,
                     configTest.apply_order,
-                    "",
+                    configTest.order_by_col,
                     configTest.acceptable_difference,
                     configTest.use_percentage,
                     fileSchemaType,
