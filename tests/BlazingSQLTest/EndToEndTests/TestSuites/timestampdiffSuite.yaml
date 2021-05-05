@@ -1,0 +1,49 @@
+# Timestampdiff Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+      - ORC
+      - CUDF
+      - DASK_CUDF
+
+  TEST_01:
+    SQL: |
+        select l_shipdate, l_commitdate,
+                        timestampdiff(DAY, l_commitdate, l_shipdate) as diff
+                    from lineitem  limit 20
+    SPARK: |
+        select l_shipdate, l_commitdate,
+                    datediff(l_shipdate, l_commitdate) as diff
+                    from lineitem  limit 20
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_02:
+    SQL: |
+        select l_shipdate, timestampdiff(DAY,
+                         date '1970-01-01', l_shipdate) as diff
+                    from lineitem  limit 20
+    SPARK: |
+        select l_shipdate, datediff(l_shipdate,
+                            date '1970-01-01') as diff
+                        from lineitem  limit 20
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_03:
+    SQL: |
+        select * from orders
+                    where timestampdiff(DAY,  date '1995-02-04',
+                        o_orderdate) < 25
+    SPARK: |
+        select * from orders where
+                    datediff(o_orderdate, date '1995-02-04') < 25
+    SETUP:
+      COMPARE_WITH: spark

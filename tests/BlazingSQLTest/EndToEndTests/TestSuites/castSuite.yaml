@@ -87,15 +87,14 @@ TEST_SUITE:
         ORC: spark
         OTHER: drill
 
-#  TEST_12:
-#    SQL: |
-#        select cast(o_orderdate AS TIMESTAMP) from orders
-#                    where cast(o_orderdate as TIMESTAMP)
-#                    between '1995-01-01' and '1995-01-05'
-#    SETUP:
-#      COMPARE_WITH:
-#        ORC: spark
-#        OTHER: drill
+  TEST_12:
+    SQL: |
+        select cast(o_orderdate AS TIMESTAMP) from orders
+                    where cast(o_orderdate as TIMESTAMP)
+                    between '1995-01-01' and '1995-01-05'
+    SETUP:
+      SKIP_WITH:
+        - ORC # TODO: Fix cast(o_orderdate AS DATE) when fileSchemaType is ORC
 
 
   TEST_13:

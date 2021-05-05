@@ -1,0 +1,61 @@
+# Unary ops Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01:
+    SQL: |
+        select sin(c_acctbal), cos(c_acctbal), asin(c_acctbal),
+                        acos(c_acctbal), ln(c_acctbal), tan(c_acctbal),
+                        atan(c_acctbal), floor(c_acctbal), ceil(c_acctbal),
+                        c_acctbal
+                    from customer
+
+  TEST_02:
+    SQL: |
+        select sin(c_acctbal), cos(c_acctbal),
+                        asin(c_acctbal), acos(c_acctbal), c_acctbal
+                    from customer
+
+  TEST_03:
+    SQL: |
+        select sin(c_acctbal), cos(c_acctbal),
+                        asin(c_acctbal), acos(c_acctbal),
+                        ln(c_acctbal), c_acctbal
+                    from customer
+
+  TEST_04:
+    SQL: |
+        select sin(c_acctbal), cos(c_acctbal),
+                        asin(c_acctbal), acos(c_acctbal),
+                        ln(c_acctbal), tan(c_acctbal),
+                        atan(c_acctbal), c_acctbal
+                    from customer
+
+  TEST_05:
+    SQL: |
+        select sin(c_acctbal), cos(c_acctbal),
+                        asin(c_acctbal), acos(c_acctbal),
+                        ln(c_acctbal), tan(c_acctbal), atan(c_acctbal),
+                        floor(c_acctbal), c_acctbal
+                    from customer
+
+  TEST_06:
+    SQL: |
+        select floor(c_acctbal), c_acctbal from customer
+            
+
+  TEST_07: # This is not considered an unaryOp (-) query but need to be considered
+    SQL: |
+        select n_nationkey, -n_nationkey from nation
+
+  TEST_08: # This is not considered an unaryOp (-) query but need to be considered
+    SQL: |
+        select -(cast(n_nationkey as double)) from nation

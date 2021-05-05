@@ -1,0 +1,139 @@
+# Where clause Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01:
+    SQL: |
+      select c_custkey, c_nationkey, c_acctbal
+                    from customer where c_custkey < 15
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_02:
+    SQL: |
+      select c_custkey, c_nationkey, c_acctbal
+                    from customer where c_custkey < 150
+                    and c_nationkey = 5
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_03:
+    SQL: |
+      select c_custkey, c_nationkey as nkey
+                    from customer where c_custkey < 0
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_04:
+    SQL: |
+      select c_custkey, c_nationkey as nkey
+                    from customer where c_custkey < 0
+                    and c_nationkey >= 30
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_05:
+    SQL: |
+      select c_custkey, c_nationkey as nkey
+                    from customer where c_custkey < 0
+                    or c_nationkey >= 24
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_06:
+    SQL: |
+      select c_custkey, c_nationkey as nkey
+                    from customer where c_custkey < 0
+                    and c_nationkey >= 3
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_07:
+    SQL: |
+      select c_custkey, c_nationkey, c_acctbal
+                    from customer
+                    where c_custkey < 150 and c_nationkey = 5
+                    and c_acctbal > 600
+    SETUP:
+      ORDER_BY_COL: c_custkey
+
+  TEST_08:
+    SQL: |
+      select c_custkey, c_nationkey as nkey
+                    from customer where c_custkey > 0
+                    or c_nationkey >= 24 or c_acctbal > 700
+
+  TEST_09:
+    SQL: |
+      select c_custkey, c_nationkey, c_acctbal
+                    from customer where c_custkey < 150 and c_nationkey = 5
+                    or c_custkey = 200 or c_nationkey >= 10
+                    or c_acctbal <= 500
+
+  TEST_10:
+    SQL: |
+      select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c
+                    inner join nation as n on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1
+                    and (c.c_custkey > 10 and c.c_custkey < 50)
+
+  TEST_11:
+    SQL: |
+      select * from nation
+                    where n_regionkey > 2 and n_regionkey < 5
+
+    # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
+    # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1324
+#  TEST_12:
+#    SQL: |
+#      select c_custkey, c_nationkey as nkey from customer
+#            where -c_nationkey + c_acctbal > 750.3
+#    SETUP:
+#      ORDER_BY_COL: c_custkey
+
+    # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
+    # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1324
+#  TEST_13:
+#    SQL: |
+#      select c_custkey, c_nationkey as nkey from customer
+#            where -c_nationkey + c_acctbal > 750
+#    SETUP:
+#      ORDER_BY_COL: c_custkey
+
+  TEST_14:
+    SQL: |
+      select c_custkey, c_name, c_acctbal
+                    from customer
+                    where c_custkey <> 10 and c_custkey <> 11
+                    and c_custkey <> 100 and c_custkey <> 1000
+                    and c_custkey < 1001
+
+  TEST_15:
+    SQL: |
+      select l_orderkey, l_partkey, l_suppkey,
+                    l_returnflag from lineitem
+                    where l_returnflag <> 'g packages.'
+
+  TEST_16:
+    SQL: |
+      select l_orderkey, l_partkey, l_suppkey, l_returnflag
+                    from lineitem
+                    where l_returnflag='N' and l_linenumber < 3
+                    and l_orderkey < 50
+
+  TEST_17:
+    SQL: |
+      select c_custkey, c_nationkey, c_acctbal
+                    from customer
+                    where c_custkey < 15000
+                    and c_nationkey = 5 or c_custkey = c_nationkey * c_nationkey
+                    or c_nationkey >= 10 or c_acctbal <= 500

@@ -1,0 +1,244 @@
+# Union Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+
+  TEST_01:
+    SQL: |
+      (select o_orderkey, o_custkey from orders
+          where o_orderkey < 100
+      )
+      union all
+      (
+          select o_orderkey, o_custkey from orders
+          where o_orderkey < 300
+          and o_orderkey >= 200
+      )
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_02:
+    SQL: |
+      (select o_orderkey, o_custkey from orders
+          where o_orderkey < 100
+      )
+      union all
+      (
+          select o_orderkey, o_custkey from orders
+          where o_orderkey < 300
+          and o_orderkey >= 200
+      )
+      order by 2
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_03:
+    SQL: |
+      (select o_orderkey, o_totalprice as key
+          from orders where o_orderkey < 100
+      )
+      union all
+      (
+          select o_orderkey, o_custkey as key from orders
+          where o_orderkey < 300 and o_orderkey >= 200
+      )
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_04:
+    SQL: |
+      (select o_orderkey, null as keyy, o_totalprice,
+          cast(null as int) as o_totalprice2, null as field5,
+          null as field6 from orders
+          where o_orderkey < 100
+      )
+      union all
+      (
+          select o_orderkey + 100.1 as o_orderkey,
+          o_custkey as keyy, null as o_totalprice,
+          o_totalprice as o_totalprice2, null as field5,
+          cast(null as double) as field6
+          from orders where o_orderkey < 300
+          and o_orderkey >= 200
+      )
+    SPARK: |
+      (select
+          o_orderkey,
+          cast(null as int) as keyy,
+          o_totalprice,
+          cast(null as double) as o_totalprice2,
+          cast(null as int) as field5,
+          cast(null as double) as field6
+          from orders where o_orderkey < 100
+      )
+      union all
+      (
+          select
+          o_orderkey + 100.1 as o_orderkey,
+          o_custkey as keyy,
+          cast(null as double) as o_totalprice,
+          o_totalprice as o_totalprice2,
+          cast(null as int) as field5,
+          cast(null as double) as field6
+          from orders where o_orderkey < 300
+          and o_orderkey >= 200
+      )
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_05:
+    SQL: |
+      (select o_orderkey, 100.1, o_totalprice,
+          cast(100 as float), 100, 1.1
+          from orders where o_orderkey < 100
+      )
+      union all
+      (
+          select o_orderkey + 100.1 as o_orderkey,
+          o_custkey as keyy, 10000, o_totalprice, 101.1,100
+          from orders where o_orderkey < 300
+          and o_orderkey >= 200
+      )
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_06:
+    SQL: |
+      (select o_orderkey, o_orderstatus, o_orderstatus
+          from orders where o_orderkey < 100
+      )
+      union all
+      (
+          select o_orderkey + 100.1 as o_orderkey,
+          SUBSTRING(o_orderstatus, 2, 4), 'hello work'
+          from orders where o_orderkey < 300
+          and o_orderkey >= 200
+      )
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_07:
+    SQL: |
+      (select o_orderkey, o_custkey from orders
+          where o_orderkey < 100
+      )
+      union all
+      (select o_orderkey, o_custkey from orders
+          where o_orderkey < 300
+          and o_orderkey >= 200) order by 2
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  # ------------------ UNION ---------------------
+
+  TEST_08:
+    SQL: |
+      (select o_orderkey, o_custkey from orders
+          where o_orderkey < 100
+      )
+      union
+      (
+          select o_orderkey, o_custkey from orders
+          where o_orderkey < 200 and o_orderkey >= 10
+      )
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_09:
+    SQL: |
+      (select o_orderkey, o_custkey from orders
+          where o_orderkey < 60
+      )
+      union
+      (
+          select o_orderkey, o_custkey from orders
+          where o_orderkey < 200 and o_orderkey >= 10
+      )
+      order by 2
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_10:
+    SQL: |
+      (select o_orderkey, o_orderstatus, o_orderstatus
+          from orders where o_orderkey < 100
+      )
+      union
+      (
+          select o_orderkey + 100.1 as o_orderkey,
+          SUBSTRING(o_orderstatus, 2, 4), 'hello work'
+          from orders where o_orderkey < 300
+          and o_orderkey >= 5
+      )
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_11:
+    SQL: |
+      (select nat1.n_nationkey, nat1.n_name from nation as nat1
+          inner join lineitem on nat1.n_nationkey = mod(l_suppkey, 1010)
+          where nat1.n_name like 'INDIA'
+      ) union
+      ( select nat2.n_nationkey, nat2.n_name from nation as nat2
+          inner join orders on nat2.n_nationkey = mod(o_orderkey, 1010)
+          where nat2.n_name like 'INDIA'
+      )
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_12:
+    SQL: |
+      select l_returnflag, l_shipdate, l_linestatus
+              from lineitem
+              where l_orderkey < 100 and l_linenumber < 2
+          union all
+              select l_returnflag, l_shipdate, l_linestatus
+              from lineitem where l_partkey < 1
+              and l_orderkey < 2 and l_linenumber < 2
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
+
+  TEST_13:
+    SQL: |
+      select o_orderpriority as l_returnflag,
+              o_orderdate as l_shipdate, o_orderstatus as l_linestatus
+          from orders where o_orderkey < 100
+          union all
+          select l_returnflag, l_shipdate, l_linestatus
+          from lineitem where l_orderkey = 3
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
+
+  TEST_14:
+    SQL: |
+      select o_orderdate as d1, o_orderpriority as s1,
+              o_orderstatus as s2, o_orderkey as l1
+          from orders where o_orderkey < 100
+          union all
+          select o_orderdate as d1, o_orderpriority as s1,
+              o_orderstatus as s2, o_orderkey as l1
+          from orders where o_custkey < 100
+          union all
+          select o_orderdate as d1, o_orderpriority as s1,
+              o_orderstatus as s2, o_orderkey as l1
+          from orders where o_orderstatus = 'O'
+          union all
+          select o_orderdate as d1, o_orderpriority as s1,
+              o_orderstatus as s2, o_orderkey as l1
+          from orders where o_totalprice < 350
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill

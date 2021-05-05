@@ -1,0 +1,116 @@
+# Limit Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01:
+    SQL: |
+        select o_orderkey from orders order by 1 limit 10
+
+  TEST_02:
+    SQL: |
+        select o_orderdate, o_orderkey, o_clerk from orders
+                    order by o_orderdate, o_orderkey, o_custkey,
+                        o_orderstatus, o_clerk
+                    limit 1000
+    SPARK: |
+        select o_orderdate, o_orderkey, o_clerk from orders
+                    order by o_orderdate nulls last, o_orderkey nulls last,
+                    o_custkey nulls last, o_orderstatus nulls last,
+                    o_clerk nulls last limit 1000
+    SETUP:
+        COMPARE_WITH:
+            ORC: spark
+            OTHER: drill
+
+  TEST_03:
+    SQL: |
+        select o_orderkey from orders
+                    where o_custkey < 300 and o_orderdate >= '1990-08-01'
+                    order by o_orderkey limit 50
+
+  TEST_04:
+    SQL: |
+        select ps_partkey, ps_availqty from partsupp
+                    where ps_availqty < 3 and ps_availqty >= 1
+                    order by ps_partkey, ps_availqty limit 50
+
+  TEST_05:
+    SQL: |
+        select o_orderkey, o_orderstatus from orders
+                    where o_custkey < 10 and o_orderstatus = 'O'
+                    order by o_orderkey, o_orderstatus limit 50
+
+  TEST_06:
+    SQL: |
+        select orders.o_totalprice, customer.c_name from orders
+                      inner join customer
+                      on orders.o_custkey = customer.c_custkey
+                      order by customer.c_name, orders.o_orderkey limit 10
+
+  TEST_07:
+    SQL: |
+        (select l_shipdate, l_orderkey, l_linestatus
+                    from lineitem where l_linenumber = 1
+                    order by 1, 2, 3, l_linenumber limit 10)
+                    union all
+                    (select l_shipdate, l_orderkey, l_linestatus
+                    from lineitem where l_linenumber = 1
+                    order by 1 desc, 2, 3, l_linenumber limit 10)
+    SPARK: |
+        (select l_shipdate, l_orderkey, l_linestatus
+                    from lineitem where l_linenumber = 1
+                    order by 1 nulls last, 2 nulls last, 3 nulls last,
+                    l_linenumber nulls last limit 10)
+                    union all
+                    (select l_shipdate, l_orderkey, l_linestatus
+                    from lineitem where l_linenumber = 1
+                    order by 1 desc nulls first, 2 nulls last, 3 nulls last,
+                    l_linenumber nulls last limit 10)
+    SETUP:
+        COMPARE_WITH:
+            ORC: spark
+            OTHER: drill
+
+  TEST_08:
+    SQL: |
+        select c_custkey from customer
+                    where c_custkey < 0 order by c_custkey limit 40
+
+  TEST_09:
+    SQL: |
+        select c_custkey, c_name from customer
+                    where c_custkey < 10 order by 1 limit 30
+
+  TEST_10:
+    SQL: |
+        select c_custkey, c_name from customer
+                    where c_custkey < 10 limit 30
+
+  TEST_11:
+    SQL: |
+        select avg(CAST(c_custkey AS DOUBLE)), min(c_custkey)
+                    from customer limit 5
+
+  TEST_12:
+    SQL: |
+        select o_orderdate, o_orderkey, o_clerk
+                    from orders
+                    order by o_orderdate, o_orderkey, o_custkey
+                    limit 1000
+    SPARK: |
+        select o_orderdate, o_orderkey, o_clerk
+                    from orders
+                    order by o_orderdate nulls last, o_orderkey nulls last, o_custkey
+                    limit 1000
+    SETUP:
+        COMPARE_WITH:
+            ORC: spark
+            OTHER: drill

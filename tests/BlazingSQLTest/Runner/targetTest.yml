@@ -7,10 +7,10 @@ LIST_TEST:
     NAME: Bindable Alias
     FILE: bindableAliasSuite.yaml
     CODE: BALIAS
-  booleanSuite:
-    NAME: Boolean
-    FILE: booleanSuite.yaml
-    CODE: BOOL
+#  booleanSuite:
+#    NAME: Boolean
+#    FILE: booleanSuite.yaml
+#    CODE: BOOL
   caseSuite:
     NAME: Case
     FILE: caseSuite.yaml
@@ -165,16 +165,16 @@ LIST_TEST:
     CODE: SUBSTRING
   TablesFromSQL:
     NAME: Tables from SQL
-    FILE: TablesFrSuite.yaml
+    FILE: TablesFromSuite.yaml
     CODE: TABFROMSQL
   tablesFromPandasSuite:
     NAME: Tables from Pandas
     FILE: tablesFromPandasSuite.yaml
     CODE: TBLPANDAS
-  timestampdiffSuite:
-    NAME: Timestampdiff
-    FILE: timestampdiffSuite.yaml
-    CODE: TIMESTAMPD
+#  timestampdiffSuite: #Not supported yet
+#    NAME: Timestampdiff
+#    FILE: timestampdiffSuite.yaml
+#    CODE: TIMESTAMPD
   timestampSuite:
     NAME: Timestamp
     FILE: timestampSuite.yaml

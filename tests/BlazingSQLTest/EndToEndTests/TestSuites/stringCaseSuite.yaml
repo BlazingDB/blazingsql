@@ -1,0 +1,102 @@
+# String case Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01:
+    SQL: |
+      select c_custkey, UPPER(c_name) from customer
+                    where SUBSTRING(c_name,1,17) = 'Customer#00000000'
+
+  TEST_02:
+    SQL: |
+      select c_custkey, upper(c_comment)
+                    from customer where c_mktsegment = 'household'
+
+  TEST_03:
+    SQL: |
+      select LOWER(c_name), UPPER(c_address)
+                    from customer where c_custkey < 42
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_04:
+    SQL: |
+      select c.c_custkey, UPPER(SUBSTRING(c.c_name, 1, 8)),
+                        LOWER(SUBSTRING(c.c_name, 10, 18)) || '**'
+                    from customer c where c.c_custkey < 20
+
+  TEST_05:
+    SQL: |
+      select o_orderkey, upper(o_comment), lower(o_orderstatus)
+                    from orders where o_custkey < 120
+
+  TEST_06:
+    SQL: |
+      select lower(o_orderpriority), lower(o_orderstatus)
+                    from orders group by o_orderpriority, o_orderstatus
+
+  TEST_07:
+    SQL: |
+      select count(o_orderkey), sum(o_orderkey), lower(o_clerk)
+                    from orders where o_custkey < 1000
+                    group by o_clerk, o_orderstatus
+
+  TEST_08:
+    SQL: |
+      select count(o_orderkey), sum(o_orderkey), upper(o_clerk)
+                    from orders where o_custkey < 1000
+                    group by o_clerk, o_orderstatus
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_09:
+    SQL: |
+      select LOWER(n_name), UPPER(n_comment) from nation
+                    where n_regionkey = 4
+
+  TEST_10:
+    SQL: |
+      select upper(n_comment), lower(upper(n_comment)) from nation
+                    where n_nationkey between 5 and 15
+    SETUP:
+      COMPARE_WITH: spark
+
+# NOTE: SUBSTRING() drill API, `start` parameter must be at least 1
+# If 0 was provided then will return an empty string ''
+# finally if you want to use `start` value to 0, please use `spark` engine
+  TEST_11:
+    SQL: |
+      select INITCAP(LOWER(o_clerk)) as init_a,
+                    INITCAP(SUBSTRING(o_comment, 0, 10)) || INITCAP(o_orderstatus) as init_b
+                    from orders where MOD(o_custkey, 2) = 0 
+                    order by init_a nulls last, init_b nulls last
+                    limit 180
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_12:
+    SQL: |
+      select o_orderkey,
+                    INITCAP(SUBSTRING(o_comment, 1, 5)) || SUBSTRING(INITCAP(o_comment), 2, 5)
+                    from orders where o_orderkey < 10000
+
+  TEST_13:
+    SQL: |
+      SELECT INITCAP(LOWER(c_mktsegment)) as init_mkt,
+                    INITCAP(SUBSTRING(c_comment, 0, 7)) as init_comment,
+                    INITCAP(c_name) as init_name
+                    from customer
+                    where c_mktsegment in ('AUTOMOBILE', 'HOUSEHOLD')
+                    and 50.0 <= c_acctbal
+                    order by c_custkey nulls last, init_comment nulls last
+                    limit 200
+    SETUP:
+      COMPARE_WITH: spark

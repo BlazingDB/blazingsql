@@ -1,0 +1,78 @@
+# Unify Tables Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01A:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c inner join nation as
+                    n on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1 and c.c_custkey < 50
+
+  TEST_01B:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1 and c.c_custkey < 50
+
+  TEST_01C:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1 and c.c_custkey < 50
+
+  TEST_01:
+    SQL: |
+        select nation.n_nationkey, region.r_regionkey
+                    from nation inner join region
+                    on region.r_regionkey = nation.n_nationkey
+
+  TEST_02:
+    SQL: |
+        select avg(CAST(c.c_custkey AS DOUBLE)),
+                    avg(CAST(c.c_nationkey AS DOUBLE)), n.n_regionkey
+                    from customer as c
+                    inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    group by n.n_regionkey
+
+  TEST_03:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c
+                    inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1 and c.c_custkey < 50
+
+  TEST_04:
+    SQL: |
+        select avg(CAST(c.c_custkey AS DOUBLE)), avg(c.c_acctbal),
+                    n.n_nationkey, r.r_regionkey
+                    from customer as c
+                    inner join nation as n on c.c_nationkey = n.n_nationkey
+                    inner join region as r on r.r_regionkey = n.n_regionkey
+                    group by n.n_nationkey, r.r_regionkey
+
+  TEST_06:
+    SQL: |
+        SELECT n.n_nationkey + 1, n.n_regionkey
+                    from nation AS n
+                    inner join region AS r ON n.n_regionkey = r.r_regionkey
+
+  TEST_07:
+    SQL: |
+        SELECT n.n_nationkey + 1, n.n_regionkey
+                    from nation AS n
+                    INNER JOIN region AS r
+                    ON n.n_regionkey = r.r_regionkey
+                    and n.n_nationkey = 5

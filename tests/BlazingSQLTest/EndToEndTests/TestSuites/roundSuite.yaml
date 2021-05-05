@@ -1,0 +1,52 @@
+# Round Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01:
+    SQL: |
+      select ROUND(orders.o_orderkey),
+                        ROUND(orders.o_totalprice)
+                    from customer
+                    left outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_02:
+    SQL: |
+      select ROUND(orders.o_totalprice, 2),
+                        ROUND(orders.o_totalprice, -2)
+                    from customer
+                    left outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_03:
+    SQL: |
+      select customer.c_custkey, orders.o_orderkey,
+                    ROUND(orders.o_custkey,0)
+                    from customer
+                    left outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_04:
+    SQL: |
+      select MAX(ROUND(n1.n_regionkey,3))
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+
+  TEST_05:
+    SQL: |
+      select ROUND(AVG(o_totalprice)) from orders

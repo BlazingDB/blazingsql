@@ -1,0 +1,78 @@
+# Predicates With Nulls Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE:
+          - CUDF
+
+  TEST_01:
+    SQL: |
+        select MIN(n.n_nationkey), MAX(r.r_regionkey),
+                    AVG(CAST((n.n_nationkey + r.r_regionkey) AS DOUBLE))
+                    from nation as n
+                    left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey IS NULL
+
+  TEST_02:
+    SQL: |
+        select SUM(n1.n_nationkey) as n1key,
+                    AVG(CAST((n2.n_nationkey +  n1.n_nationkey) AS DOUBLE))
+                    as n2key
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 10
+                    where n1.n_nationkey IS NOT NULL
+
+  TEST_03:
+    SQL: |
+        select COUNT(n1.n_nationkey) as n1key,
+                    COUNT(n2.n_nationkey +  n1.n_nationkey) as n2key
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 10
+                    where n1.n_nationkey IS NOT NULL
+
+  TEST_04:
+    SQL: |
+        select COUNT(n1.n_regionkey),
+                        AVG(CAST(n1.n_regionkey AS DOUBLE))
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    WHERE n1.n_regionkey IS NOT NULL
+
+  TEST_05:
+    SQL: |
+        select MIN(n.n_nationkey), MAX(n.n_nationkey)
+                    from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE n.n_nationkey IS NULL
+
+  TEST_06:
+    SQL: |
+        select COUNT(n.n_nationkey), AVG(r.r_regionkey)
+            from nation as n left outer join region as r
+            on n.n_nationkey = r.r_regionkey
+            WHERE n.n_regionkey IS NULL
+    SETUP:
+      COMPARE_WITH: spark # Drill shows: Different number of columns blzSQLresult: 2 PyDrill result: 0
+
+  TEST_07:
+    SQL: |
+        select n.n_nationkey, n.n_name, r.r_regionkey,
+                        r.r_name
+                    from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE r.r_name IS NULL
+
+  TEST_08:
+    SQL: |
+        select n.n_nationkey, n.n_name, r.r_regionkey,
+                        r.r_name
+                    from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    WHERE n.n_name IS NOT NULL
