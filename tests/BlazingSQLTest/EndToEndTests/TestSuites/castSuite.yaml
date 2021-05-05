@@ -86,6 +86,7 @@ TEST_SUITE:
       COMPARE_WITH:
         ORC: spark
         OTHER: drill
+      SKIP_WITH: orc
 
   TEST_12:
     SQL: |
