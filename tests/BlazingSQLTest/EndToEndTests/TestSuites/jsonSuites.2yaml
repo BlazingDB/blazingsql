@@ -1,0 +1,200 @@
+# Json Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH: 
+      - MULTINODE: CUDF
+      - SINGLENODE: 
+        - DASK_CUDF
+        - CUDF
+        - CSV
+        - ORC 
+        - PARQUET
+
+  TEST_01:
+    SQL: |
+        select MIN(n.n_nationkey), MAX(r.r_regionkey),
+                    AVG(n.n_nationkey + r.r_regionkey) from nation as n
+                    left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_02:
+    SQL: |
+        select SUM(n1.n_nationkey) as n1key,
+                    AVG(n2.n_nationkey +  n1.n_nationkey ) as n2key
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 10
+
+  TEST_03:
+    SQL: |
+      select o_totalprice, o_custkey,
+                    case when o_totalprice > 100000.2 then o_totalprice
+                    else null end
+                    from orders where o_orderkey < 20
+
+  TEST_04:
+    SQL: |
+        select cast(o_orderdate AS TIMESTAMP) from orders
+                    where cast(o_orderdate as TIMESTAMP)
+                    between '1995-01-01' and '1995-01-05'
+
+  TEST_05:
+    SQL: |
+        WITH
+                t1_l AS ( SELECT * FROM orders ),
+                t1_r AS ( SELECT * FROM customer ),
+                main_lr AS(
+                    SELECT
+                        COALESCE(o.o_comment, c.c_comment) AS info
+                    FROM
+                        t1_l o FULL JOIN t1_r c
+                        ON  o.o_custkey = c.c_custkey
+                        AND o.o_orderkey = c.c_nationkey
+                ) SELECT * FROM main_lr
+
+  TEST_06:
+    SQL: |
+        select o.o_orderkey, c.c_name ||
+                    cast(c.c_custkey as VARCHAR), c.c_name || '-' ||
+                    cast(c.c_custkey as VARCHAR), o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 10
+
+  TEST_07:
+    SQL: |
+        select n1.n_regionkey, n2.n_nationkey,
+                    MIN(n1.n_regionkey), MAX(n1.n_regionkey),
+                    AVG(n2.n_nationkey)
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    GROUP BY n1.n_regionkey, n2.n_nationkey
+
+  TEST_08:
+    SQL: |
+        SELECT c_custkey, count(c_nationkey),
+                    min(c_nationkey), sum(c_nationkey)
+                    from customer group by c_custkey
+
+  TEST_09:
+    SQL: |
+        select o_orderkey as okey, o_custkey as ckey,
+                    (EXTRACT(YEAR FROM o_orderdate) - 5) from orders
+                    where o_orderstatus = 'O' order by okey
+
+  TEST_10:
+    SQL: |
+        select n1.n_nationkey as n1key,
+                        n2.n_nationkey as n2key,
+                        n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    where n1.n_nationkey < 10 and n1.n_nationkey > 5
+
+  TEST_11:
+    SQL: |
+        select n1.n_nationkey as n1key,
+                        n2.n_nationkey as n2key,
+                        n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    and n1.n_nationkey + 1 = n2.n_nationkey + 7
+                    and n1.n_nationkey + 2 = n2.n_nationkey + 8
+
+  TEST_12:
+    SQL: |
+        select count(c_custkey) + sum(c_acctbal) +
+                        avg(c_acctbal), min(c_custkey) - max(c_nationkey),
+                        c_nationkey * 2 as key
+                    from customer where  c_nationkey * 2 < 40
+                    group by  c_nationkey * 2
+
+  TEST_13:
+    SQL: |
+        select c.c_custkey, r.r_regionkey,
+                    c.c_custkey + r.r_regionkey as addy from customer as c
+                    inner join region as r on c.c_nationkey = r.r_regionkey
+                    where c.c_acctbal < 1000 group by r.r_regionkey,
+                    c.c_custkey order by c.c_custkey desc
+
+  TEST_14:
+    SQL: |
+        SELECT n.n_nationkey + 1, n.n_regionkey from nation
+                    AS n INNER JOIN region AS r
+                    ON n.n_regionkey = r.r_regionkey
+                    and n.n_nationkey = 5
+
+  TEST_15:
+    SQL: |
+        select n.n_nationkey, r.r_regionkey
+                    from nation as n left outer join region as r
+                    on n.n_regionkey = r.r_regionkey
+                    where n.n_nationkey < 10
+                    and n.n_nationkey > 5
+    SETUP:
+      ORDER_BY_COL: n_nationkey
+
+  TEST_16:
+    SQL: |
+        select partSuppTemp.partKey, partAnalysis.avgSize
+                    from
+                    (
+                        select min(p_partkey) as partKey,
+                        avg(CAST(p_size AS DOUBLE)) as avgSize,
+                        max(p_retailprice) as maxPrice,
+                        min(p_retailprice) as minPrice from part
+                    ) as partAnalysis
+                    inner join
+                    (
+                        select ps_partkey as partKey, ps_suppkey as suppKey
+                        from partsupp where ps_availqty > 2
+                    ) as partSuppTemp
+                    on partAnalysis.partKey = partSuppTemp.partKey
+                    inner join
+                    (
+                        select s_suppkey as suppKey from supplier
+                    ) as supplierTemp
+                    on supplierTemp.suppKey = partSuppTemp.suppKey
+
+  TEST_17:
+    SQL: |
+        select p.p_brand, p.p_type, p.p_size,
+                            count(ps.ps_suppkey) as supplier_cnt
+                        from partsupp ps
+                        inner join part p on p.p_partkey = ps.ps_partkey
+                        where
+                            p.p_brand <> 'Brand#45'
+                            and p.p_size in (49, 14, 23, 45, 19, 3, 36, 9)
+                            and ps.ps_supplycost < p.p_retailprice
+                        group by
+                            p.p_brand, p.p_type, p.p_size
+                        order by
+                            supplier_cnt desc, p.p_brand, p.p_type, p.p_size
+
+  TEST_18:
+    SQL: |
+        select c_custkey + c_nationkey, c_acctbal
+                    from customer order by 1 desc, 2
+
+  TEST_19:
+    SQL: |
+        (select o_orderkey, o_custkey from orders
+                        where o_orderkey < 100
+                    )
+                    union all
+                    (select o_orderkey, o_custkey from orders
+                        where o_orderkey < 300
+                        and o_orderkey >= 200) order by 2
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_20:
+    SQL: |
+        select avg(CAST(c_custkey AS DOUBLE)), min(c_custkey)
+                    from customer limit 5

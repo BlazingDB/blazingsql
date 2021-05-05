@@ -1,7 +1,7 @@
 LIST_TEST:
   aggregationsWithoutGroupBySuite:
     NAME: Aggregations without group by
-    FILE: aggregationSuite.yaml
+    FILE: aggregationsWithoutGroupBySuite.yaml
     CODE: AGGWOGRBY
   bindableAliasSuite:
     NAME: Bindable Alias

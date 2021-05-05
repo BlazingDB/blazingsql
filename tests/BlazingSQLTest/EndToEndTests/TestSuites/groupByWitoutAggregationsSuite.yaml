@@ -1,0 +1,44 @@
+# Group By Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE: CUDF
+
+  TEST_01:
+    SQL: |
+        select n_nationkey, n_regionkey from nation
+                    group by n_regionkey, n_nationkey
+
+  TEST_02:
+    SQL: |
+        select c_custkey, c_nationkey from customer
+                    where c_acctbal < 1000 group by c_nationkey, c_custkey
+
+  TEST_03:
+    SQL: |
+      select c.c_custkey, r.r_regionkey,
+                    c.c_custkey + r.r_regionkey as addy from customer as c
+                    inner join region as r
+                    on c.c_nationkey = r.r_regionkey
+                    group by r.r_regionkey, c.c_custkey
+
+  TEST_04:
+    SQL: |
+        select c_nationkey, c_custkey from customer
+                    where c_acctbal < 10000 group by c_nationkey,
+                    c_custkey order by c_nationkey desc, c_custkey asc
+    SETUP:
+      APPLY_ORDER: True
+
+  TEST_05:
+    SQL: |
+        select c.c_custkey, r.r_regionkey,
+                    c.c_custkey + r.r_regionkey as addy from customer as c
+                    inner join region as r on c.c_nationkey = r.r_regionkey
+                    where c.c_acctbal < 1000 group by r.r_regionkey,
+                    c.c_custkey order by c.c_custkey desc

@@ -6,14 +6,19 @@ TEST_SUITE:
     USE_PERCENTAGE: False
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
-    SKIP_WITH: CUDF
+    SKIP_WITH:
+      - MULTINODE: CUDF
 
   TEST_01:
     SQL: |
         select * from bool_orders
                     order by o_orderkey, o_custkey limit 300
+    SQL_NULLS: |
+        select o_orderkey, o_custkey, o_totalprice, o_confirmed from bool_orders
+                        order by o_orderkey, o_totalprice limit 300
     SETUP:
       APPLY_ORDER: False
+      
 
   TEST_02:
     SQL: |
@@ -21,6 +26,7 @@ TEST_SUITE:
                         order by o_orderkey, o_totalprice limit 300
     SETUP:
       APPLY_ORDER: False
+      ACCEPTABLE_DIFFERENCE: 0
 
   TEST_03:
     SQL: |
@@ -38,6 +44,7 @@ TEST_SUITE:
                     order by o_custkey, o_confirmed desc limit 25
     SETUP:
       APPLY_ORDER: False
+      ACCEPTABLE_DIFFERENCE: 0
 
   TEST_05:
     SQL: |
@@ -66,6 +73,8 @@ TEST_SUITE:
     SQL: |
       select count(o_orderstatus) from bool_orders
                     where o_orderstatus <> 'O' and o_confirmed = true
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0
 
   TEST_09:
     SQL: |
@@ -75,17 +84,81 @@ TEST_SUITE:
     SETUP:
       USE_PERCENTAGE: True
 
-  TEST_10:
-    SQL: |
-        select sum(o_orderkey)/count(o_orderkey),
-                        max(o_totalprice)
-                    from bool_orders
-                    where o_confirmed IS NULL and o_orderkey < 2500
+  # TEST_10:
+  #   SQL: |
+  #       select sum(o_orderkey)/count(o_orderkey),
+  #                       max(o_totalprice)
+  #                   from bool_orders
+  #                   where o_confirmed IS NULL and o_orderkey < 2500
+  
   TEST_11:
     SQL: |
         select o_custkey, min(o_totalprice) from bool_orders
                    where o_custkey < 300 and o_confirmed is not NULL
                    group by o_custkey
+
+  # TEST_12:
+  #   SQL: |
+  #       select count(o_custkey), max(o_totalprice),
+  #                     min(o_totalprice), sum(o_totalprice)
+  #                     /count(o_totalprice) from bool_orders
+  #                     group by o_custkey
+
+  # TEST_13:
+  #   SQL: |
+  #       select count(o_custkey), o_orderkey,
+  #                       o_confirmed from bool_orders
+  #                       where o_orderkey < 100 and o_confirmed = FALSE
+  #                       group by o_orderkey, (o_orderkey + o_custkey),
+  #                       o_confirmed
+  #   SETUP:
+  #     ACCEPTABLE_DIFFERENCE: 0
+
+  # TEST_14:
+  #   SQL: |
+  #       select o.o_custkey, c.c_name as customer_name
+  #                         from bool_orders as o inner join customer as c
+  #                         on c.c_custkey = o.o_custkey
+  #                         where o.o_confirmed = False
+  #                         and o.o_orderstatus <> 'O'
+  #   SETUP:
+  #     ACCEPTABLE_DIFFERENCE: 0
+
+  # TEST_15:
+  #   SQL: |
+  #       select o.o_custkey, c.c_name, n.n_regionkey
+  #                         from nation as n inner join customer as c
+  #                         on n.n_nationkey = c.c_nationkey
+  #                         inner join bool_orders as o on
+  #                         c.c_custkey = o.o_custkey
+  #                         where o.o_confirmed = False
+  #                         and o.o_orderstatus <> 'O'
+  #   SETUP:
+  #     ACCEPTABLE_DIFFERENCE: 0
+
+  # TEST_16:
+  #   SQL: |
+  #       select o.o_custkey, c.c_name, n.n_regionkey
+  #                         from customer as c inner join bool_orders as o
+  #                         on c.c_custkey = o.o_custkey
+  #                         inner join nation as n
+  #                         on n.n_nationkey = c.c_nationkey
+  #                         where o.o_confirmed = false
+  #                         and o.o_orderstatus <> 'O'
+  #   SETUP:
+  #     ACCEPTABLE_DIFFERENCE: 0
+
+  # TEST_17:
+  #   SQL: |
+  #       select count(o_custkey), max(o_totalprice),
+  #                         min(o_totalprice), sum(o_totalprice)
+  #                         /count(o_totalprice)
+  #                         from bool_orders group by o_totalprice,
+  #                         o_custkey, o_orderkey order by o_totalprice,
+  #                              o_custkey, o_orderkey desc
+  #   SETUP:
+  #     APPLY_ORDER: False
+
   TEST_18:
     SQL: |
         select o_orderkey, o_confirmed from bool_orders

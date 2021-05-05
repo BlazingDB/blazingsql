@@ -61,6 +61,8 @@ class TestCase():
             if setup.get("COMPARE_WITH") is not None: self.configLocal.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configLocal.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
+            if setup.get("RUN_WITH_NULLS") is not None: self.configLocal.acceptable_difference = setup.get("RUN_WITH_NULLS")
+            if setup.get("SQL_NULLS") is not None: self.configLocal.acceptable_difference = setup.get("SQL_NULLS")
 
             self.data.pop("SETUP", None)
 
@@ -98,6 +100,8 @@ class TestCase():
             if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
+            if setup.get("RUN_WITH_NULLS") is not None: self.config.acceptable_difference = setup.get("RUN_WITH_NULLS")
+            if setup.get("SQL_NULLS") is not None: self.config.acceptable_difference = setup.get("SQL_NULLS")
 
         if isinstance(config.compare_with, dict):
             formatList = list(config.compare_with.keys())

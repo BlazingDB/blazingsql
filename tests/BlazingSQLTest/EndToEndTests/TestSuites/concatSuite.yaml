@@ -1,0 +1,188 @@
+# Concat Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - MULTINODE: CUDF
+
+  TEST_01:
+    SQL: |
+        select c_mktsegment || ': ' || c_custkey || ' - ' ||
+                    c_name from customer
+                    order by c_custkey, c_mktsegment limit 50
+    SETUP:
+      APPLY_ORDER: False
+
+  TEST_02:
+    SQL: |
+        select r.r_name || ' ' || n.n_name from region r
+                        inner join nation n
+                        on n.n_regionkey = r.r_regionkey
+                        order by r.r_name
+    SETUP:
+      APPLY_ORDER: False
+
+  TEST_03:
+    SQL: |
+      select c.c_name || ' ' || o.o_orderkey, o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 10
+
+  TEST_04:
+    SQL: |
+        select c.c_name, o.o_orderkey, o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where 'Customer#000000' || c.c_custkey like
+                    'Customer#0000001'
+
+  TEST_05:
+    SQL: |
+        select c_custkey, 'Cliente: ' || c_name from customer
+                       order by c_custkey, c_mktsegment limit 50
+    SETUP:
+      APPLY_ORDER: False
+
+  TEST_06:
+    SQL: |
+        select o.o_orderkey || c.c_name, o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 10
+
+  TEST_07:
+    SQL: |
+        select o.o_orderkey, c.c_name ||
+                    cast(c.c_custkey as VARCHAR), c.c_name || '-' ||
+                    cast(c.c_custkey as VARCHAR), o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 10
+
+  TEST_08:
+    SQL: |
+        select c.c_name || ': ' || c.c_custkey, c.c_name ||
+                     ': ' || c.c_comment from customer c
+                    where c.c_custkey < 10
+
+  TEST_09:
+    SQL: |
+        select o.o_orderkey, c.c_name || '-' ||
+                     (c.c_custkey + 1), o.o_orderstatus from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 20
+
+  TEST_10:
+    SQL: |
+        select * from (
+                        select c.c_custkey, 'Customer#000000' ||
+                        c.c_custkey as n_name from customer c
+                        where c.c_custkey < 10
+                    ) as n where n.n_name = 'Customer#000000' ||
+                     n.c_custkey
+
+  TEST_11:
+    SQL: |
+        select c.c_custkey, c.c_name || '- ' ||
+                    c.c_custkey, c.c_comment from customer c
+                    where c.c_custkey < 0
+
+  TEST_12:
+    SQL: |
+        select CONCAT(c_mktsegment, ': ', c_custkey, ' - ', c_name)
+                    from customer
+                    where c_custkey > 99 and c_custkey < 1000
+                    order by c_mktsegment, c_custkey limit 200
+    SETUP:
+      APPLY_ORDER: False
+
+  TEST_13:
+    SQL: |
+        select c.c_name, o.o_orderkey, o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where CONCAT('Customer#000000', c.c_custkey) like
+                    'Customer#0000001'
+
+  TEST_14:
+    SQL: |
+      select CONCAT(case when o.o_orderkey is null then 'V1'  else 'V2' end , ' - ', c.c_name),
+                        o.o_orderstatus
+                    from orders o
+                    inner join customer c on o.o_custkey = c.c_custkey
+                    where c.c_custkey < 10
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_15:
+    SQL: |
+        select o.o_orderkey, CONCAT(c.c_name, cast(c.c_custkey as VARCHAR)),
+                            CONCAT(c.c_name, '-', cast(c.c_custkey as VARCHAR)),
+                            o.o_orderstatus
+                        from orders o
+                        inner join customer c on o.o_custkey = c.c_custkey
+                        where c.c_custkey < 10                   
+
+  TEST_16:
+    SQL: |
+        select o.o_orderkey, 
+                            CONCAT(c.c_name, '-', (c.c_custkey + 1)),
+                            o.o_orderstatus from orders o
+                        inner join customer c on o.o_custkey = c.c_custkey
+                        where c.c_custkey < 20
+
+  TEST_17:
+    SQL: |
+        select * from (
+                            select c.c_custkey, 
+                                CONCAT('Customer#000000', c.c_custkey) as n_name
+                            from customer c
+                            where c.c_custkey < 10
+                        ) as n where n.n_name = 'Customer#000000' ||
+                        n.c_custkey
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,9 +1,9 @@
-# Common Table Expression Test Suite
+# Cross Join Suite Test Suite
 
 TEST_SUITE:
   SETUP:
     APPLY_ORDER: True
-    USE_PERCENTAGE: false
+    USE_PERCENTAGE: False
     ACCEPTABLE_DIFFERENCE: 0
     COMPARE_WITH: drill
     SKIP_WITH:
@@ -11,23 +11,20 @@ TEST_SUITE:
 
   TEST_01:
     SQL: |
-        with nationTemp as
-                    (select n_nationkey, n_regionkey as fkey
-                    from nation where n_nationkey > 3
-                    order by n_nationkey)
-                    select region.r_regionkey, nationTemp.n_nationkey
-                    from region inner join nationTemp
-                    on region.r_regionkey = nationTemp.fkey
+        select * from nation cross join region
 
   TEST_02:
     SQL: |
-        with regionTemp as (
-                    select r_regionkey from region where r_regionkey > 2 ),
-                    nationTemp as(select n_nationkey, n_regionkey as fkey
-                    from nation where n_nationkey > 3 order by n_nationkey)
-                    select regionTemp.r_regionkey, nationTemp.fkey
-                    from regionTemp inner join nationTemp
-                    on regionTemp.r_regionkey = nationTemp.fkey
+        select o_orderkey, o_totalprice,
+                         l_linenumber, l_shipmode
+                    from orders cross join lineitem
+                    where o_orderkey < 6
+                    and l_receiptdate > date '1996-07-12'
+                    and l_linenumber > 5
+                    and o_totalprice < 74029.55
+                    and o_clerk = 'Clerk#000000880'
+                    and l_shipmode IN ('FOB', 'RAIL')
+                    order by o_orderkey, o_totalprice, l_linenumber
 
   TEST_03:
     SQL: |
