@@ -25,6 +25,7 @@ class ConfigTest():
     data_types = None
     compare_with = None
     skip_with = []
+    spark_query = None
 
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
@@ -143,8 +144,6 @@ class TestCase():
 
         print("######## Starting queries ...########")
 
-        self.__loadDataTypes()
-
         for n in range(0, len(self.configLocal.data_types)):
 
             fileSchemaType = self.configLocal.data_types[n]
@@ -180,7 +179,8 @@ class TestCase():
                     configTest.acceptable_difference,
                     configTest.use_percentage,
                     fileSchemaType,
-                    print_result=configTest.print_result
+                    print_result=configTest.print_result,
+                    query_spark=configTest.spark_query
                 )
 
     def run(self, bc, dask_client, drill, spark):
