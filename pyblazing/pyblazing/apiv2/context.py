@@ -1812,7 +1812,7 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    def explain(self, sql, detail=False):
+    def explain(self, sql, optimizer="RBO", detail=False):
         """
         Returns break down of a given query's Logical Relational Algebra plan.
 
@@ -1864,7 +1864,10 @@ class BlazingContext(object):
         """
         self.lock.acquire()
         try:
-            algebra = self.generator.getRelationalAlgebraString(sql)
+            if optimizer == "RBO":
+                algebra = self.generator.getRelationalAlgebraString(sql)
+            else:
+                algebra = self.generator.getRelationalAlgebraCBOString(sql)
 
             if detail is True:
                 masterIndex = 0
@@ -1910,7 +1913,7 @@ class BlazingContext(object):
                     dataType = ColumnTypeClass.fromTypeId(type_id)
                     column = ColumnClass(column, dataType, order)
                     arr.add(column)
-                tableJava = TableClass(tableName, self.db, arr)
+                tableJava = TableClass(tableName, self.db, arr, len(table))
                 self.db.addTable(tableJava)
                 self.schema = BlazingSchemaClass(self.db)
                 self.generator = RelationalAlgebraGeneratorClass(self.schema)
