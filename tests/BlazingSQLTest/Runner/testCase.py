@@ -27,6 +27,7 @@ class ConfigTest():
     skip_with = []
     spark_query = None
     comparing = None
+    message_validation = None
 
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
@@ -66,9 +67,8 @@ class TestCase():
             if setup.get("PRINT_RESULT") is not None: self.configLocal.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: self.configLocal.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
+            if setup.get("MESSAGE_VALIDATION") is not None: self.configLocal.message_validation = setup.get("MESSAGE_VALIDATION")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configLocal.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
-            if setup.get("RUN_WITH_NULLS") is not None: self.configLocal.acceptable_difference = setup.get("RUN_WITH_NULLS")
-            if setup.get("SQL_NULLS") is not None: self.configLocal.acceptable_difference = setup.get("SQL_NULLS")
 
             self.data.pop("SETUP", None)
 
@@ -102,9 +102,8 @@ class TestCase():
             if setup.get("PRINT_RESULT") is not None: config.print_result = setup.get("PRINT_RESULT")
             if setup.get("COMPARE_WITH") is not None: config.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
+            if setup.get("MESSAGE_VALIDATION") is not None: config.message_validation = setup.get("MESSAGE_VALIDATION")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
-            if setup.get("RUN_WITH_NULLS") is not None: self.config.acceptable_difference = setup.get("RUN_WITH_NULLS")
-            if setup.get("SQL_NULLS") is not None: self.config.acceptable_difference = setup.get("SQL_NULLS")
 
         if "SPARK" in self.data[test_name]:
             config.spark_query = self.data[test_name]["SPARK"]
@@ -209,8 +208,8 @@ class TestCase():
                 engine = self.drill if configTest.compare_with == "drill" else self.spark
 
                 print("==>> Run query for test case", self.name)
-                print("PLAN:")
-                print(self.bc.explain(query, True))
+                # print("PLAN:")
+                # print(self.bc.explain(query, True))
                 runTest.run_query(
                     self.bc,
                     engine,
@@ -224,7 +223,8 @@ class TestCase():
                     fileSchemaType,
                     print_result=configTest.print_result,
                     query_spark=configTest.spark_query,
-                    comparing=configTest.comparing
+                    comparing=configTest.comparing,
+                    message_validation=configTest.message_validation
                 )
 
     def run(self, bc, dask_client, drill, spark):

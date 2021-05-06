@@ -18,7 +18,7 @@ TEST_SUITE:
     SQL: |
         select * from bool_orders
                     order by o_orderkey, o_custkey limit 300
-    SQL_NULLS: |
+    SPARK: |
         select o_orderkey, o_custkey, o_totalprice, o_confirmed from bool_orders
                         order by o_orderkey, o_totalprice limit 300
     SETUP:

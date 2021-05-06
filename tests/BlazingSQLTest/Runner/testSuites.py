@@ -32,6 +32,7 @@ class TestSuites():
         self.globalConfig.compare_with = 'drill'
         self.globalConfig.spark_query = ""
         self.globalConfig.comparing = True
+        self.globalConfig.message_validation = ""
         self.globalConfig.data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
