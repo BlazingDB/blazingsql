@@ -1,0 +1,98 @@
+# Nested Queries Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+          - DASK_CUDF
+
+  TEST_01:
+    SQL: |
+      select maxPrice, avgSize
+                    from (
+                        select avg(CAST(p_size AS DOUBLE)) as avgSize,
+                        max(p_retailprice) as maxPrice,
+                        min(p_retailprice) as minPrice
+                        from part
+                    ) as partAnalysis
+                    order by maxPrice, avgSize
+
+  TEST_02:
+    SQL: |
+      select custOrders.avgPrice, custOrders.numOrders
+                    from customer
+                    inner join
+                    (
+                        select o_custkey as o_custkey,
+                        avg(o_totalprice) as avgPrice,
+                        count(o_totalprice) as numOrders
+                        from orders
+                        where o_custkey <= 100
+                        group by o_custkey
+                    ) as custOrders
+                    on custOrders.o_custkey = customer.c_custkey
+                    where customer.c_nationkey <= 5
+
+  TEST_03:
+    SQL: |
+      select partSuppTemp.partKey, partAnalysis.avgSize
+                    from
+                    (
+                        select min(p_partkey) as partKey,
+                        avg(CAST(p_size AS DOUBLE)) as avgSize,
+                        max(p_retailprice) as maxPrice,
+                        min(p_retailprice) as minPrice from part
+                    ) as partAnalysis
+                    inner join
+                    (
+                        select ps_partkey as partKey, ps_suppkey as suppKey
+                        from partsupp where ps_availqty > 2
+                    ) as partSuppTemp
+                    on partAnalysis.partKey = partSuppTemp.partKey
+                    inner join
+                    (
+                        select s_suppkey as suppKey from supplier
+                    ) as supplierTemp
+                    on supplierTemp.suppKey = partSuppTemp.suppKey
+
+  TEST_04:
+    SQL: |
+      select avg(CAST(custKey AS DOUBLE))
+                    from
+                    (
+                        select customer.c_custkey as custKey
+                        from
+                        (
+                            select min(o_custkey) as o_custkey from orders
+                        ) as tempOrders
+                        inner join customer on
+                        tempOrders.o_custkey = customer.c_custkey
+                        where customer.c_nationkey > 6
+                    ) as joinedTables
+
+  TEST_05:
+    SQL: |
+      select cust.custkey, cust.cname
+                    from customer inner join
+                    (
+                        select c_custkey as custkey, c_name as cname
+                        from customer
+                        where c_custkey <= 50 group by c_custkey, c_name
+                    ) as cust on cust.cname = customer.c_name
+
+  TEST_06:
+    SQL: |
+      select count(mo.o_totalprice), c.c_name
+                    from (
+                        select o.o_orderkey, o.o_custkey,
+                        o.o_totalprice, o.o_orderstatus
+                        from orders as o
+                        inner join lineitem as l on o.o_orderkey = l.l_orderkey
+                        where l.l_linenumber = 5
+                    ) as mo
+                    inner join customer as c on c.c_custkey = mo.o_custkey
+                    where mo.o_orderstatus = 'O' group by c.c_name
