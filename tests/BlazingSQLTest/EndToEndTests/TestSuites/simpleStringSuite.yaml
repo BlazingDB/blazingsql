@@ -147,27 +147,27 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
 
-  TEST_17:
-    SQL: |
-        SELECT
-            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '\\2--\\1') as backref,
-            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '\\2--\\1', 4) as backref_pos,
-            REGEXP_REPLACE(c_comment, 'e|a|i|o|u', 'Z', 4) as vowel_pos,
-            REGEXP_REPLACE(c_comment, '[a-z]+(.+)', 'Z', 10) as capture_pos
-            FROM customer
-
-    SPARK: |
-        SELECT
-            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '$2--$1') as backref,
-            CONCAT(
-                SUBSTRING(c_comment, 0, 3),
-                REGEXP_REPLACE(SUBSTRING(c_comment, 4), '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '$2--$1')
-            ) as backref_pos,
-            CONCAT(SUBSTRING(c_comment, 0, 3), REGEXP_REPLACE(SUBSTRING(c_comment, 4), 'e|a|i|o|u', 'Z')) as vowel_pos,
-            CONCAT(SUBSTRING(c_comment, 0, 9), REGEXP_REPLACE(SUBSTRING(c_comment, 10), '[a-z]+(.+)', 'Z')) as capture_pos
-            FROM customer
-    SETUP:
-      COMPARE_WITH: spark
+#  TEST_17:
+#    SQL: |
+#        SELECT
+#            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '\\2--\\1') as backref,
+#            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '\\2--\\1', 4) as backref_pos,
+#            REGEXP_REPLACE(c_comment, 'e|a|i|o|u', 'Z', 4) as vowel_pos,
+#            REGEXP_REPLACE(c_comment, '[a-z]+(.+)', 'Z', 10) as capture_pos
+#            FROM customer
+#
+#    SPARK: |
+#        SELECT
+#            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '$2--$1') as backref,
+#            CONCAT(
+#                SUBSTRING(c_comment, 0, 3),
+#                REGEXP_REPLACE(SUBSTRING(c_comment, 4), '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '$2--$1')
+#            ) as backref_pos,
+#            CONCAT(SUBSTRING(c_comment, 0, 3), REGEXP_REPLACE(SUBSTRING(c_comment, 4), 'e|a|i|o|u', 'Z')) as vowel_pos,
+#            CONCAT(SUBSTRING(c_comment, 0, 9), REGEXP_REPLACE(SUBSTRING(c_comment, 10), '[a-z]+(.+)', 'Z')) as capture_pos
+#            FROM customer
+#    SETUP:
+#      COMPARE_WITH: spark
 
   TEST_18:
     SQL: |
