@@ -191,6 +191,175 @@ public class BlazingRulesTest {
 
 	@Test()
 	public void
+	generateSQLCBOCalciteRulesCalciteTest() throws Exception {
+		createTableSchemas();
+
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+
+		checkTable(schema, "customer");
+		checkTable(schema, "orders");
+
+		RelNode nonOptimizedPlanTmp;
+		RelNode optimizedPlan;
+		RelNode optimizedPlanCBO;
+
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		List<RelOptRule> rulesRBO = Arrays.asList(
+				AggregateExpandDistinctAggregatesRule.JOIN,
+				FilterAggregateTransposeRule.INSTANCE,
+				FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN,
+				FilterJoinRule.JoinConditionPushRule.JOIN,
+				ProjectMergeRule.INSTANCE,
+				FilterMergeRule.INSTANCE,
+				ProjectJoinTransposeRule.INSTANCE,
+				ProjectTableScanRule.INSTANCE,
+				ProjectFilterTransposeRule.INSTANCE,
+				ReduceExpressionsRule.PROJECT_INSTANCE,
+				ReduceExpressionsRule.FILTER_INSTANCE,
+				FilterTableScanRule.INSTANCE,
+				FilterRemoveIsNotDistinctFromRule.INSTANCE,
+				AggregateReduceFunctionsRule.INSTANCE
+		);
+
+		List<RelOptRule> rulesCBO = Arrays.asList(
+				//RBO
+				AggregateExpandDistinctAggregatesRule.JOIN,
+				FilterAggregateTransposeRule.INSTANCE,
+				FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN,
+				FilterJoinRule.JoinConditionPushRule.JOIN,
+				ProjectMergeRule.INSTANCE,
+				FilterMergeRule.INSTANCE,
+				ProjectJoinTransposeRule.INSTANCE,
+				ProjectTableScanRule.INSTANCE,
+				ProjectFilterTransposeRule.INSTANCE,
+				ReduceExpressionsRule.PROJECT_INSTANCE,
+				ReduceExpressionsRule.FILTER_INSTANCE,
+				FilterTableScanRule.INSTANCE,
+				FilterRemoveIsNotDistinctFromRule.INSTANCE,
+				AggregateReduceFunctionsRule.INSTANCE,
+
+				//CBO
+				Bindables.BINDABLE_TABLE_SCAN_RULE,
+				Bindables.BINDABLE_FILTER_RULE,
+				Bindables.BINDABLE_JOIN_RULE,
+				Bindables.BINDABLE_PROJECT_RULE,
+				Bindables.BINDABLE_SORT_RULE,
+				JoinAssociateRule.INSTANCE
+		);
+
+		List<RelOptRule> rulesCBOV2 = Arrays.asList(
+				//RBO
+//				AggregateExpandDistinctAggregatesRule.JOIN,
+//				FilterAggregateTransposeRule.INSTANCE,
+//				FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN,
+//				FilterJoinRule.JoinConditionPushRule.JOIN,
+//				ProjectMergeRule.INSTANCE,
+//				FilterMergeRule.INSTANCE,
+//				ProjectJoinTransposeRule.INSTANCE,
+//				ProjectTableScanRule.INSTANCE,
+//				ProjectFilterTransposeRule.INSTANCE,
+//				ReduceExpressionsRule.PROJECT_INSTANCE,
+//				ReduceExpressionsRule.FILTER_INSTANCE,
+//				FilterTableScanRule.INSTANCE,
+//				FilterRemoveIsNotDistinctFromRule.INSTANCE,
+//				AggregateReduceFunctionsRule.INSTANCE,
+
+				//CBO
+				Bindables.BINDABLE_TABLE_SCAN_RULE,
+				Bindables.BINDABLE_FILTER_RULE,
+				Bindables.BINDABLE_JOIN_RULE,
+				Bindables.BINDABLE_PROJECT_RULE,
+				Bindables.BINDABLE_SORT_RULE,
+				JoinAssociateRule.INSTANCE
+		);
+
+		List<RelOptRule> rulesCBOV3 = Arrays.asList(
+				//RBO + BSQL Rules
+				AggregateExpandDistinctAggregatesRule.JOIN,
+				FilterAggregateTransposeRule.INSTANCE,
+				FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN,
+				FilterJoinRule.JoinConditionPushRule.JOIN,
+				ProjectMergeRule.INSTANCE,
+				FilterMergeRule.INSTANCE,
+				com.blazingdb.calcite.rules.ProjectJoinTransposeRule.INSTANCE,
+				com.blazingdb.calcite.rules.ProjectTableScanRule.INSTANCE,
+				com.blazingdb.calcite.rules.ProjectFilterTransposeRule.INSTANCE,
+				com.blazingdb.calcite.rules.ReduceExpressionsRule.PROJECT_INSTANCE,
+				com.blazingdb.calcite.rules.ReduceExpressionsRule.FILTER_INSTANCE,
+				com.blazingdb.calcite.rules.FilterTableScanRule.INSTANCE,
+				FilterRemoveIsNotDistinctFromRule.INSTANCE,
+				AggregateReduceFunctionsRule.INSTANCE,
+
+				//CBO
+//				Bindables.BINDABLE_TABLE_SCAN_RULE,
+				Bindables.BINDABLE_FILTER_RULE,
+				Bindables.BINDABLE_JOIN_RULE,
+				Bindables.BINDABLE_PROJECT_RULE,
+				Bindables.BINDABLE_SORT_RULE
+//				JoinAssociateRule.INSTANCE
+		);
+
+		System.out.println("<*****************************************************************************>");
+		String sql =
+//					"select c_custkey from `customer` inner join `orders` on c_custkey = o_custkey where c_custkey < 1000";
+//				JOIN
+//				"select l.l_orderkey, l.l_partkey, l.l_suppkey, l.l_linenumber" +
+//						" from lineitem l, supplier s, part p " +
+//						" where l.l_suppkey = s.s_suppkey and  l.l_partkey=p.p_partkey";
+//				JOIN + COLUMNS
+				"select l.l_orderkey, l.l_partkey, l.l_suppkey, l.l_linenumber" +
+						" from lineitem l, supplier s, part p " +
+						" where l.l_suppkey = s.s_suppkey and  l.l_partkey=p.p_partkey";
+		RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+		System.out.println("non optimized\n");
+//			System.out.println(RelOptUtil.toString(nonOptimizedPlan) + "\n");
+		System.out.println(RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		//RBO
+		algebraGen.setRules(rulesRBO);
+
+		optimizedPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+
+		System.out.println("optimized by rule: " + rulesRBO.getClass().getName() + "\n");
+//				System.out.println(RelOptUtil.toString(optimizedPlan) + "\n");
+		System.out.println(RelOptUtil.toString(optimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		//RBO + CBO
+		algebraGen.setRulesCBO(rulesCBO);
+
+		optimizedPlanCBO = algebraGen.getOptimizedRelationalAlgebraCBO(nonOptimizedPlan);
+
+		System.out.println("optimized by cbo rule: " + optimizedPlanCBO.toString() + "\n");
+//				System.out.println(RelOptUtil.toString(optimizedPlanCBO) + "\n");
+		System.out.println(RelOptUtil.toString(optimizedPlanCBO, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		//CBO
+		algebraGen.setRulesCBO(rulesCBOV2);
+
+		optimizedPlanCBO = algebraGen.getOptimizedRelationalAlgebraCBO(nonOptimizedPlan);
+
+		System.out.println("optimized by cbo rule: " + optimizedPlanCBO.toString() + "\n");
+//				System.out.println(RelOptUtil.toString(optimizedPlanCBO) + "\n");
+		System.out.println(RelOptUtil.toString(optimizedPlanCBO, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		//RBO + BSQL Custom rules + CBO
+		algebraGen.setRulesCBO(rulesCBOV3);
+
+		optimizedPlanCBO = algebraGen.getOptimizedRelationalAlgebraCBO(nonOptimizedPlan);
+
+		System.out.println("optimized by cbo rule: " + optimizedPlanCBO.toString() + "\n");
+//				System.out.println(RelOptUtil.toString(optimizedPlanCBO) + "\n");
+		System.out.println(RelOptUtil.toString(optimizedPlanCBO, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+
+		System.out.println("<*****************************************************************************>");
+
+	}
+
+	@Test()
+	public void
 	generateSQLCBOTest() throws Exception {
 		createTableSchemas();
 
@@ -316,7 +485,8 @@ public class BlazingRulesTest {
 			System.out.println("<*****************************************************************************>");
 
 			String sql =
-				"select c_custkey from `customer` inner join `orders` on c_custkey = o_custkey where c_custkey < 1000";
+//				"select c_custkey from `customer` inner join `orders` on c_custkey = o_custkey where c_custkey < 1000";
+				"select l.l_orderkey, l.l_partkey, l.l_suppkey, l.l_linenumber from lineitem l, supplier s, part p where l.l_suppkey = s.s_suppkey and  l.l_partkey=p.p_partkey";
 			RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
 			System.out.println("non optimized\n");
 			System.out.println(RelOptUtil.toString(nonOptimizedPlan) + "\n");
@@ -334,8 +504,47 @@ public class BlazingRulesTest {
 
 	//TPCH queries
 	List<Entry<String, String>> tpch_queries = Arrays.asList(
+		new AbstractMap.SimpleEntry<String, String>("tpch00", "select l.l_orderkey, l.l_partkey, l.l_suppkey, l.l_linenumber from lineitem l, supplier s, part p where l.l_suppkey = s.s_suppkey and  l.l_partkey=p.p_partkey"),
 		new AbstractMap.SimpleEntry<String, String>("tpch01", "select l_returnflag, l_linestatus, sum(l_quantity) as sum_qty, sum(l_extendedprice) as sum_base_price, sum(l_extendedprice*(1-l_discount)) as sum_disc_price, sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, avg(l_quantity) as avg_qty, avg(l_extendedprice) as avg_price, avg(l_discount) as avg_disc, count(*) as count_order from lineitem where l_shipdate <= date '1998-12-01' - interval '90' day group by l_returnflag, l_linestatus order by l_returnflag, l_linestatus"),
 		new AbstractMap.SimpleEntry<String, String>("tpch02", "select s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment from part, supplier, partsupp, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 15 and p_type like '%BRASS' and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' and ps_supplycost = ( select min(ps_supplycost) from partsupp, supplier, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' ) order by s_acctbal desc, n_name, s_name, p_partkey limit 100"),
+		/*
+		select s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment from part, supplier, partsupp, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 15 and p_type like '%BRASS' and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' and ps_supplycost = ( select min(ps_supplycost) from partsupp, supplier, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' ) order by s_acctbal desc, n_name, s_name, p_partkey limit 100
+		SELECT s_acctbal,
+			   s_name,
+			   n_name,
+			   p_partkey,
+			   p_mfgr,
+			   s_address,
+			   s_phone,
+			   s_comment
+		FROM   part, --70
+			   supplier, --50
+			   partsupp, --80
+			   nation, --30
+			   region --20
+		WHERE  p_partkey = ps_partkey
+			   AND s_suppkey = ps_suppkey
+			   AND p_size = 15
+			   AND p_type LIKE '%BRASS'
+			   AND s_nationkey = n_nationkey
+			   AND n_regionkey = r_regionkey
+			   AND r_name = 'EUROPE'
+			   AND ps_supplycost = (SELECT Min(ps_supplycost)
+									FROM   partsupp,
+										   supplier,
+										   nation,
+										   region
+									WHERE  p_partkey = ps_partkey
+										   AND s_suppkey = ps_suppkey
+										   AND s_nationkey = n_nationkey
+										   AND n_regionkey = r_regionkey
+										   AND r_name = 'EUROPE')
+		ORDER  BY s_acctbal DESC,
+				  n_name,
+				  s_name,
+				  p_partkey
+		LIMIT  100
+		 */
 		new AbstractMap.SimpleEntry<String, String>("tpch03", "select l_orderkey, sum(l_extendedprice*(1-l_discount)) as revenue, o_orderdate, o_shippriority from customer, orders, lineitem where c_mktsegment = 'BUILDING' and c_custkey = o_custkey and l_orderkey = o_orderkey and o_orderdate < date '1995-03-15' and l_shipdate > date '1995-03-15' group by l_orderkey, o_orderdate, o_shippriority order by revenue desc, o_orderdate limit 10"),
 		new AbstractMap.SimpleEntry<String, String>("tpch04", "select o_orderpriority, count(*) as order_count from orders where o_orderdate >= date '1993-07-01' and o_orderdate < date '1993-07-01' + interval '3' month and exists ( select * from lineitem where l_orderkey = o_orderkey and l_commitdate < l_receiptdate ) group by o_orderpriority order by o_orderpriority"),
 		new AbstractMap.SimpleEntry<String, String>("tpch05", "select n_name, sum(l_extendedprice * (1 - l_discount)) as revenue from customer, orders, lineitem, supplier, nation, region where c_custkey = o_custkey and l_orderkey = o_orderkey and l_suppkey = s_suppkey and c_nationkey = s_nationkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'ASIA' and o_orderdate >= date '1994-01-01' and o_orderdate < date '1994-01-01' + interval '1' year group by n_name order by revenue desc"),
@@ -413,6 +622,124 @@ public class BlazingRulesTest {
             String reference = (String)in.readObject();
 
 			softAssert.assertEquals(logicalPlan, reference, "In test " + entry.getKey());
+		}
+
+		in.close();
+		file.close();
+
+		softAssert.assertAll();
+	}
+
+	// When enabled, this unit test compares for all TPCH queries, the current optimized logical plans versus the last reference plans
+	@Test(enabled = true)
+	public void
+	checkPhysicalTPCHPlanTest() throws Exception {
+
+		createTableSchemas();
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		FileInputStream file = new FileInputStream(tpch_reference_filename);
+		ObjectInputStream in = new ObjectInputStream(file);
+
+		SoftAssert softAssert = new SoftAssert();
+
+		for (Entry<String, String> entry : tpch_queries)
+		{
+			String sql = entry.getValue();
+			RelNode nonOptimizedPlan = null;
+			RelNode optimizedLogicalPlan = null;
+			RelNode optimizedPhysicalPlan = null;
+			try {
+				nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+			} catch (Exception e){
+				System.out.println("ERROR-"+ entry.getKey() +" nonOptimizedPlan");
+				System.out.println(e.getMessage());
+			}
+			try {
+				optimizedLogicalPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+			} catch (Exception e){
+				System.out.println("ERROR-"+ entry.getKey() +" optimizedLogicalPlan");
+				System.out.println(e.getMessage());
+			}
+			try {
+				optimizedPhysicalPlan = algebraGen.getOptimizedRelationalAlgebraCBO(nonOptimizedPlan);
+			} catch (Exception e){
+				System.out.println("ERROR-"+ entry.getKey() +" optimizedPhysicalPlan");
+				System.out.println(e.getMessage());
+			}
+			System.out.println(entry.getKey() + ": " + sql);
+			System.out.println("*** nonOptimizedPlan ***");
+			System.out.println(RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+			System.out.println("*** optimizedLogicalPlan ***");
+			System.out.println(RelOptUtil.toString(optimizedLogicalPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+			System.out.println("*** optimizedPhysicalPlan ***");
+//			System.out.println(RelOptUtil.toString(optimizedPhysicalPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+			System.out.println(RelOptUtil.toString(optimizedPhysicalPlan) + "\n");
+		}
+
+		in.close();
+		file.close();
+
+		softAssert.assertAll();
+	}
+
+	@Test(enabled = true)
+	public void
+	comvertPhysicalBindableToLogicalTPCHPlanTest() throws Exception {
+
+		createTableSchemas();
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		FileInputStream file = new FileInputStream(tpch_reference_filename);
+		ObjectInputStream in = new ObjectInputStream(file);
+
+		SoftAssert softAssert = new SoftAssert();
+
+		for (Entry<String, String> entry : tpch_queries)
+		{
+			String sql = entry.getValue();
+			RelNode nonOptimizedPlan = null;
+			RelNode optimizedLogicalPlan = null;
+			RelNode optimizedPhysicalPlan = null;
+			try {
+				nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+			} catch (Exception e){
+				System.out.println("ERROR-"+ entry.getKey() +" nonOptimizedPlan");
+				System.out.println(e.getMessage());
+			}
+			try {
+				optimizedLogicalPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+			} catch (Exception e){
+				System.out.println("ERROR-"+ entry.getKey() +" optimizedLogicalPlan");
+				System.out.println(e.getMessage());
+			}
+			try {
+				optimizedPhysicalPlan = algebraGen.getOptimizedRelationalAlgebraCBO(nonOptimizedPlan);
+			} catch (Exception e){
+				System.out.println("ERROR-"+ entry.getKey() +" optimizedPhysicalPlan");
+				System.out.println(e.getMessage());
+			}
+			System.out.println(entry.getKey() + ": " + sql);
+			System.out.println("*** nonOptimizedPlan ***");
+//			System.out.println(RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+			System.out.println(RelOptUtil.toString(nonOptimizedPlan) + "\n");
+			System.out.println("*** optimizedLogicalPlan ***");
+//			System.out.println(RelOptUtil.toString(optimizedLogicalPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+			System.out.println(RelOptUtil.toString(optimizedLogicalPlan) + "\n");
+			System.out.println("*** optimizedPhysicalPlan ***");
+//			System.out.println(RelOptUtil.toString(optimizedPhysicalPlan, SqlExplainLevel.ALL_ATTRIBUTES) + "\n");
+			System.out.println(RelOptUtil.toString(optimizedPhysicalPlan) + "\n");
+
+			//convert physical Bindable to Logical plan except BindableTableScan
+			System.out.println("*** optimizedPhysicalPlan changed to lgical ***");
+//			System.out.println(RelOptUtil.toString(optimizedPhysicalPlan, SqlExplainLevel.ALL_ATTRIBUTES).replaceAll("Bindable", "Logical").replaceAll("LogicalTableScan", "BindableTableScan"));
+			System.out.println(RelOptUtil.toString(optimizedPhysicalPlan).replaceAll("Bindable", "Logical").replaceAll("LogicalTableScan", "BindableTableScan"));
 		}
 
 		in.close();

@@ -3,16 +3,17 @@ package com.blazingdb.calcite.application;
 import com.blazingdb.calcite.rules.FilterTableScanRule;
 import com.blazingdb.calcite.rules.ProjectFilterTransposeRule;
 import com.blazingdb.calcite.rules.ProjectTableScanRule;
-import com.blazingdb.calcite.rules.ProjectJoinTransposeRule;
-import com.blazingdb.calcite.rules.ReduceExpressionsRule;
+import com.blazingdb.calcite.interpreter.BindableTableScan;
 import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
 import org.apache.calcite.adapter.enumerable.EnumerableConvention;
+import org.apache.calcite.adapter.enumerable.EnumerableRules;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.interpreter.BindableConvention;
 import org.apache.calcite.interpreter.Bindables;
+import org.apache.calcite.interpreter.InterpretableRel;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
@@ -29,6 +30,7 @@ import org.apache.calcite.rel.rules.*;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperatorTable;
 import org.apache.calcite.sql.fun.SqlLibrary;
@@ -36,11 +38,7 @@ import org.apache.calcite.sql.fun.SqlLibraryOperatorTableFactory;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.ChainedSqlOperatorTable;
-import org.apache.calcite.tools.FrameworkConfig;
-import org.apache.calcite.tools.Frameworks;
-import org.apache.calcite.tools.Planner;
-import org.apache.calcite.tools.RelConversionException;
-import org.apache.calcite.tools.ValidationException;
+import org.apache.calcite.tools.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.EnumSet;
+import java.util.*;
 
 /**
  * <h1>Generate Relational Algebra</h1>
@@ -252,13 +247,59 @@ public class RelationalAlgebraGenerator {
 		VolcanoPlanner planner = (VolcanoPlanner) rboOptimizedPlan.getCluster().getPlanner();
 		planner.clear();
 
+		if(rules == null){
+			if (RelOptUtil.toString(rboOptimizedPlan).indexOf("OVER") != -1) {
+				//RBO Rules
+				planner.addRule(AggregateExpandDistinctAggregatesRule.JOIN);
+				planner.addRule(FilterAggregateTransposeRule.INSTANCE);
+				planner.addRule(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN);
+				planner.addRule(FilterJoinRule.JoinConditionPushRule.JOIN);
+				planner.addRule(ProjectMergeRule.INSTANCE);
+				planner.addRule(FilterMergeRule.INSTANCE);
+				//RBO BSQL Custom Rules
+				planner.addRule(com.blazingdb.calcite.rules.ProjectFilterTransposeRule.INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ReduceExpressionsRule.FILTER_INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ProjectTableScanRule.INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.FilterTableScanRule.INSTANCE);
+				//RBO Rules
+				planner.addRule(FilterRemoveIsNotDistinctFromRule.INSTANCE);
+				planner.addRule(AggregateReduceFunctionsRule.INSTANCE);
+			} else {
+				//RBO Rules
+				planner.addRule(AggregateExpandDistinctAggregatesRule.JOIN);
+				planner.addRule(FilterAggregateTransposeRule.INSTANCE);
+				planner.addRule(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN);
+				planner.addRule(FilterJoinRule.JoinConditionPushRule.JOIN);
+				planner.addRule(ProjectMergeRule.INSTANCE);
+				planner.addRule(FilterMergeRule.INSTANCE);
+				//RBO BSQL Custom Rules
+				planner.addRule(com.blazingdb.calcite.rules.ProjectJoinTransposeRule.INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ProjectTableScanRule.INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ProjectFilterTransposeRule.INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ReduceExpressionsRule.PROJECT_INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ReduceExpressionsRule.FILTER_INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.ProjectTableScanRule.INSTANCE);
+				planner.addRule(com.blazingdb.calcite.rules.FilterTableScanRule.INSTANCE);
+				//RBO Rules
+				planner.addRule(FilterRemoveIsNotDistinctFromRule.INSTANCE);
+				planner.addRule(AggregateReduceFunctionsRule.INSTANCE);
+			}
+		} else {
+			for(RelOptRule ruleRBO : rules) {
+				planner.addRule(ruleRBO);
+			}
+		}
+
 		if(rulesCBO == null){
-			planner.addRule(Bindables.BINDABLE_TABLE_SCAN_RULE);
+			planner.addRule(Bindables.BINDABLE_AGGREGATE_RULE);
 			planner.addRule(Bindables.BINDABLE_FILTER_RULE);
 			planner.addRule(Bindables.BINDABLE_JOIN_RULE);
+			planner.addRule(Bindables.BINDABLE_TABLE_SCAN_RULE);
 			planner.addRule(Bindables.BINDABLE_PROJECT_RULE);
 			planner.addRule(Bindables.BINDABLE_SORT_RULE);
-			planner.addRule(JoinAssociateRule.INSTANCE);
+			planner.addRule(JoinAssociateRule.INSTANCE); //to support: a x b x c = b x c x a
+//			planner.addRule(JoinPushThroughJoinRule.LEFT);
+//			planner.addRule(JoinPushThroughJoinRule.RIGHT);
 		} else {
 			for(RelOptRule ruleCBO : rulesCBO) {
 				planner.addRule(ruleCBO);
@@ -266,6 +307,7 @@ public class RelationalAlgebraGenerator {
 		}
 
 		rboOptimizedPlan = planner.changeTraits(rboOptimizedPlan, rboOptimizedPlan.getCluster().traitSet().replace(BindableConvention.INSTANCE));
+//		rboOptimizedPlan = planner.changeTraits(rboOptimizedPlan, rboOptimizedPlan.getCluster().traitSet().replace(EnumerableConvention.INSTANCE));
 		rboOptimizedPlan.getCluster().getPlanner().setRoot(rboOptimizedPlan);
 
 		return planner.chooseDelegate().findBestExp();
@@ -286,10 +328,33 @@ public class RelationalAlgebraGenerator {
 	public RelNode
 	getRelationalAlgebra(String sql) throws SqlSyntaxException, SqlValidationException, RelConversionException {
 		RelNode nonOptimizedPlan = getNonOptimizedRelationalAlgebra(sql);
-		LOGGER.debug("non optimized\n" + RelOptUtil.toString(nonOptimizedPlan));
+		LOGGER.debug("non optimized\n" + RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES));
 
 		RelNode optimizedPlan = getOptimizedRelationalAlgebra(nonOptimizedPlan);
-		LOGGER.debug("optimized\n" + RelOptUtil.toString(optimizedPlan));
+		LOGGER.debug("rbo optimized\n" + RelOptUtil.toString(optimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES));
+
+		return optimizedPlan;
+	}
+
+	/**
+	 * Takes a sql statement and converts it into an optimized relational algebra
+	 * node using CBO Cost Based Optimizer thru {@link org.apache.calcite.plan.volcano.VolcanoPlanner}.
+	 * The result of this function is a physical plan that has been optimized using a cost based optimizer.
+	 *
+	 * @param sql a string sql query that is to be parsed, converted into
+	 *     relational algebra, then optimized
+	 * @return a RelNode which contains the relational algebra tree generated from
+	 *     the sql statement provided after
+	 * 			an optimization step has been completed.
+	 * @throws SqlSyntaxException, SqlValidationException, RelConversionException
+	 */
+	public RelNode
+	getRelationalAlgebraCBO(String sql) throws SqlSyntaxException, SqlValidationException, RelConversionException {
+		RelNode nonOptimizedPlan = getNonOptimizedRelationalAlgebra(sql);
+		LOGGER.debug("non optimized\n" + RelOptUtil.toString(nonOptimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES));
+
+		RelNode optimizedPlan = getOptimizedRelationalAlgebraCBO(nonOptimizedPlan);
+		LOGGER.debug("cbo optimized\n" + RelOptUtil.toString(optimizedPlan, SqlExplainLevel.ALL_ATTRIBUTES));
 
 		return optimizedPlan;
 	}
@@ -316,7 +381,35 @@ public class RelationalAlgebraGenerator {
 			ex.printStackTrace();
 
 			LOGGER.error(ex.getMessage());
-			return "fail: \n " + ex.getMessage();
+			return "rbo fail: \n " + ex.getMessage();
+		}
+
+		return response;
+	}
+
+	public String
+	getRelationalAlgebraCBOString(String sql) throws SqlSyntaxException, SqlValidationException, RelConversionException {
+		String response = "";
+
+		try {
+			response = RelOptUtil.toString(getRelationalAlgebraCBO(sql));
+		}catch(SqlValidationException ex){
+			//System.out.println(ex.getMessage());
+			//System.out.println("Found validation err!");
+			throw ex;
+			//return "fail: \n " + ex.getMessage();
+		}catch(SqlSyntaxException ex){
+			//System.out.println(ex.getMessage());
+			//System.out.println("Found syntax err!");
+			throw ex;
+			//return "fail: \n " + ex.getMessage();
+		} catch(Exception ex) {
+			//System.out.println(ex.toString());
+			//System.out.println(ex.getMessage());
+			ex.printStackTrace();
+
+			LOGGER.error(ex.getMessage());
+			return "cbo fail: \n " + ex.getMessage();
 		}
 
 		return response;
