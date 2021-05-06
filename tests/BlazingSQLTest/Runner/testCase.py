@@ -146,6 +146,12 @@ class TestCase():
         singlenodeNoNulls = [item["NO_NULLS"] for item in tempSingleNode if isinstance(item, dict) and "NO_NULLS" in item]
         singlenodeNoNulls = [DataType[item] for item in chain.from_iterable(singlenodeNoNulls) if isinstance(item, str)]
 
+        withNulls = [item["WITH_NULLS"] for item in configTest.skip_with if isinstance(item, dict) and "WITH_NULLS" in item]
+        withNulls = [DataType[item] for item in chain.from_iterable(withNulls) if isinstance(item, str)]
+
+        noNulls = [item["NO_NULLS"] for item in configTest.skip_with if isinstance(item, dict) and "NO_NULLS" in item]
+        noNulls = [DataType[item] for item in chain.from_iterable(noNulls) if isinstance(item, str)]
+
         if fileSchemaType in allList:
             return True
 
@@ -163,6 +169,11 @@ class TestCase():
                 return True
             if self.withNulls == "false" and singlenodeNoNulls and fileSchemaType in singlenodeNoNulls:
                 return True
+
+        if self.withNulls == "true" and fileSchemaType in withNulls:
+            return True
+        if self.withNulls == "false" and fileSchemaType in noNulls:
+            return True
 
         return False
 
