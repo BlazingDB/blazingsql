@@ -26,6 +26,7 @@ class ConfigTest():
     compare_with = None
     skip_with = []
     spark_query = None
+    comparing = None
 
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
@@ -59,6 +60,7 @@ class TestCase():
             setup = self.data["SETUP"]
 
             if setup.get("SKIP_WITH") is not None: self.configLocal.skip_with = setup.get("SKIP_WITH")
+            if setup.get("COMPARING") is not None: self.configLocal.comparing = setup.get("COMPARING")
             if setup.get("APPLY_ORDER") is not None: self.configLocal.apply_order = setup.get("APPLY_ORDER")
             if setup.get("ORDER_BY_COL") is not None: self.configLocal.order_by_col = setup.get("ORDER_BY_COL")
             if setup.get("PRINT_RESULT") is not None: self.configLocal.print_result = setup.get("PRINT_RESULT")
@@ -94,6 +96,7 @@ class TestCase():
             setup = self.data[test_name]["SETUP"]
 
             if setup.get("SKIP_WITH") is not None: config.skip_with = setup.get("SKIP_WITH")
+            if setup.get("COMPARING") is not None: config.comparing = setup.get("COMPARING")
             if setup.get("APPLY_ORDER") is not None: config.apply_order = setup.get("APPLY_ORDER")
             if setup.get("ORDER_BY_COL") is not None: config.order_by_col = setup.get("ORDER_BY_COL")
             if setup.get("PRINT_RESULT") is not None: config.print_result = setup.get("PRINT_RESULT")
@@ -220,7 +223,8 @@ class TestCase():
                     configTest.use_percentage,
                     fileSchemaType,
                     print_result=configTest.print_result,
-                    query_spark=configTest.spark_query
+                    query_spark=configTest.spark_query,
+                    comparing=configTest.comparing
                 )
 
     def run(self, bc, dask_client, drill, spark):

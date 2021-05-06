@@ -99,19 +99,8 @@ TEST_SUITE:
     SQL: |
       select current_date, o_orderkey, current_time, current_timestamp
                         from orders where o_orderkey < 750
-#            runTest.run_query(
-#                bc,
-#                drill,
-#                query,
-#                queryId,
-#                queryType,
-#                worder,
-#                "",
-#                acceptable_difference,
-#                use_percentage,
-#                fileSchemaType,
-#                comparing="false"
-#            )
+    SETUP:
+      COMPARING: False
 
   TEST_09:
     SQL: |
@@ -121,16 +110,5 @@ TEST_SUITE:
                     on lineitem.l_receiptdate = orders.o_orderdate
                     where orders.o_orderkey < 40 and lineitem.l_orderkey < 30
                     order by orders.o_orderkey, lineitem.l_linenumber
-#            runTest.run_query(
-#                bc,
-#                drill,
-#                query,
-#                queryId,
-#                queryType,
-#                worder,
-#                "",
-#                acceptable_difference,
-#                use_percentage,
-#                fileSchemaType,
-#                comparing="false"
-#            )
+    SETUP:
+      COMPARING: False

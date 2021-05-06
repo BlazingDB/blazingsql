@@ -329,7 +329,7 @@ def print_query_results(
     load_time,
     engine_time,
     total_time,
-    comparing="true"
+    comparing=True
 ):
     if print_result:
         print("#BLZ:")
@@ -359,7 +359,7 @@ def print_query_results(
         compareResults = Settings.data["RunSettings"]["compare_results"]
 
     # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
-    if comparing == "false":
+    if not comparing:
         compareResults = False
 
     if compareResults:
@@ -1360,7 +1360,7 @@ def run_query(
 
     algebra = kwargs.get("algebra", "")
 
-    comparing = kwargs.get("comparing", "false")
+    comparing = kwargs.get("comparing", True)
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
