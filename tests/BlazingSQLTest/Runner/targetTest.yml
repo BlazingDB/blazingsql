@@ -135,9 +135,9 @@ LIST_TEST:
     NAME: Non-EquiJoin Queries
     FILE: nonEquiJoinsSuite.yaml
     CODE: NEQUIJOIN
-  notPassTmpSuite:
+  predicatesWithNullsSuite:
     NAME: Predicates With Nulls
-    FILE: notPassTmpSuite.yaml
+    FILE: predicatesWithNulls.yaml
     CODE: PREDWNULLS
   orderbySuite:
     NAME: Order by
@@ -155,9 +155,9 @@ LIST_TEST:
     NAME: String case
     FILE: stringCaseSuite.yaml
     CODE: STRINGCASE
-  stringSuites:
+  simpleStringSuites:
     NAME: Simple String
-    FILE: stringSSuite.yaml
+    FILE: simpleStringSuite.yaml
     CODE: SSTRING
   substringSuite:
     NAME: Substring
@@ -199,7 +199,7 @@ LIST_TEST:
     NAME: Union
     FILE: unionSuite.yaml
     CODE: UNION
-  useLimitSuite:
+  LimitSuite:
     NAME: Limit
     FILE: useLimitSuite.yaml
     CODE: LIMIT
