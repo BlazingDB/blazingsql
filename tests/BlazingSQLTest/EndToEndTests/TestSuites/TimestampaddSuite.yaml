@@ -1,0 +1,124 @@
+# Timestampadd Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+          - DASK_CUDF
+      - ORC
+
+# NOTE: All these drill results were generated using a newer version of Drill
+# (at least 1.15). So, when using with ExecutionMode != GPUCI, is expected to
+# crash in Drill side if you have an older version for Drill.
+  TEST_01:
+    SQL: |
+        select o_orderdate, TIMESTAMPADD(DAY, 4, o_orderdate) as add_day_col
+                        from orders order by o_orderkey limit 150
+
+  TEST_02:
+    SQL: |
+        select o_orderdate, TIMESTAMPADD(HOUR, 12, o_orderdate) as add_hour_col
+                        from orders order by o_orderkey limit 450
+
+  TEST_03:
+    SQL: |
+        select o_orderdate, TIMESTAMPADD(MINUTE, 42, o_orderdate) as add_minute_col
+                        from orders order by o_orderkey limit 350
+
+  TEST_04:
+    SQL: |
+        select o_orderdate, TIMESTAMPADD(SECOND, 21, o_orderdate) as add_second_col
+                        from orders order by o_orderkey limit 250
+
+  TEST_05:
+    SQL: |
+        select o_orderdate,
+                            TIMESTAMPADD(DAY, 18, CAST(o_orderdate AS TIMESTAMP)) as add_day_col
+                        from orders order by o_orderkey limit 250
+
+# Tests: [06 - 09] are to consider multiple cases
+# when using different type of TIMESTAMP unit
+  TEST_06:
+    SQL: |
+        with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 10000
+                        ) 
+                        select my_date, 
+                                timestampadd(DAY, 17, cast(my_date as timestamp)) as add_day_col
+                        from date_table limit 450
+
+  TEST_07:
+    SQL: |
+        with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 10000
+                        ) 
+                        select my_date, 
+                                timestampadd(HOUR, 48, cast(my_date as timestamp)) as add_hour_col
+                        from date_table limit 450
+
+  TEST_08:
+    SQL: |
+        with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 12000
+                        ) 
+                        select my_date, 
+                                timestampadd(MINUTE, 75, cast(my_date as timestamp)) as add_minute_col
+                        from date_table limit 400
+
+  TEST_09:
+    SQL: |
+        with date_table as (
+                            select cast(o_orderdate as date) as my_date
+                            from orders order by o_orderkey limit 12000
+                        ) 
+                        select my_date, 
+                                timestampadd(SECOND, 150, cast(my_date as timestamp)) as add_second_col
+                        from date_table limit 400
+
+# Tests: [10 - 17] are just to ensure that TIMESTAMPADD works with constant values
+  TEST_10:
+    SQL: |
+        select TIMESTAMPADD(DAY, 22, TIMESTAMP '1995-12-10 02:06:17') as constant_col
+                        from nation
+
+  TEST_11:
+    SQL: |
+        select TIMESTAMPADD(DAY, 92, date '1995-07-06') as constant_col
+                        from nation
+
+  TEST_12:
+    SQL: |
+        select TIMESTAMPADD(HOUR, 21, TIMESTAMP '1995-12-10 02:06:17') as constant_col
+                        from nation
+
+  TEST_13:
+    SQL: |
+        select TIMESTAMPADD(HOUR, 78, date '1995-07-06') as constant_col
+                        from nation
+
+  TEST_14:
+    SQL: |
+        select TIMESTAMPADD(MINUTE, 72, TIMESTAMP '1995-12-10 02:06:17') as constant_col
+                        from nation
+
+  TEST_15:
+    SQL: |
+        select TIMESTAMPADD(MINUTE, 47, date '1995-07-06') as constant_col
+                        from nation
+
+  TEST_16:
+    SQL: |
+        select TIMESTAMPADD(SECOND, 105, TIMESTAMP '1995-12-10 02:06:17') as constant_col
+                        from nation
+
+  TEST_17:
+    SQL: |
+        select TIMESTAMPADD(SECOND, 16, date '1995-07-06') as constant_col
+                        from nation

@@ -1,0 +1,60 @@
+# Right outer join Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+          - DASK_CUDF
+
+  TEST_01:
+    SQL: |
+        select n.n_nationkey, r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10
+    SETUP:
+      ORDER_BY_COL: n_nationkey
+
+  TEST_02:
+    SQL: |
+        select n.n_nationkey, r.r_regionkey,
+                        n.n_nationkey + r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10
+    SETUP:
+      ORDER_BY_COL: n_nationkey
+
+  TEST_03:
+    SQL: |
+        select n.n_nationkey, r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_regionkey = r.r_regionkey
+                    where n.n_nationkey < 10
+    SETUP:
+      ORDER_BY_COL: n_nationkey
+
+  TEST_04:
+    SQL: |
+        select n.n_nationkey, r.r_regionkey
+                    from nation as n right outer join region as r
+                    on n.n_regionkey = r.r_regionkey
+                    where n.n_nationkey < 10
+                    and n.n_nationkey > 5
+    SETUP:
+      ORDER_BY_COL: n_nationkey
+
+  TEST_05:
+    SQL: |
+        select l.l_orderkey, l.l_partkey, l.l_quantity, o.o_totalprice, o.o_clerk
+                    from lineitem as l right outer join orders as o
+                    on l.l_orderkey = o.o_orderkey
+                    where o.o_totalprice < 87523.2
+                    and l.l_returnflag in ('A', 'R')
+                    order by o.o_totalprice
+    SETUP:
+      ORDER_BY_COL: o_totalprice

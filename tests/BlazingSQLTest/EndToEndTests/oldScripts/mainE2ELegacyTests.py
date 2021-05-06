@@ -19,8 +19,8 @@ def runLegacyTest(bc, dask_client, drill, spark):
     if runAllTests or ("columnBasisTest" in targetTestGroups):
         columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if runAllTests or ("hiveFileTest" in targetTestGroups):
-        hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
+    # if runAllTests or ("hiveFileTest" in targetTestGroups):
+    #     hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     # HDFS is not working yet
     # fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc)

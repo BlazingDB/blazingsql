@@ -69,3 +69,67 @@ TEST_SUITE:
                     on lineitem.l_receiptdate = orders.o_orderdate
                     where orders.o_orderkey < 30 and lineitem.l_orderkey < 20
                     order by orders.o_orderkey, lineitem.l_linenumber
+
+# Tests for `CURRENT_DATE`, `CURRENT_TIME` and `CURRENT_TIMESTAMP`
+  TEST_06:
+    SQL: |
+      with current_table as (
+                            select o_orderkey, current_date, o_custkey
+                            from orders where o_orderkey < 350
+                    )
+                    select o_orderkey, o_custkey
+                    from current_table
+
+
+  # Note: As we don't have support for time dtype, then `current_time` will
+  # return the same as `current_timestamp`
+  TEST_07:
+    SQL: |
+      with current_table as (
+                            select o_orderkey, current_time, o_custkey, current_timestamp
+                            from orders where o_orderkey < 750
+                    )
+                    select o_orderkey, o_custkey
+                    from current_table limit 50
+
+  # As `current_date`, `current_time` and `current_timestamp` always will return
+  # different values by each new execution, let's not compare
+  TEST_08:
+    SQL: |
+      select current_date, o_orderkey, current_time, current_timestamp
+                        from orders where o_orderkey < 750
+#            runTest.run_query(
+#                bc,
+#                drill,
+#                query,
+#                queryId,
+#                queryType,
+#                worder,
+#                "",
+#                acceptable_difference,
+#                use_percentage,
+#                fileSchemaType,
+#                comparing="false"
+#            )
+
+  TEST_09:
+    SQL: |
+      select orders.o_orderkey, CURRENT_DATE, orders.o_orderdate,
+                    lineitem.l_receiptdate, orders.o_orderstatus
+                    from orders inner join lineitem
+                    on lineitem.l_receiptdate = orders.o_orderdate
+                    where orders.o_orderkey < 40 and lineitem.l_orderkey < 30
+                    order by orders.o_orderkey, lineitem.l_linenumber
+#            runTest.run_query(
+#                bc,
+#                drill,
+#                query,
+#                queryId,
+#                queryType,
+#                worder,
+#                "",
+#                acceptable_difference,
+#                use_percentage,
+#                fileSchemaType,
+#                comparing="false"
+#            )

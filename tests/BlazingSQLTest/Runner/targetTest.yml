@@ -143,6 +143,10 @@ LIST_TEST:
     NAME: Order by
     FILE: orderbySuite.yaml
     CODE: ORDERBY
+  rightOuterJoins:
+    NAME: Right outer join
+    FILE: rightOuterJoinSuite.yaml
+    CODE: ROUTJOIN
   roundSuite:
     NAME: Round
     FILE: roundSuite.yaml
@@ -171,10 +175,14 @@ LIST_TEST:
     NAME: Tables from Pandas
     FILE: tablesFromPandasSuite.yaml
     CODE: TBLPANDAS
-#  timestampdiffSuite: #Not supported yet
-#    NAME: Timestampdiff
-#    FILE: timestampdiffSuite.yaml
-#    CODE: TIMESTAMPD
+  timestampdiffSuite:
+    NAME: Timestampdiff
+    FILE: timestampdiffSuite.yaml
+    CODE: TIMESTAMPD
+  TimestampaddSuite:
+    NAME: Timestampadd
+    FILE: TimestampaddSuite.yaml
+    CODE: TIMESTAMPADD
   timestampSuite:
     NAME: Timestamp
     FILE: timestampSuite.yaml
