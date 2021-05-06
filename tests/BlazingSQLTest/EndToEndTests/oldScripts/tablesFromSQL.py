@@ -6,7 +6,7 @@ from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from Runner import runTest
 from Utils import gpuMemory, skip_test
-from EndToEndTests import tpchQueries
+from EndToEndTests.oldScripts import tpchQueries
 
 
 class Sample:

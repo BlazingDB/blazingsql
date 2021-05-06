@@ -15,12 +15,14 @@ from EndToEndTests.oldScripts import fileSystemGSTest
 from EndToEndTests.oldScripts import loggingTest
 from EndToEndTests.oldScripts import smilesTest
 from EndToEndTests.oldScripts import configOptionsTest
+from EndToEndTests.oldScripts import tablesFromSQL
 
 def runLegacyTest(bc, dask_client, drill, spark):
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
 
-    dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
     nRals = Settings.data["RunSettings"]["nRals"]
+    dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     runAllTests = (
         len(targetTestGroups) == 0
@@ -53,7 +55,6 @@ def runLegacyTest(bc, dask_client, drill, spark):
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
     if testsWithNulls != "true":
         if Settings.execution_mode != ExecutionMode.GPUCI:
             if runAllTests or ("fileSystemS3Test" in targetTestGroups):
