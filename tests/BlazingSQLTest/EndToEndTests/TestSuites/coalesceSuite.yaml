@@ -9,6 +9,7 @@ TEST_SUITE:
     SKIP_WITH:
       - SINGLENODE:
           - DASK_CUDF
+      - JSON
 
   TEST_01:
     SQL: |

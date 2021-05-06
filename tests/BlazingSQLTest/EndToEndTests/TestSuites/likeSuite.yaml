@@ -15,6 +15,7 @@ TEST_SUITE:
         - ORC 
         - PARQUET
         - JSON
+      - JSON
 
   TEST_01:
     SQL: |

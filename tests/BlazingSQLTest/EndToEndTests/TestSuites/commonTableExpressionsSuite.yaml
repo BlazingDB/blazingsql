@@ -9,6 +9,7 @@ TEST_SUITE:
     SKIP_WITH:
       - MULTINODE:
           - CUDF
+      - JSON
 
   TEST_01:
     SQL: |

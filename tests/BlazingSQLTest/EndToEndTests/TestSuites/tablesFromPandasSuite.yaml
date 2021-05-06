@@ -10,6 +10,7 @@ TEST_SUITE:
       - MULTINODE:
           - CUDF
       - ORC
+      - JSON
 
   TEST_01:
     SQL: |
