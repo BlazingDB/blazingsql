@@ -7,7 +7,7 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01 #0.1
     COMPARE_WITH: drill
     SKIP_WITH:
-      - MULTINODE:
+      - SINGLENODE:
           - DASK_CUDF
       - JSON
 

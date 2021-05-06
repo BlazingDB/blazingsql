@@ -71,7 +71,7 @@ def checkErrors(result, error_msgs):
 
 
 def runE2ETest(bc, dask_client, drill, spark):
-    # mainE2ELegacyTests.runLegacyTest(bc, dask_client, drill, spark)
+    mainE2ELegacyTests.runLegacyTest(bc, dask_client, drill, spark)
 
     runnerTest = TestSuites(bc, dask_client, drill, spark)
     runnerTest.setTargetTest(Settings.data["RunSettings"]["targetTestGroups"])

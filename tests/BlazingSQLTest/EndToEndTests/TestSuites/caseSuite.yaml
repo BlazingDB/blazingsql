@@ -7,10 +7,10 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
     SKIP_WITH:
-      - MULTINODE:
+      - SINGLENODE:
           - DASK_CUDF
       - JSON
-
+      
   TEST_01:
     SQL: |
         select case when o_custkey > 20 then o_orderkey

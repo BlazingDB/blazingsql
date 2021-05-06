@@ -4,7 +4,7 @@ from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from Runner import runTest
 from Utils import gpuMemory, skip_test
-from EndToEndTests.tpchQueries import get_tpch_query
+from EndToEndTests.oldScripts.tpchQueries import get_tpch_query
 
 queryType = "Concurrent"
 data_types = [

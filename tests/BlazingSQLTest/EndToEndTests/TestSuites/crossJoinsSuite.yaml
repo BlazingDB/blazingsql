@@ -7,7 +7,7 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0
     COMPARE_WITH: spark
     SKIP_WITH:
-      - MULTINODE:
+      - SINGLENODE:
           - DASK_CUDF
       - JSON
 
