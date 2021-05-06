@@ -153,10 +153,7 @@ std::vector<std::unique_ptr<BlazingTable>> make_table(cudf::size_type size) {
 	return batches;
 }
 
-// Skipping this one, as locally was crashing randomly
 TEST_F(ExceptionHandlingTest, cpu_data_fail_on_decache) {
-
-	GTEST_SKIP();
 
 	std::shared_ptr<Context> context = make_context();
 
