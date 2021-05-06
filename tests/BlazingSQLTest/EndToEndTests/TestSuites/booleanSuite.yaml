@@ -10,6 +10,9 @@ TEST_SUITE:
       - MULTINODE:
           - DASK_CUDF
       - JSON
+      - ORC
+      - PARQUET
+      - CUDF
 
   TEST_01:
     SQL: |
