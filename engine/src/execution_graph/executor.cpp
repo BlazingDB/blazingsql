@@ -86,13 +86,22 @@ void task::run(cudaStream_t stream, executor * executor){
                     //if its cpu and it fails the buffers arent deleted
                     //if its disk and fails the file isnt deleted
                     //so this should be safe
+
+                    if (this->kernel->has_limit_ && executor->get_total_rows_accumulated() > this->kernel->limit_rows_) {
+                        // enough rows for queries like 
+                        // "select col_a, col_b from table limit N" or "select * from table limit N"
+                        break;
+                    }
+                    
                     last_input_decached++;
-                    input_gpu.push_back(std::move(input->decache()));
+                    auto decached_input = input->decache();
+                    executor->accumulate_rows(decached_input->num_rows());
+                    input_gpu.push_back(std::move(decached_input));
             }
     }catch(const rmm::bad_alloc& e){
         int i = 0;
         for(auto & input : inputs){
-            if (i < last_input_decached && input->get_type() == ral::cache::CacheDataType::GPU ){
+            if (i < last_input_decached && input->get_type() == ral::cache::CacheDataType::GPU){
                 //this was a gpu cachedata so now its not valid
                 static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
             }
@@ -131,7 +140,7 @@ void task::run(cudaStream_t stream, executor * executor){
     }
     
     CodeTimer executionEventTimer;
-    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+    auto task_result = kernel->process(std::move(input_gpu), output, stream, args);
 
     if(task_logger) {
         task_logger->info("{time_started}|{ral_id}|{query_id}|{kernel_id}|{duration_decaching}|{duration_execution}|{input_num_rows}|{input_num_bytes}",
@@ -197,7 +206,7 @@ void task::set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inpu
 executor * executor::_instance;
 
 executor::executor(int num_threads, double processing_memory_limit_threshold) :
- pool(num_threads), task_id_counter(0), resource(&blazing_device_memory_resource::getInstance()), task_queue("executor_task_queue") {
+ pool(num_threads), task_id_counter(0), total_rows_accumulated(0), resource(&blazing_device_memory_resource::getInstance()), task_queue("executor_task_queue") {
      processing_memory_limit = resource->get_total_memory() * processing_memory_limit_threshold;
      for( int i = 0; i < num_threads; i++){
          cudaStream_t stream;
@@ -233,7 +242,7 @@ void executor::execute(){
             active_tasks_counter++;
 
             try {
-                cur_task->run(this->streams[thread_id],this);
+                cur_task->run(this->streams[thread_id], this);
             } catch(...) {
                 std::unique_lock<std::mutex> lock(exception_holder_mutex);
                 exception_holder.push(std::current_exception());
