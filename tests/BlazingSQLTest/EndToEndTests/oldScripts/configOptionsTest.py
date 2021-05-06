@@ -6,7 +6,7 @@ from Utils import gpuMemory, skip_test, init_context
 from pynvml import nvmlInit
 from blazingsql import DataType
 from Configuration import ExecutionMode
-from EndToEndTests import tpchQueries as tpch
+from EndToEndTests.oldScripts import tpchQueries as tpch
 import gc
 import time
 

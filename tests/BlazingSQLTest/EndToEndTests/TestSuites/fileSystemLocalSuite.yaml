@@ -8,8 +8,9 @@ TEST_SUITE:
     COMPARE_WITH: drill
     SKIP_WITH:
       - MULTINODE:
-        - CUDF
-
+          - DASK_CUDF
+      - JSON
+      
   TEST_01:
     SQL: |
         select count(c_custkey) as c1, count(c_acctbal) as c2

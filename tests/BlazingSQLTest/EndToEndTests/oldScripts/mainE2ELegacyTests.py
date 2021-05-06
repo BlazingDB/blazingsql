@@ -6,6 +6,10 @@ from EndToEndTests.oldScripts import fileSystemS3Test
 from EndToEndTests.oldScripts import columnBasisTest
 from EndToEndTests.oldScripts import hiveFileTest
 
+from EndToEndTests.oldScripts import configOptionsTest
+
+from EndToEndTests.oldScripts import messageValidationTest
+
 def runLegacyTest(bc, dask_client, drill, spark):
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
 
@@ -27,6 +31,13 @@ def runLegacyTest(bc, dask_client, drill, spark):
 
     # HDFS is not working yet
     # mixedFileSystemTest.main(dask_client, drill, dir_data_file, bc)
+
+    if runAllTests or ("messageValidationTest" in targetTestGroups):
+        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("configOptionsTest" in targetTestGroups):
+        configOptionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
     if testsWithNulls != "true":

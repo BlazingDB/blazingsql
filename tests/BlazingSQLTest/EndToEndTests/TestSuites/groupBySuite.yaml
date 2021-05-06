@@ -8,7 +8,8 @@ TEST_SUITE:
     COMPARE_WITH: drill
     SKIP_WITH:
       - MULTINODE:
-        - CUDF
+          - DASK_CUDF
+      - JSON
 
   TEST_01:
     SQL: |
@@ -84,6 +85,14 @@ TEST_SUITE:
                     GROUP BY l_partkey, l_suppkey
     SETUP:
       COMPARE_WITH: spark
+      SKIP_WITH:
+        SINGLENODE:
+          WITH_NULLS:
+            - DASK_CUDF
+            - CSV
+            - ORC 
+            - PARQUET
+            - CUDF 
 
   TEST_09:
     SQL: |
