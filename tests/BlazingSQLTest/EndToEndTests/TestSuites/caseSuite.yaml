@@ -8,7 +8,7 @@ TEST_SUITE:
     COMPARE_WITH: drill
     SKIP_WITH:
       - SINGLENODE:
-          - CUDF
+          - DASK_CUDF
 
   TEST_01:
     SQL: |
