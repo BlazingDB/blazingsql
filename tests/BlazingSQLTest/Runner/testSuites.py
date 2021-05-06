@@ -36,7 +36,8 @@ class TestSuites():
             DataType.CUDF,
             DataType.CSV,
             DataType.PARQUET,
-            DataType.ORC
+            DataType.ORC,
+            DataType.JSON
         ]
 
     def __loadTargetTestDataFromFile(self):

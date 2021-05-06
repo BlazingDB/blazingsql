@@ -10,6 +10,9 @@ from EndToEndTests.oldScripts import configOptionsTest
 
 from EndToEndTests.oldScripts import messageValidationTest
 
+from EndToEndTests.oldScripts import concurrentTest
+
+
 def runLegacyTest(bc, dask_client, drill, spark):
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
 
@@ -34,6 +37,9 @@ def runLegacyTest(bc, dask_client, drill, spark):
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("concurrentTest" in targetTestGroups):
+        concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("configOptionsTest" in targetTestGroups):
         configOptionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
