@@ -265,7 +265,8 @@ public:
     constexpr static char BOOLEAN_REGEX_STR[] = R"(true|false)";
     constexpr static char NUMBER_REGEX_STR[] = R"([-+]?\d*\.?\d+([eE][-+]?\d+)?)";
     constexpr static char DURATION_S_REGEX_STR[] = R"(\d{2}:\d{2}:\d{2})";
-    constexpr static char DURATION_MS_REGEX_STR[] = R"(\d{2}:\d{2}:\d{2}.\d{6})";
+    constexpr static char DURATION_MS_REGEX_STR[] = R"(\d{2}:\d{2}:\d{2}.\d{3})";
+    constexpr static char DURATION_US_REGEX_STR[] = R"(\d{2}:\d{2}:\d{2}.\d{6})";
     constexpr static char DURATION_NS_REGEX_STR[] = R"(\d{2}:\d{2}:\d{2}.\d{9})";
     constexpr static char TIMESTAMP_D_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2})";
     constexpr static char TIMESTAMP_S_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]?\d{2}:\d{2}:\d{2}))";
@@ -286,6 +287,7 @@ public:
         Number,
         Duration_s,
         Duration_ms,
+        Duration_us,
         Duration_ns,
         Timestamp_d,
         Timestamp_s,
@@ -320,6 +322,7 @@ private:
     std::regex number_regex{"^" + std::string(lexer::NUMBER_REGEX_STR)};
     std::regex duration_s_regex{"^" + std::string(lexer::DURATION_S_REGEX_STR)};
     std::regex duration_ms_regex{"^" + std::string(lexer::DURATION_MS_REGEX_STR)};
+    std::regex duration_us_regex{"^" + std::string(lexer::DURATION_MS_REGEX_STR)};
     std::regex duration_ns_regex{"^" + std::string(lexer::DURATION_MS_REGEX_STR)};
     std::regex timestamp_d_regex{"^" + std::string(lexer::TIMESTAMP_D_REGEX_STR)};
     std::regex timestamp_s_regex{"^" + std::string(lexer::TIMESTAMP_S_REGEX_STR)};

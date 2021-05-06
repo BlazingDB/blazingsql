@@ -360,9 +360,28 @@ bool is_number(const std::string & token) {
 	return std::regex_match(token, re);
 }
 
-bool is_hour(const std::string & token) {
+bool is_time_until_s(const std::string & token) {
 	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2})"};
 	return std::regex_match(token, re);
+}
+
+bool is_time_until_ms(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time_until_us(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time_until_ns(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time(const std::string & token) {
+	return (is_time_until_s(token) || is_time_until_ms(token) || is_time_until_us(token) || is_time_until_ns(token));
 }
 
 bool is_date_with_dash(const std::string & token) {
@@ -479,7 +498,7 @@ bool is_operator_token(const std::string & token) {
 
 bool is_literal(const std::string & token) {
 	return is_null(token) || is_bool(token) || is_number(token) || is_date(token) || is_string(token) ||
-		   is_timestamp(token) || is_hour(token);
+		   is_timestamp(token) || is_time(token);
 }
 
 bool is_var_column(const std::string& token){
