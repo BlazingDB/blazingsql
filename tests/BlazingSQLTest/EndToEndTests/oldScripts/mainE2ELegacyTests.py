@@ -28,9 +28,6 @@ def runLegacyTest(bc, dask_client, drill, spark):
     # HDFS is not working yet
     # mixedFileSystemTest.main(dask_client, drill, dir_data_file, bc)
 
-    if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
-        fileSystemLocalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
     if testsWithNulls != "true":
         if Settings.execution_mode != ExecutionMode.GPUCI:
