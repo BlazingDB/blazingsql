@@ -43,6 +43,7 @@ class TestCase():
 
         self.nRals = Settings.data["RunSettings"]["nRals"]
         self.dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
+        self.withNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
         self.__loadFileSuite()
         self.__loadConfigTest()
@@ -125,11 +126,27 @@ class TestCase():
         allList = [item for item in configTest.skip_with if isinstance(item, str)]
         allList = [DataType[item] for item in allList]
 
-        multinode = [item["MULTINODE"] for item in configTest.skip_with if isinstance(item, dict) and "MULTINODE" in item]
-        multinode = [DataType[item] for item in chain.from_iterable(multinode)]
+        tempMultinode = [item["MULTINODE"] for item in configTest.skip_with if isinstance(item, dict) and "MULTINODE" in item]
+        tempMultinode = list(chain.from_iterable(tempMultinode))
 
-        singlenode = [item["SINGLENODE"] for item in configTest.skip_with if isinstance(item, dict) and "SINGLENODE" in item]
-        singlenode = [DataType[item] for item in chain.from_iterable(singlenode)]
+        multinode = [DataType[item] for item in tempMultinode if isinstance(item, str)]
+
+        multinodeWithNulls = [item["WITH_NULLS"] for item in tempMultinode if isinstance(item, dict) and "WITH_NULLS" in item]
+        multinodeWithNulls = [DataType[item] for item in chain.from_iterable(multinodeWithNulls) if isinstance(item, str)]
+
+        multinodeNoNulls = [item["NO_NULLS"] for item in tempMultinode if isinstance(item, dict) and "NO_NULLS" in item]
+        multinodeNoNulls = [DataType[item] for item in chain.from_iterable(multinodeNoNulls) if isinstance(item, str)]
+
+        tempSingleNode = [item["SINGLENODE"] for item in configTest.skip_with if isinstance(item, dict) and "SINGLENODE" in item]
+        tempSingleNode = list(chain.from_iterable(tempSingleNode))
+
+        singlenode = [DataType[item] for item in tempSingleNode if isinstance(item, str)]
+
+        singlenodeWithNulls = [item["WITH_NULLS"] for item in tempSingleNode if isinstance(item, dict) and "WITH_NULLS" in item]
+        singlenodeWithNulls = [DataType[item] for item in chain.from_iterable(singlenodeWithNulls) if isinstance(item, str)]
+
+        singlenodeNoNulls = [item["NO_NULLS"] for item in tempSingleNode if isinstance(item, dict) and "NO_NULLS" in item]
+        singlenodeNoNulls = [DataType[item] for item in chain.from_iterable(singlenodeNoNulls) if isinstance(item, str)]
 
         if fileSchemaType in allList:
             return True
@@ -137,8 +154,16 @@ class TestCase():
         if self.nRals > 1:
             if multinode and fileSchemaType in multinode:
                 return True
+            if self.withNulls == "true" and multinodeWithNulls and fileSchemaType in multinodeWithNulls:
+                return True
+            if self.withNulls == "false" and multinodeNoNulls and fileSchemaType in multinodeNoNulls:
+                return True
         else:
             if singlenode and fileSchemaType in singlenode:
+                return True
+            if self.withNulls == "true" and singlenodeWithNulls and fileSchemaType in singlenodeWithNulls:
+                return True
+            if self.withNulls == "false" and singlenodeNoNulls and fileSchemaType in singlenodeNoNulls:
                 return True
 
         return False
