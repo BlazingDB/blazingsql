@@ -71,6 +71,11 @@ def runLegacyTest(bc, dask_client, drill, spark):
     # if runAllTests or ("smilesTest" in targetTestGroups):
     #    smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
+    if testsWithNulls == "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("tablesFromSQL" in targetTestGroups):
+                tablesFromSQL.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
     # WARNING!!! This Test must be the last one to test ----------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):
         configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
