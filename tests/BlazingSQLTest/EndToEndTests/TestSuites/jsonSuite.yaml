@@ -6,13 +6,14 @@ TEST_SUITE:
     USE_PERCENTAGE: False
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
-    SKIP_WITH: 
-      - SINGLENODE: 
-        - DASK_CUDF
-        - CUDF
-        - CSV
-        - ORC 
-        - PARQUET
+    SKIP_WITH:
+      - PARQUET
+      - DASK_CUDF
+      - CUDF
+      - CSV
+      - ORC
+      - WITH_NULLS:
+        - JSON
 
   TEST_01:
     SQL: |
