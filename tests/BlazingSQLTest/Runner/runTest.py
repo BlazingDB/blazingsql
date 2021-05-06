@@ -70,6 +70,11 @@ def upcast_to_float(df):
     for name in df.columns:
         if np.issubdtype(df[name].dtype, np.bool_):
             df[name] = df[name].astype(np.float32)
+        elif np.issubdtype(df[name].dtype, np.timedelta64):
+            # issue: cannot astype a timedelta from [timedelta64[ns]] to [float64]
+            # so first cast from timedelta64[ns] to timedelta64[ms] and after to np.float64
+            df[name] = df[name].astype('timedelta64[ms]')
+            df[name] = df[name].astype(np.float64)
         elif np.issubdtype(df[name].dtype, np.integer):
             df[name] = df[name].astype(np.float64)
     return df
@@ -92,6 +97,9 @@ def to_pandas_f64_engine(df, expected_types_list):
                         )
                     elif np.issubdtype(expected_types_list[count], np.datetime64):
                         df[col] = df[col].astype(expected_types_list[count])
+                    elif np.issubdtype(expected_types_list[count], np.timedelta64):
+                        # Drill case: always converts to timedelta64[ns]
+                        df[col] = pd.to_timedelta(df[col])
                     else:
                         df[col] = pd.to_numeric(df[col], errors="coerce")
         count = count + 1
@@ -1275,6 +1283,7 @@ tableNames = [
     "acq",
     "names",
     "bool_orders",
+    "interval_table",
     "web_site",
     "web_sales",
     "web_returns",

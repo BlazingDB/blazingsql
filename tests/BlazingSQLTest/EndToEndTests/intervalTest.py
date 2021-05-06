@@ -9,25 +9,27 @@ from Utils import Execution, gpuMemory, init_context, skip_test
 queryType = "Interval"
 
 
-def main(dask_client, drill, spark, dir_data_file, bc, nRals):
+def main(dask_client, drill, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["nation", "region", "customer", "orders", "lineitem"]
-        data_types = [
-            DataType.DASK_CUDF,
-            DataType.CUDF,
-            DataType.CSV,
-            DataType.ORC,
-            DataType.PARQUET,
-        ]  # TODO json
+        tables = ["region", "interval_table", "orders"]
+        interval_table_index = tables.index("interval_table")
+
+        data_types = [DataType.CSV] # TODO ORC gdf parquet json
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
                 continue
-            cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
+            cs.create_tables(
+                bc,
+                dir_data_file,
+                fileSchemaType,
+                tables=tables,
+                interval_table_index=interval_table_index,
+            )
 
             # Run Query ------------------------------------------------------
             # Parameter to indicate if its necessary to order
@@ -40,12 +42,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             print(queryType)
             print("==============================")
 
-            # TODO: remove all the print_results=True (for now it's useful for experiments)
-            # Many tests are being casting to VARCHAR in order to save the results not as interval type (issue drill ?)
-
             # ======================== INTERVAL: SECONDS ===========================
+
             queryId = "TEST_01"
-            query = """select CAST(INTERVAL '4' SECOND AS VARCHAR) from region"""
+            query = """select INTERVAL '4' SECOND from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -57,11 +57,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_02"
-            query = """select CAST(INTERVAL '1' SECOND + INTERVAL '3' SECOND AS VARCHAR) from region"""
+            query = """select INTERVAL '1' SECOND + INTERVAL '3' SECOND from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -73,11 +72,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_03"
-            query = """select CASt(CAST(INTERVAL '1' DAY as INTERVAL SECOND) as VARCHAR) from region"""
+            query = """select CAST(INTERVAL '1' DAY as INTERVAL SECOND) from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -89,11 +87,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_04"
-            query = """select CAST(INTERVAL '15:30' MINUTE TO SECOND as VARCHAR) from region"""
+            query = """select INTERVAL '15:30' MINUTE TO SECOND from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -105,11 +102,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_05"
-            query = """select CAST(INTERVAL '01:10:02' HOUR TO SECOND as VARCHAR) from region"""
+            query = """select INTERVAL '01:10:02' HOUR TO SECOND from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -121,11 +117,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_06"
-            query = """select CAST(INTERVAL '2 00:00:00' DAY TO SECOND as VARCHAR) from region"""
+            query = """select INTERVAL '2 00:00:00' DAY TO SECOND from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -137,11 +132,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_07"
-            query = """select CAST(INTERVAL '2 01:03:10' DAY TO SECOND as VARCHAR) from region"""
+            query = """select INTERVAL '2 01:03:10' DAY TO SECOND from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -153,11 +147,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_08"
-            query = """select CAST(900 * INTERVAL '1' SECOND  as VARCHAR) from region"""
+            query = """select 900 * INTERVAL '1' SECOND  from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -169,7 +162,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_09"
@@ -185,7 +177,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_10"
@@ -201,13 +192,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             # ======================== INTERVAL: MINUTES ===========================
 
             queryId = "TEST_11"
-            query = """select cast(INTERVAL '4' MINUTE as VARCHAR) from region"""
+            query = """select INTERVAL '4' MINUTE from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -219,11 +209,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_12"
-            query = """select CAST(INTERVAL '1' MINUTE + INTERVAL '3' MINUTE AS VARCHAR) from region"""
+            query = """select INTERVAL '1' MINUTE + INTERVAL '3' MINUTE from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -235,27 +224,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
-            queryId = "TEST_13"
-            query = """select CAST(CAST(INTERVAL '1' DAY as INTERVAL MINUTE) AS VARCHAR) from region"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-                print_result=True
-            )
+            # NOTE: Drill have a wrong result for this query
+            # queryId = "TEST_13"
+            # query = """select CAST(INTERVAL '1' DAY as INTERVAL MINUTE) from region"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             queryId = "TEST_14"
-            query = """select CAST(INTERVAL '23:15' HOUR(2) TO MINUTE AS VARCHAR) from region"""
+            query = """select INTERVAL '23:15' HOUR(2) TO MINUTE from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -267,11 +255,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_15"
-            query = """select CAST(INTERVAL '123:15' HOUR(3) TO MINUTE AS VARCHAR) from region"""
+            query = """select INTERVAL '123:15' HOUR(3) TO MINUTE from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -283,11 +270,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_16"
-            query = """select CAST(INTERVAL '2 10:40' DAY(1) TO MINUTE AS VARCHAR) from region"""
+            query = """select INTERVAL '2 10:40' DAY(1) TO MINUTE from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -299,11 +285,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_17"
-            query = """select CAST(150 * INTERVAL '1' MINUTE AS VARCHAR) from region"""
+            query = """select 150 * INTERVAL '1' MINUTE from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -315,7 +300,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_18"
@@ -331,7 +315,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_19"
@@ -347,13 +330,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             # ======================== INTERVAL: HOURS ===========================
 
             queryId = "TEST_20"
-            query = """select CAST(INTERVAL '4' HOUR AS VARCHAR) from region"""
+            query = """select INTERVAL '4' HOUR from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -365,11 +347,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_21"
-            query = """select cast(INTERVAL '1' HOUR + INTERVAL '3' HOUR as VARCHAR) from region"""
+            query = """select INTERVAL '1' HOUR + INTERVAL '3' HOUR from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -381,11 +362,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_22"
-            query = """select cast(INTERVAL '2 10' DAY(1) TO HOUR as VARCHAR) from region"""
+            query = """select INTERVAL '2 10' DAY(1) TO HOUR from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -397,11 +377,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_23"
-            query = """select cast(INTERVAL '125 10' DAY(3) TO HOUR as VARCHAR) from region"""
+            query = """select INTERVAL '125 10' DAY(3) TO HOUR from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -413,11 +392,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_24"
-            query = """select cast(150 * INTERVAL '1' HOUR as VARCHAR) from region"""
+            query = """select 150 * INTERVAL '1' HOUR from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -429,7 +407,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_25"
@@ -445,7 +422,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_26"
@@ -461,7 +437,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_27"
@@ -477,13 +452,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             # ======================== INTERVAL: DAYS ===========================
 
             queryId = "TEST_28"
-            query = """select CAST(INTERVAL '4' DAY as VARCHAR) from region"""
+            query = """select INTERVAL '4' DAY from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -495,11 +469,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_29"
-            query = """select CAST(INTERVAL '1' DAY + INTERVAL '3' DAY as VARCHAR) from region"""
+            query = """select INTERVAL '1' DAY + INTERVAL '3' DAY from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -511,11 +484,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_30"
-            query = """select CAST(150 * INTERVAL '1' DAY as VARCHAR) from region"""
+            query = """select 150 * INTERVAL '1' DAY from region"""
             runTest.run_query(
                 bc,
                 drill,
@@ -527,7 +499,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_31"
@@ -543,7 +514,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_32"
@@ -559,48 +529,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             # ======================== INTERVAL: MONTHS ===========================
+
             # TODO: For now, not supported MONTH INTERVAL operations
-            # queryId = "TEST_37"
-            # query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' HOUR as min_col
-            #             from orders"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     print_result=True
-            # )
 
             # ========================= INTERVAL: YEAR ============================
-            # TODO: For now, not supported YEAR INTERVAL operations
-            # queryId = "TEST_38"
-            # query = """select o_orderdate, CAST(o_orderdate as TIMESTAMP) + INTERVAL '1' HOUR as min_col
-            #             from orders"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     print_result=True
-            # )
 
-            # ========================= TIMESTAMP op INTERVAL ============================
+            # TODO: For now, not supported YEAR INTERVAL operations
+
+            # ====================== TIMESTAMP op INTERVAL ========================
+
             queryId = "TEST_41"
             query = """select o_orderdate, o_orderdate + INTERVAL '3' SECOND as add_sec_col
                         from orders"""
@@ -615,7 +555,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_42"
@@ -632,7 +571,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_43"
@@ -649,7 +587,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_44"
@@ -666,7 +603,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_45"
@@ -683,7 +619,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_46"
@@ -700,7 +635,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_47"
@@ -717,7 +651,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
             queryId = "TEST_48"
@@ -734,12 +667,210 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True
             )
 
-            # TODO: Create data with diff interval dtypes (timedelta64[s], timedelta64[ms], timedelta64[us], timedelta64[ns])
-            # TODO: read using drill with interval (time) schema
             # ========================= DURATION op INTERVAL ============================
+
+            queryId = "TEST_49"
+            query = """select * from interval_table limit 40"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_50"
+            query = """select i_duration_s, i_duration_ms from interval_table
+                        limit 40"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_51"
+            query = """select i_id, i_duration_s from interval_table
+                        order by i_duration_s desc limit 25"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Join with DURATION same unit
+            queryId = "TEST_52"
+            query = """select r1.i_id + 1 as r1_id, r1.i_duration_s as r1_duration_s,
+                            r2.i_duration_ms as r2_duration_ms
+ 			            from interval_table r1 inner join interval_table r2
+                        on r1.i_duration_s = r2.i_duration_s limit 70"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Join with DURATION same unit
+            queryId = "TEST_53"
+            query = """select r1.i_id as r1_id, r1.i_duration_s as r1_duration_s,
+                            r1.i_duration_ms as r1_duration_ms
+ 			            from interval_table r1 inner join interval_table r2
+                        on r1.i_duration_ms = r2.i_duration_s"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_54"
+            query = """select count(i_duration_s) from interval_table"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_55"
+            query = """select sum(i_id) as sum_col, i_duration_s from interval_table
+                        group by i_duration_s"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # union with DURARION same unit
+            queryId = "TEST_56"
+            query = """(select i_id, i_duration_ms from interval_table where i_id > 236)
+                            union all 
+                        (select i_id, i_duration_ms from interval_table where i_id < 55)"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # union with DURARION diff unit
+            queryId = "TEST_57"
+            query = """(select i_id, i_duration_s from interval_table limit 36)
+                            union all 
+                        (select i_id, i_duration_ms from interval_table limit 4)"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # NOTE: all this query works for Blazing but not for Drill
+            # queryId = "TEST_58"
+            # query = """select i_duration_s, INTERVAL '1' SECOND as col_to_sum,
+            #                 i_duration_s + INTERVAL '1' SECOND as sum_cols
+            #             from interval_table limit 36"""
+
+            # queryId = "TEST_59"
+            # query = """select i_duration_s, INTERVAL '1' MINUTE as col_to_sum,
+            #                 i_duration_s + INTERVAL '1' MINUTE as sum_cols
+            #             from interval_table limit 36"""
+
+            # queryId = "TEST_60"
+            # query = """select i_duration_s, INTERVAL '1' HOUR as col_to_sum,
+            #                 i_duration_s + INTERVAL '1' HOUR as sum_cols
+            #             from interval_table limit 36"""
+
+            # queryId = "TEST_61"
+            # query = """select i_duration_s, INTERVAL '1' DAY as col_to_sum,
+            #                 i_duration_s + INTERVAL '1' DAY as sum_cols
+            #             from interval_table limit 36"""
+
+
+            # queryId = "TEST_62"
+            # query = """select i_duration_s, INTERVAL '1' SECOND as col_to_sub,
+            #                 i_duration_s - INTERVAL '1' SECOND as sub_cols
+            #             from interval_table limit 36"""
+
+            # queryId = "TEST_63"
+            # query = """select i_duration_s, INTERVAL '1' MINUTE as col_to_sub,
+            #                 i_duration_s - INTERVAL '1' MINUTE as sub_cols
+            #             from interval_table limit 36"""
+
+            # queryId = "TEST_64"
+            # query = """select i_duration_s, INTERVAL '1' HOUR as col_to_sub,
+            #                 i_duration_s - INTERVAL '1' HOUR as sub_cols
+            #             from interval_table limit 36"""
+
+            # queryId = "TEST_65"
+            # query = """select i_duration_s, INTERVAL '1' DAY as col_to_sub,
+            #                 i_duration_s - INTERVAL '1' DAY as sub_cols
+            #             from interval_table limit 36"""
+
+            # NOTE: This test will crash (Calcite issue -> null:TIME(0))
+            """LogicalProject(i_id=[$0], i_duration_s=[null:TIME(0)], i_duration_ms=[$2])
+                BindableTableScan(table=[[main, interval_table]], filters=[[IS NULL($1)]])"""
+            # queryId = "TEST_66"
+            # query = """select * from interval_table where i_duration_s is null"""
+
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
@@ -759,7 +890,7 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
-    spark = "spark"
+    #spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
@@ -773,14 +904,15 @@ if __name__ == "__main__":
 
         drill = PyDrill(host="localhost", port=8047)
         cs.init_drill_schema(drill,
-                             Settings.data["TestSettings"]["dataDirectory"])
+                             Settings.data["TestSettings"]["dataDirectory"],
+                             interval_test=True)
 
         # Create Table Spark -------------------------------------------------
-        from pyspark.sql import SparkSession
+        #from pyspark.sql import SparkSession
         
-        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
-        cs.init_spark_schema(spark,
-                             Settings.data["TestSettings"]["dataDirectory"])
+        #spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        #cs.init_spark_schema(spark,
+        #                     Settings.data["TestSettings"]["dataDirectory"])
 
     # Create Context For BlazingSQL
 
@@ -791,7 +923,7 @@ if __name__ == "__main__":
     main(
         dask_client,
         drill,
-        spark,
+        #spark,
         Settings.data["TestSettings"]["dataDirectory"],
         bc,
         nRals,

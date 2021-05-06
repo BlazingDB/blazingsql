@@ -100,7 +100,7 @@ def main():
 
         drill = PyDrill(host="localhost", port=8047)
         createSchema.init_drill_schema(
-            drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
+            drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True, interval_test=True
         )
         createSchema.init_drill_schema(
             drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
@@ -140,7 +140,7 @@ def main():
         unsignedTypeTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("intervalTest" in targetTestGroups):
-        intervalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+        intervalTest.main(dask_client, drill, dir_data_file, bc, nRals)
     
     if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
         aggregationsWithoutGroupByTest.main(
