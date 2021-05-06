@@ -57,7 +57,7 @@ TEST_SUITE:
                         GROUP BY l.l_suppkey, l.l_linestatus
                         order by l.l_suppkey, l.l_linestatus
                         limit 10000
-    SETUP: 
+    SETUP:
       SKIP_WITH:
         - SINGLENODE:
           - ORC
@@ -86,13 +86,13 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
       SKIP_WITH:
-        SINGLENODE:
-          WITH_NULLS:
+        - SINGLENODE:
+          - WITH_NULLS:
             - DASK_CUDF
             - CSV
-            - ORC 
+            - ORC
             - PARQUET
-            - CUDF 
+            - CUDF
 
   TEST_09:
     SQL: |

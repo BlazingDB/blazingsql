@@ -121,8 +121,6 @@ class TestCase():
             print("ERROR: Bad format for 'skip_with' (It must be a list)")
             return True
 
-        # ext = createSchema.get_extension(fileSchemaType).upper()
-
         allList = [item for item in configTest.skip_with if isinstance(item, str)]
         allList = [DataType[item] for item in allList]
 
@@ -176,6 +174,8 @@ class TestCase():
         for n in range(0, len(self.configLocal.data_types)):
 
             fileSchemaType = self.configLocal.data_types[n]
+
+            if self.__skip_test(fileSchemaType, self.configLocal): continue
 
             createSchema.create_tables(self.bc, self.dir_data_file, fileSchemaType, tables=list(self.tables))
 
