@@ -12,8 +12,7 @@ TEST_SUITE:
       - CSV
       - PARQUET
       - CUDF
-
-
+      - JSON
 
   TEST_01:
     SQL: |

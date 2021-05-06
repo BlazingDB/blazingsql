@@ -10,6 +10,7 @@ TEST_SUITE:
       - SINGLENODE:
           - DASK_CUDF
       - ORC
+      - JSON
 
 # NOTE: All these drill results were generated using a newer version of Drill
 # (at least 1.15). So, when using with ExecutionMode != GPUCI, is expected to

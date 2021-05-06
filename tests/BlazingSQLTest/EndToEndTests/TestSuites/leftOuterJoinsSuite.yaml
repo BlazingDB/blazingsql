@@ -10,7 +10,7 @@ TEST_SUITE:
       - MULTINODE:
           - DASK_CUDF
       - JSON
-
+      
   TEST_01:
     SQL: |
         select n.n_nationkey, r.r_regionkey

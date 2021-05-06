@@ -9,6 +9,7 @@ TEST_SUITE:
     SKIP_WITH:
       - MULTINODE:
           - CUDF
+      - JSON
 
 # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 # ------------------- ORDER BY ------------------------

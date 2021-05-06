@@ -10,7 +10,7 @@ TEST_SUITE:
       - MULTINODE:
           - DASK_CUDF
       - JSON
-
+      
   TEST_00:
     SQL: |
         select count(p_partkey), sum(p_partkey),
