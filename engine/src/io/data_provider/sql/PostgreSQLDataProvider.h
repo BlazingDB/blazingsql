@@ -1,6 +1,7 @@
 /*
- * Copyright 2021 Percy Camilo Triveño Aucahuasi <percy.camilo.ta@gmail.com>
- * Copyright 2021 Cristhian Alberto Gonzales Castillo
+ * Copyright 2021 BlazingDB, Inc.
+ *     Copyright 2021 Cristhian Alberto Gonzales Castillo
+ * <cristhian@blazingdb.com>
  */
 
 #ifndef POSTGRESQLDATAPROVIDER_H_
@@ -15,9 +16,9 @@ namespace io {
 
 class postgresql_data_provider : public abstractsql_data_provider {
 public:
-  postgresql_data_provider(const sql_info &sql,
-                           size_t total_number_of_nodes,
-                           size_t self_node_idx);
+  postgresql_data_provider(const sql_info & sql,
+                           std::size_t total_number_of_nodes,
+                           std::size_t self_node_idx);
 
   virtual ~postgresql_data_provider();
 
@@ -36,10 +37,11 @@ protected:
   std::unique_ptr<ral::parser::node_transformer> get_predicate_transformer() const override { return nullptr; }
 
 private:
-  PGconn *connection;
+  PGconn * connection;
   bool table_fetch_completed;
   std::size_t batch_position;
   std::size_t estimated_table_row_count;
+  std::string keyname;
 };
 
 } /* namespace io */

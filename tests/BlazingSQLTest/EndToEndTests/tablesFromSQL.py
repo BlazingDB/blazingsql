@@ -56,10 +56,9 @@ samples = define_samples([
 ], tpchQueries.map_tables)
 
 data_types = [
-    DataType.MYSQL,
-    # TODO percy c.gonzales
+    #DataType.MYSQL,
     #DataType.POSTGRESQL,
-    #DataType.SQLITE,
+    DataType.SQLITE
 ]
 
 tables = [
@@ -201,6 +200,11 @@ def setup_test(data_type: DataType) -> createSchema.sql_connection:
     if data_type is DataType.SQLITE:
       from DataBase import sqliteSchema
       sqliteSchema.create_and_load_tpch_schema(sql)
+      return sql
+
+    if data_type is DataType.POSTGRESQL:
+      from DataBase import postgreSQLSchema
+      postgreSQLSchema.create_and_load_tpch_schema(sql)
       return sql
 
 

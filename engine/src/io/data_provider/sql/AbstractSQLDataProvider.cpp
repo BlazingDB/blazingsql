@@ -50,7 +50,9 @@ bool abstractsql_data_provider::set_predicate_pushdown(const std::string &queryS
   return !this->where.empty();
 }
 
-std::string abstractsql_data_provider::build_select_query(size_t batch_index) const {
+std::string abstractsql_data_provider::build_select_query(
+    std::size_t batch_index,
+    const std::string & orderBy) const {
   std::string cols;
 
   if (this->column_indices.empty()) {
@@ -67,23 +69,28 @@ std::string abstractsql_data_provider::build_select_query(size_t batch_index) co
     }
   }
 
-  const size_t offset = this->sql.table_batch_size * (this->total_number_of_nodes * batch_index + this->self_node_idx);
-  std::string limit = " LIMIT " + std::to_string(this->sql.table_batch_size) + " OFFSET " + std::to_string(offset);
-  auto ret = "SELECT " + cols + "FROM " + this->sql.table;
+  std::ostringstream oss;
 
-  if(!sql.table_filter.empty() && !this->where.empty()) {
-    ret += " where " + sql.table_filter + " AND " + this->where;
-  } else {
-    if (sql.table_filter.empty()) {
-      if (!this->where.empty()) { // then the filter is from the predicate pushdown{
-        ret += " where " + this->where;
-      }
-    } else {
-      ret += " where " + sql.table_filter;
+  oss << "SELECT " << cols << " FROM " << this->sql.table;
+
+  if (sql.table_filter.empty()) {
+    if (!this->where
+             .empty()) {  // then the filter is from the predicate pushdown{
+      oss << " where " << this->where;
     }
+  } else {
+    oss << " where " << sql.table_filter;
   }
 
-  return ret + limit;
+  if (!orderBy.empty()) { oss << " order by " << orderBy; }
+
+  const size_t offset =
+      this->sql.table_batch_size *
+      (this->total_number_of_nodes * batch_index + this->self_node_idx);
+
+  oss << " LIMIT " << this->sql.table_batch_size << " OFFSET " << offset;
+
+  return oss.str();
 }
 
 } /* namespace io */

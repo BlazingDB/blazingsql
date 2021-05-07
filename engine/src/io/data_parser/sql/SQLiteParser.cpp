@@ -61,23 +61,23 @@ cudf::type_id parse_sqlite_column_type(std::string t) {
         return std::tolower(c);
       });
   if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
-  if (t == "tinyint") { return cudf::type_id::INT8; }
-  if (t == "smallint") { return cudf::type_id::INT8; }
-  if (t == "mediumint") { return cudf::type_id::INT16; }
-  if (t == "int") { return cudf::type_id::INT32; }
-  if (t == "integer") { return cudf::type_id::INT32; }
-  if (t == "bigint") { return cudf::type_id::INT64; }
-  if (t == "unsigned big int") { return cudf::type_id::UINT64; }
-  if (t == "int2") { return cudf::type_id::INT16; }
-  if (t == "int8") { return cudf::type_id::INT64; }
-  if (t == "real") { return cudf::type_id::FLOAT32; }
-  if (t == "double") { return cudf::type_id::FLOAT64; }
-  if (t == "double precision") { return cudf::type_id::FLOAT64; }
-  if (t == "float") { return cudf::type_id::FLOAT32; }
-  if (t == "decimal") { return cudf::type_id::FLOAT64; }
-  if (t == "boolean") { return cudf::type_id::UINT8; }
-  if (t == "date") { return cudf::type_id::TIMESTAMP_MILLISECONDS; }
-  if (t == "datetime") { return cudf::type_id::TIMESTAMP_MILLISECONDS; }
+  if (!t.rfind("tinyint", 0)) { return cudf::type_id::INT8; }
+  if (!t.rfind("smallint", 0)) { return cudf::type_id::INT8; }
+  if (!t.rfind("mediumint", 0)) { return cudf::type_id::INT16; }
+  if (!t.rfind("int", 0)) { return cudf::type_id::INT32; }
+  if (!t.rfind("integer", 0)) { return cudf::type_id::INT32; }
+  if (!t.rfind("bigint", 0)) { return cudf::type_id::INT64; }
+  if (!t.rfind("unsigned big int", 0)) { return cudf::type_id::UINT64; }
+  if (!t.rfind("int2", 0)) { return cudf::type_id::INT16; }
+  if (!t.rfind("int8", 0)) { return cudf::type_id::INT64; }
+  if (!t.rfind("real", 0)) { return cudf::type_id::FLOAT32; }
+  if (!t.rfind("double", 0)) { return cudf::type_id::FLOAT64; }
+  if (!t.rfind("double precision", 0)) { return cudf::type_id::FLOAT64; }
+  if (!t.rfind("float", 0)) { return cudf::type_id::FLOAT32; }
+  if (!t.rfind("decimal", 0)) { return cudf::type_id::FLOAT64; }
+  if (!t.rfind("boolean", 0)) { return cudf::type_id::UINT8; }
+  if (!t.rfind("date", 0)) { return cudf::type_id::TIMESTAMP_MILLISECONDS; }
+  if (!t.rfind("datetime", 0)) { return cudf::type_id::TIMESTAMP_MILLISECONDS; }
 }
 
 sqlite_parser::sqlite_parser() : abstractsql_parser{DataType::SQLITE} {}

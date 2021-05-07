@@ -59,7 +59,8 @@ protected:
 
 protected:
   // returns SELECT ... FROM ... WHERE ... LIMIT ... OFFSET
-  std::string build_select_query(size_t batch_index) const;
+  std::string build_select_query(std::size_t batch_index,
+                                 const std::string & orderBy = "") const;
 
 protected:
   sql_info sql;
