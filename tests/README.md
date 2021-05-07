@@ -43,10 +43,10 @@ cd blazingsql
 ./test.sh e2e
 
 # Run only the round end to end test group.
-./test.sh e2e tests=roundTest
+./test.sh e2e tests=roundSuite
 
 # Run the round and orderby end to end test groups.
-./test.sh e2e tests=roundTest,orderbyTest
+./test.sh e2e tests=roundSuite,orderbySuite
 ```
 
 ### Adding new Tests
@@ -64,10 +64,10 @@ cd blazingsql
 ./test.sh e2e
 
 # Run only the round end to end test group.
-./test.sh e2e tests=roundTest
+./test.sh e2e tests=roundSuite
 
 # Run the round and orderby end to end test groups.
-./test.sh e2e tests=roundTest,orderbyTest
+./test.sh e2e tests=roundSuite,orderbySuite
 ```
 
 ### Custom settings
