@@ -543,7 +543,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_41"
             query = """select o_orderdate, o_orderdate + INTERVAL '3' SECOND as add_sec_col
-                        from orders"""
+                        from orders order by o_totalprice limit 100"""
             runTest.run_query(
                 bc,
                 drill,
@@ -559,7 +559,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_42"
             query = """select o_orderdate, o_orderdate - INTERVAL '2' SECOND as sub_sec_col
-                        from orders"""
+                        from orders order by o_totalprice limit 150"""
             runTest.run_query(
                 bc,
                 drill,
@@ -575,7 +575,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_43"
             query = """select o_orderdate, o_orderdate + INTERVAL '6' MINUTE as add_min_col
-                        from orders"""
+                        from orders order by o_totalprice limit 50"""
             runTest.run_query(
                 bc,
                 drill,
@@ -591,7 +591,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_44"
             query = """select o_orderdate, o_orderdate - INTERVAL '5' MINUTE as sub_min_col
-                        from orders"""
+                        from orders order by o_totalprice limit 50"""
             runTest.run_query(
                 bc,
                 drill,
@@ -607,7 +607,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_45"
             query = """select o_orderdate, o_orderdate + INTERVAL '1' HOUR as add_hour_col
-                        from orders"""
+                        from orders order by o_totalprice limit 50"""
             runTest.run_query(
                 bc,
                 drill,
@@ -623,7 +623,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_46"
             query = """select o_orderdate, o_orderdate - INTERVAL '4' HOUR as sub_hour_col
-                        from orders"""
+                        from orders order by o_totalprice limit 85"""
             runTest.run_query(
                 bc,
                 drill,
@@ -639,7 +639,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_47"
             query = """select o_orderdate, o_orderdate + INTERVAL '1' DAY as add_day_col
-                        from orders"""
+                        from orders order by o_totalprice limit 100"""
             runTest.run_query(
                 bc,
                 drill,
@@ -655,7 +655,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_48"
             query = """select o_orderdate, o_orderdate - INTERVAL '7' DAY as sub_day_col
-                        from orders"""
+                        from orders order by o_totalprice limit 50"""
             runTest.run_query(
                 bc,
                 drill,
@@ -672,7 +672,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             # ========================= DURATION op INTERVAL ============================
 
             queryId = "TEST_49"
-            query = """select * from interval_table limit 40"""
+            query = """select * from interval_table"""
             runTest.run_query(
                 bc,
                 drill,
@@ -687,8 +687,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_50"
-            query = """select i_duration_s, i_duration_ms from interval_table
-                        limit 40"""
+            query = """select i_duration_s, i_duration_ms from interval_table"""
             runTest.run_query(
                 bc,
                 drill,
