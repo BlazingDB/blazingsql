@@ -689,7 +689,10 @@ bool make_directories_hive()
 
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 {
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard start"<<std::endl;
 	ASSERT_TRUE(create_folder_test());
+
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard create_folder_test done"<<std::endl;
 
 	std::vector<std::string> uri_files = {
 		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file1.parquet",
@@ -708,12 +711,16 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 
 	make_directories_hive();
 
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard make_directories_hive done"<<std::endl;
+
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[3]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[4]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[5]));
+
+	
 
 	std::vector<std::map<std::string, std::string>> uri_values
 	{
@@ -723,7 +730,11 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
 	};
 
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard create_dummy_files done"<<std::endl;
+
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard uri_data_provider done"<<std::endl;
 
 	bool open_file = false;
 
@@ -731,7 +742,11 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 
 	while(provider->has_next())
 	{
+		std::cout<<"uri_values_one_folder_multiple_files_wildcard provider->has_next()"<<std::endl;
+
 		ral::io::data_handle new_handle = provider->get_next(open_file);
+
+		std::cout<<"uri_values_one_folder_multiple_files_wildcard provider->get_next()"<<std::endl;
 		result.emplace_back(new_handle.uri.toString());
 	}
 
@@ -739,9 +754,13 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(uri_files, result);
 
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard validated"<<std::endl;
+
 	remove_dummy_file(uris);
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard remove_dummy_file"<<std::endl;
 	LocalFileSystem localFileSystem(Path(""));
 	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	std::cout<<"uri_values_one_folder_multiple_files_wildcard localFileSystem.remove"<<std::endl;
 	ASSERT_TRUE(dir_remove_ok);
 }
 
