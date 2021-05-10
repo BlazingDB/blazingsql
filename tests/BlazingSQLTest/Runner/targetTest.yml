@@ -42,7 +42,7 @@ LIST_TEST:
   configOptionsSuite:
     NAME: Config Options
     FILE: configOptionsSuite.yaml
-    CODE: TPCH
+    CODE: COPTIONS
   countDistinctSuite:
     NAME: Count Distinct
     FILE: countDistinctSuite.yaml
@@ -191,9 +191,9 @@ LIST_TEST:
     NAME: To_timestamp
     FILE: toTimestampSuite.yaml
     CODE: TO_TIMESTAMP
-  tpchQueriesSuite:
+  TPCHSuite:
     NAME: TPCH Queries
-    FILE: tpchQueriesSuite.yaml
+    FILE: TPCHSuite.yaml
     CODE: TPCH
   unaryOpsSuite:
     NAME: Unary ops

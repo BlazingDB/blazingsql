@@ -5,11 +5,8 @@ from EndToEndTests.oldScripts import hiveFileTest
 from EndToEndTests.oldScripts import unsignedTypeTest
 from EndToEndTests.oldScripts import columnBasisTest
 from EndToEndTests.oldScripts import dateTest
-#from EndToEndTests.oldScripts import booleanTest
 from EndToEndTests.oldScripts import fileSystemHdfsTest
-# from EndToEndTests.oldScripts import mixedFileSystemTest
 from EndToEndTests.oldScripts import tpchQueriesTest
-#from EndToEndTests.oldScripts import messageValidationTest
 from EndToEndTests.oldScripts import fileSystemS3Test
 from EndToEndTests.oldScripts import fileSystemGSTest
 from EndToEndTests.oldScripts import loggingTest
@@ -40,17 +37,11 @@ def runLegacyTest(bc, dask_client, drill, spark):
     if runAllTests or ("dateTest" in targetTestGroups):
         dateTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("booleanTest" in targetTestGroups):
-        booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
-
     # HDFS is not working yet
     # fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc)
 
     # HDFS is not working yet
     # mixedFileSystemTest.main(dask_client, drill, dir_data_file, bc)
-
-    if runAllTests or ("tpchQueriesTest" in targetTestGroups):
-        tpchQueriesTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
