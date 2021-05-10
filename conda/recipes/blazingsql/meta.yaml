@@ -38,6 +38,7 @@ requirements:
         - cudf {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
         - ucx-proc=*=gpu
+        - boost-cpp 1.72.0
         - dlpack
         - cudatoolkit {{ cuda_version }}.*
     run:
