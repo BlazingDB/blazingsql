@@ -54,6 +54,7 @@ namespace operators {
 		}else if(input == AggregateKind::LEAD){
 			return cudf::make_lead_aggregation<cudf_aggregation_type_T>(offset);	
 		}else if(input == AggregateKind::NTH_ELEMENT){
+			// TODO: https://github.com/BlazingDB/blazingsql/issues/1531
 			// return cudf::make_nth_element_aggregation<cudf_aggregation_type_T>(offset, cudf::null_policy::INCLUDE);	
 		}else if(input == AggregateKind::COUNT_DISTINCT){
 			/* Currently this conditional is unreachable.
