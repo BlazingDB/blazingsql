@@ -139,7 +139,94 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
-            
+
+            queryId = "TEST_07"
+            query = """select o_orderkey from orders order by o_orderkey NULLS LAST
+                        limit 970"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                 print_result=True
+            )
+
+            queryId = "TEST_08"
+            query = """select o_orderkey from orders order by o_orderkey NULLS FIRST
+                        limit 580"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                 print_result=True
+            )
+
+            queryId = "TEST_09"
+            query = """select o_orderkey from orders order by o_orderkey DESC NULLS LAST
+                        limit 280"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                 print_result=True
+            )
+
+            queryId = "TEST_10"
+            query = """select o_orderkey from orders order by o_orderkey DESC NULLS FIRST
+                        limit 380"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                 print_result=True
+            )
+
+            queryId = "TEST_11"
+            query = """select o_orderkey, o_clerk, o_orderstatus, o_totalprice from orders
+                        order by o_orderkey NULLS FIRST,
+                        o_clerk NULLS FIRST, o_orderstatus NULLS FIRST,
+                        o_totalprice DESC NULLS LAST limit 540"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                 print_result=True
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

@@ -1404,7 +1404,7 @@ def run_query(
 
     algebra = kwargs.get("algebra", "")
 
-    comparing = kwargs.get("comparing", "false")
+    comparing = kwargs.get("comparing", "true")
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
@@ -1582,13 +1582,18 @@ def run_query(
 
                     if type(result_gdf) is dask_cudf.core.DataFrame:
                         result_gdf = result_gdf.compute()
-
+                    print("Blazing: \n")
+                    print(result_gdf)
+                    print()
                     expected_dtypes = result_gdf.dtypes.to_list()
                     pdf1 = (
                         upcast_to_float(result_gdf)
                         .fillna(get_null_constants(result_gdf))
                         .to_pandas()
                     )
+                    print("SPARK: \n")
+                    print(result_spark_df.resultSet)
+                    print()
                     pdf2 = to_pandas_f64_engine(
                         result_spark_df.resultSet, expected_dtypes
                     )
