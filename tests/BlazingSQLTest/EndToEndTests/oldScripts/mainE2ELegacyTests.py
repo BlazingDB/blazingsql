@@ -6,7 +6,6 @@ from EndToEndTests.oldScripts import unsignedTypeTest
 from EndToEndTests.oldScripts import columnBasisTest
 from EndToEndTests.oldScripts import dateTest
 from EndToEndTests.oldScripts import fileSystemHdfsTest
-from EndToEndTests.oldScripts import tpchQueriesTest
 from EndToEndTests.oldScripts import fileSystemS3Test
 from EndToEndTests.oldScripts import fileSystemGSTest
 from EndToEndTests.oldScripts import loggingTest

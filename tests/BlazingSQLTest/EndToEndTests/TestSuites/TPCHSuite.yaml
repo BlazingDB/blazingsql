@@ -10,6 +10,7 @@ TEST_SUITE:
       - SINGLENODE:
           - DASK_CUDF
       - JSON
+      - ORC
 
   TEST_01:
     SQL: |
@@ -118,6 +119,7 @@ TEST_SUITE:
 
     SETUP:
       ACCEPTABLE_DIFFERENCE: 0.1
+
     #   COMPARE_WITH:
     #     ORC: spark
     #     OTHER: drill

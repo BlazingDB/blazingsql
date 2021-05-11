@@ -27,8 +27,8 @@ TEST_SUITE:
 
   TEST_02:
     SQL: |
-        select o_orderkey, o_custkey, o_totalprice, o_confirmed from bool_orders
-                        order by o_orderkey, o_totalprice limit 300
+        select o_custkey, o_confirmed from bool_orders
+                    where o_confirmed is null order by o_custkey limit 30
     SETUP:
       APPLY_ORDER: False
       ACCEPTABLE_DIFFERENCE: 0
