@@ -59,6 +59,7 @@ requirements:
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm
         - ipywidgets
+        - boost-cpp 1.72.0
 
 test:
     requires:
@@ -67,6 +68,7 @@ test:
         - nlohmann_json 3.9.1
         - aws-sdk-cpp
         - google-cloud-cpp >=1.25.0
+        - boost-cpp 1.72.0
     imports:
         - cio
 

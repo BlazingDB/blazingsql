@@ -35,7 +35,7 @@ conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cpp
 echo -e "${GREEN}Install RAPIDS dependencies${ENDCOLOR}"
 conda install --yes -c rapidsai$CHANNEL -c nvidia -c conda-forge -c defaults dask-cuda=$RAPIDS_VERSION dask-cudf=$RAPIDS_VERSION cudf=$RAPIDS_VERSION ucx-py=$RAPIDS_VERSION ucx-proc=*=gpu cudatoolkit=$CUDA_VERSION
 
-echo-e "${GREEN}Install E2E test dependencies${ENDCOLOR}"
+echo -e "${GREEN}Install E2E test dependencies${ENDCOLOR}"
 pip install openpyxl pymysql gitpython pynvml gspread oauth2client
 
 if [ $? -eq 0 ]; then
