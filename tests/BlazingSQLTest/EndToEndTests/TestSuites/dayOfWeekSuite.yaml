@@ -10,6 +10,7 @@ TEST_SUITE:
       - SINGLENODE:
           - DASK_CUDF
       - JSON
+      - ORC
 
   TEST_01:
     SQL: |
