@@ -330,25 +330,27 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # TODO: https://github.com/BlazingDB/blazingsql/issues/1530
             queryId = "TEST_14"
             query = """select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
                              df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
                         from nation df1 inner join nation df2
                         on df1.n_nationkey = df2.n_regionkey
                         where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey"""
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
+            # TODO: https://github.com/BlazingDB/blazingsql/issues/1530
             queryId = "TEST_15"
             query = """select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
                             df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
