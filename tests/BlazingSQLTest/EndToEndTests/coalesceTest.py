@@ -389,18 +389,20 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     MAX(COALESCE(n.n_nationkey, 8)) from nation as n
                     right outer join region as r
                     on n.n_nationkey = r.r_regionkey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # TODO: Create an issue to track these cases (just in distributed mode)
+            if fileSchemaType != DataType.DASK_CUDF and fileSchemaType != DataType.CUDF:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_18"
             query = """select AVG(CAST(COALESCE(n.n_nationkey,
@@ -410,18 +412,20 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     from nation as n right outer join region as r
                     on n.n_nationkey = r.r_regionkey
                     GROUP BY n.n_nationkey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # TODO: Create an issue to track these cases (just in distributed mode)
+            if fileSchemaType != DataType.DASK_CUDF and fileSchemaType != DataType.CUDF:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

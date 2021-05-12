@@ -114,7 +114,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: Create an issue to track it
             queryId = "TEST_05"
             query = """select l.l_orderkey, l.l_partkey, l.l_quantity, o.o_totalprice, o.o_clerk
                     from lineitem as l right outer join orders as o
@@ -122,18 +121,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     where o.o_totalprice < 87523.2
                     and l.l_returnflag in ('A', 'R')
                     order by o.o_totalprice"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "o_totalprice",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                0.01,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

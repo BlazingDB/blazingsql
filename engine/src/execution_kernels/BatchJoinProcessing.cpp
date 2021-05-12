@@ -429,14 +429,25 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
 			}
 
-			result_table = cudf::left_join(
-				table_right.view(),
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				this->right_column_indices,
-				this->left_column_indices);
+			if (table_left.num_rows() == 0) {
+				std::vector<cudf::data_type> dtypes = table_left.get_schema();
+				std::vector<cudf::data_type> dtypes_r = table_right.get_schema();
+				dtypes.insert(dtypes.end(), dtypes_r.begin(), dtypes_r.end());
+				std::vector<cudf::type_id> type_ids(dtypes.size());
+				for (int i = 0; i< dtypes.size(); ++i) {
+					type_ids[i] = dtypes[i].id();
+				}
+				result_table = ral::utilities::create_empty_table(type_ids);
+			} else {
+				result_table = cudf::left_join(
+					table_right.view(),
+					has_nulls_left ? table_left_dropna->view() : table_left.view(),
+					this->right_column_indices,
+					this->left_column_indices);
 
-			// After a right join is performed, we want to make sure the left column keep on the left side of result_table
-			result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
+				// After a right join is performed, we want to make sure the left column keep on the left side of result_table
+				result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
+			}
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),

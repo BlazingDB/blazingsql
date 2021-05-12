@@ -40,9 +40,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             # (at least 1.15). So, when using with ExecutionMode != GPUCI, is expected to
             # crash in Drill side if you have an older version for Drill.
             queryId = "TEST_01"
-            query = """select l_commitdate, l_shipdate, 
+            query = """select l_orderkey, l_commitdate, l_shipdate, 
                             timestampdiff(DAY, l_commitdate, l_shipdate) as diff_day_col
-                        from lineitem limit 420"""
+                        from lineitem order by l_commitdate, l_orderkey limit 420"""
             runTest.run_query(
                 bc,
                 drill,
@@ -57,9 +57,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_02"
-            query = """select l_commitdate, l_shipdate, 
+            query = """select l_orderkey, l_commitdate, l_shipdate, 
                             timestampdiff(HOUR, l_commitdate, l_shipdate) as diff_hour_col
-                        from lineitem limit 420"""
+                        from lineitem order by l_commitdate, l_orderkey limit 420"""
             runTest.run_query(
                 bc,
                 drill,
@@ -76,7 +76,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_03"
             query = """select l_commitdate, l_shipdate, 
                             timestampdiff(MINUTE, l_commitdate, l_shipdate) as diff_minute_col
-                        from lineitem order by l_orderkey limit 420"""
+                        from lineitem order by l_commitdate, l_orderkey limit 420"""
             runTest.run_query(
                 bc,
                 drill,
@@ -93,7 +93,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = "TEST_04"
             query = """select l_commitdate, l_shipdate, 
                             timestampdiff(SECOND, l_commitdate, l_shipdate) as diff_second_col
-                        from lineitem limit 420"""
+                        from lineitem order by l_commitdate, l_orderkey limit 420"""
             runTest.run_query(
                 bc,
                 drill,
