@@ -358,18 +358,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         on df1.n_nationkey = df2.n_regionkey
                         where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
                         and df1.n_nationkey IS NOT DISTINCT FROM df2.n_nationkey"""
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             queryId = "TEST_16"
             query = """select o1.o_orderkey as okey1, o1.o_custkey as ocust1, o1.o_orderkey - o1.o_custkey as diffy, 
