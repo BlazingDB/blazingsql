@@ -42,9 +42,6 @@ def runLegacyTest(bc, dask_client, drill, spark):
     # HDFS is not working yet
     # mixedFileSystemTest.main(dask_client, drill, dir_data_file, bc)
 
-    if runAllTests or ("messageValidationTest" in targetTestGroups):
-        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
-
     if testsWithNulls != "true":
         if Settings.execution_mode != ExecutionMode.GPUCI:
             if runAllTests or ("fileSystemS3Test" in targetTestGroups):

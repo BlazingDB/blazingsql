@@ -42,7 +42,7 @@ LIST_TEST:
   configOptionsSuite:
     NAME: Config Options
     FILE: configOptionsSuite.yaml
-    CODE: COPTIONS
+    CODE: TPCH
   countDistinctSuite:
     NAME: Count Distinct
     FILE: countDistinctSuite.yaml
