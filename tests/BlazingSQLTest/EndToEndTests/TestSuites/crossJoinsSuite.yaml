@@ -30,30 +30,39 @@ TEST_SUITE:
 
   TEST_03:
     SQL: |
-      with ordersTemp as (
-                    select min(o_orderkey) as priorityKey, o_custkey
-                    from orders group by o_custkey
-                    ), ordersjoin as( select orders.o_custkey from orders
-                    inner join ordersTemp
-                    on ordersTemp.priorityKey = orders.o_orderkey)
-                    select customer.c_custkey, customer.c_nationkey
-                    from customer inner join ordersjoin
-                    on ordersjoin.o_custkey =  customer.c_custkey
+      select o_orderkey, n_nationkey
+                          from nation cross join orders
+                          where o_totalprice > 4000.0
+                          and o_orderdate > date '1998-07-12'
+                          and o_orderkey > 425000
+                          group by o_orderkey, n_nationkey
+                          order by o_orderkey, n_nationkey
 
   TEST_04:
     SQL: |
-        with ordersTemp as (
-                    select min(orders.o_orderkey) as priorityKey, o_custkey
-                    from orders group by o_custkey
-                    ), ordersjoin as( select orders.o_orderkey, orders.o_custkey
-                    / (orders.o_custkey + 1) as o_custkey,
-                    (ordersTemp.priorityKey + 1) as priorityKey from orders
-                    inner join ordersTemp on
-                    (ordersTemp.priorityKey = orders.o_orderkey)
-                    )
-                    select (customer.c_custkey + 1)
-                    / (customer.c_custkey - customer.c_custkey + 1) from customer
-                    inner join ordersjoin on ordersjoin.o_custkey = customer.c_custkey
-                    where (customer.c_custkey > 1 or customer.c_custkey < 100)
+      with cust_nation as
+                          (
+                              select c_custkey, c_name, n_nationkey, n_name
+                              from customer inner join nation
+                              on c_nationkey = n_nationkey
+                              where n_nationkey > 21
+                              and c_acctbal > 525.0
+                              and c_custkey > 13450
+                              order by c_custkey, n_nationkey
+                          ), ord_lineitem as
+                          (
+                              select o_orderkey, l_quantity
+                              from orders left join lineitem
+                              on o_orderkey = l_orderkey
+                              where l_shipdate > date '1998-11-12'
+                              and o_totalprice > 3500.0
+                              and l_quantity > 48.0
+                              and l_shipmode in ('AIR', 'FOB', 'SHIP')
+                              order by o_orderkey
+                          )
+                          select c_custkey, n_name, l_quantity
+                          from ord_lineitem cross join cust_nation
+                          where n_name = 'RUSSIA'
+                          order by c_custkey
 
   

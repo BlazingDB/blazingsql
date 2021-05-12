@@ -23,8 +23,6 @@ TEST_SUITE:
     SQL: |
         select CAST(c_custkey as BIGINT), c_acctbal
                     from customer order by c_acctbal desc, c_custkey
-    SETUP:
-      APPLY_ORDER: False
 
   TEST_03:
     SQL: |

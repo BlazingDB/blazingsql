@@ -16,8 +16,6 @@ TEST_SUITE:
         select c_mktsegment || ': ' || c_custkey || ' - ' ||
                     c_name from customer
                     order by c_custkey, c_mktsegment limit 50
-    SETUP:
-      APPLY_ORDER: False
 
   TEST_02:
     SQL: |
@@ -25,8 +23,6 @@ TEST_SUITE:
                         inner join nation n
                         on n.n_regionkey = r.r_regionkey
                         order by r.r_name
-    SETUP:
-      APPLY_ORDER: False
 
   TEST_03:
     SQL: |
