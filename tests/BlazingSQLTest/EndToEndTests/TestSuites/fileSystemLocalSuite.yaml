@@ -135,6 +135,7 @@ TEST_SUITE:
                     group by o_orderstatus, o_orderkey                 
     SETUP:
       USE_PERCENTAGE: True
+      COMPARE_WITH: spark
       
   TEST_16:
     SQL: |

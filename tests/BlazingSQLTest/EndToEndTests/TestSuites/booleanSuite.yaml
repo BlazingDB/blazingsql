@@ -23,7 +23,7 @@ TEST_SUITE:
     SQL: |
         select * from bool_orders
                     order by o_orderkey, o_custkey limit 300
-    SPARK: |
+    SQL_WITH_NULLS: |
         select o_orderkey, o_custkey, o_totalprice, o_confirmed from bool_orders
                         order by o_orderkey, o_totalprice limit 300
     SETUP:
@@ -61,8 +61,6 @@ TEST_SUITE:
         select o_custkey, 0.95 * o_totalprice, o_confirmed
                     from bool_orders where o_confirmed is null
                     order by o_totalprice limit 400
-    SETUP:
-      APPLY_ORDER: False
 
   TEST_06:
     SQL: |

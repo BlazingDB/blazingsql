@@ -1355,6 +1355,7 @@ def run_query(
 ):
     print(query)
 
+    worder = 1 if worder == True else worder
     query_spark = kwargs.get("query_spark", query)
 
     algebra = kwargs.get("algebra", "")
