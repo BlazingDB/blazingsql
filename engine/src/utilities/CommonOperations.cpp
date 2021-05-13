@@ -240,5 +240,28 @@ void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const s
 	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());
 }
 
+bool n_first_columns_have_full_null_values_from_table(cudf::table_view table, size_t n_columns) {
+	size_t full_null_columns = 0;
+	size_t num_rows = table.num_rows();
+
+	for (size_t index = 0; index < n_columns; ++index) {
+		if (table.column(index).null_count() == num_rows) {
+			full_null_columns++;
+		} else {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+std::vector<cudf::type_id> get_schema_from_cudf_table_view(cudf::table_view table) {
+	std::vector<cudf::type_id> dtypes(table.num_columns());
+	for (int i = 0; i < dtypes.size(); ++i) {
+		dtypes[i] = table.column(i).type().id();
+	}
+	return dtypes;
+}
+
 }  // namespace utilities
 }  // namespace ral

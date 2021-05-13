@@ -262,6 +262,6 @@ bool is_cast_to_date(std::string expression);
 
 std::string convert_ms_to_ns_units(std::string expression);
 
-std::string get_indice_as_str(std::string expression);
+size_t get_index_from_expression_str(std::string expression);
 
 std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema);

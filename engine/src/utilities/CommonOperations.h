@@ -32,6 +32,10 @@ std::vector<cudf::data_type> get_common_types(const std::vector<cudf::data_type>
 void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types,
 	 		std::vector<cudf::size_type> column_indices = std::vector<cudf::size_type>() );
 
+bool n_first_columns_have_full_null_values_from_table(cudf::table_view table, size_t n_columns);
+
+std::vector<cudf::type_id> get_schema_from_cudf_table_view(cudf::table_view table);
+
 // This is only for numerics
 template<typename T>
 std::unique_ptr<cudf::column> vector_to_column(std::vector<T> vect, cudf::data_type type){

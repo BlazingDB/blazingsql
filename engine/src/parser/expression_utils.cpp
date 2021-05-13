@@ -1296,17 +1296,21 @@ std::string convert_ms_to_ns_units(std::string expression) {
 	return expression;	
 }
 
-std::string get_indice_as_str(std::string expression) {
-	if (expression.size() == 0) return expression;
-
+// input: CAST($0):TIMESTAMP
+// output: 0
+size_t get_index_from_expression_str(std::string expression) {
 	// $0
-	if (expression[0] == '$') return expression.substr(1, expression.size() - 1);
+	if (expression[0] == '$') {
+		expression = expression.substr(1, expression.size() - 1);
+		return std::stoi(expression);
+	}
 
 	// CAST($0):TIMESTAMP
 	size_t start_pos = expression.find('$') + 1;
 	size_t end_pos = expression.find(')');
 
-	return expression.substr(start_pos, end_pos - start_pos);
+	expression = expression.substr(start_pos, end_pos - start_pos);
+	return std::stoi(expression);
 }
 
 // By default any TIMESTAMP literal expression is handled as TIMESTAMP_NANOSECONDS
@@ -1331,20 +1335,21 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 	std::vector<std::string> reduced_expressions = get_expressions_from_expression_list(reduced_expr);
 	std::string left_expression = reduced_expressions[0], right_expression = reduced_expressions[1];
 	std::string timest_str;
-	int col_indice;
+	size_t col_indice;
 
 	assert(reduced_expressions.size() == 2);
 
 	// Cases 1:  Reinterpret(-(1996-12-01 12:00:01, $0))
-	//		 2:  Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP))
+	//       2:  Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP))
 	if (is_timestamp(left_expression)) {
 		timest_str = left_expression;
-		col_indice = std::stoi(get_indice_as_str(right_expression));
-	} // Cases  1:  Reinterpret(-($0, 1996-12-01 12:00:01))
-	// 			2:  Reinterpret(-(CAST($0):TIMESTAMP, 1996-12-01 12:00:01))
+		col_indice = get_index_from_expression_str(right_expression);
+	}
+	// Cases  1:  Reinterpret(-($0, 1996-12-01 12:00:01))
+	//        2:  Reinterpret(-(CAST($0):TIMESTAMP, 1996-12-01 12:00:01))
 	else if (is_timestamp(right_expression)) {
 		timest_str = right_expression;
-		col_indice = std::stoi(get_indice_as_str(left_expression));
+		col_indice = get_index_from_expression_str(left_expression);
 	} else {
 		return expression;
 	}
