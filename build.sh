@@ -139,6 +139,14 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
     else
         if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
             cd ${REPODIR}/thirdparty/
+            aws_temp=$(conda list | grep aws-sdk-cpp)
+            echo "$aws_temp"
+            aws_temp=$(conda list | grep aws-sdk-cpp|tail -n 1)
+            echo "$aws_temp"
+            aws_temp=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $1}')
+            echo "$aws_temp"
+            aws_temp=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
+            echo "$aws_temp"
             aws_cpp_version=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
             echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
 
