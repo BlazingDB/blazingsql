@@ -190,6 +190,11 @@ class TestCase():
 
         return False
 
+    def __getQuery(self, test_case):
+        if self.withNulls == "true" and "SQL_WITH_NULLS" in test_case:
+            return test_case["SQL_WITH_NULLS"]
+        return test_case["SQL"]
+
     def __executionTest(self):
         listCase = list(self.data.keys())
 
@@ -215,7 +220,7 @@ class TestCase():
 
                 if self.__skip_test(fileSchemaType, configTest): continue
 
-                query = test_case["SQL"]
+                query = self.__getQuery(test_case)
                 engine = self.drill if configTest.compare_with == "drill" else self.spark
 
                 print("==>> Run query for test case", self.name)
