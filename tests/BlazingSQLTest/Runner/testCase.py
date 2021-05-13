@@ -8,7 +8,7 @@ from blazingsql import DataType
 from itertools import chain
 from os import listdir
 from os.path import isfile, join
-from sql_metadata import Parser
+from sql_metadata import get_query_tables
 import os
 import yaml
 import re
@@ -77,7 +77,7 @@ class TestCase():
     def __loadTables(self):
         queries = self.__getAllQueries()
         for query in queries:
-            self.tables.update(Parser(query).tables)
+            self.tables.update(get_query_tables(query))
 
     def __getAllQueries(self):
         listCase = list(self.data.keys())
