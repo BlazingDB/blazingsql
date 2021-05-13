@@ -123,6 +123,10 @@ LIST_TEST:
     NAME: Literal
     FILE: literalSuite.yaml
     CODE: LITERAL
+  LoggingSuite:
+    NAME: Logging Test
+    FILE:
+    CODE: NONE
   messageValidationSuite:
     NAME: Message Validation
     FILE: messageValidationSuite.yaml
