@@ -370,21 +370,45 @@ void PartwiseJoin::computeNormalizationData(const std::vector<cudf::data_type> &
 												right_join_types.cbegin(), right_join_types.cend());
 }
 
-std::unique_ptr<cudf::table> reordering_columns_due_to_right_join(std::unique_ptr<cudf::table> table_ptr, size_t right_columns) {
+std::unique_ptr<cudf::table> reordering_columns_due_to_right_join(std::unique_ptr<cudf::table> table_ptr, size_t n_right_columns) {
 	std::vector<std::unique_ptr<cudf::column>> columns_ptr = table_ptr->release();
 	std::vector<std::unique_ptr<cudf::column>> columns_right_pos;
 
 	// First let's put all the left columns
-	for (size_t index = right_columns; index < columns_ptr.size(); ++index) {
+	for (size_t index = n_right_columns; index < columns_ptr.size(); ++index) {
 		columns_right_pos.push_back(std::move(columns_ptr[index]));
 	}
 
 	// Now let's append right columns
-	for (size_t index = 0; index < right_columns; ++index) {
+	for (size_t index = 0; index < n_right_columns; ++index) {
 		columns_right_pos.push_back(std::move(columns_ptr[index]));
 	}
 
 	return std::make_unique<cudf::table>(std::move(columns_right_pos));
+}
+
+std::unique_ptr<cudf::table> checking_if_result_have_full_nulls_from_left_table(std::unique_ptr<cudf::table> table_ptr, size_t n_left_columns) {
+	size_t full_null_columns = 0;
+	size_t num_rows = table_ptr->num_rows();
+
+	for (size_t index = 0; index < n_left_columns; ++index) {
+		if (table_ptr->get_column(index).null_count() == num_rows) {
+			full_null_columns++;
+		} else {
+			return std::move(table_ptr);
+		}
+	}
+	
+	// Let's create an empty table
+	if (full_null_columns = n_left_columns) {
+		std::vector<cudf::type_id> type_ids(table_ptr->num_columns());
+		for (int i = 0; i < type_ids.size(); ++i) {
+			type_ids[i] = table_ptr->get_column(i).type().id();
+		}
+		table_ptr = ral::utilities::create_empty_table(type_ids);
+	}
+
+	return std::move(table_ptr);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
@@ -434,7 +458,7 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				std::vector<cudf::data_type> dtypes_r = table_right.get_schema();
 				dtypes.insert(dtypes.end(), dtypes_r.begin(), dtypes_r.end());
 				std::vector<cudf::type_id> type_ids(dtypes.size());
-				for (int i = 0; i< dtypes.size(); ++i) {
+				for (int i = 0; i < dtypes.size(); ++i) {
 					type_ids[i] = dtypes[i].id();
 				}
 				result_table = ral::utilities::create_empty_table(type_ids);
@@ -447,6 +471,7 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 
 				// After a right join is performed, we want to make sure the left column keep on the left side of result_table
 				result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
+				result_table = checking_if_result_have_full_nulls_from_left_table(std::move(result_table), table_left.num_columns());
 			}
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(

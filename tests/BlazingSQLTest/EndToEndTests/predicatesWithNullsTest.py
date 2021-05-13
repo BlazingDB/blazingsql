@@ -201,20 +201,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     right outer join region as r
                     on n.n_nationkey = r.r_regionkey
                     where n.n_nationkey IS NULL"""
-            # TODO: Create an issue to track these cases (just in distributed mode)
-            if fileSchemaType != DataType.DASK_CUDF and fileSchemaType != DataType.CUDF:
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_10"
             query = """select n.n_nationkey, n.n_name, r.r_regionkey,
