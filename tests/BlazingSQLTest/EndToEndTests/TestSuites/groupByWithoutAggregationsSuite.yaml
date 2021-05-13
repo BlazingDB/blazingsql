@@ -35,7 +35,7 @@ TEST_SUITE:
                     where c_acctbal < 10000 group by c_nationkey,
                     c_custkey order by c_nationkey desc, c_custkey asc
     SETUP:
-      APPLY_ORDER: True
+      APPLY_ORDER: False
 
   TEST_05:
     SQL: |

@@ -77,12 +77,13 @@ def samples(bc, dask_client, nRals, **kwargs):
     init_tables = kwargs.get("init_tables", False)
     dir_data_lc = kwargs.get("dir_data_lc", "")
 
+
     for fileSchemaType in datasources(dask_client, nRals):
         dstables = datasource_tables[fileSchemaType]
 
         if init_tables:
             print("Creating tables for", str(fileSchemaType))
-            cs.create_tables(bc, dir_data_lc, fileSchemaType, tables = tables, table_names=list(dstables.values()))
+            res=cs.create_tables(bc, dir_data_lc, fileSchemaType, tables = tables, table_names=list(dstables.values()))
             print("All tables were created for", str(fileSchemaType))
         i = 0
 
