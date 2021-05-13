@@ -74,20 +74,21 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # NOTE: Drill have a wrong result for this query
             queryId = "TEST_03"
             query = """select CAST(INTERVAL '1' DAY as INTERVAL SECOND) from region"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             queryId = "TEST_04"
             query = """select INTERVAL '15:30' MINUTE TO SECOND from region"""
@@ -722,7 +723,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select r1.i_id + 1 as r1_id, r1.i_duration_s as r1_duration_s,
                             r2.i_duration_ms as r2_duration_ms
  			            from interval_table r1 inner join interval_table r2
-                        on r1.i_duration_s = r2.i_duration_s limit 70"""
+                        on r1.i_duration_s = r2.i_duration_s
+                        order by r1.i_id limit 70"""
             runTest.run_query(
                 bc,
                 drill,
