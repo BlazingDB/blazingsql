@@ -43,7 +43,7 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
         print(queryType)
         print("==============================")
 
-        # TODO: Create an issue to track it
+        # https://github.com/BlazingDB/blazingsql/issues/1541
         queryId = "TEST_01"
         query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' and o_orderpriority IS NOT NULL and o_orderstatus IS NOT NULL and o_orderdate IS NOT NULL order by o_orderkey"
         # runTest.run_query(
