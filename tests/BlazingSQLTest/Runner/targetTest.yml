@@ -175,14 +175,14 @@ LIST_TEST:
     NAME: Tables from Pandas
     FILE: tablesFromPandasSuite.yaml
     CODE: TBLPANDAS
-#  timestampdiffSuite:
-#    NAME: Timestampdiff
-#    FILE: timestampdiffSuite.yaml
-#    CODE: TIMESTAMPD
-#  TimestampaddSuite:
-#    NAME: Timestampadd
-#    FILE: TimestampaddSuite.yaml
-#    CODE: TIMESTAMPADD
+  timestampdiffSuite:
+    NAME: Timestampdiff
+    FILE: timestampdiffSuite.yaml
+    CODE: TIMESTAMPD
+  TimestampaddSuite:
+    NAME: Timestampadd
+    FILE: TimestampaddSuite.yaml
+    CODE: TIMESTAMPADD
   timestampSuite:
     NAME: Timestamp
     FILE: timestampSuite.yaml
