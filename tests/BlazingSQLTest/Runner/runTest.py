@@ -276,8 +276,7 @@ def get_codTest(test_name):
             if "NAME" in fileYaml[item] and fileYaml[item]["NAME"] == test_name:
                 return fileYaml[item]["CODE"]
 
-    print("ERROR: CODE configuration not found in targetTest.yaml, i.e. CODE: BALIAS")
-    return "NONE"
+    raise Exception("ERROR: CODE configuration not found in targetTest.yaml, i.e. CODE: BALIAS")
 
 def print_fixed_log(
     logger,
