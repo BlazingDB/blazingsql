@@ -181,7 +181,7 @@ class TestCase():
         if fileSchemaType == DataType.DASK_CUDF and self.dask_client is None:
             return True
 
-        if fileSchemaType == DataType.CUDF and self.dask_client is None:
+        if fileSchemaType == DataType.CUDF and self.dask_client is None and self.nRals > 1:
             return True
 
         if self.executionMode == 'gpuci':
