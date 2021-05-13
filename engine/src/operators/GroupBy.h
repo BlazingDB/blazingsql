@@ -31,7 +31,41 @@ namespace ral {
 namespace operators {
 
 	// offset param is needed for `LAG` and `LEAD` aggs
-	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input, int offset = 0);
+	template<typename cudf_aggregation_type_T>
+	std::unique_ptr<cudf_aggregation_type_T> makeCudfAggregation(AggregateKind input, int offset = 0){
+		if(input == AggregateKind::SUM){
+			return cudf::make_sum_aggregation<cudf_aggregation_type_T>();
+		}else if(input == AggregateKind::MEAN){
+			return cudf::make_mean_aggregation<cudf_aggregation_type_T>();
+		}else if(input == AggregateKind::MIN){
+			return cudf::make_min_aggregation<cudf_aggregation_type_T>();
+		}else if(input == AggregateKind::MAX){
+			return cudf::make_max_aggregation<cudf_aggregation_type_T>();
+		}else if(input == AggregateKind::ROW_NUMBER) {
+			return cudf::make_row_number_aggregation<cudf_aggregation_type_T>();
+		}else if(input == AggregateKind::COUNT_VALID){
+			return cudf::make_count_aggregation<cudf_aggregation_type_T>(cudf::null_policy::EXCLUDE);
+		}else if(input == AggregateKind::COUNT_ALL){
+			return cudf::make_count_aggregation<cudf_aggregation_type_T>(cudf::null_policy::INCLUDE);
+		}else if(input == AggregateKind::SUM0){
+			return cudf::make_sum_aggregation<cudf_aggregation_type_T>();
+		}else if(input == AggregateKind::LAG){
+			return cudf::make_lag_aggregation<cudf_aggregation_type_T>(offset);	
+		}else if(input == AggregateKind::LEAD){
+			return cudf::make_lead_aggregation<cudf_aggregation_type_T>(offset);	
+		}else if(input == AggregateKind::NTH_ELEMENT){
+			// TODO: https://github.com/BlazingDB/blazingsql/issues/1531
+			// return cudf::make_nth_element_aggregation<cudf_aggregation_type_T>(offset, cudf::null_policy::INCLUDE);	
+		}else if(input == AggregateKind::COUNT_DISTINCT){
+			/* Currently this conditional is unreachable.
+			Calcite transforms count distincts through the
+			AggregateExpandDistinctAggregates rule, so in fact,
+			each count distinct is replaced by some group by clauses. */
+			// return cudf::make_nunique_aggregation<cudf_aggregation_type_T>();
+		}
+		throw std::runtime_error(
+			"In makeCudfAggregation function: AggregateKind type not supported");
+	}
 
 	AggregateKind get_aggregation_operation(std::string expression_in, bool is_window_operation = false);
 
