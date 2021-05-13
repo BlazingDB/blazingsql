@@ -19,6 +19,7 @@
 - #1455 Support for IS NOT FALSE condition
 - #1502 Fix IS NOT DISTINCT FROM with joins
 - #1475 Fix wrong results from timestampdiff/add
+- #1528 Fixed build issues due to cudf aggregation API change 
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)
