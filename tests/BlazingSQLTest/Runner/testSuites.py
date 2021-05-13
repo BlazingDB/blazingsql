@@ -58,7 +58,7 @@ class TestSuites():
         cwd = os.getcwd()
         fileName = cwd + "/EndToEndTests/TestSuites/"
         if self.dataTestSuite is not None:
-            if "FILE" in self.dataTestSuite[test]:
+            if "FILE" in self.dataTestSuite[test] and self.dataTestSuite[test]["FILE"] is not None:
                 fileName += self.dataTestSuite[test]["FILE"]
             else:
                 print("ERROR: " + test + " configuration not found in targetTest.yaml, i.e. FILE: " + test + ".yaml")
