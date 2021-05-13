@@ -53,7 +53,8 @@ class TestCase():
         self.__loadTables()
 
     def __loadFileSuite(self):
-        fileName = "EndToEndTests/TestSuites/" + self.dataTargetTest["FILE"]
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        fileName = cwd + "/../EndToEndTests/TestSuites/" + self.dataTargetTest["FILE"]
         with open(fileName, 'r') as stream:
             self.data = yaml.safe_load(stream)["TEST_SUITE"]
 
