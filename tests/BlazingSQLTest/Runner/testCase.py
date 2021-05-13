@@ -46,6 +46,7 @@ class TestCase():
         self.nRals = Settings.data["RunSettings"]["nRals"]
         self.dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
         self.withNulls = Settings.data["RunSettings"]["testsWithNulls"]
+        self.executionMode = Settings.data['RunSettings']['executionMode']
 
         self.__loadFileSuite()
         self.__loadConfigTest()
@@ -176,6 +177,16 @@ class TestCase():
             return True
         if self.withNulls == "false" and fileSchemaType in noNulls:
             return True
+
+        if fileSchemaType == DataType.DASK_CUDF and self.dask_client is None:
+            return True
+
+        if fileSchemaType == DataType.CUDF and self.dask_client is None:
+            return True
+
+        if self.executionMode == 'gpuci':
+            if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
+                return True
 
         return False
 
