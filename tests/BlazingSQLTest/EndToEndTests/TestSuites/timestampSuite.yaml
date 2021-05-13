@@ -7,8 +7,13 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
     SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
       - MULTINODE:
+        - WITH_NULLS:
           - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
       - PARQUET
       - CSV
       - CUDF

@@ -7,8 +7,13 @@ TEST_SUITE:
     ACCEPTABLE_DIFFERENCE: 0.001
     COMPARE_WITH: drill
     SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
       - MULTINODE:
+        - WITH_NULLS:
           - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
       - JSON
 
   TEST_01:
@@ -158,26 +163,26 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
 
-  TEST_14:
-    SQL: |
-        select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
-                             df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
-                        from nation df1 inner join nation df2
-                        on df1.n_nationkey = df2.n_regionkey
-                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
-    SETUP:
-      COMPARE_WITH: spark
-
-  TEST_15:
-    SQL: |
-        select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
-                            df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
-                        from nation df1 inner join nation df2
-                        on df1.n_nationkey = df2.n_regionkey
-                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
-                        and df1.n_nationkey IS NOT DISTINCT FROM df2.n_nationkey
-    SETUP:
-      COMPARE_WITH: spark
+#  TEST_14:
+#    SQL: |
+#        select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
+#                             df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
+#                        from nation df1 inner join nation df2
+#                        on df1.n_nationkey = df2.n_regionkey
+#                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
+#    SETUP:
+#      COMPARE_WITH: spark
+#
+#  TEST_15:
+#    SQL: |
+#        select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
+#                            df2.n_nationkey as df2_nkey, df2.n_regionkey as df2_rkey
+#                        from nation df1 inner join nation df2
+#                        on df1.n_nationkey = df2.n_regionkey
+#                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
+#                        and df1.n_nationkey IS NOT DISTINCT FROM df2.n_nationkey
+#    SETUP:
+#      COMPARE_WITH: spark
 
   TEST_16:
     SQL: |
