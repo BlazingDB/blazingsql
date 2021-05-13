@@ -125,7 +125,6 @@ LIST_TEST:
     CODE: LITERAL
   LoggingSuite:
     NAME: Logging Test
-    FILE:
     CODE: NONE
   messageValidationSuite:
     NAME: Message Validation
