@@ -43,6 +43,8 @@ TEST_SUITE:
       select l_commitdate, l_shipdate,
                             timestampdiff(SECOND, l_commitdate, l_shipdate) as diff_second_col
                         from lineitem limit 420
+    SETUP:
+      SKIP_WITH: PSV
 
 # Tests: [05 - 12] are just to ensure TIMESTAMPDIFF works with constant values
   TEST_05:
