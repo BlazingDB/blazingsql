@@ -12,11 +12,6 @@ namespace {
 
 const std::string LOGICAL_FILTER = "LogicalFilter";
 
-const std::string INNER_JOIN = "inner";
-const std::string LEFT_JOIN = "left";
-const std::string RIGHT_JOIN = "right";
-const std::string OUTER_JOIN = "full";
-
 } // namespace
 
 bool is_logical_filter(const std::string & query_part) {

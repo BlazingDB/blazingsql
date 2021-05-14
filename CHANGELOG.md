@@ -19,7 +19,7 @@
 - #1502 Fix IS NOT DISTINCT FROM with joins
 - #1475 Fix wrong results from timestampdiff/add
 - #1528 Fixed build issues due to cudf aggregation API change 
-
+- #1540 Comparing param set to true for e2e
 
 # BlazingSQL 0.19.0 (April 21, 2021)
 

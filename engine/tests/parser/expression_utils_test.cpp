@@ -600,5 +600,7 @@ TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ns)
 	std::vector<cudf::data_type> schema {cudf::data_type{cudf::type_id::INT32}, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}};
 	std::string out_expression = reinterpret_timestamp(expression, schema);
 
-	EXPECT_EQ(out_expression, expression);
+	std::string expected_str = "Reinterpret(-(CAST(1996-12-01 12:00:01):TIMESTAMP, $1))";
+
+	EXPECT_EQ(out_expression, expected_str);
 }
