@@ -63,4 +63,4 @@ TEST_SUITE:
 #                    and l.l_returnflag in ('A', 'R')
 #                    order by o.o_totalprice
 #    SETUP:
-#      ORDER_BY_COL: o_totalprice
+#      ACCEPTABLE_DIFFERENCE: 0.01

@@ -22,27 +22,27 @@ TEST_SUITE:
 # crash in Drill side if you have an older version for Drill.
   TEST_01:
     SQL: |
-      select l_commitdate, l_shipdate,
+      select l_orderkey, l_commitdate, l_shipdate,
                             timestampdiff(DAY, l_commitdate, l_shipdate) as diff_day_col
-                        from lineitem limit 420
+                        from lineitem order by l_commitdate, l_orderkey limit 420
 
   TEST_02:
     SQL: |
-      select l_commitdate, l_shipdate,
+      select l_orderkey, l_commitdate, l_shipdate,
                             timestampdiff(HOUR, l_commitdate, l_shipdate) as diff_hour_col
-                        from lineitem limit 420
+                        from lineitem order by l_commitdate, l_orderkey limit 420
 
   TEST_03:
     SQL: |
       select l_commitdate, l_shipdate,
                             timestampdiff(MINUTE, l_commitdate, l_shipdate) as diff_minute_col
-                        from lineitem limit 420
+                        from lineitem order by l_commitdate, l_orderkey limit 420
 
   TEST_04:
     SQL: |
       select l_commitdate, l_shipdate,
                             timestampdiff(SECOND, l_commitdate, l_shipdate) as diff_second_col
-                        from lineitem limit 420
+                        from lineitem order by l_commitdate, l_orderkey limit 420
     SETUP:
       SKIP_WITH: PSV
 

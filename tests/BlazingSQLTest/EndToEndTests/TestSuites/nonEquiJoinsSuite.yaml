@@ -163,6 +163,7 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
 
+# TODO: https://github.com/BlazingDB/blazingsql/issues/1530
 #  TEST_14:
 #    SQL: |
 #        select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
@@ -172,7 +173,8 @@ TEST_SUITE:
 #                        where df1.n_regionkey IS NOT DISTINCT FROM df2.n_regionkey
 #    SETUP:
 #      COMPARE_WITH: spark
-#
+
+# TODO: https://github.com/BlazingDB/blazingsql/issues/1530
 #  TEST_15:
 #    SQL: |
 #        select df1.n_nationkey as df1_nkey, df1.n_regionkey as df1_rkey,
