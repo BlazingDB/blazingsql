@@ -90,13 +90,13 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
       SKIP_WITH:
-        - SINGLENODE:
-          - WITH_NULLS:
-            - DASK_CUDF
-            - CSV
-            - ORC
-            - PARQUET
-            - CUDF
+        - WITH_NULLS:
+          - DASK_CUDF
+          - CSV
+          - ORC
+          - PARQUET
+          - CUDF
+          - JSON
 
   TEST_09:
     SQL: |
