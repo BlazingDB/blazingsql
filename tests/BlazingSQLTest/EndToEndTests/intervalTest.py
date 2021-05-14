@@ -673,7 +673,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             # ========================= DURATION op INTERVAL ============================
 
             queryId = "TEST_49"
-            query = """select * from interval_table limit 12"""
+            query = """select * from interval_table"""
             runTest.run_query(
                 bc,
                 drill,
@@ -688,7 +688,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_50"
-            query = """select i_duration_s, i_duration_ms from interval_table limit 5"""
+            query = """select i_duration_s, i_duration_ms from interval_table"""
             runTest.run_query(
                 bc,
                 drill,
