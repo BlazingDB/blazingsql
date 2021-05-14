@@ -44,7 +44,8 @@ TEST_SUITE:
                             timestampdiff(SECOND, l_commitdate, l_shipdate) as diff_second_col
                         from lineitem order by l_commitdate, l_orderkey limit 420
     SETUP:
-      SKIP_WITH: PSV
+      SKIP_WITH:
+        - CSV
 
 # Tests: [05 - 12] are just to ensure TIMESTAMPDIFF works with constant values
   TEST_05:

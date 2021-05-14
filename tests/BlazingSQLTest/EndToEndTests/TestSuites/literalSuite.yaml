@@ -11,6 +11,7 @@ TEST_SUITE:
       - PARQUET
       - CUDF
       - JSON
+      - DASK_CUDF
 
   TEST_01:
     SQL: |

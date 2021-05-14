@@ -64,8 +64,7 @@ TEST_SUITE:
                         limit 10000
     SETUP:
       SKIP_WITH:
-        - SINGLENODE:
-          - ORC
+        - ORC
 
   TEST_06:
     SQL: |
