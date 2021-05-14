@@ -128,8 +128,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 queryId,
                 queryType,
                 worder,
-                "o_totalprice",
-                acceptable_difference,
+                "",
+                0.01,
                 use_percentage,
                 fileSchemaType,
             )
