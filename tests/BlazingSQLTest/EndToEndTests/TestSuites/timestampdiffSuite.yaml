@@ -119,47 +119,47 @@ TEST_SUITE:
 
 # Tests: [18 - 22] are to consider multiple cases
 # when using different type of TIMESTAMP unit
-#  TEST_18:
-#    SQL: |
-#      with date_table as (
-#                select cast(o_orderdate as date) as my_date
-#                from orders order by o_orderkey limit 10000
-#            ) select my_date,
-#                timestampdiff(DAY, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_day_col
-#            from date_table limit 450
-#
-#  TEST_19:
-#    SQL: |
-#      with date_table as (
-#                select cast(o_orderdate as date) as my_date
-#                from orders order by o_orderkey limit 10000
-#            ) select my_date,
-#                timestampdiff(HOUR, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_hour_col
-#            from date_table limit 450
-#
-#  TEST_20:
-#    SQL: |
-#      with date_table as (
-#                select cast(o_orderdate as date) as my_date from
-#                orders order by o_orderkey limit 12000
-#            ) select my_date,
-#                timestampdiff(MINUTE, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_minute_col
-#            from date_table limit 400
-#
-#  TEST_21:
-#    SQL: |
-#      with date_table as (
-#                select cast(o_orderdate as date) as my_date
-#                from orders order by o_orderkey limit 12000
-#            ) select my_date,
-#                timestampdiff(SECOND, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_second_col
-#            from date_table limit 400
-#
-#  TEST_22:
-#    SQL: |
-#      with date_table as (
-#              select cast(o_orderdate as date) as my_date
-#              from orders order by o_orderkey limit 12000
-#          ) select my_date,
-#              timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', CAST(my_date AS TIMESTAMP)) as diff_second_col
-#          from date_table limit 400
+  TEST_18:
+    SQL: |
+      with date_table as (
+                select cast(o_orderdate as date) as my_date
+                from orders order by o_orderkey limit 10000
+            ) select my_date,
+                timestampdiff(DAY, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_day_col
+            from date_table limit 450
+
+  TEST_19:
+    SQL: |
+      with date_table as (
+                select cast(o_orderdate as date) as my_date
+                from orders order by o_orderkey limit 10000
+            ) select my_date,
+                timestampdiff(HOUR, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_hour_col
+            from date_table limit 450
+
+  TEST_20:
+    SQL: |
+      with date_table as (
+                select cast(o_orderdate as date) as my_date from
+                orders order by o_orderkey limit 12000
+            ) select my_date,
+                timestampdiff(MINUTE, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_minute_col
+            from date_table limit 400
+
+  TEST_21:
+    SQL: |
+      with date_table as (
+                select cast(o_orderdate as date) as my_date
+                from orders order by o_orderkey limit 12000
+            ) select my_date,
+                timestampdiff(SECOND, CAST(my_date AS TIMESTAMP), TIMESTAMP '1996-12-01 12:00:01') as diff_second_col
+            from date_table limit 400
+
+  TEST_22:
+    SQL: |
+      with date_table as (
+              select cast(o_orderdate as date) as my_date
+              from orders order by o_orderkey limit 12000
+          ) select my_date,
+              timestampdiff(SECOND, TIMESTAMP '1996-12-01 12:00:01', CAST(my_date AS TIMESTAMP)) as diff_second_col
+          from date_table limit 400

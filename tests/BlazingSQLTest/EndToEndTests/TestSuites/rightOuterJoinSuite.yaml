@@ -54,13 +54,13 @@ TEST_SUITE:
     SETUP:
       ORDER_BY_COL: n_nationkey
 
-#  TEST_05:
-#    SQL: |
-#        select l.l_orderkey, l.l_partkey, l.l_quantity, o.o_totalprice, o.o_clerk
-#                    from lineitem as l right outer join orders as o
-#                    on l.l_orderkey = o.o_orderkey
-#                    where o.o_totalprice < 87523.2
-#                    and l.l_returnflag in ('A', 'R')
-#                    order by o.o_totalprice
-#    SETUP:
-#      ACCEPTABLE_DIFFERENCE: 0.01
+  TEST_05:
+    SQL: |
+        select l.l_orderkey, l.l_partkey, l.l_quantity, o.o_totalprice, o.o_clerk
+                    from lineitem as l right outer join orders as o
+                    on l.l_orderkey = o.o_orderkey
+                    where o.o_totalprice < 87523.2
+                    and l.l_returnflag in ('A', 'R')
+                    order by o.o_totalprice
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0.01
