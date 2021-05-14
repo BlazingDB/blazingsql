@@ -1404,7 +1404,7 @@ def run_query(
 
     algebra = kwargs.get("algebra", "")
 
-    comparing = kwargs.get("comparing", "false")
+    comparing = kwargs.get("comparing", "true")
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
