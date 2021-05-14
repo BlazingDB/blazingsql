@@ -438,10 +438,6 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 			// After a right join is performed, we want to make sure the left column keep on the left side of result_table
 			result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
 
-			if ( ral::utilities::n_first_columns_have_full_null_values_from_table(result_table->view(), table_left.num_columns()) ) {
-				std::vector<cudf::type_id> table_schema_ids = ral::utilities::get_schema_from_cudf_table_view(result_table->view());
-				result_table = ral::utilities::create_empty_table(table_schema_ids);
-			}
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
@@ -843,6 +839,12 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 		if(estimate_scatter_right < estimate_regular_distribution &&
 					static_cast<unsigned long long>(total_bytes_right) < max_join_scatter_mem_overhead) {
 			scatter_right = true;
+		}
+	// with RIGHT_JOIN we cant scatter the left side
+	} else if (this->join_type == RIGHT_JOIN) {
+		if(estimate_scatter_left < estimate_regular_distribution &&
+					static_cast<unsigned long long>(total_bytes_left) < max_join_scatter_mem_overhead) {
+			scatter_left = true;
 		}
 	} else {
 		if(estimate_scatter_left < estimate_regular_distribution ||
