@@ -1,0 +1,137 @@
+# Concat Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+      
+  TEST_01:
+    SQL: |
+        select nation.n_nationkey, region.r_regionkey
+                    from nation inner join region
+                    on region.r_regionkey = nation.n_nationkey
+
+  TEST_02:
+    SQL: |
+        select avg(CAST(c.c_custkey AS DOUBLE)),
+                        avg(CAST(c.c_nationkey AS DOUBLE)),
+                        n.n_regionkey
+                    from customer as c inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    group by n.n_regionkey
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0.01
+
+  TEST_03:
+    SQL: |
+      select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c
+                    inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1
+                    and c.c_custkey < 50
+
+  TEST_04:
+    SQL: |
+        select avg(CAST(c.c_custkey AS DOUBLE)),
+                        avg(c.c_acctbal), n.n_nationkey,
+                        r.r_regionkey
+                    from customer as c
+                    inner join nation as n on c.c_nationkey = n.n_nationkey
+                    inner join region as r on r.r_regionkey = n.n_regionkey
+                    group by n.n_nationkey, r.r_regionkey
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0.01
+
+  TEST_05:
+    SQL: |
+        select n1.n_nationkey as supp_nation,
+                        n2.n_nationkey as cust_nation,
+                        l.l_extendedprice * l.l_discount
+                    from supplier as s
+                    inner join lineitem as l
+                    on s.s_suppkey = l.l_suppkey
+                    inner join orders as o on o.o_orderkey = l.l_orderkey
+                    inner join customer as c on c.c_custkey = o.o_custkey
+                    inner join nation as n1 on s.s_nationkey = n1.n_nationkey
+                    inner join nation as n2 on c.c_nationkey = n2.n_nationkey
+                    where n1.n_nationkey = 1
+                    and n2.n_nationkey = 2
+                    and o.o_orderkey < 10000
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0.01
+
+  TEST_06:
+    SQL: |
+        SELECT n.n_nationkey + 1, n.n_regionkey from nation
+                    AS n inner join region AS r ON
+                    n.n_regionkey = r.r_regionkey
+
+  TEST_07:
+    SQL: |
+        SELECT n.n_nationkey + 1, n.n_regionkey from nation
+                    AS n INNER JOIN region AS r
+                    ON n.n_regionkey = r.r_regionkey
+                    and n.n_nationkey = 5
+  TEST_08:
+    SQL: |
+        select * from nation n1 inner join nation n2
+                    on n1.n_nationkey = n2.n_nationkey
+
+  TEST_09:
+    SQL: |
+        select n1.n_nationkey, n2.n_nationkey
+                    from nation n1 inner join nation n2
+                    on n1.n_nationkey = n2.n_nationkey
+
+  TEST_10:
+    SQL: |
+        select l.l_orderkey, l.l_linenumber, n.n_nationkey
+                    from lineitem as l inner join nation as n
+                    on l.l_orderkey = n.n_nationkey
+
+  TEST_11:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, n.o_orderkey
+                    from customer as c
+                    inner join orders as n on c.c_custkey = n.o_custkey
+                    where n.o_orderkey < 100
+
+  TEST_12:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, o.o_orderkey
+                    from customer as c
+                    inner join orders as o on c.c_custkey = o.o_custkey
+                    inner join nation as n on c.c_nationkey = n.n_nationkey
+                    order by c_custkey, o.o_orderkey
+    SETUP:
+      APPLY_ORDER: False
+
+  #ERROR: Different values GDF and PSV
+  # TEST_13:
+  #   SQL: |
+  #       select c.c_name, o.o_orderkey, o.o_totalprice,
+  #                       l.l_partkey, l.l_returnflag
+  #                   from lineitem as l
+  #                   inner join orders as o on o.o_orderkey = l.l_orderkey
+  #                   inner join customer as c on c.c_custkey = o.o_custkey
+  #                   and l.l_linenumber < 3 and c.c_custkey < 30
+
+  #ERROR: Different values GDF and PSV
+  # TEST_14:
+  #   SQL: |
+  #       select o.o_orderkey, o.o_totalprice, l.l_partkey
+  #                   from lineitem as l
+  #                   inner join orders as o on o.o_orderkey = l.l_orderkey * 2
+  #                   inner join customer as c on c.c_nationkey = o.o_custkey

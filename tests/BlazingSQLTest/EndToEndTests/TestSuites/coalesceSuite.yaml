@@ -1,0 +1,196 @@
+# Coalesce Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select n.n_nationkey, COALESCE(r.r_regionkey,-1)
+                    from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10
+
+  TEST_02:
+    SQL: |
+        select COALESCE(orders.o_orderkey, 100),
+                    COALESCE(orders.o_totalprice, 0.01) from customer
+                    left outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_03:
+    SQL: |
+      select COALESCE(orders.o_orderkey, customer.c_custkey),
+                    COALESCE(orders.o_totalprice, customer.c_acctbal)
+                    from customer left outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_04:
+    SQL: |
+        select customer.c_custkey, orders.o_orderkey,
+                    COALESCE(orders.o_custkey,123456) from customer
+                    left outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_05:
+    SQL: |
+        select COUNT(DISTINCT(COALESCE(n1.n_regionkey, 32))),
+                    AVG(CAST(COALESCE(n1.n_regionkey, 32) as float)) from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+
+  TEST_06:
+    SQL: |
+      select SUM(COALESCE(n2.n_nationkey, 100)),
+                    COUNT(DISTINCT(COALESCE(n1.n_nationkey,32))),
+                    n2.n_regionkey as n1key from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    GROUP BY n2.n_regionkey
+
+  TEST_07:
+    SQL: |
+      select MIN(COALESCE(n.n_nationkey, r.r_regionkey)),
+                    MAX(COALESCE(n.n_nationkey, 8)) from nation as n
+                    left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_08:
+    SQL: |
+      select AVG(CAST(COALESCE(n.n_nationkey,
+                    r.r_regionkey) AS DOUBLE)),
+                    MAX(COALESCE(n.n_nationkey, 8)),
+                    COUNT(COALESCE(n.n_nationkey, 12)), n.n_nationkey
+                    from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    GROUP BY n.n_nationkey
+
+  TEST_09:
+    SQL: |
+        select SUM(COALESCE(n2.n_nationkey, 100)),
+                  COUNT(DISTINCT(COALESCE(n1.n_nationkey,32))),
+                  COALESCE(n2.n_regionkey, 100) as n1key from nation as n1
+                  full outer join nation as n2
+                  on n1.n_nationkey = n2.n_nationkey + 6
+                  GROUP BY COALESCE(n2.n_regionkey, 100)
+  TEST_10:
+    SQL: |
+        SELECT COALESCE(l_shipinstruct, l_comment) FROM lineitem
+
+  TEST_11:
+    SQL: |
+        select n.n_nationkey,
+                    COALESCE(r.r_comment, n.n_comment) from nation as n
+                    left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+  TEST_12:
+    SQL: |
+        SELECT COALESCE(l.l_shipinstruct, o.o_orderstatus)
+                    FROM lineitem l inner join orders o
+                    on l.l_orderkey = o.o_orderkey
+                    where o.o_totalprice < 1574.23
+
+  TEST_13:
+    SQL: |
+        WITH
+                t1_l AS ( SELECT * FROM orders ),
+                t1_r AS ( SELECT * FROM customer ),
+                main_lr AS(
+                    SELECT
+                        COALESCE(o.o_comment, c.c_comment) AS info
+                    FROM
+                        t1_l o FULL JOIN t1_r c
+                        ON  o.o_custkey = c.c_custkey
+                        AND o.o_orderkey = c.c_nationkey
+                ) SELECT * FROM main_lr
+
+  TEST_14:
+    SQL: |
+        WITH
+            ltable3 AS (
+                select lineitem.l_orderkey as orderkey,
+                        lineitem.l_linestatus as linestatus
+                from lineitem
+                where mod(lineitem.l_orderkey, 2) = 0
+            ),
+
+            rtable1 AS (
+                select lineitem.l_orderkey as orderkey,
+                        lineitem.l_linestatus as linestatus
+                from lineitem
+                where mod(lineitem.l_partkey, 6) = 0
+            ),
+            rtable2 AS (
+                select lineitem.l_orderkey as orderkey,
+                        lineitem.l_linestatus as linestatus
+                from lineitem
+                where mod(lineitem.l_suppkey, 4) = 0
+            ),
+            rtable3 AS (
+                select coalesce(l.orderkey, r.orderkey)  as orderkey,
+                        coalesce(l.linestatus, r.linestatus) as linestatus
+                from rtable1 l full join rtable2 r
+                on l.orderkey = r.orderkey
+                -- and l.linestatus = r.linestatus
+            ),
+
+            lastjoin AS (
+                select l.orderkey,
+                        coalesce(l.linestatus, r.linestatus) as linestatus
+                from ltable3 l full join rtable3 r
+                on l.orderkey = r.orderkey
+                and l.linestatus = r.linestatus
+            )
+
+            select * from lastjoin
+
+  TEST_15:
+    SQL: |
+        select n.n_nationkey, COALESCE(r.r_regionkey,-1)
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    where n.n_nationkey < 10
+
+  TEST_16:
+    SQL: |
+        select COALESCE(orders.o_orderkey, 100),
+                    COALESCE(orders.o_totalprice, 0.01) from customer
+                    right outer join orders
+                    on customer.c_custkey = orders.o_custkey
+                    where customer.c_nationkey = 3
+                    and customer.c_custkey < 500
+
+  TEST_17:
+    SQL: |
+        select MIN(COALESCE(n.n_nationkey, r.r_regionkey)),
+                    MAX(COALESCE(n.n_nationkey, 8)) from nation as n
+                    right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_18:
+    SQL: |
+        select AVG(CAST(COALESCE(n.n_nationkey,
+                    r.r_regionkey) AS DOUBLE)),
+                    MAX(COALESCE(n.n_nationkey, 8)),
+                    COUNT(COALESCE(n.n_nationkey, 12)), n.n_nationkey
+                    from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+                    GROUP BY n.n_nationkey

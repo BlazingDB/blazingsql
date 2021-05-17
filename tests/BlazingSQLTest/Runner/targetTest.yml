@@ -1,0 +1,232 @@
+LIST_TEST:
+  aggregationsWithoutGroupBySuite:
+    NAME: Aggregations without group by
+    FILE: aggregationsWithoutGroupBySuite.yaml
+    CODE: AGGWOGRBY
+  bindableAliasSuite:
+    NAME: Bindable Alias
+    FILE: bindableAliasSuite.yaml
+    CODE: BALIAS
+  booleanSuite:
+    NAME: Boolean
+    FILE: booleanSuite.yaml
+    CODE: BOOL
+  caseSuite:
+    NAME: Case
+    FILE: caseSuite.yaml
+    CODE: CASE
+  castSuite:
+    NAME: Cast
+    FILE: castSuite.yaml
+    CODE: CAST
+  coalesceSuite:
+    NAME: Coalesce
+    FILE: coalesceSuite.yaml
+    CODE: COALESCE
+  columnBasisSuite: #Not supported yet:
+    NAME: Column Basis
+    FILE: columnBasisSuite.yaml
+    CODE: COLBAS
+  commonTableExpressionsSuite:
+    NAME: Common Table Expressions
+    FILE: commonTableExpressionsSuite.yaml
+    CODE: COMTABLEX
+  concatSuite:
+    NAME: Concat
+    FILE: concatSuite.yaml
+    CODE: CONCAT
+  concurrentSuite: #Not supported yet:
+    NAME: Concurrent
+    FILE: concurrentSuite.yaml
+    CODE: CONCUR
+  configOptionsSuite:
+    NAME: Config Options
+    FILE: configOptionsSuite.yaml
+    CODE: TPCH
+  countDistinctSuite:
+    NAME: Count Distinct
+    FILE: countDistinctSuite.yaml
+    CODE: COUNTD
+  countWithoutGroupBySuite:
+    NAME: Count without group by
+    FILE: countWithoutGroupBySuite.yaml
+    CODE: COUNTWOGRBY
+  crossJoinsSuite:
+    NAME: Cross join
+    FILE: crossJoinsSuite.yaml
+    CODE: CROSSJOIN
+  dateSuite:
+    NAME: Date
+    FILE: dateSuite.yaml
+    CODE: DATE
+  dayOfWeekSuite:
+    NAME: Day of week
+    FILE: dayOfWeekSuite.yaml
+    CODE: DAYOFWEEK
+  dirSuite:
+    NAME: Dir
+    FILE: dirSuite.yaml
+    CODE: DIR
+  fileSystemGSSuite: #Not supported yet:
+    NAME: File System Google Storage
+    FILE: fileSystemGSSuite.yaml
+    CODE: FSGS
+  fileSystemHdfsSuite: #Not supported yet:
+    NAME: Hdfs FileSystem
+    FILE: fileSystemHdfsSuite.yaml
+    CODE: FSHDFS
+  fileSystemHiveSuite: #Not supported yet:
+    NAME: Hive FileSystem
+    FILE: fileSystemHiveSuite.yaml
+    CODE: FSHIVE
+  fileSystemLocalSuite: #Not supported yet:
+    NAME: File System Local
+    FILE: fileSystemLocalSuite.yaml
+    CODE: FSLOCAL
+  fileSystemS3Suite: #Not supported yet:
+    NAME: File System S3
+    FILE: fileSystemS3Suite.yaml
+    CODE: FSS3
+  fullOuterJoinsSuite:
+    NAME: Full outer join
+    FILE: fullOuterJoinsSuite.yaml
+    CODE: FOUTJOIN
+  groupBySuite:
+    NAME: Group by
+    FILE: groupBySuite.yaml
+    CODE: GROUPBY
+  groupByWithoutAggregationsSuite:
+    NAME: Group by without aggregations
+    FILE: groupByWithoutAggregationsSuite.yaml
+    CODE: GRBYWOAGG
+  hiveFileSuite: #Not supported yet:
+    NAME: Hive File
+    FILE: hiveFileSuite.yaml
+    CODE: FILEHIVE
+  innerJoinsSuite:
+    NAME: Inner join
+    FILE: innerJoinsSuite.yaml
+    CODE: INNERJOIN
+  jsonSuite:
+    NAME: Json tests
+    FILE: jsonSuite.yaml
+    CODE: JSON
+  leftOuterJoinsSuite:
+    NAME: Left outer join
+    FILE: leftOuterJoinsSuite.yaml
+    CODE: LOUTJOIN
+  likeSuite:
+    NAME: Like
+    FILE: likeSuite.yaml
+    CODE: LIKE
+  literalSuite:
+    NAME: Literal
+    FILE: literalSuite.yaml
+    CODE: LITERAL
+  LoggingSuite:
+    NAME: Logging Test
+    CODE: NONE
+  messageValidationSuite:
+    NAME: Message Validation
+    FILE: messageValidationSuite.yaml
+    CODE: MESSAGEVAL
+  nestedQueriesSuite:
+    NAME: Nested Queries
+    FILE: nestedQueriesSuite.yaml
+    CODE: NESTEDQ
+  nonEquiJoinsSuite:
+    NAME: Non-EquiJoin Queries
+    FILE: nonEquiJoinsSuite.yaml
+    CODE: NEQUIJOIN
+  predicatesWithNullsSuite:
+    NAME: Predicates With Nulls
+    FILE: predicatesWithNulls.yaml
+    CODE: PREDWNULLS
+  orderbySuite:
+    NAME: Order by
+    FILE: orderbySuite.yaml
+    CODE: ORDERBY
+  rightOuterJoins:
+    NAME: Right outer join
+    FILE: rightOuterJoinSuite.yaml
+    CODE: ROUTJOIN
+  roundSuite:
+    NAME: Round
+    FILE: roundSuite.yaml
+    CODE: ROUND
+  smilesSuite:
+    NAME: Smiles Test
+    FILE: smilesSuite.yaml
+    CODE: SMILES
+  stringCaseSuite:
+    NAME: String case
+    FILE: stringCaseSuite.yaml
+    CODE: STRINGCASE
+  simpleStringSuites:
+    NAME: Simple String
+    FILE: simpleStringSuite.yaml
+    CODE: SSTRING
+  substringSuite:
+    NAME: Substring
+    FILE: substringSuite.yaml
+    CODE: SUBSTRING
+  TablesFromSQL:
+    NAME: Tables from SQL
+    FILE: TablesFromSuite.yaml
+    CODE: TABFROMSQL
+  tablesFromPandasSuite:
+    NAME: Tables from Pandas
+    FILE: tablesFromPandasSuite.yaml
+    CODE: TBLPANDAS
+  timestampdiffSuite:
+    NAME: Timestampdiff
+    FILE: timestampdiffSuite.yaml
+    CODE: TIMESTAMPD
+  TimestampaddSuite:
+    NAME: Timestampadd
+    FILE: TimestampaddSuite.yaml
+    CODE: TIMESTAMPADD
+  timestampSuite:
+    NAME: Timestamp
+    FILE: timestampSuite.yaml
+    CODE: TIMESTAMP
+  toTimestampSuite:
+    NAME: To_timestamp
+    FILE: toTimestampSuite.yaml
+    CODE: TO_TIMESTAMP
+  TPCHSuite:
+    NAME: TPCH Queries
+    FILE: TPCHSuite.yaml
+    CODE: TPCH
+  unaryOpsSuite:
+    NAME: Unary ops
+    FILE: unaryOpsSuite.yaml
+    CODE: UNARYOPS
+  unifyTablesSuite:
+    NAME: Unify Tables
+    FILE: unifyTablesSuite.yaml
+    CODE: UNIFYTBL
+  unionSuite:
+    NAME: Union
+    FILE: unionSuite.yaml
+    CODE: UNION
+  LimitSuite:
+    NAME: Limit
+    FILE: useLimitSuite.yaml
+    CODE: LIMIT
+  whereClauseSuite:
+    NAME: Where clause
+    FILE: whereClauseSuite.yaml
+    CODE: WHERE
+  wildCardSuite:
+    NAME: Wild Card
+    FILE: wildCardSuite.yaml
+    CODE: WILDCARD
+  windowFunctionSuite:
+    NAME: Window Function
+    FILE: windowFunctionSuite.yaml
+    CODE: WINDOWFUNCTION
+  windowNoPartitionSuite:
+    NAME: Window Functions With No Partition
+    FILE: windowNoPartitionSuite.yaml
+    CODE: WINDOW_NO_PARTITION
