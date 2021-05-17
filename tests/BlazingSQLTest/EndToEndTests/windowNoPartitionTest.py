@@ -142,7 +142,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         and l_extendedprice is not null
                         order by l_extendedprice, l_orderkey, max_keys
                         limit 50"""
-
             runTest.run_query(
                 bc,
                 spark,
@@ -177,7 +176,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where l.l_quantity = 1 and c.c_custkey < 10000
                         order by l.l_orderkey, l.l_linenumber, l.l_partkey, c.c_custkey                        
                         """
-
             runTest.run_query(
                 bc,
                 spark,
@@ -191,7 +189,62 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType                
             )
 
-          
+            queryId = "TEST_06"
+            query = """select max(l_partkey) over
+                            (
+                                order by l_extendedprice desc, l_orderkey NULLS LAST,
+                                l_quantity NULLS FIRST
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_keys,
+                            l_linestatus, l_extendedprice
+                        from lineitem
+                        where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                        and l_linestatus = 'F'
+                        and l_extendedprice is not null
+                        order by l_extendedprice, l_orderkey, max_keys
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_07"
+            query = """select max(l_partkey) over
+                            (
+                                order by l_extendedprice DESC NULLS FIRST,
+                                l_orderkey DESC NULLS LAST,
+                                l_quantity NULLS FIRST
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_keys,
+                            l_linestatus, l_extendedprice
+                        from lineitem
+                        where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                        and l_linestatus = 'F'
+                        and l_extendedprice is not null
+                        order by l_extendedprice, l_orderkey, max_keys
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

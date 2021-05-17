@@ -1449,6 +1449,130 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_61"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice NULLS LAST, o_custkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice NULLS LAST, o_custkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority, o_totalprice
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 8000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority, o_totalprice"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_62"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice NULLS FIRST, o_custkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice NULLS FIRST, o_custkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority, o_totalprice
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 8000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority, o_totalprice"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_63"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice DESC NULLS LAST, o_custkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice DESC NULLS LAST, o_custkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority, o_totalprice
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 8000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority, o_totalprice"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_64"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice DESC NULLS FIRST, o_custkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice DESC NULLS FIRST, o_custkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority, o_totalprice
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 8000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority, o_totalprice"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

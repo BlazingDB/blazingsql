@@ -153,18 +153,32 @@ std::tuple< std::vector<int>, std::vector<cudf::order>, std::vector<cudf::null_o
 	std::vector<std::string> column_express = StringUtil::split(values, ", ");
 	for (std::size_t i = 0; i < column_express.size(); ++i) {
 		std::vector<std::string> split_parts = StringUtil::split(column_express[i], " ");
-		// TODO: cordova handle better this cases (ASC-nulls-first and DESC-nulls-last)
-		if (split_parts.size() == 1) {
+		if (split_parts.size() == 1) { // $x
 			order_types.push_back(cudf::order::ASCENDING);
-			sorted_order_nulls.push_back(cudf::null_order::AFTER); // TODO: review this ..
+			sorted_order_nulls.push_back(cudf::null_order::AFTER);
+		} else if (split_parts.size() == 2) { // $x DESC
+			order_types.push_back(cudf::order::DESCENDING);
+			sorted_order_nulls.push_back(cudf::null_order::AFTER);
+		} else if (split_parts.size() == 3) {
+			order_types.push_back(cudf::order::ASCENDING);
+			if (split_parts[2] == "FIRST") {  // $x NULLS FIRST  
+				sorted_order_nulls.push_back(cudf::null_order::BEFORE);
+			} else { // $x NULLS LAST
+				sorted_order_nulls.push_back(cudf::null_order::AFTER);
+			}
 		}
 		else {
 			order_types.push_back(cudf::order::DESCENDING);
-			sorted_order_nulls.push_back(cudf::null_order::AFTER); // TODO: review this ..
+			if (split_parts[3] == "FIRST") { // $x DESC NULLS FIRST
+				sorted_order_nulls.push_back(cudf::null_order::AFTER);
+			} else { // $x DESC NULLS LAST
+				sorted_order_nulls.push_back(cudf::null_order::BEFORE);
+			}
 		}
 
-		split_parts[0] = StringUtil::replace(split_parts[0], "$", "");
-		column_index.push_back(std::stoi(split_parts[0]));
+		//split_parts[0] = StringUtil::replace(split_parts[0], "$", "");
+		//column_index.push_back(std::stoi(split_parts[0]));
+		column_index.push_back( get_index_from_expression_str(split_parts[0]) );
 	}
 
 	return std::make_tuple(column_index, order_types, sorted_order_nulls);

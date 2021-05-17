@@ -154,7 +154,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                 print_result=True
             )
 
             queryId = "TEST_08"
@@ -171,7 +170,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                 print_result=True
             )
 
             queryId = "TEST_09"
@@ -188,7 +186,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                 print_result=True
             )
 
             queryId = "TEST_10"
@@ -205,7 +202,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                 print_result=True
             )
 
             queryId = "TEST_11"
@@ -224,7 +220,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                 print_result=True
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
