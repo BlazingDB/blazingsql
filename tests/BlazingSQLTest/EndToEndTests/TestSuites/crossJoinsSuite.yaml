@@ -1,0 +1,73 @@
+# Cross Join Suite Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: spark
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select * from nation cross join region
+
+  TEST_02:
+    SQL: |
+        select o_orderkey, o_totalprice,
+                         l_linenumber, l_shipmode
+                    from orders cross join lineitem
+                    where o_orderkey < 6
+                    and l_receiptdate > date '1996-07-12'
+                    and l_linenumber > 5
+                    and o_totalprice < 74029.55
+                    and o_clerk = 'Clerk#000000880'
+                    and l_shipmode IN ('FOB', 'RAIL')
+                    order by o_orderkey, o_totalprice, l_linenumber
+
+  TEST_03:
+    SQL: |
+      select o_orderkey, n_nationkey
+                          from nation cross join orders
+                          where o_totalprice > 4000.0
+                          and o_orderdate > date '1998-07-12'
+                          and o_orderkey > 425000
+                          group by o_orderkey, n_nationkey
+                          order by o_orderkey, n_nationkey
+
+  TEST_04:
+    SQL: |
+      with cust_nation as
+                          (
+                              select c_custkey, c_name, n_nationkey, n_name
+                              from customer inner join nation
+                              on c_nationkey = n_nationkey
+                              where n_nationkey > 21
+                              and c_acctbal > 525.0
+                              and c_custkey > 13450
+                              order by c_custkey, n_nationkey
+                          ), ord_lineitem as
+                          (
+                              select o_orderkey, l_quantity
+                              from orders left join lineitem
+                              on o_orderkey = l_orderkey
+                              where l_shipdate > date '1998-11-12'
+                              and o_totalprice > 3500.0
+                              and l_quantity > 48.0
+                              and l_shipmode in ('AIR', 'FOB', 'SHIP')
+                              order by o_orderkey
+                          )
+                          select c_custkey, n_name, l_quantity
+                          from ord_lineitem cross join cust_nation
+                          where n_name = 'RUSSIA'
+                          order by c_custkey
+
+  

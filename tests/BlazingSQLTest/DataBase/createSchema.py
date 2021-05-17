@@ -1335,9 +1335,10 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     ext = get_extension(fileSchemaType)
 
     tables = kwargs.get("tables", tpchTables)
+    tables = list(set(tables) & set(tableNames))
     table_names = kwargs.get("table_names", tables)
-    bool_orders_index = kwargs.get("bool_orders_index", -1)
-    interval_table_index = kwargs.get("interval_table_index", -1)
+    bool_orders_index = tables.index("bool_orders") if "bool_orders" in tables else -1
+    interval_table_index = tables.index("interval_table") if "interval_table" in tables else -1
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 

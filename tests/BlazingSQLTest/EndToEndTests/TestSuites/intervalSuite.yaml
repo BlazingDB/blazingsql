@@ -1,0 +1,302 @@
+# Interval Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: False
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+      - ORC
+      - PARQUET
+      - CUDF
+
+  # ======================== INTERVAL: SECONDS ===========================
+  TEST_01:
+    SQL: |
+        select INTERVAL '4' SECOND from region
+
+  TEST_02:
+    SQL: |
+        select INTERVAL '1' SECOND + INTERVAL '3' SECOND from region
+
+  # NOTE: Drill have a wrong result for this query
+  #TEST_03:
+  #  SQL: |
+  #      select CAST(INTERVAL '1' DAY as INTERVAL SECOND) from region
+
+  TEST_04:
+    SQL: |
+        select INTERVAL '15:30' MINUTE TO SECOND from region
+
+  TEST_05:
+    SQL: |
+        select INTERVAL '01:10:02' HOUR TO SECOND from region
+
+  TEST_06:
+    SQL: |
+        select INTERVAL '2 00:00:00' DAY TO SECOND from region
+
+  TEST_07:
+    SQL: |
+        select INTERVAL '2 01:03:10' DAY TO SECOND from region
+
+  TEST_08:
+    SQL: |
+        select 900 * INTERVAL '1' SECOND  from region
+
+  TEST_09:
+    SQL: |
+        select CAST(date '1990-05-02' + INTERVAL '45' SECOND as date) from region
+
+  TEST_10:
+    SQL: |
+        select timestamp '1990-05-02 05:10:12' + INTERVAL '1' SECOND from region
+
+
+  # ======================== INTERVAL: MINUTES ===========================
+  TEST_11:
+    SQL: |
+        select INTERVAL '4' MINUTE from region
+
+  TEST_12:
+    SQL: |
+        select INTERVAL '1' MINUTE + INTERVAL '3' MINUTE from region
+
+  # NOTE: Drill have a wrong result for this query
+  #TEST_13:
+  #  SQL: |
+  #      select CAST(INTERVAL '1' DAY as INTERVAL MINUTE) from region
+
+  TEST_14:
+    SQL: |
+        select INTERVAL '23:15' HOUR(2) TO MINUTE from region
+
+  TEST_15:
+    SQL: |
+        select INTERVAL '123:15' HOUR(3) TO MINUTE from region
+
+  TEST_17:
+    SQL: |
+        select 150 * INTERVAL '1' MINUTE from region
+
+  TEST_18:
+    SQL: |
+        select CAST(date '1990-05-02' + INTERVAL '45' MINUTE AS DATE) from region
+
+  TEST_19:
+    SQL: |
+        select timestamp '1990-05-02 05:10:12' + INTERVAL '1' MINUTE from region
+  
+
+  # ======================== INTERVAL: HOURS ===========================
+  TEST_20:
+    SQL: |
+        select INTERVAL '4' HOUR from region
+
+  TEST_21:
+    SQL: |
+        select INTERVAL '1' HOUR + INTERVAL '3' HOUR from region
+
+  TEST_22:
+    SQL: |
+        select INTERVAL '2 10' DAY(1) TO HOUR from region
+
+  TEST_23:
+    SQL: |
+        select INTERVAL '125 10' DAY(3) TO HOUR from region
+
+  TEST_24:
+    SQL: |
+        select 150 * INTERVAL '1' HOUR from region
+
+  TEST_25:
+    SQL: |
+        select cast(date '1990-05-02' + INTERVAL '12' HOUR as date) from region
+
+  TEST_26:
+    SQL: |
+        select cast(date '1990-05-02' + INTERVAL '25' HOUR as date) from region
+
+  TEST_27:
+    SQL: |
+        select timestamp '1990-05-02 05:10:12' + INTERVAL '1' HOUR from region
+
+  TEST_28:
+    SQL: |
+        select INTERVAL '4' DAY from region
+
+  TEST_29:
+    SQL: |
+        select INTERVAL '1' DAY + INTERVAL '3' DAY from region
+
+  TEST_30:
+    SQL: |
+        select 150 * INTERVAL '1' DAY from region
+
+  TEST_31:
+    SQL: |
+        select cast(date '1990-05-02' + INTERVAL '1' DAY as date) from region
+
+  TEST_32:
+    SQL: |
+        select timestamp '1990-05-02 05:10:12' + INTERVAL '2' DAY from region
+
+
+  # ======================== INTERVAL: MONTHS ===========================
+
+  # TODO: For now, not supported MONTH with INTERVAL operations
+
+
+  # ========================= INTERVAL: YEAR ============================
+
+  # TODO: For now, not supported YEAR with INTERVAL operations
+
+
+  # ====================== TIMESTAMP op INTERVAL ========================
+
+  TEST_41:
+    SQL: |
+        select o_orderdate, o_orderdate + INTERVAL '3' SECOND as add_sec_col
+            from orders order by o_totalprice limit 100
+
+  TEST_42:
+    SQL: |
+        select o_orderdate, o_orderdate - INTERVAL '2' SECOND as sub_sec_col
+            from orders order by o_totalprice limit 150
+
+  TEST_43:
+    SQL: |
+        select o_orderdate, o_orderdate + INTERVAL '6' MINUTE as add_min_col
+            from orders order by o_totalprice limit 50
+
+  TEST_44:
+    SQL: |
+        select o_orderdate, o_orderdate - INTERVAL '5' MINUTE as sub_min_col
+            from orders order by o_totalprice limit 50
+
+  TEST_45:
+    SQL: |
+        select o_orderdate, o_orderdate + INTERVAL '1' HOUR as add_hour_col
+            from orders order by o_totalprice limit 50
+
+  TEST_46:
+    SQL: |
+        select o_orderdate, o_orderdate - INTERVAL '4' HOUR as sub_hour_col
+            from orders order by o_totalprice limit 85
+        
+  TEST_47:
+    SQL: |
+         select o_orderdate, o_orderdate + INTERVAL '1' DAY as add_day_col
+            from orders order by o_totalprice limit 100
+
+  TEST_48:
+    SQL: |
+        select o_orderdate, o_orderdate - INTERVAL '7' DAY as sub_day_col
+            from orders order by o_totalprice limit 50
+
+
+  # ========================= DURATION op INTERVAL ============================
+
+  TEST_49:
+    SQL: |
+        select * from interval_table
+
+  TEST_50:
+    SQL: |
+        select i_duration_s, i_duration_ms from interval_table
+
+  TEST_51:
+    SQL: |
+        select i_id, i_duration_s from interval_table
+              order by i_duration_s desc limit 25
+
+  # Join with DURATION same unit
+  TEST_52:
+    SQL: |
+        select r1.i_id + 1 as r1_id, r1.i_duration_s as r1_duration_s,
+                r2.i_duration_ms as r2_duration_ms
+            from interval_table r1 inner join interval_table r2
+            on r1.i_duration_s = r2.i_duration_s
+            order by r1.i_id limit 70       
+
+  # Join with DURATION same unit
+  TEST_53:
+    SQL: |
+        select r1.i_id as r1_id, r1.i_duration_s as r1_duration_s,
+                r1.i_duration_ms as r1_duration_ms
+            from interval_table r1 inner join interval_table r2
+            on r1.i_duration_ms = r2.i_duration_s
+
+  TEST_54:
+    SQL: |
+        select count(i_duration_s) from interval_table
+
+  TEST_55:
+    SQL: |
+        select sum(i_id) as sum_col, i_duration_s from interval_table
+            group by i_duration_s
+
+  # union with DURARION same unit
+  TEST_56:
+    SQL: |
+        (select i_id, i_duration_ms from interval_table where i_id > 236)
+            union all 
+        (select i_id, i_duration_ms from interval_table where i_id < 55)
+
+  # union with DURARION diff unit
+  TEST_57:
+    SQL: |
+        (select i_id, i_duration_s from interval_table limit 36)
+            union all 
+        (select i_id, i_duration_ms from interval_table limit 4)
+
+
+  # NOTE: all this query works for Blazing but not for Drill
+  # TEST_58
+  #   select i_duration_s, INTERVAL '1' SECOND as col_to_sum,
+  #                 i_duration_s + INTERVAL '1' SECOND as sum_cols
+  #             from interval_table limit 36
+
+  # TEST_59
+  #   select i_duration_s, INTERVAL '1' MINUTE as col_to_sum,
+  #                 i_duration_s + INTERVAL '1' MINUTE as sum_cols
+  #             from interval_table limit 36
+
+  # TEST_60
+  #   select i_duration_s, INTERVAL '1' HOUR as col_to_sum,
+  #                 i_duration_s + INTERVAL '1' HOUR as sum_cols
+  #             from interval_table limit 36
+
+  # TEST_61
+  #   select i_duration_s, INTERVAL '1' DAY as col_to_sum,
+  #                 i_duration_s + INTERVAL '1' DAY as sum_cols
+  #             from interval_table limit 36
+
+  # TEST_62
+  #   select i_duration_s, INTERVAL '1' SECOND as col_to_sub,
+  #                 i_duration_s - INTERVAL '1' SECOND as sub_cols
+  #             from interval_table limit 36
+
+  # TEST_63
+  #   select i_duration_s, INTERVAL '1' MINUTE as col_to_sub,
+  #                 i_duration_s - INTERVAL '1' MINUTE as sub_cols
+  #             from interval_table limit 36
+
+  # TEST_64
+  #   select i_duration_s, INTERVAL '1' HOUR as col_to_sub,
+  #                 i_duration_s - INTERVAL '1' HOUR as sub_cols
+  #             from interval_table limit 36
+
+  # TEST_65
+  #   select i_duration_s, INTERVAL '1' DAY as col_to_sub,
+  #                 i_duration_s - INTERVAL '1' DAY as sub_cols
+  #             from interval_table limit 36

@@ -1,0 +1,899 @@
+# Window Function Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+# TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
+# ------------------- ORDER BY ------------------------
+#   TEST_01:
+#      SQL: |
+#        select min(n_nationkey) over
+#                             (
+#                                 order by n_regionkey
+#                             ) min_keys,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation order by n_name
+#
+#   TEST_02:
+#      SQL: |
+#        select min(n_nationkey) over
+#                             (
+#                                 order by n_regionkey,
+#                                 n_name desc
+#                             ) min_keys,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation order by n_name
+#
+#   TEST_03:
+#      SQL: |
+#        select max(n_nationkey) over
+#                             (
+#                                 order by n_regionkey,
+#                                 n_name desc
+#                             ) max_keys,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+#
+#   TEST_04:
+#      SQL: |
+#        select count(n_nationkey) over
+#                             (
+#                                 order by n_regionkey,
+#                                 n_name
+#                             ) count_keys,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+#
+#   TEST_05:
+#      SQL: |
+#        select row_number() over
+#                             (
+#                                 order by n_regionkey desc,
+#                                 n_name
+#                             ) row_num,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+#
+#   TEST_06:
+#      SQL: |
+#        select sum(n_nationkey) over
+#                             (
+#                                 order by n_nationkey desc
+#                             ) sum_keys,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+#
+#   TEST_07:
+#      SQL: |
+#        select avg(cast(n_nationkey as double)) over
+#                             (
+#                                 order by n_regionkey,
+#                                 n_name desc
+#                             ) avg_keys,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+#
+#   TEST_08:
+#      SQL: |
+#        select first_value(n_nationkey) over
+#                             (
+#                                 order by n_regionkey desc,
+#                                 n_name
+#                             ) first_val,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+#
+#   TEST_09:
+#      SQL: |
+#        select last_value(n_nationkey) over
+#                             (
+#                                 order by n_regionkey desc,
+#                                 n_name
+#                             ) last_val,
+#                             n_nationkey, n_name, n_regionkey
+#                         from nation
+
+# ----------------- PARTITION BY ----------------------
+  TEST_11:
+    SQL: |
+      select min(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                            ) min_keys,
+                            n_nationkey, n_name, n_regionkey
+                        from nation order by n_name
+
+  TEST_12:
+    SQL: |
+      select max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                            ) max_keys,
+                            o_custkey, o_orderstatus, o_totalprice
+                        from orders
+                        where o_orderstatus = 'O'
+                        and o_totalprice > 98000.5
+                        order by o_orderkey, o_totalprice
+                        limit 1200
+
+  TEST_13:
+    SQL: |
+      select count(l_orderkey) over
+                            (
+                                partition by l_partkey
+                            ) count_keys,
+                            l_linenumber, l_extendedprice, l_tax
+                        from lineitem
+                        where l_partkey < 250
+                        and l_linenumber > 4
+                        order by l_orderkey, l_partkey
+
+  TEST_14:
+    SQL: |
+      select sum(o_custkey) over
+                            (
+                                partition by o_orderpriority
+                            ) sum_keys,
+                            o_clerk,
+                            cast(o_shippriority as double) as o_ship_double
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice > 35000
+                        and o_orderpriority = '3-MEDIUM'
+                        order by o_orderpriority
+
+  TEST_15:
+    SQL: |
+      select avg(cast(n.n_nationkey as double)) over
+                            (
+                                partition by n.n_regionkey
+                            ) avg_keys,
+                            n.n_nationkey, n.n_name, n.n_regionkey, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_orderkey 
+                        order by n.n_nationkey, avg_keys
+
+  TEST_16:
+    SQL: |
+      select sum(o_custkey) over
+                            (
+                                partition by o_orderpriority, o_orderstatus
+                            ) sum_keys,
+                            o_clerk,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus = 'O'
+                        and o_totalprice < 4550
+                        and o_orderpriority = '1-URGENT'
+                        order by o_orderpriority
+
+  TEST_17:
+    SQL: |
+      select min(c_custkey) over
+                            (
+                                partition by c_mktsegment, c_name, c_custkey
+                            ) min_keys,
+                            c_custkey, c_mktsegment
+                        from customer
+                        where c_acctbal > 4525.0
+                        and c_mktsegment not in ('AUTOMOBILE', 'HOUSEHOLD')
+                        order by c_custkey, c_nationkey
+                        limit 250
+
+  TEST_18:
+    SQL: |
+      select avg(cast(n.n_nationkey as double)) over
+                            (
+                                partition by n.n_regionkey, n.n_name, n.n_nationkey
+                            ) avg_keys,
+                            n.n_nationkey, n.n_name, n.n_regionkey, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_orderkey 
+                        order by n.n_nationkey, avg_keys
+
+  TEST_19:
+    SQL: |
+      with first_window_order as (
+                            select max(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) o_max_prices,
+                                min(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) o_min_prices,
+                                o_orderkey, o_orderpriority, o_custkey,
+                                o_totalprice, o_clerk
+                            from orders
+                        ), order_operated as (
+                            select * from first_window_order
+                            where o_max_prices < 19750.0
+                            and o_clerk <> 'Clerk#000000880'
+                            and o_orderpriority in ('2-HIGH', '5-LOW')
+                            order by o_orderkey, o_custkey, o_totalprice
+                            limit 1250
+                        )
+                        select sum(o_max_prices) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) sum_max_prices,
+                               o_orderkey, o_min_prices, o_orderpriority from order_operated
+                        order by o_orderkey, o_min_prices, o_totalprice
+                        limit 450
+
+  TEST_20:
+    SQL: |
+      with reduced_order as (
+                            select o_orderkey, o_custkey, o_orderpriority,
+                                o_orderstatus, o_totalprice, o_clerk
+                            from orders
+                            where o_totalprice < 1750.0
+                            and o_clerk <> 'Clerk#000000880'
+                            order by o_orderkey, o_custkey, o_totalprice
+                            limit 3500
+                        ), window_orders as (
+                            select min(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice
+                                ) o_min_prices,
+                                o_orderkey, o_orderpriority, o_orderstatus
+                            from reduced_order
+                        )
+                        select o_orderkey, o_min_prices, o_orderpriority
+                        from window_orders
+                        where o_orderstatus in ('O', 'F')
+                        and o_orderpriority = '2-HIGH'
+                        order by o_orderkey, o_min_prices
+
+  # ------------ PARTITION BY + ORDER BY ----------------
+
+  TEST_21:
+    SQL: |
+      select min(c_custkey) over
+                            (
+                                partition by c_nationkey
+                                order by c_name
+                            ) min_keys,
+                            c_custkey, c_mktsegment
+                        from customer
+                        where c_acctbal > 2525.0
+                        and c_mktsegment not in ('AUTOMOBILE', 'HOUSEHOLD')
+                        order by c_custkey, c_nationkey
+
+  TEST_22:
+    SQL: |
+      select max(l_partkey) over
+                            (
+                                partition by l_linestatus
+                                order by l_quantity desc, l_orderkey
+                            ) max_keys,
+                            l_linestatus, l_extendedprice
+                        from lineitem
+                        where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                        and l_linestatus = 'F'
+                        order by l_orderkey, max_keys
+                        limit 50
+
+  TEST_23:
+    SQL: |
+      select count(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey, o_clerk
+                            ) count_keys,
+                            o_totalprice
+                        from orders
+                        where o_totalprice < 1352.0
+                        order by o_custkey, o_orderpriority, o_orderkey
+                        limit 50
+
+  TEST_24:
+    SQL: |
+      select sum(n.n_nationkey) over
+                            (
+                                partition by n.n_regionkey
+                                order by n.n_nationkey desc, n.n_name desc
+                            ) sum_keys,
+                            n.n_nationkey, c.c_address, c.c_custkey
+                        from nation n
+                        inner join customer c on n.n_nationkey = c.c_custkey
+                        where c.c_mktsegment <> 'household'
+                        and n.n_nationkey in (1, 2, 3, 8, 9, 12)
+            
+  TEST_25:
+    SQL: |
+      with new_nation as (
+                            select n.n_nationkey as n_natio1,
+                                n.n_name as n_nam1,
+                                n.n_regionkey as n_region1
+                            from nation as n
+                            inner join region as r
+                            on n.n_nationkey = r.r_regionkey
+                        )
+                        select avg(cast(nn.n_natio1 as double)) over 
+                            (
+                                partition by nn.n_region1
+                                order by nn.n_nam1
+                            ) avg_keys,
+                            nn.n_natio1, nn.n_nam1, nn.n_region1
+                        from new_nation nn
+                        order by nn.n_natio1, avg_keys
+
+  TEST_26:
+    SQL: |
+      select row_number() over
+                        (
+                            partition by c_nationkey
+                            order by c_custkey desc, c_acctbal
+                        ) row_num,
+                        c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                    from customer
+                    where c_acctbal < 95.0
+                    order by row_num, c_acctbal
+
+  TEST_27:
+    SQL: |
+      select row_number() over
+                            (
+                                partition by c_nationkey, c_mktsegment
+                                order by c_custkey desc, c_name, c_phone
+                            ) row_num,
+                        c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                        from customer
+                        where c_acctbal < 155.0
+                        order by c_custkey, row_num desc
+
+  TEST_28:
+    SQL: |
+      select lag(l_partkey, 2) over
+                            (
+                                partition by l_linestatus
+                                order by l_orderkey, l_quantity desc
+                            ) lag_keys, 
+                            l_linestatus, l_partkey, l_extendedprice
+                        from lineitem
+                        where l_partkey < 750
+                        and l_linenumber >= 6
+                        order by l_extendedprice, l_partkey, lag_keys
+                        limit 30
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_29:
+    SQL: |
+      select lead(l_partkey, 3) over
+                            (
+                                partition by l_linestatus
+                                order by l_extendedprice
+                            ) lead_keys, 
+                            l_linestatus, l_partkey, l_extendedprice
+                        from lineitem
+                        where l_partkey < 950
+                        and l_linenumber >= 7
+                        order by l_extendedprice, l_partkey
+                        limit 40
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_30:
+    SQL: |
+      select (o_orderkey + o_custkey) as key_priority,
+                            max(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_max_prices,
+                            o_custkey + o_totalprice, 
+                            min(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_min_prices,
+                            o_custkey - o_totalprice + 5
+                        from orders
+                        where o_orderstatus not in ('O', 'F')
+                        and o_totalprice < 85000
+                        and o_orderpriority <> '2-HIGH'
+                        order by key_priority, o_max_prices
+    SETUP:
+      COMPARE_WITH: spark
+
+  # ---------- multiple WF with the same OVER clause ------------
+
+  TEST_31:
+    SQL: |
+      select min(o_orderkey) over
+                            (
+                                partition by o_orderstatus
+                                order by o_orderdate
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_orderstatus
+                                order by o_orderdate
+                            ) max_keys, o_orderkey, o_orderpriority
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        order by o_orderkey
+
+  TEST_32:
+    SQL: |
+      select min(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) min_keys, 
+                            max(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) max_keys,
+                            count(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) count_keys, n_nationkey, n_name, n_regionkey
+                        from nation order by n_nationkey
+
+  TEST_33:
+    SQL: |
+      select min(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_clerk
+                                order by o_orderdate
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_clerk
+                                order by o_orderdate
+                            ) max_keys, o_orderkey, o_orderpriority
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        order by o_orderkey
+
+  # NOTE: order by in the over clause is mandatory for spark
+  TEST_34:
+    SQL: |
+      select min(n_nationkey) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) min_keys,
+                            lag(n_nationkey, 2) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) lag_col,
+                            max(n_nationkey) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) max_keys,
+                            n_nationkey, n_name, n_regionkey
+                        from nation order by n_nationkey
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_35:
+    SQL: |
+      select sum(o_custkey) over
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by  o_totalprice, o_custkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 6000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority, o_totalprice
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_36:
+    SQL: |
+      select sum(o_custkey) over
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) sum_keys,
+                            lead(o_custkey, 3) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) lead_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 6000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_37:
+    SQL: |
+      select
+            max(n.n_nationkey) over
+            (
+                partition by l.l_partkey
+                order by l.l_extendedprice
+            ) max_keys,
+            lead(n.n_nationkey, 2) over
+            (
+                partition by l.l_partkey
+                order by l.l_extendedprice
+            ) lead_keys,
+            n.n_nationkey, l.l_extendedprice, l.l_comment
+        from nation as n
+        inner join lineitem as l
+        on n.n_nationkey = l.l_partkey
+        order by l.l_extendedprice, l_comment
+        limit 10
+    SETUP:
+      COMPARE_WITH: spark
+
+# using the same column `c_nationkey` to partition
+# and first_value()
+# TODO: Momentarily commenting all first_value and last_value
+# https://github.com/BlazingDB/blazingsql/issues/1531
+#  TEST_38:
+#    SQL: |
+#      select first_value(c_nationkey) over
+#                            (
+#                                partition by c_nationkey
+#                                order by c_custkey desc
+#                            ) row_num,
+#                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+#                        from customer
+#                        where c_acctbal < 125.0
+#                        order by c_custkey, row_num
+
+# using the same column `c_nationkey` to partition
+# and last_value()
+# TODO: Momentarily commenting all first_value and last_value
+# https://github.com/BlazingDB/blazingsql/issues/1531
+#  TEST_39:
+#    SQL: |
+#      select last_value(c_nationkey) over
+#                            (
+#                                partition by c_nationkey
+#                                order by c_custkey desc
+#                            ) row_num,
+#                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+#                        from customer
+#                        where c_acctbal < 125.0
+#                        order by c_custkey, row_num
+
+# TODO: Momentarily commenting all first_value and last_value
+# https://github.com/BlazingDB/blazingsql/issues/1531
+#  TEST_40:
+#    SQL: |
+#      select
+#            max(n.n_nationkey) over
+#            (
+#                partition by l.l_partkey
+#                order by l.l_extendedprice
+#            ) max_keys,
+#            lead(n.n_nationkey, 2) over
+#            (
+#                partition by l.l_partkey
+#                order by l.l_extendedprice
+#            ) lead_keys,
+#            first_value(n.n_nationkey) over
+#            (
+#                partition by l.l_partkey
+#                order by l.l_extendedprice
+#            ) first_keys,
+#            last_value(n.n_nationkey) over
+#            (
+#                partition by l.l_partkey
+#                order by l.l_extendedprice
+#            ) last_keys,
+#            n.n_nationkey, l.l_extendedprice, l.l_comment
+#        from nation as n
+#        inner join lineitem as l
+#        on n.n_nationkey = l.l_partkey
+#        order by l.l_extendedprice, l_comment
+#        limit 10
+#    SETUP:
+#      COMPARE_WITH: spark
+
+# TODO: Momentarily commenting all first_value and last_value
+# https://github.com/BlazingDB/blazingsql/issues/1531
+#  TEST_41:
+#    SQL: |
+#      select (o_orderkey + o_custkey) as key_priority,
+#                            o_custkey + o_totalprice,
+#                            first_value(o_totalprice) over
+#                            (
+#                                partition by o_orderpriority
+#                                order by o_totalprice, o_custkey
+#                            ) o_first_prices,
+#                            o_custkey - o_totalprice + 6
+#                        from orders
+#                        where o_orderstatus not in ('O', 'F')
+#                        and o_totalprice < 55000
+#                        and o_orderpriority <> '2-HIGH'
+#                        order by key_priority, o_first_prices
+
+  # ------------ ROWS bounding ----------------
+
+  TEST_50:
+    SQL: |
+      select min(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                                ROWS BETWEEN 1 PRECEDING
+                                AND 1 FOLLOWING
+                            ) min_val,
+                        n_nationkey, n_regionkey, n_name
+                        from nation order by n_nationkey
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_51:
+    SQL: |
+      select min(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice
+                                ROWS BETWEEN 2 PRECEDING
+                                AND 1 FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_totalprice
+                                ROWS BETWEEN 2 PRECEDING
+                                AND 1 FOLLOWING
+                            ) max_keys, o_orderkey, o_orderpriority
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        order by o_orderstatus, o_totalprice
+                        limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_52:
+    SQL: |
+      with new_nation as (
+                    select n.n_nationkey as n_natio1,
+                        n.n_name as n_nam1,
+                        n.n_regionkey as n_region1
+                    from nation as n
+                    inner join region as r
+                    on n.n_nationkey = r.r_regionkey
+                )
+                select avg(cast(nn.n_natio1 as double)) over 
+                    (
+                        partition by nn.n_region1
+                        order by nn.n_nam1
+                        ROWS BETWEEN 3 PRECEDING
+                        AND 2 FOLLOWING
+                    ) avg_keys,
+                    nn.n_natio1, nn.n_nam1, nn.n_region1
+                from new_nation nn
+                order by nn.n_natio1, avg_keys
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_53:
+    SQL: |
+      select max(l_partkey) over
+                            (
+                                partition by l_suppkey, l_partkey, l_linenumber
+                                order by l_extendedprice desc, l_orderkey, l_quantity
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_keys,
+                            l_linestatus, l_extendedprice
+                        from lineitem
+                        where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                        and l_linestatus = 'F'
+                        -- as pyspark put the nulls at the begining and blazing to the end
+                        -- we want make sure the orders are the same
+                        and l_extendedprice is not null
+                        order by l_extendedprice, l_orderkey, max_keys
+                        limit 50
+
+    SETUP:
+      COMPARE_WITH: spark
+
+# using diffs columns to partition and first_value()
+# TODO: Momentarily commenting all first_value and last_value
+# https://github.com/BlazingDB/blazingsql/issues/1531
+#  TEST_54:
+#    SQL: |
+#      select first_value(c_custkey) over
+#                            (
+#                                partition by c_nationkey
+#                                order by c_name desc
+#                            ) row_num,
+#                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+#                        from customer
+#                        where c_acctbal < 225.0
+#                        order by c_custkey, row_num
+
+# TODO: Momentarily commenting all first_value and last_value
+# https://github.com/BlazingDB/blazingsql/issues/1531
+#  TEST_55:
+#    SQL: |
+#      select last_value(c_custkey) over
+#                            (
+#                                partition by c_nationkey
+#                                order by c_name
+#                            ) last_key,
+#                            c_phone, c_nationkey, UPPER(SUBSTRING(c_name, 1, 7))
+#                        from customer
+#                        where c_acctbal < 225.0
+#                        order by last_key, c_nationkey, c_phone
+    SETUP:
+      COMPARE_WITH: spark
+
+# testing different types of windows
+  TEST_56:
+    SQL: |
+      select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 5 PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) min_keys,
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 5 PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark.
+                        order by o_orderkey nulls last
+                        limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_57:
+    SQL: |
+      select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND 5 FOLLOWING
+                            ) min_keys,
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND 5 FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark.
+                        order by o_orderkey nulls last
+                        limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_58:
+    SQL: |
+      select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN CURRENT ROW
+                                AND UNBOUNDED FOLLOWING
+                            ) min_keys,
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN CURRENT ROW
+                                AND UNBOUNDED FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark.
+                        order by o_orderkey nulls last
+                        limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_59:
+    SQL: |
+      select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) min_keys,
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN UNBOUNDED PRECEDING
+                                AND UNBOUNDED FOLLOWING
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark.
+                        order by o_orderkey nulls last
+                        limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+
+  TEST_60:
+    SQL: |
+      select o_orderkey, min(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 10 PRECEDING
+                                AND CURRENT ROW
+                            ) min_keys,
+                            max(o_orderkey) over
+                            (
+                                partition by o_custkey
+                                order by o_totalprice
+                                ROWS BETWEEN 10 PRECEDING
+                                AND CURRENT ROW
+                            ) max_keys, o_custkey
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        and o_orderstatus is not null
+                        and o_totalprice is not null
+                        -- TODO using nulls last here because that is the default in BSQL but not in spark.
+                        order by o_orderkey nulls last
+                        limit 50
+    SETUP:
+      COMPARE_WITH: spark
