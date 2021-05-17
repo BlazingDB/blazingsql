@@ -470,60 +470,60 @@ def print_query_results_performance(sql, queryId, queryType, resultgdf):
     )
 
 
-def print_query_results_dist(
-    sql,
-    queryId,
-    queryType,
-    pdf1,
-    pdf2,
-    resultgdf,
-    acceptable_difference,
-    use_percentage,
-    print_result,
-):
-    if print_result:
-        print("#BLZ:")
-        print(pdf1)
-        print("#DRILL:")
-        print(pdf2)
-    print(queryId)
-    print("#QUERY:")
-    print(sql)
-    print("RESULT:")
-    resultComparisson = compare_results(
-        pdf1.values, pdf2.values, acceptable_difference, use_percentage
-    )
-    error_message = ""
-    if resultComparisson != "Success":
-        error_message = resultComparisson[6:]
-        resultComparisson = "Fail"
-        print(resultComparisson)
-        print("ERROR:")
-        print(error_message)
-    else:
-        print(resultComparisson)
-    print("CALCITE TIME: ")
-    print(resultgdf.calciteTime)
-    print("RAL TIME: ")
-    print(resultgdf.ralTime)
-    print("EXECUTION TIME: ")
-    print(resultgdf.totalTime)
+# def print_query_results_dist(
+#     sql,
+#     queryId,
+#     queryType,
+#     pdf1,
+#     pdf2,
+#     resultgdf,
+#     acceptable_difference,
+#     use_percentage,
+#     print_result,
+# ):
+#     if print_result:
+#         print("#BLZ:")
+#         print(pdf1)
+#         print("#DRILL:")
+#         print(pdf2)
+#     print(queryId)
+#     print("#QUERY:")
+#     print(sql)
+#     print("RESULT:")
+#     resultComparisson = compare_results(
+#         pdf1.values, pdf2.values, acceptable_difference, use_percentage
+#     )
+#     error_message = ""
+#     if resultComparisson != "Success":
+#         error_message = resultComparisson[6:]
+#         resultComparisson = "Fail"
+#         print(resultComparisson)
+#         print("ERROR:")
+#         print(error_message)
+#     else:
+#         print(resultComparisson)
+#     print("CALCITE TIME: ")
+#     print(resultgdf.calciteTime)
+#     print("RAL TIME: ")
+#     print(resultgdf.ralTime)
+#     print("EXECUTION TIME: ")
+#     print(resultgdf.totalTime)
 
-    print("===================================================")
+#     print("===================================================")
 
-    logger = logginghelper(name)
+#     logger = logginghelper(name)
 
-    print_fixed_log(
-        logger,
-        queryType,
-        queryId,
-        sql,
-        resultComparisson,
-        error_message,
-        None,
-        None,
-        None,
-    )
+#     print_fixed_log(
+#         logger,
+#         queryType,
+#         queryId,
+#         sql,
+#         resultComparisson,
+#         error_message,
+#         None,
+#         None,
+#         None,
+#     )
 
 
 class Test:
@@ -1405,37 +1405,6 @@ def run_query(
             if not message_validation:
                 end_time = time.time()
                 total_time = (end_time - start_time) * 1000
-                # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
-                # duration ELSE 0 END) AS load_time,
-                # MAX(load_time) AS load_time,
-                # log_result = bc.log(
-                #     """SELECT
-                #         MAX(end_time) as end_time, query_id,
-                #         MAX(total_time) AS total_time
-                #     FROM (
-                #         SELECT
-                #             query_id, node_id,
-                #             SUM(CASE WHEN info = 'Query Execution Done' THEN
-                #             duration ELSE 0 END) AS total_time,
-                #             MAX(log_time) AS end_time
-                #         FROM
-                #             bsql_logs
-                #         WHERE
-                #             info = 'evaluate_split_query load_data'
-                #             OR info = 'Query Execution Done'
-                #         GROUP BY
-                #             node_id, query_id
-                #         )
-                #     GROUP BY
-                #         query_id
-                #     ORDER BY
-                #         end_time DESC limit 1"""
-                # )
-
-                # if int(nRals) == 1:  # Single Node
-                #     n_log = log_result
-                # else:  # Simple Distribution
-                #     n_log = log_result.compute()
 
                 load_time = 0  # n_log['load_time'][0]
                 engine_time = 0 #n_log["total_time"][0]
