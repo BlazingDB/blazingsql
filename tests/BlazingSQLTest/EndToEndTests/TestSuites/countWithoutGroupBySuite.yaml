@@ -1,0 +1,51 @@
+# Common Table Expression Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select count(*), count(n_nationkey) from nation
+
+  TEST_02:
+    SQL: |
+      select count(n_nationkey), count(*)
+                    from nation group by n_nationkey
+
+  TEST_03:
+    SQL: |
+        select count(n1.n_nationkey) as n1key,
+                    count(n2.n_nationkey) as n2key, count(*) as cstar
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+
+  TEST_04:
+    SQL: |
+        select o_orderpriority, count(*) as order_count
+                    from orders group by o_orderpriority
+
+  TEST_05:
+    SQL: |
+        SELECT o_custkey, count(o_orderkey),
+                    count(coalesce(o_orderkey,0)), count(o_custkey), count(*)
+                    from orders group by o_custkey
+
+  TEST_06:
+    SQL: |
+        SELECT c_custkey, count(c_nationkey),
+                    min(c_nationkey), sum(c_nationkey)
+                    from customer group by c_custkey
+

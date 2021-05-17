@@ -1,0 +1,69 @@
+# Aggregations without group by Test Suite
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: False
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select count(p_partkey), sum(p_partkey),
+                    avg(CAST(p_partkey AS DOUBLE)), max(p_partkey), min(p_partkey)
+                    from part
+
+  TEST_02:
+    SQL: |
+        select count(p_partkey), sum(p_partkey),
+                    avg(p_partkey), max(p_partkey), min(p_partkey) from part
+                    where p_partkey < 100
+
+  TEST_03:
+    SQL: |
+      select count(p_partkey), sum(p_partkey),
+                    avg(p_partkey), max(p_partkey), min(p_partkey)
+                    from part where p_partkey < 0
+
+  TEST_04:
+    SQL: |
+        select count(p_partkey) + sum(p_partkey),
+                    (max(p_partkey) + min(p_partkey))/2
+                    from part where p_partkey < 100
+
+  TEST_05:
+    SQL: |
+        select MIN(n.n_nationkey), MAX(r.r_regionkey),
+                    AVG(n.n_nationkey + r.r_regionkey) from nation as n
+                    left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_06:
+    SQL: |
+      select SUM(n1.n_nationkey) as n1key,
+                    AVG(n2.n_nationkey +  n1.n_nationkey ) as n2key
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 10
+
+  TEST_07:
+    SQL: |
+      select COUNT(n1.n_nationkey) as n1key,
+                        COUNT(DISTINCT(n2.n_nationkey +  n1.n_nationkey))
+                        as n2key from nation as n1 full outer join nation
+                        as n2 on n1.n_nationkey = n2.n_nationkey + 10
+
+  TEST_08:
+    SQL: |
+      select min(o_orderdate), max(o_orderdate)
+                    from orders where o_custkey between 10 and 20
+    SETUP:
+      SKIP_WITH:
+        - ORC

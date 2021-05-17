@@ -1,0 +1,119 @@
+# Count Distinct Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01 #0.1
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select count(distinct (n_regionkey + n_nationkey)),
+                    n_regionkey from nation group by n_regionkey
+    SETUP:
+      ORDER_BY_COL: n_regionkey
+
+  TEST_02:
+    SQL: |
+        select count(distinct o_custkey), o_orderkey
+                    from orders where o_orderkey < 100
+                    group by o_orderkey, (o_orderkey + o_custkey)
+    SETUP:
+      ORDER_BY_COL: o_orderkey
+
+  TEST_03:
+    SQL: |
+      select count(distinct(o_orderkey + o_custkey))
+                    as new_col, sum(o_orderkey), o_custkey
+                    from orders group by o_custkey
+    SETUP:
+      ORDER_BY_COL: o_custkey
+
+  TEST_04:
+    SQL: |
+        select count(distinct(o_custkey)), avg(o_totalprice),
+                (o_orderkey + o_custkey) as num from orders
+                where o_custkey < 100 group by o_custkey, o_orderkey
+#    SETUP:
+#      ACCEPTABLE_DIFFERENCE: 0.01
+
+  TEST_05:
+    SQL: |
+        select count(distinct(o_custkey)), max(o_totalprice),
+                    min(o_totalprice), avg(o_totalprice)
+                    from orders group by o_custkey
+#    SETUP:
+#      ACCEPTABLE_DIFFERENCE: 0.01
+
+  TEST_06:
+    SQL: |
+        select n_nationkey, count(distinct(
+                    n_regionkey + n_nationkey))/count(n_nationkey)
+                    from nation group by n_nationkey
+
+  TEST_07:
+    SQL: |
+        select count(distinct(o_orderdate)), count(distinct(o_custkey)),
+                    count(distinct(o_totalprice)), sum(o_orderkey)
+                    from orders group by o_custkey
+
+  TEST_08:
+    SQL: |
+        select COUNT(DISTINCT(n.n_nationkey)),
+                    AVG(r.r_regionkey) from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_09:
+    SQL: |
+        select MIN(n.n_nationkey), MAX(r.r_regionkey),
+                    COUNT(DISTINCT(n.n_nationkey + r.r_regionkey))
+                    from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_10:
+    SQL: |
+        select COUNT(DISTINCT(n1.n_nationkey)) as n1key,
+                    COUNT(DISTINCT(n2.n_nationkey)) as n2key from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_regionkey
+
+  TEST_11:
+    SQL: |
+        select r.r_regionkey, n.n_nationkey,
+                    COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
+                    SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
+                    left outer join region as r on n.n_nationkey = r.r_regionkey
+                    GROUP BY r.r_regionkey, n.n_nationkey
+
+  TEST_12:
+    SQL: |
+        select n1.n_regionkey, n2.n_nationkey,
+                    MIN(n1.n_regionkey), MAX(n1.n_regionkey),
+                    AVG(n2.n_nationkey)
+                    from nation as n1 full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    GROUP BY n1.n_regionkey, n2.n_nationkey
+
+  TEST_13:
+    SQL: |
+      select COUNT(DISTINCT(n.n_nationkey)),
+                    AVG(r.r_regionkey) from nation as n right outer join region as r
+                    on n.n_nationkey = r.r_regionkey
+
+  TEST_14:
+    SQL: |
+      select r.r_regionkey, n.n_nationkey,
+                    COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
+                    SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
+                    right outer join region as r on n.n_nationkey = r.r_regionkey
+                    GROUP BY r.r_regionkey, n.n_nationkey

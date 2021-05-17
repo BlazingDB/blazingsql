@@ -1,0 +1,150 @@
+# Substring Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+      select SUBSTRING(CAST(ps_partkey as VARCHAR),1,1),
+                        ps_availqty
+                    from partsupp
+                    where ps_availqty > 7000 and ps_supplycost > 700
+                    order by ps_partkey, ps_availqty limit 50
+
+  TEST_02:
+    SQL: |
+      select c_custkey, c_name from customer
+                    where SUBSTRING(c_name,1,17) = 'Customer#00000000'
+
+  TEST_03:
+    SQL: |
+      select c_custkey, SUBSTRING(c_name, 1, 8) from customer
+                    where c_name = 'Customer#000000009'
+
+  TEST_04:
+    SQL: |
+      select * from nation
+                    where SUBSTRING(n_name,1,1) = 'I'
+
+  TEST_05:
+    SQL: |
+      select c_custkey, c_name, SUBSTRING(c_name,1,1),
+                        SUBSTRING(c_name,2,1), SUBSTRING(c_name,1,2),
+                        SUBSTRING(c_name,2,2)
+                    from customer where c_custkey < 20
+
+  TEST_06:
+    SQL: |
+      select c.c_custkey, SUBSTRING(c.c_name, 10, 18),
+                        CAST(SUBSTRING(c.c_name, 10, 18) as INT),
+                        CAST(SUBSTRING(c.c_name, 10, 18) as INT) + 1
+                    from customer c
+                    where c.c_custkey < 50
+
+  TEST_07:
+    SQL: |
+      select c.c_custkey, SUBSTRING(c.c_name, 1, 8),
+                        SUBSTRING(c.c_name, 10, 18) || '**'
+                    from customer c where c.c_custkey < 0
+
+  TEST_08:
+    SQL: |
+      select * from (
+                          select c.c_custkey, SUBSTRING(c.c_name, 1, 8) as n1, SUBSTRING(c.c_name, 10, 18) || '**' as n2
+                          from customer c where c.c_custkey < 50
+                   ) as n where SUBSTRING(n.n1, 1,7) = 'Customer'
+
+  TEST_09:
+    SQL: |
+      select substring(c_comment, 5 , CHAR_LENGTH(c_comment) - 5 ),
+                        substring(c_comment, CHAR_LENGTH(c_comment) - 3 , CHAR_LENGTH(c_comment) - 1 ),
+                        substring(substring(c_comment, 3 , CHAR_LENGTH(c_comment) - 1 ), 1, 1 )
+                        from customer where c_custkey < 100
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_10:
+    SQL: |
+      select c_custkey, substring(c_name, 1),
+                         substring(c_name, 10),
+                        substring(c_name, cast(c_nationkey as bigint)),
+                        substring(c_name, c_nationkey + 3)
+                    from customer
+                    where (c_nationkey between 1 and 10) and c_custkey < 100
+
+  TEST_11:
+    SQL: |
+      select c_custkey, substring(c_name, 1, 5),
+                        substring(c_name, 10, 7),
+                        substring(c_name, 3, cast(c_nationkey as bigint)),
+                        substring(c_name, c_nationkey, 4),
+                        substring(c_name, cast(c_nationkey as bigint),
+                            c_nationkey + 0),
+                        substring(c_name, c_nationkey + 3, c_nationkey)
+                    from customer
+                    where (c_nationkey between 1 and 10) and c_custkey < 100
+
+  TEST_12:
+    SQL: |
+      SELECT
+                LEFT(c_name, 5) as l5_name,
+                LEFT(c_name, 1000) as l1000_name,
+                LEFT(c_name, -5) as lneg5_name,
+                LEFT(SUBSTRING(c_comment, 14, 20), 3) as l3_substring,
+                RIGHT(c_name, 5) as r5_name,
+                RIGHT(c_name, 1000) as r1000_name,
+                RIGHT(c_name, -5) as rneg5_name,
+                RIGHT(SUBSTRING(c_comment, 14, 20), 3) as r3_substring
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_13:
+    SQL: |
+      SELECT
+          LEFT(c_name, 5) as l5_name,
+          RIGHT(c_name, 8) as r8_name
+          FROM customer
+          WHERE c_custkey < 100
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_14:
+    SQL: |
+      SELECT
+          COUNT(SUBSTRING(LEFT(c_comment, 5), 3)) as left_subbed_count
+          FROM customer
+          GROUP BY SUBSTRING(LEFT(c_comment, 5), 3)
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_15:
+    SQL: |
+      SELECT
+          COUNT(SUBSTRING(RIGHT(c_comment, 4), 3)) as right_subbed_count
+          FROM customer
+          GROUP BY SUBSTRING(RIGHT(c_comment, 4), 3)
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_16:
+    SQL: |
+      SELECT
+          SUBSTRING('hello', 1, 2)
+          FROM nation
+          limit 5
+    SETUP:
+      COMPARE_WITH: spark
