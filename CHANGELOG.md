@@ -400,3 +400,4 @@
 - #932 Import pydrill and pyspark only when its generator or full mode.
 - #1031 adding notebooks into BlazingSQL Tests
 - #1486 Define generic templates for E2E Testing framework.
+- #1542 Cleaning code on E2E Test framework.
