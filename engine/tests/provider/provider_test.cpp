@@ -677,37 +677,27 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 
 bool make_directories_hive()
 {
-    std::cout << "make_direc function 1" << std::endl;
 	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
-	localFileSystem.makeDirectory(Uri("/t_year=2017"));
-	localFileSystem.makeDirectory(Uri("/t_year=2018"));
-	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2"));
-	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4"));
-	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6"));
-	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2/region=asia"));
-    std::cout << "make_direc function 4" << std::endl;
-	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=asia"));
-	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
-	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
-    std::cout << "make_direc function 5" << std::endl;
+    std::vector<std::string> uri_paths{"/t_year=2017", "/t_year=2018", "/t_year=2017/t_company_id=2",
+                                       "/t_year=2017/t_company_id=4", "/t_year=2018/t_company_id=6",
+                                       "/t_year=2017/t_company_id=2/region=asia", "/t_year=2017/t_company_id=4/region=asia"
+                                       "/t_year=2017/t_company_id=4/region=europa", "/t_year=2018/t_company_id=6/region=europa"};
 
-    bool made_dir = localFileSystem.exists(Uri("/t_year=2017")) || localFileSystem.exists(Uri("/t_year=2018")) || localFileSystem.exists(Uri("/t_year=2017/t_company_id=2")) ||
-                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4")) || localFileSystem.exists(Uri("/t_year=2018/t_company_id=6")) || localFileSystem.exists(Uri("/t_year=2017/t_company_id=2/region=asia")) ||
-                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=asia")) || localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=europa")) || localFileSystem.exists(Uri("/t_year=2018/t_company_id=6/region=europa"));
-
-    if (made_dir) {
-        std::cout << "All Uri exists " << std::endl;
-        return true;
+    for (size_t i = 0; i < uri_paths.size(); ++i) {
+        localFileSystem.makeDirectory(Uri(uri_paths[i]));
     }
 
-    std::cout << "NOT All Uri exists " << std::endl;
-	return false;
+    for (size_t i = 0; i < uri_paths.size(); ++i) {
+        if ( !localFileSystem.exists(Uri(uri_paths[i])) ) return false;
+    }
+
+	return true;
 }
 
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 {
 	ASSERT_TRUE(create_folder_test());
-	std::cout << "After ASSERT TRUE" << std::endl;
+
 	std::vector<std::string> uri_files = {
 		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file1.parquet",
 		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file2.parquet",
@@ -716,8 +706,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet",
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet",
 	};
-    std::cout << "After uri_files" << std::endl;
-    // It could be the problem maybe ... Creating wildcard folders ..
+
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/*"),
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/*"),
@@ -725,9 +714,8 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/*"),
 	};
 
-    std::cout << "Before make_directories_hive" << std::endl;
 	ASSERT_TRUE(make_directories_hive());
-	std::cout << "After make_directories_hive" << std::endl;
+
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
@@ -744,7 +732,6 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
-	std::cout << "After make provider" << std::endl;
 
 	bool open_file = false;
 
@@ -752,22 +739,16 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 
 	while(provider->has_next())
 	{
-		std::cout << "while has_next" << std::endl;
 		ral::io::data_handle new_handle = provider->get_next(open_file);
 		result.emplace_back(new_handle.uri.toString());
 	}
 
-	std::cout << "After while" << std::endl;
-
 	std::sort(uri_files.begin(), uri_files.end());
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(uri_files, result);
-	std::cout << "After EXPECT_EQ" << std::endl;
 
 	remove_dummy_file(uris);
-	std::cout << "Remove dummy file" << std::endl;
 	LocalFileSystem localFileSystem(Path(""));
-	std::cout << "After create a LocalFileSytem" << std::endl;
 	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
 	ASSERT_TRUE(dir_remove_ok);
 }
