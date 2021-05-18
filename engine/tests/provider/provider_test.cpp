@@ -675,18 +675,22 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 
 bool make_directories_hive()
 {
+    std::cout << "make_direc function 1" << std::endl;
 	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
+    std::cout << "make_direc function 2" << std::endl;
 	localFileSystem.makeDirectory(Uri("/t_year=2017"));
+    std::cout << "make_direc function 3" << std::endl;
 	localFileSystem.makeDirectory(Uri("/t_year=2018"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4"));
 	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2/region=asia"));
+    std::cout << "make_direc function 4" << std::endl;
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=asia"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
 	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
+    std::cout << "make_direc function 5" << std::endl;
 }
-
 
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 {
@@ -700,6 +704,8 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet",
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet",
 	};
+    std::cout << "After uri_files" << std::endl;
+    // It could be the problem maybe ... Creating wildcard folders ..
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/*"),
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/*"),
@@ -707,6 +713,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/*"),
 	};
 
+    std::cout << "Before make_directories_hive" << std::endl;
 	make_directories_hive();
 	std::cout << "After make_directories_hive" << std::endl;
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
