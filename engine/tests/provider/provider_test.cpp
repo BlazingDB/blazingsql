@@ -687,13 +687,11 @@ bool make_directories_hive()
 	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
 }
 
-// TODO: research why these unit tests are crashing in CI
+
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 {
-	GTEST_SKIP();
-
 	ASSERT_TRUE(create_folder_test());
-
+	std::cout << "After ASSERT TRUE" << std::endl;
 	std::vector<std::string> uri_files = {
 		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file1.parquet",
 		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file2.parquet",
@@ -710,7 +708,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
 	make_directories_hive();
-
+	std::cout << "After make_directories_hive" << std::endl;
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
@@ -727,6 +725,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+	std::cout << "After make provider" << std::endl;
 
 	bool open_file = false;
 
@@ -734,25 +733,28 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 
 	while(provider->has_next())
 	{
+		std::cout << "while has_next" << std::endl;
 		ral::io::data_handle new_handle = provider->get_next(open_file);
 		result.emplace_back(new_handle.uri.toString());
 	}
 
+	std::cout << "After while" << std::endl;
+
 	std::sort(uri_files.begin(), uri_files.end());
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(uri_files, result);
+	std::cout << "After EXPECT_EQ" << std::endl;
 
 	remove_dummy_file(uris);
+	std::cout << "Remove dummy file" << std::endl;
 	LocalFileSystem localFileSystem(Path(""));
+	std::cout << "After create a LocalFileSytem" << std::endl;
 	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
 	ASSERT_TRUE(dir_remove_ok);
 }
 
-// TODO: research why these unit tests are crashing in CI
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 {
-	GTEST_SKIP();
-
 	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {
@@ -808,11 +810,8 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 	ASSERT_TRUE(dir_remove_ok);
 }
 
-// TODO: research why these unit tests are crashing in CI
 TEST_F(ProviderTest, uri_values_folder_with_one_file)
 {
-	GTEST_SKIP();
-
 	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file.csv")};
