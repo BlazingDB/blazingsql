@@ -59,6 +59,7 @@ void remove_dummy_file(std::vector<Uri> uris){
 		localFileSystem.remove(p);
 	}
 }
+
 void remove_dummy_file(std::vector<std::string> uris){
 	LocalFileSystem localFileSystem( Path("/") );
 	for( std::string & p : uris )
@@ -66,6 +67,7 @@ void remove_dummy_file(std::vector<std::string> uris){
 		localFileSystem.remove(Uri(p));
 	}
 }
+
 TEST_F(ProviderTest, ignoring_dummy_files) {
 	ASSERT_TRUE(create_folder_test());
 
@@ -677,9 +679,7 @@ bool make_directories_hive()
 {
     std::cout << "make_direc function 1" << std::endl;
 	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
-    std::cout << "make_direc function 2" << std::endl;
 	localFileSystem.makeDirectory(Uri("/t_year=2017"));
-    std::cout << "make_direc function 3" << std::endl;
 	localFileSystem.makeDirectory(Uri("/t_year=2018"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4"));
@@ -690,6 +690,18 @@ bool make_directories_hive()
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
 	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
     std::cout << "make_direc function 5" << std::endl;
+
+    bool made_dir = localFileSystem.exists(Uri("/t_year=2017")) || localFileSystem.exists(Uri("/t_year=2018")) || localFileSystem.exists(Uri("/t_year=2017/t_company_id=2")) ||
+                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4")) || localFileSystem.exists(Uri("/t_year=2018/t_company_id=6")) || localFileSystem.exists(Uri("/t_year=2017/t_company_id=2/region=asia")) ||
+                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=asia")) || localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=europa")) || localFileSystem.exists(Uri("/t_year=2018/t_company_id=6/region=europa"));
+
+    if (made_dir) {
+        std::cout << "All Uri exists " << std::endl;
+        return true;
+    }
+
+    std::cout << "NOT All Uri exists " << std::endl;
+	return false;
 }
 
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
@@ -714,7 +726,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
     std::cout << "Before make_directories_hive" << std::endl;
-	make_directories_hive();
+	ASSERT_TRUE(make_directories_hive());
 	std::cout << "After make_directories_hive" << std::endl;
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
@@ -773,7 +785,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet"),
 	};
 
-	make_directories_hive();
+	ASSERT_TRUE(make_directories_hive());
 
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[1].toString()));
@@ -823,7 +835,7 @@ TEST_F(ProviderTest, uri_values_folder_with_one_file)
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file.csv")};
 
-	make_directories_hive();
+	ASSERT_TRUE(make_directories_hive());
 
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
 
