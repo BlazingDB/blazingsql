@@ -59,6 +59,7 @@ void remove_dummy_file(std::vector<Uri> uris){
 		localFileSystem.remove(p);
 	}
 }
+
 void remove_dummy_file(std::vector<std::string> uris){
 	LocalFileSystem localFileSystem( Path("/") );
 	for( std::string & p : uris )
@@ -66,6 +67,7 @@ void remove_dummy_file(std::vector<std::string> uris){
 		localFileSystem.remove(Uri(p));
 	}
 }
+
 TEST_F(ProviderTest, ignoring_dummy_files) {
 	ASSERT_TRUE(create_folder_test());
 
@@ -685,13 +687,17 @@ bool make_directories_hive()
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=asia"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
 	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
+
+    return( localFileSystem.exists(Uri("/t_year=2017")) && localFileSystem.exists(Uri("/t_year=2018")) &&
+            localFileSystem.exists(Uri("/t_year=2017/t_company_id=2")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=4")) &&
+            localFileSystem.exists(Uri("/t_year=2018/t_company_id=6")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=2/region=asia")) &&
+            localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=asia")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=europa")) &&
+            localFileSystem.exists(Uri("/t_year=2018/t_company_id=6/region=europa"))
+        );
 }
 
-// TODO: research why these unit tests are crashing in CI
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 {
-	GTEST_SKIP();
-
 	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> uri_files = {
@@ -702,6 +708,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet",
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet",
 	};
+
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/*"),
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/*"),
@@ -709,8 +716,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/*"),
 	};
 
-	make_directories_hive();
-
+	ASSERT_TRUE(make_directories_hive());
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
@@ -727,7 +733,6 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
-
 	bool open_file = false;
 
 	std::vector<std::string> result;
@@ -748,11 +753,8 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	ASSERT_TRUE(dir_remove_ok);
 }
 
-// TODO: research why these unit tests are crashing in CI
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 {
-	GTEST_SKIP();
-
 	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {
@@ -764,7 +766,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet"),
 	};
 
-	make_directories_hive();
+	ASSERT_TRUE(make_directories_hive());
 
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[1].toString()));
@@ -808,16 +810,13 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 	ASSERT_TRUE(dir_remove_ok);
 }
 
-// TODO: research why these unit tests are crashing in CI
 TEST_F(ProviderTest, uri_values_folder_with_one_file)
 {
-	GTEST_SKIP();
-
 	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file.csv")};
 
-	make_directories_hive();
+	ASSERT_TRUE(make_directories_hive());
 
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
 

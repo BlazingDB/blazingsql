@@ -20,6 +20,8 @@
 - #1475 Fix wrong results from timestampdiff/add
 - #1528 Fixed build issues due to cudf aggregation API change 
 - #1540 Comparing param set to true for e2e
+- #1543 Enables provider unit_tests
+
 
 # BlazingSQL 0.19.0 (April 21, 2021)
 
