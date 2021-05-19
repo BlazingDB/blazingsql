@@ -678,23 +678,29 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 bool make_directories_hive()
 {
 	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
-    std::vector<std::string> uri_paths{"/t_year=2017", "/t_year=2018", "/t_year=2017/t_company_id=2",
-                                       "/t_year=2017/t_company_id=4", "/t_year=2018/t_company_id=6",
-                                       "/t_year=2017/t_company_id=2/region=asia", "/t_year=2017/t_company_id=4/region=asia"
-                                       "/t_year=2017/t_company_id=4/region=europa", "/t_year=2018/t_company_id=6/region=europa"};
+     std::cout << "START make_directories_hive function" << std::endl;
+	localFileSystem.makeDirectory(Uri("/t_year=2017"));
+	localFileSystem.makeDirectory(Uri("/t_year=2018"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4"));
+	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2/region=asia"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=asia"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
+	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
+    std::cout << "END with all makeDirectories" << std::endl;
 
-    for (size_t i = 0; i < uri_paths.size(); ++i) {
-        localFileSystem.makeDirectory(Uri(uri_paths[i]));
+    bool made_dir = localFileSystem.exists(Uri("/t_year=2017")) && localFileSystem.exists(Uri("/t_year=2018")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=2")) &&
+                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4")) && localFileSystem.exists(Uri("/t_year=2018/t_company_id=6")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=2/region=asia")) &&
+                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=asia")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=europa")) && localFileSystem.exists(Uri("/t_year=2018/t_company_id=6/region=europa"));
+
+    if (made_dir) {
+        std::cout << "exists directories" << std::endl;
+        return true;
     }
 
-    for (size_t i = 0; i < uri_paths.size(); ++i) {
-        if ( !localFileSystem.exists(Uri(uri_paths[i])) ) {
-            std::cout << "NOT exists" << std::endl;
-            return false;
-        }
-    }
-    std::cout << "exists directories" << std::endl;
-	return true;
+    std::cout << "NOT exists" << std::endl;
+	return false;
 }
 
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
