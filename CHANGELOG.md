@@ -1,4 +1,4 @@
-# BlazingSQL 0.20.0 (Date TBS)
+# BlazingSQL 21.06.00 (Date TBS)
 
 
 ## New Features
@@ -12,6 +12,7 @@
 - #1511 Folder refactoring related to caches, kernels, execution_graph, BlazingTable
 - #1522 Improve data loading when the algebra contains only BindableScan/Scan and Limit
 - #1524 Enable support for spdlog 1.8.5
+- #1547 Update RAPIDS version references
 
 
 ## Bug Fixes
