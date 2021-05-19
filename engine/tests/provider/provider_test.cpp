@@ -688,9 +688,12 @@ bool make_directories_hive()
     }
 
     for (size_t i = 0; i < uri_paths.size(); ++i) {
-        if ( !localFileSystem.exists(Uri(uri_paths[i])) ) return false;
+        if ( !localFileSystem.exists(Uri(uri_paths[i])) ) {
+            std::cout << "NOT exists" << std::endl;
+            return false;
+        }
     }
-
+    std::cout << "exists directories" << std::endl;
 	return true;
 }
 
@@ -706,7 +709,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet",
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet",
 	};
-
+    std::cout << "BEFORE make_directories_hive" << std::endl;
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/*"),
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/*"),
@@ -715,7 +718,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
 	ASSERT_TRUE(make_directories_hive());
-
+    std::cout << "AFTER make_directories_hive" << std::endl;
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
@@ -730,19 +733,20 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 			{{"t_year", "2017"}, {"t_company_id", "4"}, {"region", "europa"}},
 			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
 	};
-
+    std::cout << "BEFORE uri_data_provider" << std::endl;
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
-
+    std::cout << "AFTER uri_data_provider" << std::endl;
 	bool open_file = false;
 
 	std::vector<std::string> result;
 
 	while(provider->has_next())
 	{
+        std::cout << "while" << std::endl;
 		ral::io::data_handle new_handle = provider->get_next(open_file);
 		result.emplace_back(new_handle.uri.toString());
 	}
-
+    std::cout << "AFTER while" << std::endl;
 	std::sort(uri_files.begin(), uri_files.end());
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(uri_files, result);
