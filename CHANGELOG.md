@@ -1,4 +1,4 @@
-# BlazingSQL 0.20.0 (Date TBS)
+# BlazingSQL 21.06.00 (Date TBS)
 
 
 ## New Features
