@@ -26,15 +26,15 @@ void pinned_allocator::setUcpContext(ucp_context_h _context)
     use_ucx = true;
     }
 
-void base_allocator::allocate(void ** ptr, std::size_t size){
-  do_allocate(ptr,size);
+void base_allocator::allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr){
+  do_allocate(ptr,size,mem_handle_ptr);
 }
 
-void base_allocator::deallocate(void * ptr){
-  do_deallocate(ptr);
+void base_allocator::deallocate(void * ptr, ucp_mem_h mem_handle){
+  do_deallocate(ptr,mem_handle);
 }
 
-void host_allocator::do_allocate(void ** ptr, std::size_t size){
+void host_allocator::do_allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr){
   
   *ptr = aligned_alloc( BLAZING_ALIGNMENT, size );
   if (!ptr) {
@@ -42,7 +42,7 @@ void host_allocator::do_allocate(void ** ptr, std::size_t size){
   }
 }
 
-void pinned_allocator::do_allocate(void ** ptr, std::size_t size){
+void pinned_allocator::do_allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr){
 
   // do we really want to do a host allocation instead of a device one? (have to try zero-copy later)
   cudaError_t err = cudaMallocHost(ptr, size);
@@ -60,7 +60,7 @@ void pinned_allocator::do_allocate(void ** ptr, std::size_t size){
     mem_map_params.length = size;
     mem_map_params.flags = 0; // try UCP_MEM_MAP_NONBLOCK
 
-    ucs_status_t status = ucp_mem_map(context, &mem_map_params, &mem_handle);
+    ucs_status_t status = ucp_mem_map(context, &mem_map_params, mem_handle_ptr);
     if (status != UCS_OK)
         {
         throw std::runtime_error("Error on ucp_mem_map");
@@ -68,11 +68,11 @@ void pinned_allocator::do_allocate(void ** ptr, std::size_t size){
   }
 }
 
-void host_allocator::do_deallocate(void * ptr){
+void host_allocator::do_deallocate(void * ptr, ucp_mem_h mem_handle){
   free(ptr);
 }
 
-void pinned_allocator::do_deallocate(void * ptr){
+void pinned_allocator::do_deallocate(void * ptr, ucp_mem_h mem_handle){
   if (use_ucx)
      {
      ucs_status_t status = ucp_mem_unmap(context, mem_handle);
@@ -91,7 +91,6 @@ void pinned_allocator::do_deallocate(void * ptr){
 allocation_pool::allocation_pool(std::unique_ptr<base_allocator> allocator, std::size_t size_buffers, std::size_t num_buffers) :
 num_buffers (num_buffers), buffer_size(size_buffers), allocator(std::move(allocator)) {
   this->buffer_counter = 0; // this will get incremented by grow()
-  this->allocation_counter = 0;
   this->grow();
   
 }
@@ -120,7 +119,6 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
   }
   for(auto & allocation : allocations){
     if(!allocation->allocation_chunks.empty()){
-        this->allocation_counter++;
         auto temp = std::move(allocation->allocation_chunks.top());
         allocation->allocation_chunks.pop();
         
@@ -141,7 +139,7 @@ void allocation_pool::grow() {
   allocations.back()->index = this->allocations.size() - 1;
   auto last_index = allocations.size() -1;
   try{
-    allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
+    allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size, &allocations[last_index]->mem_handle);
     this->allocations[last_index]->total_number_of_chunks = num_new_buffers;
     for (int buffer_index = 0; buffer_index < num_new_buffers; buffer_index++) {
        auto buffer = std::make_unique<blazing_allocation_chunk>();
@@ -162,7 +160,7 @@ void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffe
   std::unique_lock<std::mutex> lock(in_use_mutex);
   const std::size_t idx = buffer->allocation->index;
 
-  if (idx+1 > this->allocations.size()) {
+  if (idx >= this->allocations.size()) {
     std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
     if(logger){
       logger->error("|||{0}|||||","free_chunk cannot delete an invalid allocation.");
@@ -170,26 +168,24 @@ void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffe
     assert(("free_chunk cannot delete an invalid allocation.", idx < this->allocations.size()));
   }
 
-  buffer->allocation->allocation_chunks.push(std::move(buffer));
+  this->allocations.at(idx)->allocation_chunks.push(std::move(buffer));
 
   if (idx > 0) {
     if (this->allocations.at(idx)->total_number_of_chunks == this->allocations.at(idx)->allocation_chunks.size()) {
-      auto it = this->allocations.begin();
-      std::advance(it, idx);
-      if ((*it)->data != nullptr) {
-        this->allocator->deallocate((*it)->data);
-        this->allocations.erase(it);
-
+      if (this->allocations.at(idx)->data != nullptr) {
+        this->buffer_counter -= this->allocations.at(idx)->total_number_of_chunks;
+        this->allocator->deallocate(this->allocations.at(idx)->data, this->allocations.at(idx)->mem_handle);
+                
         // for all allocations after the pos at idx
         // we need to update the allocation.index after we deleted one
         for (std::size_t i = idx; i < this->allocations.size(); ++i) {
           this->allocations[i]->index = this->allocations[i]->index - 1;
         }
+
+        this->allocations.erase(this->allocations.begin() + idx);
       }
     }
-  }
-
-  this->allocation_counter--;
+  }  
 }
 
 
@@ -202,10 +198,9 @@ void allocation_pool::free_all() {
         auto buffer = std::move(allocation->allocation_chunks.top());
         allocation->allocation_chunks.pop();
       }
-      allocator->deallocate(allocation->data);
+      allocator->deallocate(allocation->data, allocation->mem_handle);
     }
-    allocations.resize(0);
-    this->allocation_counter = 0;
+    allocations.resize(0);    
   }
 }
 
@@ -240,10 +235,6 @@ void empty_pools(){
   buffer_providers::get_host_buffer_provider()->free_all();
   buffer_providers::get_pinned_buffer_provider()->free_all();
 }
-std::size_t allocation_pool::get_allocated_buffers(){
-  return allocation_counter;
-}
-
 
 std::size_t allocation_pool::get_total_buffers(){
   return buffer_counter;
