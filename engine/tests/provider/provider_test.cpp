@@ -678,7 +678,6 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 bool make_directories_hive()
 {
 	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
-     std::cout << "START make_directories_hive function" << std::endl;
 	localFileSystem.makeDirectory(Uri("/t_year=2017"));
 	localFileSystem.makeDirectory(Uri("/t_year=2018"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2"));
@@ -688,19 +687,13 @@ bool make_directories_hive()
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=asia"));
 	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
 	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
-    std::cout << "END with all makeDirectories" << std::endl;
 
-    bool made_dir = localFileSystem.exists(Uri("/t_year=2017")) && localFileSystem.exists(Uri("/t_year=2018")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=2")) &&
-                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4")) && localFileSystem.exists(Uri("/t_year=2018/t_company_id=6")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=2/region=asia")) &&
-                    localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=asia")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=europa")) && localFileSystem.exists(Uri("/t_year=2018/t_company_id=6/region=europa"));
-
-    if (made_dir) {
-        std::cout << "exists directories" << std::endl;
-        return true;
-    }
-
-    std::cout << "NOT exists" << std::endl;
-	return false;
+    return( localFileSystem.exists(Uri("/t_year=2017")) && localFileSystem.exists(Uri("/t_year=2018")) &&
+            localFileSystem.exists(Uri("/t_year=2017/t_company_id=2")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=4")) &&
+            localFileSystem.exists(Uri("/t_year=2018/t_company_id=6")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=2/region=asia")) &&
+            localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=asia")) && localFileSystem.exists(Uri("/t_year=2017/t_company_id=4/region=europa")) &&
+            localFileSystem.exists(Uri("/t_year=2018/t_company_id=6/region=europa"))
+        );
 }
 
 TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
@@ -715,7 +708,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet",
 		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet",
 	};
-    std::cout << "BEFORE make_directories_hive" << std::endl;
+
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/*"),
 		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/*"),
@@ -724,7 +717,6 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 	};
 
 	ASSERT_TRUE(make_directories_hive());
-    std::cout << "AFTER make_directories_hive" << std::endl;
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
@@ -739,20 +731,18 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 			{{"t_year", "2017"}, {"t_company_id", "4"}, {"region", "europa"}},
 			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
 	};
-    std::cout << "BEFORE uri_data_provider" << std::endl;
+
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
-    std::cout << "AFTER uri_data_provider" << std::endl;
 	bool open_file = false;
 
 	std::vector<std::string> result;
 
 	while(provider->has_next())
 	{
-        std::cout << "while" << std::endl;
 		ral::io::data_handle new_handle = provider->get_next(open_file);
 		result.emplace_back(new_handle.uri.toString());
 	}
-    std::cout << "AFTER while" << std::endl;
+
 	std::sort(uri_files.begin(), uri_files.end());
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(uri_files, result);
