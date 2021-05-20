@@ -22,6 +22,7 @@
 - #1528 Fixed build issues due to cudf aggregation API change 
 - #1540 Comparing param set to true for e2e
 - #1543 Enables provider unit_tests
+- #1548 Fix orc statistic building
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)
