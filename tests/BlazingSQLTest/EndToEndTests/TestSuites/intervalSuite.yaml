@@ -228,7 +228,7 @@ TEST_SUITE:
             on r1.i_duration_s = r2.i_duration_s
             order by r1.i_id limit 70       
 
-  # Join with DURATION same unit
+  # Join with DURATION diff unit
   TEST_53:
     SQL: |
         select r1.i_id as r1_id, r1.i_duration_s as r1_duration_s,
