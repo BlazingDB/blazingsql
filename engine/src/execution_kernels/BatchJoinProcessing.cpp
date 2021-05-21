@@ -370,17 +370,17 @@ void PartwiseJoin::computeNormalizationData(const std::vector<cudf::data_type> &
 												right_join_types.cbegin(), right_join_types.cend());
 }
 
-std::unique_ptr<cudf::table> reordering_columns_due_to_right_join(std::unique_ptr<cudf::table> table_ptr, size_t right_columns) {
+std::unique_ptr<cudf::table> reordering_columns_due_to_right_join(std::unique_ptr<cudf::table> table_ptr, size_t n_right_columns) {
 	std::vector<std::unique_ptr<cudf::column>> columns_ptr = table_ptr->release();
 	std::vector<std::unique_ptr<cudf::column>> columns_right_pos;
 
 	// First let's put all the left columns
-	for (size_t index = right_columns; index < columns_ptr.size(); ++index) {
+	for (size_t index = n_right_columns; index < columns_ptr.size(); ++index) {
 		columns_right_pos.push_back(std::move(columns_ptr[index]));
 	}
 
 	// Now let's append right columns
-	for (size_t index = 0; index < right_columns; ++index) {
+	for (size_t index = 0; index < n_right_columns; ++index) {
 		columns_right_pos.push_back(std::move(columns_ptr[index]));
 	}
 
@@ -437,6 +437,7 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 
 			// After a right join is performed, we want to make sure the left column keep on the left side of result_table
 			result_table = reordering_columns_due_to_right_join(std::move(result_table), table_right.num_columns());
+
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::full_join(
 				table_left.view(),
@@ -838,6 +839,12 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 		if(estimate_scatter_right < estimate_regular_distribution &&
 					static_cast<unsigned long long>(total_bytes_right) < max_join_scatter_mem_overhead) {
 			scatter_right = true;
+		}
+	// with RIGHT_JOIN we cant scatter the left side
+	} else if (this->join_type == RIGHT_JOIN) {
+		if(estimate_scatter_left < estimate_regular_distribution &&
+					static_cast<unsigned long long>(total_bytes_left) < max_join_scatter_mem_overhead) {
+			scatter_left = true;
 		}
 	} else {
 		if(estimate_scatter_left < estimate_regular_distribution ||

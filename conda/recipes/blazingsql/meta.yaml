@@ -31,13 +31,14 @@ requirements:
         - cppzmq
         - python
         - setuptools
-        - spdlog >=1.7.0,<1.8.0
+        - spdlog >=1.7.0,<2.0.0a0
         - cython >=0.29,<0.30
         - openjdk >=8.0, <9.0
         - maven
         - cudf {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
         - ucx-proc=*=gpu
+        - boost-cpp 1.72.0
         - dlpack
         - cudatoolkit {{ cuda_version }}.*
     run:
@@ -58,6 +59,7 @@ requirements:
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm
         - ipywidgets
+        - boost-cpp 1.72.0
 
 test:
     requires:
@@ -66,6 +68,7 @@ test:
         - nlohmann_json 3.9.1
         - aws-sdk-cpp
         - google-cloud-cpp >=1.25.0
+        - boost-cpp 1.72.0
     imports:
         - cio
 

@@ -196,9 +196,6 @@ kstatus TableScan::run() {
                     output_cache,
                     this);
 
-            /*if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
-            //	break;
-            }*/
             file_index++;
         }
 
@@ -357,9 +354,6 @@ kstatus BindableTableScan::run() {
                     this);
 
             file_index++;
-            /*if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
-            //	break;
-            }*/
         }
 
         if(logger){

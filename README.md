@@ -149,14 +149,14 @@ For nightly version cuda 11+ are only supported, see https://github.com/rapidsai
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-./dependencies.sh 0.20 $CUDA_VERSION nightly
+./dependencies.sh 21.06 $CUDA_VERSION nightly
 ```
 Where $CUDA_VERSION is 11.0 or 11.2 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 11.2 and Python 3.8:*
 ```bash
 conda create -n bsql python=3.8
 conda activate bsql
-./dependencies.sh 0.20 11.2 nightly
+./dependencies.sh 21.06 11.2 nightly
 ```
 
 ### Build

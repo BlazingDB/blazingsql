@@ -6,8 +6,9 @@ from dask.distributed import Client
 from dask_cuda import LocalCUDACluster
 from dask_cuda.utils import CPUAffinity, get_cpu_affinity
 
-from Configuration import Settings as Settings
-from DataBase.createSchema import get_extension
+from Configuration import ExecutionMode
+from Configuration import Settings
+from DataBase import createSchema
 
 test_name_delimiter = " $$0_0$$ "
 
@@ -22,7 +23,7 @@ def dquery(nRals, single_node_sql, distrubuted_sql):
 
 
 def test_name(queryType, fileSchemaType):
-    ext = get_extension(fileSchemaType)
+    ext = createSchema.get_extension(fileSchemaType)
     tname = "%s%s%s" % (queryType, test_name_delimiter, ext)
     return tname
 
@@ -171,3 +172,49 @@ def init_context(useProgressBar: bool = False, config_options={"ENABLE_GENERAL_E
                 enable_progress_bar=True)
 
     return (bc, dask_client)
+
+
+def init_drill():
+    # Start Drill schema-----------------------------------------
+    from pydrill.client import PyDrill
+
+    drill = PyDrill(host="localhost", port=8047)
+    createSchema.init_drill_schema(
+        drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
+    )
+    createSchema.init_drill_schema(
+        drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
+    )
+
+    return drill
+
+def init_spark():
+    # Start Spark schema -------------------------------------------------
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
+    createSchema.init_spark_schema(
+        spark, Settings.data["TestSettings"]["dataDirectory"]
+    )
+    createSchema.init_spark_schema(
+        spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
+    )
+
+    return spark
+
+
+def init_comparators():
+    compareResults = True
+    if "compare_results" in Settings.data["RunSettings"]:
+        compareResults = Settings.data["RunSettings"]["compare_results"]
+
+    if (
+            Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
+
+        drill = init_drill()
+        spark = init_spark()
+
+        return drill, spark
+
+    return "drill", "spark"

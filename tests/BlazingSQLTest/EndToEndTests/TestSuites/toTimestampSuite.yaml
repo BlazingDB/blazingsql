@@ -1,0 +1,70 @@
+# To_timestamp Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - CSV
+      - PARQUET
+      - CUDF
+      - JSON
+      - DASK_CUDF
+
+  TEST_01:
+    SQL: |
+        select TO_DATE(cast(o_orderdate as varchar), '%Y-%m-%d %H:%M:%S') from orders
+    SPARK: |
+        select TO_DATE(cast(o_orderdate as string), 'yyyy-MM-dd HH:mm:ss') from orders
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_02:
+    SQL: |
+        select TO_TIMESTAMP(cast(o_orderdate as varchar), '%Y-%m-%d %H:%M:%S') from orders
+    SPARK: |
+        select TO_TIMESTAMP(cast(o_orderdate as string), 'yyyy-MM-dd HH:mm:ss') from orders
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_03:
+    SQL: |
+        select
+            TO_DATE(
+            substring(cast(l_shipdate as varchar), 1, 4) || '|' ||
+            substring(cast(l_commitdate as varchar), 6, 2) || '|' ||
+            '13',
+            '%Y|%m|%d')
+            from lineitem
+    SPARK: |
+        select
+            TO_DATE(
+            substring(cast(l_shipdate as string), 1, 4) || '|' ||
+            substring(cast(l_commitdate as string), 6, 2) || '|' ||
+            '13',
+            'yyyy|MM|dd')
+            from lineitem
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_04:
+    SQL: |
+        select
+            TO_TIMESTAMP(
+            substring(cast(l_shipdate as varchar), 1, 4) || '|' ||
+            substring(cast(l_commitdate as varchar), 6, 2) || '|' ||
+            '13',
+            '%Y|%m|%d')
+            from lineitem
+    SPARK: |
+        select
+            TO_TIMESTAMP(
+            substring(cast(l_shipdate as string), 1, 4) || '|' ||
+            substring(cast(l_commitdate as string), 6, 2) || '|' ||
+            '13',
+            'yyyy|MM|dd')
+            from lineitem
+    SETUP:
+      COMPARE_WITH: spark

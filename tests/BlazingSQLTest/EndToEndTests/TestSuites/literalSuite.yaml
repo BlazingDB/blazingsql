@@ -1,0 +1,81 @@
+# Literal Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - CSV
+      - PARQUET
+      - CUDF
+      - JSON
+      - DASK_CUDF
+
+  TEST_01:
+    SQL: |
+        select 2, o_orderdate
+                    from orders
+                    order by o_orderdate asc
+                    limit 5
+    SPARK: |
+        select 2, o_orderdate
+                    from orders
+                    order by o_orderdate nulls last
+                    limit 5
+    SETUP:
+      ORDER_BY_COL: o_orderdate
+      COMPARE_WITH: spark
+
+  TEST_02:
+    SQL: |
+        select 'Rommel',c_name from customer
+                    order by c_name limit 5
+    SPARK: |
+        select 'Rommel',c_name from customer
+                    order by c_name nulls last limit 5
+    SETUP:
+      ORDER_BY_COL: c_name
+      COMPARE_WITH: spark
+
+  TEST_03:
+    SQL: |
+      select '1990-01-01', c_custkey from customer
+                    order by c_custkey limit 5
+    SPARK: |
+        select '1990-01-01', c_custkey from customer
+                    order by c_custkey nulls last limit 5
+    SETUP:
+      ORDER_BY_COL: c_custkey
+      COMPARE_WITH: spark
+
+
+  TEST_04:
+    SQL: |
+        select timestamp '1990-01-01 00:00:00', c_custkey
+                    from customer order by c_custkey limit 5
+    SETUP:
+      ORDER_BY_COL: c_custkey
+      USE_PERCENTAGE: True
+
+  TEST_05:
+    SQL: |
+        select 80000 as constant, c_custkey
+                    from customer order by c_custkey limit 5
+    SPARK: |
+        select 80000 as constant, c_custkey
+                    from customer order by c_custkey nulls last limit 5
+    SETUP:
+      ORDER_BY_COL: c_custkey
+      COMPARE_WITH: spark
+
+  TEST_06:
+    SQL: |
+        select 2+2, o_orderdate from orders
+                    order by o_orderkey limit 5
+    SPARK: |
+        select 2+2, o_orderdate from orders
+                    order by o_orderkey nulls last limit 5
+    SETUP:
+      COMPARE_WITH: spark

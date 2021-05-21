@@ -1,0 +1,78 @@
+# Order by Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: False
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select c_custkey, c_acctbal from customer
+                    order by c_acctbal desc, c_custkey
+
+  TEST_02:
+    SQL: |
+        select c_acctbal from customer order by c_acctbal
+
+  TEST_03:
+    SQL: |
+        select c_custkey, c_nationkey, c_acctbal
+                    from customer
+                    order by c_nationkey, c_acctbal, c_custkey desc
+
+  TEST_04:
+    SQL: |
+        select c_custkey + c_nationkey, c_acctbal
+                    from customer order by 1 desc, 2
+
+  TEST_05:
+    SQL: |
+        select l_linenumber, l_orderkey
+                    from lineitem where l_orderkey < 50000
+                    order by l_linenumber desc, l_suppkey asc,
+                        l_partkey desc, l_orderkey
+
+  TEST_06:
+    SQL: |
+        select o_orderkey, o_custkey, o_totalprice, o_orderstatus
+                    from orders where o_orderkey < 100
+                    order by o_custkey, o_orderstatus,
+                    o_shippriority, o_comment
+
+  TEST_07:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey NULLS LAST
+                        limit 970
+
+  TEST_08:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey NULLS FIRST
+                        limit 580
+
+  TEST_09:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey DESC NULLS LAST
+                        limit 280
+
+  TEST_10:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey DESC NULLS FIRST
+                        limit 380
+
+  TEST_11:
+    SQL: |
+        select o_orderkey, o_clerk, o_orderstatus, o_totalprice from orders
+                    order by o_orderkey NULLS FIRST,
+                    o_clerk NULLS FIRST, o_orderstatus NULLS FIRST,
+                    o_totalprice DESC NULLS LAST limit 540

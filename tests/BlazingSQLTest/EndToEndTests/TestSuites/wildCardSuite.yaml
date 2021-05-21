@@ -1,0 +1,184 @@
+# Wild Card Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select count(c_custkey) as c1, count(c_acctbal) as c2
+                    from customer
+
+  TEST_02:
+    SQL: |
+        select count(n_nationkey), count(n_regionkey)
+                    from nation
+
+  TEST_03:
+    SQL: |
+        select count(s_suppkey), count(s_nationkey)
+                    from supplier
+
+  TEST_04:
+    SQL: |
+        select count(c_custkey), sum(c_acctbal),
+                        avg(c_acctbal), min(c_custkey),
+                        max(c_nationkey),
+                        (max(c_nationkey) + min(c_nationkey)) / 2 c_nationkey
+                        from customer
+                        where c_custkey < 100
+                        group by c_nationkey
+
+  TEST_05:
+    SQL: |
+        select c.c_custkey, c.c_nationkey, n.n_regionkey
+                    from customer as c inner join nation as n
+                    on c.c_nationkey = n.n_nationkey
+                    where n.n_regionkey = 1 and c.c_custkey < 50
+
+  TEST_06:
+    SQL: |
+        select c_custkey, c_nationkey, c_acctbal
+                    from customer
+                    order by c_nationkey, c_acctbal, c_custkey
+    SETUP:
+      APPLY_ORDER: False
+  TEST_07:
+    SQL: |
+        select c_custkey + c_nationkey, c_acctbal
+                    from customer order by 1, 2
+    SETUP:
+      APPLY_ORDER: False
+
+  TEST_08:
+    SQL: |
+        select n1.n_nationkey as supp_nation,
+                    n2.n_nationkey as cust_nation,
+                    l.l_extendedprice * l.l_discount
+                    from supplier as s
+                    inner join lineitem as l
+                    on s.s_suppkey = l.l_suppkey
+                    inner join orders as o on o.o_orderkey = l.l_orderkey
+                    inner join customer as c
+                    on c.c_custkey = o.o_custkey
+                    inner join nation as n1
+                    on s.s_nationkey = n1.n_nationkey
+                    inner join nation as n2
+                    on c.c_nationkey = n2.n_nationkey
+                    where n1.n_nationkey = 1
+                    and n2.n_nationkey = 2
+                    and o.o_orderkey < 10000
+
+  TEST_09:
+    SQL: |
+        select c_custkey, c_nationkey as nkey from customer
+                    where c_custkey < 0 and c_nationkey >=30
+
+  TEST_10:
+    SQL: |
+        select sin(c_acctbal), cos(c_acctbal), asin(c_acctbal),
+                    acos(c_acctbal), ln(c_acctbal), tan(c_acctbal),
+                    atan(c_acctbal), floor(c_acctbal), c_acctbal
+                    from customer
+
+  TEST_11:
+    SQL: |
+        select n1.n_nationkey as n1key,
+                    n2.n_nationkey as n2key,
+                    n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    where n1.n_nationkey < 10
+                    and n1.n_nationkey > 5
+
+  TEST_12:
+    SQL: |
+        select count(n1.n_nationkey) as n1key,
+                    count(n2.n_nationkey) as n2key,
+                    count(*) as cstar
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+
+  TEST_13:
+    SQL: |
+        select o_orderkey, o_custkey from orders
+                    where o_orderkey < 10 and o_orderkey >= 1
+
+  TEST_14:
+    SQL: |
+        select 100168549 - avg(o_orderkey),
+                    56410984/sum(o_totalprice),
+                    (123 - 945/max(o_orderkey)) /
+                    (avg(81619.0/o_orderkey))
+                    from orders
+    SETUP:
+      USE_PERCENTAGE: True
+
+  TEST_15:
+    SQL: |
+        select o_orderkey, sum(o_totalprice)/count(o_orderstatus)
+                    from orders where o_custkey < 100
+                    group by o_orderstatus, o_orderkey
+    SETUP:
+      COMPARE_WITH: spark #because Drill outputs some inf's instead of NaN
+
+  TEST_16:
+    SQL: |
+        select o_orderkey, o_orderstatus from orders
+                    where o_custkey < 10 and o_orderstatus <> 'O'
+                    order by o_orderkey, o_orderstatus limit 50
+
+  TEST_17:
+    SQL: |
+        select count(o_orderstatus) from orders
+                    where o_orderstatus <> 'O'
+
+  TEST_18:
+    SQL: |
+        select count(o_orderkey), sum(o_orderkey), o_clerk
+                    from orders where o_custkey < 1000
+                    group by o_clerk, o_orderstatus
+
+  TEST_19:
+    SQL: |
+        select avg(o_orderkey)
+                from orders group by o_orderstatus
+    SETUP:
+      USE_PERCENTAGE: True
+
+  TEST_20:
+    SQL: |
+        select count(o_shippriority), sum(o_totalprice)
+                    from orders group by o_shippriority
+
+  TEST_21:
+    SQL: |
+        with regionTemp as
+            (
+                select r_regionkey, r_name
+                from region
+                where r_regionkey > 2
+            ), nationTemp as
+            (
+                select n_nationkey, n_regionkey as fkey, n_name
+                from nation where n_nationkey > 3
+                order by n_nationkey
+            )
+            select regionTemp.r_name, nationTemp.n_name
+            from regionTemp
+            inner join nationTemp
+            on regionTemp.r_regionkey = nationTemp.fkey
