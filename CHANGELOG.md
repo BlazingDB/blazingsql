@@ -13,6 +13,7 @@
 - #1522 Improve data loading when the algebra contains only BindableScan/Scan and Limit
 - #1524 Enable support for spdlog 1.8.5
 - #1547 Update RAPIDS version references
+- #1539 Support ORDERing by null values
 
 
 ## Bug Fixes

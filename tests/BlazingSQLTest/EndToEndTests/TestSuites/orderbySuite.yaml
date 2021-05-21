@@ -49,3 +49,30 @@ TEST_SUITE:
                     from orders where o_orderkey < 100
                     order by o_custkey, o_orderstatus,
                     o_shippriority, o_comment
+
+  TEST_07:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey NULLS LAST
+                        limit 970
+
+  TEST_08:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey NULLS FIRST
+                        limit 580
+
+  TEST_09:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey DESC NULLS LAST
+                        limit 280
+
+  TEST_10:
+    SQL: |
+        select o_orderkey from orders order by o_orderkey DESC NULLS FIRST
+                        limit 380
+
+  TEST_11:
+    SQL: |
+        select o_orderkey, o_clerk, o_orderstatus, o_totalprice from orders
+                    order by o_orderkey NULLS FIRST,
+                    o_clerk NULLS FIRST, o_orderstatus NULLS FIRST,
+                    o_totalprice DESC NULLS LAST limit 540

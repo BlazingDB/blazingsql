@@ -18,12 +18,12 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
 
     if (is_window_function(this->expression)) {
         if (window_expression_contains_partition_by(this->expression)){
-            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+            std::tie(sortColIndices, sortOrderTypes, sortOrderNulls) = ral::operators::get_vars_to_partition(this->expression);
         } else {
-            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_orders(this->expression);
+            std::tie(sortColIndices, sortOrderTypes, sortOrderNulls) = ral::operators::get_vars_to_orders(this->expression);
 		}
     } else {
-        std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
+        std::tie(sortColIndices, sortOrderTypes, sortOrderNulls, std::ignore) = ral::operators::get_sort_vars(this->expression);
     }
 }
 
@@ -34,7 +34,7 @@ ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< s
     try{
         auto & input = inputs[0];
 
-        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->sortOrderTypes, this->sortColIndices);
+        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->sortOrderTypes, this->sortColIndices, this->sortOrderNulls);
 
         for (std::size_t i = 0; i < partitions.size(); i++) {
             std::string cache_id = "output_" + std::to_string(i);
@@ -356,12 +356,12 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
 
     if (is_window_function(this->expression)) {
         if (window_expression_contains_partition_by(this->expression)){
-            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+            std::tie(sortColIndices, sortOrderTypes, sortOrderNulls) = ral::operators::get_vars_to_partition(this->expression);
         } else {
-            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_orders(this->expression);
+            std::tie(sortColIndices, sortOrderTypes, sortOrderNulls) = ral::operators::get_vars_to_orders(this->expression);
 		}
     } else {
-        std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
+        std::tie(sortColIndices, sortOrderTypes, sortOrderNulls, std::ignore) = ral::operators::get_sort_vars(this->expression);
     }
 }
 
@@ -371,7 +371,8 @@ ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique
     try{
         auto & input = inputs[0];
 
-        std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+        std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), 
+                            input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes, sortOrderNulls);
         std::vector<int32_t> part_ids(partitions.size());
         std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 
@@ -638,7 +639,7 @@ kstatus LimitKernel::run() {
     }
 
     cudf::size_type limitRows;
-    std::tie(std::ignore, std::ignore, limitRows) = ral::operators::get_sort_vars(this->expression);
+    std::tie(std::ignore, std::ignore, std::ignore, limitRows) = ral::operators::get_sort_vars(this->expression);
     rows_limit = limitRows;
 
     if(this->context->getTotalNodes() > 1 && rows_limit >= 0) {
