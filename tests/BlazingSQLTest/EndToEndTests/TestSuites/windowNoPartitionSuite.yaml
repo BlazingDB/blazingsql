@@ -120,3 +120,42 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
       APPLY_ORDER: False
+
+  TEST_06:
+    SQL: |
+      select max(l_partkey) over
+                        (
+                            order by l_extendedprice desc, l_orderkey NULLS LAST,
+                            l_quantity NULLS FIRST
+                            ROWS BETWEEN 6 PRECEDING
+                            AND 2 FOLLOWING
+                        ) max_keys,
+                        l_linestatus, l_extendedprice
+                    from lineitem
+                    where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                    and l_linestatus = 'F'
+                    and l_extendedprice is not null
+                    order by l_extendedprice, l_orderkey, max_keys
+                    limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_07:
+    SQL: |
+      select max(l_partkey) over
+                        (
+                            order by l_extendedprice DESC NULLS FIRST,
+                            l_orderkey DESC NULLS LAST,
+                            l_quantity NULLS FIRST
+                            ROWS BETWEEN 6 PRECEDING
+                            AND 2 FOLLOWING
+                        ) max_keys,
+                        l_linestatus, l_extendedprice
+                    from lineitem
+                    where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                    and l_linestatus = 'F'
+                    and l_extendedprice is not null
+                    order by l_extendedprice, l_orderkey, max_keys
+                    limit 50
+    SETUP:
+      COMPARE_WITH: spark

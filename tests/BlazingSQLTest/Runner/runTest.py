@@ -1555,6 +1555,7 @@ def run_query(
                         .fillna(get_null_constants(result_gdf))
                         .to_pandas()
                     )
+
                     pdf2 = to_pandas_f64_engine(
                         result_spark_df.resultSet, expected_dtypes
                     )

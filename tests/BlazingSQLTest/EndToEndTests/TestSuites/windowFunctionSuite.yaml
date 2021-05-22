@@ -870,7 +870,6 @@ TEST_SUITE:
     SETUP:
       COMPARE_WITH: spark
 
-
   TEST_60:
     SQL: |
       select o_orderkey, min(o_orderkey) over
@@ -895,5 +894,93 @@ TEST_SUITE:
                         -- TODO using nulls last here because that is the default in BSQL but not in spark.
                         order by o_orderkey nulls last
                         limit 50
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_61:
+    SQL: |
+      select sum(o_custkey) over 
+                    (
+                        partition by o_orderstatus, o_orderpriority
+                        order by o_totalprice NULLS LAST, o_custkey
+                    ) sum_keys,
+                    lag(o_custkey, 2) over 
+                    (
+                        partition by o_orderstatus, o_orderpriority
+                        order by o_totalprice NULLS LAST, o_custkey
+                    ) lag_keys,
+                    cast(o_shippriority as double) as o_ship_double,
+                    o_orderpriority, o_totalprice
+                from orders
+                where o_orderstatus <> 'O'
+                and o_totalprice <= 8000
+                and o_orderpriority in ('2-HIGH', '1-URGENT')
+                order by o_orderpriority, o_totalprice
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_62:
+    SQL: |
+      select sum(o_custkey) over 
+                            (
+                          partition by o_orderstatus, o_orderpriority
+                          order by o_totalprice NULLS FIRST, o_custkey
+                      ) sum_keys,
+                      lag(o_custkey, 2) over 
+                      (
+                          partition by o_orderstatus, o_orderpriority
+                          order by o_totalprice NULLS FIRST, o_custkey
+                      ) lag_keys,
+                      cast(o_shippriority as double) as o_ship_double,
+                      o_orderpriority, o_totalprice
+                  from orders
+                  where o_orderstatus <> 'O'
+                  and o_totalprice <= 8000
+                  and o_orderpriority in ('2-HIGH', '1-URGENT')
+                  order by o_orderpriority, o_totalprice
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_63:
+    SQL: |
+      select sum(o_custkey) over 
+                      (
+                          partition by o_orderstatus, o_orderpriority
+                          order by o_totalprice DESC NULLS LAST, o_custkey
+                      ) sum_keys,
+                      lag(o_custkey, 2) over 
+                      (
+                          partition by o_orderstatus, o_orderpriority
+                          order by o_totalprice DESC NULLS LAST, o_custkey
+                      ) lag_keys,
+                      cast(o_shippriority as double) as o_ship_double,
+                      o_orderpriority, o_totalprice
+                  from orders
+                  where o_orderstatus <> 'O'
+                  and o_totalprice <= 8000
+                  and o_orderpriority in ('2-HIGH', '1-URGENT')
+                  order by o_orderpriority, o_totalprice
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_64:
+    SQL: |
+      select sum(o_custkey) over 
+                      (
+                          partition by o_orderstatus, o_orderpriority
+                          order by o_totalprice DESC NULLS FIRST, o_custkey
+                      ) sum_keys,
+                      lag(o_custkey, 2) over 
+                      (
+                          partition by o_orderstatus, o_orderpriority
+                          order by o_totalprice DESC NULLS FIRST, o_custkey
+                      ) lag_keys,
+                      cast(o_shippriority as double) as o_ship_double,
+                      o_orderpriority, o_totalprice
+                  from orders
+                  where o_orderstatus <> 'O'
+                  and o_totalprice <= 8000
+                  and o_orderpriority in ('2-HIGH', '1-URGENT')
+                  order by o_orderpriority, o_totalprice
     SETUP:
       COMPARE_WITH: spark
