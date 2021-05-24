@@ -1066,7 +1066,11 @@ class BlazingTable(object):
         if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
             for x in self.input._data.values():
-                if is_decimal_dtype(x.dtype):  # just to pass decimal dtype
+                # for now `decimal` type is not considered from `np_to_cudf_types_int` call
+                if is_decimal_dtype(x.dtype):
+                    print(
+                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+                    )
                     type_int = 26
                 else:
                     type_int = cio.np_to_cudf_types_int(x.dtype)
@@ -1074,7 +1078,11 @@ class BlazingTable(object):
         elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
             for x in input.dtypes:
-                if is_decimal_dtype(x):  # just to pass decimal dtype
+                # for now `decimal` type is not considered from `np_to_cudf_types_int` call
+                if is_decimal_dtype(x):
+                    print(
+                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+                    )
                     type_int = 26
                 else:
                     type_int = cio.np_to_cudf_types_int(x)

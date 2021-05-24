@@ -43,7 +43,9 @@ public enum CatalogColumnDataType {
 	DICTIONARY32(22, "DICTIONARY32"), ///< Dictionary type using int32 indices
 	STRING(23, "STRING"), ///< String elements
 	LIST(24, "LIST"), ///< List elements
+	DECIMAL32(25, "DECIMAL32"), ///< Fixed-point type with int32_t
 	DECIMAL64(26, "DECIMAL64"), ///< Fixed-point type with int64_t
+	STRUCT(27, "STRUCT"), ///< Fixed-point type with int64_t
 	// `NUM_TYPE_IDS` must be last!
 	NUM_TYPE_IDS(28, "NUM_TYPE_IDS");  ///< Total number of type ids
 
