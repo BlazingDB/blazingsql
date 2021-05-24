@@ -14,6 +14,7 @@
 - #1524 Enable support for spdlog 1.8.5
 - #1547 Update RAPIDS version references
 - #1539 Support ORDERing by null values
+- #1551 Support for spdlog 1.8.5
 
 
 ## Bug Fixes
