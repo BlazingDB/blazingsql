@@ -129,6 +129,8 @@ bool is_SQL_data_type(const std::string & token);
 bool is_operator_token(const std::string & token);
 bool is_literal(const std::string & token);
 bool is_var_column(const std::string& token);
+size_t num_var_columns_inside_expression(const std::string& expression);
+std::vector<int> get_all_indices_from_expression(const std::string& expression);
 bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);

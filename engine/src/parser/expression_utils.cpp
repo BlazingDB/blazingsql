@@ -486,6 +486,29 @@ bool is_var_column(const std::string& token){
 	return token[0] == '$';
 }
 
+size_t num_var_columns_inside_expression(const std::string& expression){
+	return StringUtil::findAndCountAllMatches(expression, "$");
+}
+
+// input: COUNT($0, $1, $3)
+// output: [0, 1, 3]
+std::vector<int> get_all_indices_from_expression(const std::string& expression){
+	std::vector<int> indices;
+
+	size_t first_post = expression.find("$");
+	if (first_post == expression.npos) return indices;
+
+	std::string reduced_expr = expression.substr(first_post + 1, expression.size() - first_post);
+	StringUtil::findAndReplaceAll(reduced_expr, "$", "");
+	std::vector<std::string> indices_str = get_expressions_from_expression_list(reduced_expr);
+
+	for (size_t i = 0; i < indices_str.size(); ++i) {
+		indices.push_back(std::stoi(indices_str[i]));
+	}
+
+	return indices;
+}
+
 bool is_inequality(const std::string& token){
 	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
 }
