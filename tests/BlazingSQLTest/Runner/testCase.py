@@ -196,8 +196,21 @@ class TestCase():
             return test_case["SQL_WITH_NULLS"]
         return test_case["SQL"]
 
+    def __isConcurrentTest(self):
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        fileName = cwd + "/config.yaml"
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                fileYaml = yaml.safe_load(stream)
+
+        if "CONCURRENT" in fileYaml:
+            return fileYaml["CONCURRENT"]
+
+        return False
+
     def __executionTest(self):
         listCase = list(self.data.keys())
+        is_concurrent = self.__isConcurrentTest()
 
         print("######## Starting queries ...########")
 
