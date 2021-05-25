@@ -13,7 +13,7 @@
 - #1522 Improve data loading when the algebra contains only BindableScan/Scan and Limit
 - #1524 Enable support for spdlog 1.8.5
 - #1547 Update RAPIDS version references
-
+- #1553 multiple columns inside COUNT() statement
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
