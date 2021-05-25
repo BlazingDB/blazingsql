@@ -29,6 +29,14 @@ class ConfigTest():
     comparing = None
     message_validation = None
 
+class ConfigConcurrent():
+    token = 0
+    configTest = ConfigTest()
+    fileSchemaType = None
+    test_name = ""
+    query = ""
+    done = False
+
 class TestCase():
     def __init__(self, name, dataTargetTest, globalConfig):
         self.name = name
