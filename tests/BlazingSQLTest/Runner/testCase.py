@@ -52,6 +52,7 @@ class TestCase():
         self.spark = None
 
         self.config_concurrent = {}
+        self.is_concurrent = self.__isConcurrentTest()
 
         self.nRals = Settings.data["RunSettings"]["nRals"]
         self.dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
@@ -134,6 +135,11 @@ class TestCase():
         if not isinstance(configTest.skip_with, list):
             print("ERROR: Bad format for 'skip_with' (It must be a list)")
             return True
+
+        skipConcurrent = [item["CONCURRENT"] for item in configTest.skip_with if isinstance(item, dict) and "CONCURRENT" in item]
+        if skipConcurrent and self.is_concurrent == skipConcurrent[0]:
+            return True
+
 
         allList = [item for item in configTest.skip_with if isinstance(item, str)]
         allList = [DataType[item] for item in allList]
@@ -220,7 +226,6 @@ class TestCase():
 
     def __executionTest(self):
         listCase = list(self.data.keys())
-        is_concurrent = self.__isConcurrentTest()
 
         print("######## Starting queries ...########")
 
@@ -252,7 +257,7 @@ class TestCase():
                     print("PLAN:")
                     print(self.bc.explain(query, True))
 
-                if is_concurrent:
+                if self.is_concurrent:
                     name_token = test_name + "_" + fileSchemaType.name
                     self.config_concurrent[name_token] = ConfigConcurrent()
 
@@ -280,7 +285,7 @@ class TestCase():
                         message_validation=configTest.message_validation
                     )
 
-            if is_concurrent: self.__fetch_results()
+            if self.is_concurrent: self.__fetch_results()
 
     def __fetch_results(self):
         done_count = 0
