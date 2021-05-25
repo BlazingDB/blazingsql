@@ -37,6 +37,12 @@ bool is_type_timestamp(cudf::type_id type) {
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
+bool is_type_duration(cudf::type_id type) {
+	return (cudf::type_id::DURATION_DAYS == type || cudf::type_id::DURATION_SECONDS == type ||
+			cudf::type_id::DURATION_MILLISECONDS == type || cudf::type_id::DURATION_MICROSECONDS == type ||
+			cudf::type_id::DURATION_NANOSECONDS == type);
+}
+
 bool is_type_string(cudf::type_id type) { return cudf::type_id::STRING == type; }
 
 cudf::size_type get_index(const std::string & operand_string) {
@@ -216,6 +222,14 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		} else {
 			return cudf::make_string_scalar(scalar_string);
 		}
+	}
+	if(type.id() == cudf::type_id::DURATION_SECONDS || type.id() == cudf::type_id::DURATION_MILLISECONDS
+		|| type.id() == cudf::type_id::DURATION_MICROSECONDS || type.id() == cudf::type_id::DURATION_NANOSECONDS) {
+		auto ret = cudf::make_duration_scalar(type);
+		using T = int64_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoll(scalar_string)));
+		return ret;
 	}
 	// We want to ensure the scalar TIMESTAMP value does not contains `'`
 	const std::string cleaned_scalar_string = remove_quotes_from_timestamp_literal(scalar_string);

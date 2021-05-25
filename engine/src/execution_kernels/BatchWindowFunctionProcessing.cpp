@@ -40,8 +40,8 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 
     std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
                                         get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
-    std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
-    std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
+    std::tie(this->column_indices_partitioned, std::ignore, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
+    std::tie(this->column_indices_ordered, std::ignore, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
 
     // fill all the Kind aggregations
     for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {

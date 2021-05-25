@@ -118,20 +118,22 @@ TEST_SUITE:
     SETUP:
       APPLY_ORDER: False
 
-  #ERROR: Different values GDF and PSV
-  # TEST_13:
-  #   SQL: |
-  #       select c.c_name, o.o_orderkey, o.o_totalprice,
-  #                       l.l_partkey, l.l_returnflag
-  #                   from lineitem as l
-  #                   inner join orders as o on o.o_orderkey = l.l_orderkey
-  #                   inner join customer as c on c.c_custkey = o.o_custkey
-  #                   and l.l_linenumber < 3 and c.c_custkey < 30
+  TEST_13:
+    SQL: |
+        select c.c_name, o.o_orderkey, o.o_totalprice,
+                        l.l_partkey, l.l_returnflag
+                    from lineitem as l
+                    inner join orders as o on o.o_orderkey = l.l_orderkey
+                    inner join customer as c on c.c_custkey = o.o_custkey
+                    and l.l_linenumber < 3 and c.c_custkey < 30
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0.01
 
-  #ERROR: Different values GDF and PSV
-  # TEST_14:
-  #   SQL: |
-  #       select o.o_orderkey, o.o_totalprice, l.l_partkey
-  #                   from lineitem as l
-  #                   inner join orders as o on o.o_orderkey = l.l_orderkey * 2
-  #                   inner join customer as c on c.c_nationkey = o.o_custkey
+  TEST_14:
+    SQL: |
+        select o.o_orderkey, o.o_totalprice, l.l_partkey
+                    from lineitem as l
+                    inner join orders as o on o.o_orderkey = l.l_orderkey * 2
+                    inner join customer as c on c.c_nationkey = o.o_custkey
+    SETUP:
+      ACCEPTABLE_DIFFERENCE: 0.01

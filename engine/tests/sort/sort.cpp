@@ -36,8 +36,9 @@ TYPED_TEST(SortTest, withoutNull) {
 
     std::vector<int> sortColIndices{0,1};
     std::vector<cudf::order> sortOrderTypes{cudf::order::ASCENDING, cudf::order::ASCENDING};
+    std::vector<cudf::null_order> sortOrderNulls{cudf::null_order::AFTER, cudf::null_order::AFTER};
 
-    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::operators::logicalSort(table, sortColIndices, sortOrderTypes);
+    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::operators::logicalSort(table, sortColIndices, sortOrderTypes, sortOrderNulls);
 
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{3, 4, 5, 5, 5, 6 ,8}, {1, 1, 1, 1, 1, 1, 1}};
     cudf::test::strings_column_wrapper expect_col2({"a", "b", "d", "d", "d", "k", "l"}, {1, 1, 1, 1, 1, 1, 1});
