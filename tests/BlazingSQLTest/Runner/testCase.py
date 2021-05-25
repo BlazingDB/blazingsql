@@ -51,6 +51,8 @@ class TestCase():
         self.drill = None
         self.spark = None
 
+        self.config_concurrent = {}
+
         self.nRals = Settings.data["RunSettings"]["nRals"]
         self.dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
         self.withNulls = Settings.data["RunSettings"]["testsWithNulls"]
@@ -249,22 +251,34 @@ class TestCase():
                 if configTest.message_validation == "":
                     print("PLAN:")
                     print(self.bc.explain(query, True))
-                runTest.run_query(
-                    self.bc,
-                    engine,
-                    query,
-                    test_name,
-                    self.name,
-                    configTest.apply_order,
-                    configTest.order_by_col,
-                    configTest.acceptable_difference,
-                    configTest.use_percentage,
-                    fileSchemaType,
-                    print_result=configTest.print_result,
-                    query_spark=configTest.spark_query,
-                    comparing=configTest.comparing,
-                    message_validation=configTest.message_validation
-                )
+
+                if is_concurrent:
+                    name_token = test_name + "_" + fileSchemaType.name
+                    self.config_concurrent[name_token] = ConfigConcurrent()
+
+                    self.config_concurrent[name_token].token = self.bc.sql(query, return_token=True)
+                    self.config_concurrent[name_token].fileSchemaType = fileSchemaType
+                    self.config_concurrent[name_token].test_name = test_name
+                    self.config_concurrent[name_token].query = query
+                    self.config_concurrent[name_token].configTest = copy.deepcopy(configTest)
+
+                else:
+                    runTest.run_query(
+                        self.bc,
+                        engine,
+                        query,
+                        test_name,
+                        self.name,
+                        configTest.apply_order,
+                        configTest.order_by_col,
+                        configTest.acceptable_difference,
+                        configTest.use_percentage,
+                        fileSchemaType,
+                        print_result=configTest.print_result,
+                        query_spark=configTest.spark_query,
+                        comparing=configTest.comparing,
+                        message_validation=configTest.message_validation
+                    )
 
     def run(self, bc, dask_client, drill, spark):
         self.bc = bc
