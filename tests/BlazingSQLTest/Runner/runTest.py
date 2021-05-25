@@ -999,7 +999,7 @@ def results_file_generator(testsWithNulls, filename, engine, pdf2):
     print(engine.capitalize() + ": " + filename + " generated.")
 
 
-def run_query_blazing(bc, nested_query, query, algebra, message_validation):
+def run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_result):
     
     result_gdf = None
 
@@ -1029,7 +1029,7 @@ def run_query_blazing(bc, nested_query, query, algebra, message_validation):
             result_gdf = bc.sql(query_blz, algebra=algebra)
 
     else:  # for nested queries as column basis test
-        result_gdf = kwargs.get("blz_result", [])
+        result_gdf = blz_result
     
     return result_gdf, load_time, engine_time, total_time, error_message
         
@@ -1069,6 +1069,10 @@ def run_query(
 
     nested_query = kwargs.get("nested_query", False)
 
+    blz_result = None
+    if nested_query:
+        blz_result = kwargs.get("blz_result", [])
+
     data_type = cs.get_extension(input_type)
 
     if Settings.execution_mode != "generator":
@@ -1088,7 +1092,7 @@ def run_query(
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
-    result_gdf, load_time, engine_time, total_time, error_message = run_query_blazing(bc, nested_query, query, algebra, message_validation)
+    result_gdf, load_time, engine_time, total_time, error_message = run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_result)
 
     base_results_gd = None
 
