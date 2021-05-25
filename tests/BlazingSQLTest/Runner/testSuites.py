@@ -23,16 +23,36 @@ class TestSuites():
         self.__setupTest()
         self.__loadTargetTestDataFromFile()
 
+    def __loadConfigFromFile(self):
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        fileName = cwd + "/config.yaml"
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                fileYaml = yaml.safe_load(stream)
+
+        if "SETUP" in fileYaml:
+            setup = fileYaml["SETUP"]
+
+            if setup.get("COMPARING") is not None: self.globalConfig.comparing = setup.get("COMPARING")
+            if setup.get("APPLY_ORDER") is not None: self.globalConfig.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("PRINT_RESULT") is not None: self.globalConfig.print_result = setup.get("PRINT_RESULT")
+            if setup.get("COMPARE_WITH") is not None: self.globalConfig.compare_with = setup.get("COMPARE_WITH")
+            if setup.get("USE_PERCENTAGE") is not None: self.globalConfig.use_percentage = setup.get("USE_PERCENTAGE")
+            if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.globalConfig.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
+
     def __setupTest(self):
+        self.globalConfig.comparing = True
+        self.globalConfig.spark_query = ""
+        self.globalConfig.order_by_col = ""
         self.globalConfig.apply_order = True
         self.globalConfig.use_percentage = False
         self.globalConfig.acceptable_difference = 0.01
         self.globalConfig.order_by_col = ""
         self.globalConfig.print_result = True
         self.globalConfig.compare_with = 'drill'
-        self.globalConfig.spark_query = ""
-        self.globalConfig.comparing = True
+        self.globalConfig.use_percentage = False
         self.globalConfig.message_validation = ""
+        self.globalConfig.acceptable_difference = 0.01
         self.globalConfig.data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -41,6 +61,8 @@ class TestSuites():
             DataType.ORC,
             DataType.JSON
         ]
+
+        self.__loadConfigFromFile()
 
     def __loadTargetTestDataFromFile(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
