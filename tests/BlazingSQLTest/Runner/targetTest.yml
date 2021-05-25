@@ -107,6 +107,10 @@ LIST_TEST:
     NAME: Inner join
     FILE: innerJoinsSuite.yaml
     CODE: INNERJOIN
+  intervalSuite:
+    NAME: Interval
+    FILE: intervalSuite.yaml
+    CODE: INTERVAL
   jsonSuite:
     NAME: Json tests
     FILE: jsonSuite.yaml

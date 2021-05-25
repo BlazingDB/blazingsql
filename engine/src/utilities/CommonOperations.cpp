@@ -201,6 +201,20 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 			if(type1 == datetime_type || type2 == datetime_type)
 				return datetime_type;
 		}
+	} else if(is_type_duration(type1.id()) && is_type_duration(type2.id())) {
+		// if they are both durations, return the highest resolution either has
+		static constexpr std::array<cudf::data_type, 5> duration_types = {
+			cudf::data_type{cudf::type_id::DURATION_NANOSECONDS},
+			cudf::data_type{cudf::type_id::DURATION_MICROSECONDS},
+			cudf::data_type{cudf::type_id::DURATION_MILLISECONDS},
+			cudf::data_type{cudf::type_id::DURATION_SECONDS},
+			cudf::data_type{cudf::type_id::DURATION_DAYS}
+		};
+
+		for (auto duration_type : duration_types){
+			if(type1 == duration_type || type2 == duration_type)
+				return duration_type;
+		}
 	}
 	else if ( is_type_string(type1.id()) && is_type_timestamp(type2.id()) ) {
 		return type2;
