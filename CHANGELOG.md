@@ -5,6 +5,7 @@
 - #1471 Unbounded partitioned windows 
 - #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 - #1505 Support for right outer join
+- #1552 Support for concurrency in E2E tests
 
 
 ## Improvements
