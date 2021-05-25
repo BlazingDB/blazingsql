@@ -125,6 +125,18 @@ struct cast_to_timestamp_ns {
 	}
 };
 
+struct cast_to_duration_ns {
+	template <typename Element, std::enable_if_t<!cudf::is_duration<Element>()> * = nullptr>
+	CUDA_DEVICE_CALLABLE cudf::duration_ns operator()(int64_t val) {
+		assert(false);
+		return cudf::duration_ns{};
+	}
+
+	template <typename Duration, std::enable_if_t<cudf::is_duration<Duration>()> * = nullptr>
+	CUDA_DEVICE_CALLABLE cudf::duration_ns operator()(int64_t val) {
+		return cudf::duration_ns{Duration{static_cast<typename Duration::duration>(val)}};
+	}
+};
 
 CUDA_DEVICE_CALLABLE bool is_float_type(cudf::type_id type) {
 	return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type);
@@ -134,6 +146,12 @@ CUDA_DEVICE_CALLABLE bool is_timestamp_type(cudf::type_id type) {
 	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
 			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
+}
+
+CUDA_DEVICE_CALLABLE bool is_duration_type(cudf::type_id type) {
+	return (cudf::type_id::DURATION_DAYS == type || cudf::type_id::DURATION_SECONDS == type ||
+			cudf::type_id::DURATION_MILLISECONDS == type || cudf::type_id::DURATION_MICROSECONDS == type ||
+			cudf::type_id::DURATION_NANOSECONDS == type);
 }
 
 CUDA_DEVICE_CALLABLE bool is_string_type(cudf::type_id type) {
@@ -280,11 +298,19 @@ private:
 			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).time_since_epoch().count());
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
 																					int64_t * buffer) {
+		}
+
+		template <typename ColType, std::enable_if_t<cudf::is_duration<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer) {
+			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).count());
 		}
 	};
 
@@ -340,7 +366,16 @@ private:
 			out_table.column(col_index).element<ColType>(row) =	ColType{typename ColType::duration{*(buffer + (position * blockDim.x + threadIdx.x))}};
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_duration<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer,
+																					int position) {
+			out_table.column(col_index).element<ColType>(row) =	ColType{typename ColType::duration{*(buffer + (position * blockDim.x + threadIdx.x))}};
+		}
+
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
@@ -426,6 +461,16 @@ private:
 			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_us>*>(scalar_ptr)->value().time_since_epoch().count());
 		case cudf::type_id::TIMESTAMP_NANOSECONDS:
 			return static_cast<LeftType>(static_cast<cudf::timestamp_scalar_device_view<cudf::timestamp_ns>*>(scalar_ptr)->value().time_since_epoch().count());
+		case cudf::type_id::DURATION_DAYS:
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_D>*>(scalar_ptr)->value().count());
+		case cudf::type_id::DURATION_SECONDS:
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_s>*>(scalar_ptr)->value().count());
+		case cudf::type_id::DURATION_MILLISECONDS:
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_ms>*>(scalar_ptr)->value().count());
+		case cudf::type_id::DURATION_MICROSECONDS:
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_us>*>(scalar_ptr)->value().count());
+		case cudf::type_id::DURATION_NANOSECONDS:
+			return static_cast<LeftType>(static_cast<cudf::duration_scalar_device_view<cudf::duration_ns>*>(scalar_ptr)->value().count());
 		default:
 			return LeftType{};
 		}
@@ -583,6 +628,10 @@ private:
 						cudf::timestamp_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
 						cudf::timestamp_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
 						computed = left_ts == right_ts;
+					} else if (is_duration_type(left_type_id) && is_duration_type(right_type_id)) {
+						cudf::duration_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(left_value));
+						cudf::duration_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(right_value));
+						computed = left_value == right_value;
 					} else {
 						computed = left_value == right_value;
 					}
@@ -595,6 +644,10 @@ private:
 						cudf::timestamp_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
 						cudf::timestamp_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
 						computed = left_ts != right_ts;
+					} else if (is_duration_type(left_type_id) && is_duration_type(right_type_id)) {
+						cudf::duration_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(left_value));
+						cudf::duration_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(right_value));
+						computed = left_value != right_value;
 					} else {
 						computed = left_value != right_value;
 					}
@@ -607,6 +660,10 @@ private:
 						cudf::timestamp_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
 						cudf::timestamp_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
 						computed = left_ts < right_ts;
+					} else if (is_duration_type(left_type_id) && is_duration_type(right_type_id)) {
+						cudf::duration_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(left_value));
+						cudf::duration_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(right_value));
+						computed = left_value < right_value;
 					} else {
 						computed = left_value < right_value;
 					}
@@ -619,6 +676,10 @@ private:
 						cudf::timestamp_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
 						cudf::timestamp_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
 						computed = left_ts > right_ts;
+					} else if (is_duration_type(left_type_id) && is_duration_type(right_type_id)) {
+						cudf::duration_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(left_value));
+						cudf::duration_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(right_value));
+						computed = left_value > right_value;
 					} else {
 						computed = left_value > right_value;
 					}
@@ -631,6 +692,10 @@ private:
 						cudf::timestamp_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
 						cudf::timestamp_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
 						computed = left_ts <= right_ts;
+					} else if (is_duration_type(left_type_id) && is_duration_type(right_type_id)) {
+						cudf::duration_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(left_value));
+						cudf::duration_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(right_value));
+						computed = left_value <= right_value;
 					} else {
 						computed = left_value <= right_value;
 					}
@@ -643,6 +708,10 @@ private:
 						cudf::timestamp_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
 						cudf::timestamp_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
 						computed = left_ts >= right_ts;
+					} else if (is_duration_type(left_type_id) && is_duration_type(right_type_id)) {
+						cudf::duration_ns left_ts = cudf::type_dispatcher(cudf::data_type{left_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(left_value));
+						cudf::duration_ns right_ts = cudf::type_dispatcher(cudf::data_type{right_type_id}, cast_to_duration_ns{}, static_cast<int64_t>(right_value));
+						computed = left_value >= right_value;
 					} else {
 						computed = left_value >= right_value;
 					}

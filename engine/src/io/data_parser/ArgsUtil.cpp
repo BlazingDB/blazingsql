@@ -69,8 +69,8 @@ int to_int(std::string value) { return std::atoi(value.c_str()); }
 
 std::vector<std::string> to_vector_string(std::string value) {
 	std::string vec = StringUtil::replace(value, "'", "");
-	vec = StringUtil::replace(vec, "[", "");
-	vec = StringUtil::replace(vec, "]", "");
+	// removing `[` and `]` characters
+	vec = vec.substr(1, vec.size() - 2);
 	vec = StringUtil::replace(vec, " ", "");
 	std::vector<std::string> ret = StringUtil::split(vec, ",");
 	return ret;
