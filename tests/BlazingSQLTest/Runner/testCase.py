@@ -280,6 +280,43 @@ class TestCase():
                         message_validation=configTest.message_validation
                     )
 
+            if is_concurrent: self.__fetch_results()
+
+    def __fetch_results(self):
+        done_count = 0
+        total_done = len(self.config_concurrent)
+        while done_count < total_done:
+            for token_name in self.config_concurrent:
+                config = self.config_concurrent[token_name]
+                configTest = config.configTest
+                engine = self.drill if configTest.compare_with == "drill" else self.spark
+
+                if not self.config_concurrent[token_name].done:
+                    if self.bc.status(config.token):
+                        self.config_concurrent[token_name].done = True
+                        done_count = done_count + 1
+                        print("==>> Fetch result for ", token_name)
+                        result_gdf = self.bc.fetch(config.token)
+                        runTest.run_query(
+                            self.bc,
+                            engine,
+                            config.query,
+                            config.test_name,
+                            self.name,
+                            configTest.apply_order,
+                            configTest.order_by_col,
+                            configTest.acceptable_difference,
+                            configTest.use_percentage,
+                            config.fileSchemaType,
+                            print_result=configTest.print_result,
+                            query_spark=configTest.spark_query,
+                            comparing=configTest.comparing,
+                            message_validation=configTest.message_validation,
+                            blz_result=result_gdf
+                        )
+
+        self.config_concurrent = {}
+
     def run(self, bc, dask_client, drill, spark):
         self.bc = bc
         self.dask_client = dask_client
