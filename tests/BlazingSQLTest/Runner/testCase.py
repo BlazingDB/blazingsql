@@ -107,8 +107,8 @@ class TestCase():
             if setup.get("MESSAGE_VALIDATION") is not None: config.message_validation = setup.get("MESSAGE_VALIDATION")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
 
-        if "SPARK" in self.data[test_name]:
-            config.spark_query = self.data[test_name]["SPARK"]
+        if "spark" == self.data[test_name]['SETUP']['COMPARE_WITH']:
+            config.spark_query = self.data[test_name]["SQL"]
 
         if isinstance(config.compare_with, dict):
             formatList = list(config.compare_with.keys())
