@@ -44,7 +44,7 @@ class TestSuites():
 
     def __loadTargetTestDataFromFile(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
-        fileName = cwd + "/targetTest.yml"
+        fileName = cwd + "/targetTest.yaml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
                 fileYaml = yaml.safe_load(stream)
@@ -52,7 +52,7 @@ class TestSuites():
             self.dataTestSuite = fileYaml["LIST_TEST"]
             return
 
-        raise RuntimeError("ERROR: Runner/targetTest.yml not found")
+        raise RuntimeError("ERROR: Runner/targetTest.yaml not found")
 
     def __existTestData(self, test):
         cwd = os.path.dirname(os.path.realpath(__file__))

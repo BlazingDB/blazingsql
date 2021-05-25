@@ -263,7 +263,7 @@ def get_resultId(resultComparisson):
 
 def get_codTest(test_name):
     cwd = os.path.dirname(os.path.realpath(__file__))
-    fileName = cwd + "/targetTest.yml"
+    fileName = cwd + "/targetTest.yaml"
     if os.path.isfile(fileName):
         with open(fileName, 'r') as stream:
             fileYaml = yaml.safe_load(stream)["LIST_TEST"]
