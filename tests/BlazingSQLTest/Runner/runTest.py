@@ -946,6 +946,37 @@ def save_results_arrow(filename, pdf2):
         writer.write(table)
         writer.close()
 
+def run_query_log(
+    bc,
+    query,
+    queryId,
+    queryType,
+    **kwargs
+):
+    result_gdf = None
+    error_message = ""
+    message_validation = ""
+
+    try:
+        result_gdf = bc.log(query)
+    except Exception as e:
+        error_message=str(e)
+
+    if result_gdf is not None:
+        if result_gdf.columns is not None:
+            # FOR DASK CUDF
+            import dask_cudf
+
+            if type(result_gdf) is dask_cudf.core.DataFrame:
+                result_gdf = result_gdf.compute()
+
+            print_query_results2(
+                query, queryId, DataType.CUDF, queryType, error_message, message_validation
+            )
+    else:
+        print_query_results2(
+            query, queryId, DataType.CUDF, queryType, error_message, message_validation
+        )
 
 def save_results_parquet(filename, pdf2):
     pdf2.to_parquet(filename, compression="GZIP")
