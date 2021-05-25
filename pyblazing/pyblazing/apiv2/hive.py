@@ -89,6 +89,7 @@ cudfTypeToCsvType = {
     20: "timedelta64[us]",
     21: "timedelta64[ns]",
     23: "str",
+    26: "decimal64",
 }
 
 

@@ -15,6 +15,7 @@
 - #1524 Enable support for spdlog 1.8.5
 - #1547 Update RAPIDS version references
 - #1539 Support ORDERing by null values
+- #1551 Support for spdlog 1.8.5
 
 
 ## Bug Fixes
@@ -25,6 +26,7 @@
 - #1540 Comparing param set to true for e2e
 - #1543 Enables provider unit_tests
 - #1548 Fix orc statistic building
+- #1550 Fix Decimal/Fixed Point issue
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)

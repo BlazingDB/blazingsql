@@ -131,6 +131,9 @@ public class BlazingTable implements ProjectableFilterableTable {
 			case STRING:
 				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
 				break;
+			case DECIMAL64:
+				temp = typeFactory.createSqlType(SqlTypeName.DECIMAL);
+				break;
 //			case STRING_CATEGORY:
 //				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
 //				break;
