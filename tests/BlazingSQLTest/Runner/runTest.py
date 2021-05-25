@@ -976,6 +976,8 @@ def run_query_blazing(bc, nested_query, query, algebra, message_validation):
     engine_time = 0
     total_time = 0
 
+    error_message = ""
+
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
         query_blz = query 
@@ -998,7 +1000,7 @@ def run_query_blazing(bc, nested_query, query, algebra, message_validation):
     else:  # for nested queries as column basis test
         result_gdf = kwargs.get("blz_result", [])
     
-    return result_gdf, load_time, engine_time, total_time
+    return result_gdf, load_time, engine_time, total_time, error_message
         
 
 def run_query(
@@ -1046,8 +1048,6 @@ def run_query(
             + data_type
             + " ("+queryType+")" + "================="
         )
- 
-    error_message = ""
 
     str_code_test = str(get_codTest(queryType)).upper()
     filename = str_code_test + "-" + str(queryId) + ".parquet"
@@ -1057,11 +1057,13 @@ def run_query(
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
-    result_gdf, load_time, engine_time, total_time = run_query_blazing(bc, nested_query, query, algebra, message_validation)
+    result_gdf, load_time, engine_time, total_time, error_message = run_query_blazing(bc, nested_query, query, algebra, message_validation)
 
     base_results_gd = None
 
     compareResults = True
+
+    resultFile = None
 
     if not message_validation== "":
         print_query_results2(
@@ -1089,7 +1091,6 @@ def run_query(
             compareResults = Settings.data["RunSettings"]["compare_results"]
 
         if compareResults == "true":
-            resultFile = None
             if testsWithNulls != "true":
                 resultFile = file_results_dir + "/" + str(engine) + "/" + filename
             else:
