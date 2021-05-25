@@ -1,22 +1,23 @@
 # Cast column to f64 before convert it to pandas
 # This is a hack, use the assert_equal comparator when nulls is
 # fully supported on cudf.sort_values
+
 import json
 import logging
 import os
 import re
 import time
 import yaml
+import numpy as np
+import pandas as pd
 
 import blazingsql
 from blazingsql import DataType
 
-import numpy as np
-import pandas as pd
-
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
+
 from DataBase import createSchema as cs
 
 if ((Settings.execution_mode == ExecutionMode.FULL and
@@ -33,17 +34,9 @@ class Result:
         self.resultSet = resultSet
         self.resultBlz = resultBlz
 
-
 name = "blzlogging"
 
 HANDLER = lhandler.logging_handler()
-
-
-# class loggerblz:
-#     def __init__(self, query, error, totaltime):
-#         self.query = query
-#         self.error = error
-#         self.totaltime = totaltime
 
 
 class result:
@@ -837,8 +830,6 @@ def getFileName(dir_log):
     return dir_log + "LogTest" + fecha + hora + ".xlsx"  #
 
 
-# ===========================================================================
-
 tableNames = [
     "customer",
     "orders",
@@ -923,9 +914,6 @@ def get_drill_query(query):
     return new_query
 
 
-# ================================================================================================================
-
-
 def run_query_drill(drill, query_str):
     timeout = 400
     query_result = drill.query(query_str, timeout)
@@ -937,7 +925,7 @@ def run_query_drill(drill, query_str):
     return result
 
 
-def run_query_spark(spark, query_str):
+def run_query_spark(spark, query_str):  
     query_result = spark.sql(query_str)
     df = query_result.toPandas()
     if df.size == 0:
@@ -962,62 +950,35 @@ def save_results_arrow(filename, pdf2):
 def save_results_parquet(filename, pdf2):
     pdf2.to_parquet(filename, compression="GZIP")
 
+def results_file_generator(testsWithNulls, filename, engine, pdf2):
 
-def run_query(
-    bc,
-    engine,
-    query,
-    queryId,
-    queryType,
-    worder,
-    orderBy,
-    acceptable_difference,
-    use_percentage,
-    input_type,
-    **kwargs
-):
-    print(query)
-
-    worder = 1 if worder == True else worder
-    query_spark = kwargs.get("query_spark", query)
-
-    algebra = kwargs.get("algebra", "")
-
-    comparing = kwargs.get("comparing", True)
-
-    nRals = Settings.data["RunSettings"]["nRals"]
-
-    print_result = kwargs.get("print_result")
-    if print_result is None:
-        print_result = False
-
-    message_validation = kwargs.get("message_validation", "")
-    if message_validation is None:
-        message_validation = False
-
-    data_type = cs.get_extension(input_type)
-
-    if Settings.execution_mode != "generator":
-        print(
-            "\n=============== New query: "
-            + str(queryId)
-            + " - "
-            + data_type
-            + " ("+queryType+")" + "================="
+    file_res_drill_dir = None
+    if testsWithNulls != "true":
+        file_res_drill_dir = (
+            file_results_dir + "/" + engine + "/" + filename
         )
+    else:
+        file_res_drill_dir = (
+            file_results_dir + "/" + engine + "-nulls" + "/" + filename
+        )
+
+    if not os.path.exists(file_res_drill_dir):
+        save_results_parquet(file_res_drill_dir, pdf2)
+        
+    print(engine.capitalize() + ": " + filename + " generated.")
+
+
+def run_query_blazing(bc, nested_query, query, algebra, message_validation):
+    
+    result_gdf = None
 
     load_time = 0
     engine_time = 0
     total_time = 0
 
-    nested_query = kwargs.get("nested_query", False)
-
-    error_message = ""
-    result_gdf = None
-
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
-        query_blz = query  # get_blazingsql_query('main', query)
+        query_blz = query 
         if algebra == "":
             start_time = time.time()
             try:
@@ -1036,6 +997,57 @@ def run_query(
 
     else:  # for nested queries as column basis test
         result_gdf = kwargs.get("blz_result", [])
+    
+    return result_gdf, load_time, engine_time, total_time
+        
+
+def run_query(
+    bc,
+    engine,
+    query,
+    queryId,
+    queryType,
+    worder,
+    orderBy,
+    acceptable_difference,
+    use_percentage,
+    input_type,
+    **kwargs
+):
+    print(query)
+
+    worder = 1 if worder == True else worder
+
+    query_spark = kwargs.get("query_spark", query)
+
+    algebra = kwargs.get("algebra", "")
+
+    comparing = kwargs.get("comparing", True)
+
+    nRals = Settings.data["RunSettings"]["nRals"]
+
+    print_result = kwargs.get("print_result")
+    if print_result is None:
+        print_result = False
+
+    message_validation = kwargs.get("message_validation", "")
+    if message_validation is None:
+        message_validation = False
+
+    nested_query = kwargs.get("nested_query", False)
+
+    data_type = cs.get_extension(input_type)
+
+    if Settings.execution_mode != "generator":
+        print(
+            "\n=============== New query: "
+            + str(queryId)
+            + " - "
+            + data_type
+            + " ("+queryType+")" + "================="
+        )
+ 
+    error_message = ""
 
     str_code_test = str(get_codTest(queryType)).upper()
     filename = str_code_test + "-" + str(queryId) + ".parquet"
@@ -1044,6 +1056,12 @@ def run_query(
     file_results_dir = str(result_dir)
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
+    result_gdf, load_time, engine_time, total_time = run_query_blazing(bc, nested_query, query, algebra, message_validation)
+
+    base_results_gd = None
+
+    compareResults = True
 
     if not message_validation== "":
         print_query_results2(
@@ -1055,135 +1073,18 @@ def run_query(
                         message_validation
                 )
     elif not isinstance(engine, str):
+
         if isinstance(engine, PyDrill):
             # Drill
             query_drill = get_drill_query(query)
-            result_drill_gd = run_query_drill(engine, query_drill)
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-                    # FOR DASK CUDF
-                    import dask_cudf
+            base_results_gd = run_query_drill(engine, query_drill)
 
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    pdf2 = to_pandas_f64_engine(
-                        result_drill_gd.resultSet, expected_dtypes
-                    )
-                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
-                    formatResults(pdf1, pdf2, worder, orderBy)
-
-                    if Settings.execution_mode == ExecutionMode.GENERATOR:
-
-                        file_res_drill_dir = None
-                        if testsWithNulls != "true":
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "drill" + "/" + filename
-                            )
-                        else:
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "drill-nulls" + "/" + filename
-                            )
-
-                        if not os.path.exists(file_res_drill_dir):
-                            save_results_parquet(file_res_drill_dir, pdf2)
-
-                        print("Drill: " + filename + " generated.")
-
-                    else:
-                        print_query_results(
-                            query,
-                            queryId,
-                            queryType,
-                            pdf1,
-                            pdf2,
-                            result_gdf,
-                            acceptable_difference,
-                            use_percentage,
-                            print_result,
-                            engine,
-                            input_type,
-                            load_time,
-                            engine_time,
-                            total_time,
-                            comparing
-                        )
-
-                else:
-                    print_query_results2(
-                        query, queryId, queryType, result_gdf.error_message
-                    )
         elif isinstance(engine, SparkSession):
             # Spark
-            result_spark_df = run_query_spark(engine, query_spark)
+            base_results_gd = run_query_spark(engine, query_spark)
 
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    pdf2 = to_pandas_f64_engine(
-                        result_spark_df.resultSet, expected_dtypes
-                    )
-                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
-                    formatResults(pdf1, pdf2, worder, orderBy)
-
-                    if Settings.execution_mode == ExecutionMode.GENERATOR:
-
-                        file_res_drill_dir = None
-                        if testsWithNulls != "true":
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "spark" + "/" + filename
-                            )
-                        else:
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "spark-nulls" + "/" + filename
-                            )
-
-                        if not os.path.exists(file_res_drill_dir):
-                            save_results_parquet(file_res_drill_dir, pdf2)
-                            print("Spark: " + filename + " generated.")
-
-                    else:
-                        print_query_results(
-                            query_spark,
-                            queryId,
-                            queryType,
-                            pdf1,
-                            pdf2,
-                            result_gdf,
-                            acceptable_difference,
-                            use_percentage,
-                            print_result,
-                            engine,
-                            input_type,
-                            load_time,
-                            engine_time,
-                            total_time,
-                            comparing
-                        )
-                else:
-                    print_query_results2(
-                        query_spark, queryId, queryType, result_gdf.error_message
-                    )
     else:  # GPUCI
 
-        compareResults = True
         if "compare_results" in Settings.data["RunSettings"]:
             compareResults = Settings.data["RunSettings"]["compare_results"]
 
@@ -1194,31 +1095,15 @@ def run_query(
             else:
                 resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
 
-            pdf2 = get_results(resultFile)
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-                    # FOR DASK CUDF
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    format_pdf(pdf1, worder, orderBy)
-                    print(pdf2)
-
-                    print_query_results(
-                        query,
-                        queryId,
+    results_processing(result_gdf, 
+                        base_results_gd, 
+                        worder, 
+                        orderBy, 
+                        testsWithNulls, 
+                        filename, 
+                        query, 
+                        queryId, 
                         queryType,
-                        pdf1,
-                        pdf2,
-                        result_gdf,
                         acceptable_difference,
                         use_percentage,
                         print_result,
@@ -1227,68 +1112,30 @@ def run_query(
                         load_time,
                         engine_time,
                         total_time,
-                        comparing
-                    )
-
-                else:
-                    print_query_results2(
-                        query, queryId, queryType, result_gdf.error_message
-                    )
-        else:
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-                    # FOR DASK CUDF
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    pdf2 = pd.DataFrame()
-                    formatResults(pdf1, pdf2, worder, orderBy)
-
-                    print_query_results(
-                        query,
-                        queryId,
-                        queryType,
-                        pdf1,
-                        pdf2,
-                        result_gdf,
-                        acceptable_difference,
-                        use_percentage,
-                        print_result,
-                        engine,
-                        input_type,
-                        load_time,
-                        engine_time,
-                        total_time,
-                        comparing
-                    )
-            else:
-                print_query_results2(
-                    query, queryId, queryType, result_gdf.error_message
-                )
-
-def run_query_log(
-    bc,
-    query,
-    queryId,
-    queryType,
-    **kwargs
-):
-    result_gdf = None
-    error_message = ""
-    message_validation = ""
-
-    try:
-        result_gdf = bc.log(query)
-    except Exception as e:
-        error_message=str(e)
+                        comparing,
+                        compareResults,
+                        resultFile)
+      
+def results_processing(result_gdf, 
+                    base_results_gd, 
+                    worder, 
+                    orderBy, 
+                    testsWithNulls, 
+                    filename, 
+                    query, 
+                    queryId, 
+                    queryType,
+                    acceptable_difference,
+                    use_percentage,
+                    print_result,
+                    engine,
+                    input_type,
+                    load_time,
+                    engine_time,
+                    total_time,
+                    comparing,
+                    compareResults,
+                    resultFile):
 
     if result_gdf is not None:
         if result_gdf.columns is not None:
@@ -1298,13 +1145,54 @@ def run_query_log(
             if type(result_gdf) is dask_cudf.core.DataFrame:
                 result_gdf = result_gdf.compute()
 
-            print_query_results2(
-                query, queryId, DataType.CUDF, queryType, error_message, message_validation
+            expected_dtypes = result_gdf.dtypes.to_list()
+            pdf1 = (
+                upcast_to_float(result_gdf)
+                .fillna(get_null_constants(result_gdf))
+                .to_pandas()
             )
-    else:
-        print_query_results2(
-            query, queryId, DataType.CUDF, queryType, error_message, message_validation
-        )
+
+            if not isinstance(engine, str):
+                pdf2 = to_pandas_f64_engine(
+                    base_results_gd.resultSet, expected_dtypes
+                )
+                pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
+
+                formatResults(pdf1, pdf2, worder, orderBy)
+            else:
+                if compareResults == "true":
+                        format_pdf(pdf1, worder, orderBy)
+                        pdf2 = get_results(resultFile)
+                        print(pdf2)
+                else:
+                    pdf2 = pd.DataFrame()
+                    formatResults(pdf1, pdf2, worder, orderBy)
+
+            if Settings.execution_mode == ExecutionMode.GENERATOR:
+                results_file_generator(testsWithNulls, filename, engine, pdf2)
+            else:
+                print_query_results(
+                    query,
+                    queryId,
+                    queryType,
+                    pdf1,
+                    pdf2,
+                    result_gdf,
+                    acceptable_difference,
+                    use_percentage,
+                    print_result,
+                    engine,
+                    input_type,
+                    load_time,
+                    engine_time,
+                    total_time,
+                    comparing
+                )
+
+        else:
+            print_query_results2(
+                query, queryId, queryType, result_gdf.error_message
+            )
 
 def run_query_performance(
     bc,
