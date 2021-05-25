@@ -74,6 +74,7 @@ cudfTypeToCsvType = {
     15: "timestamp[us]",
     16: "timestamp[ns]",
     23: "str",
+    26: "decimal64",
 }
 
 

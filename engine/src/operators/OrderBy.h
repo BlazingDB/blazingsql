@@ -20,15 +20,17 @@ namespace {
 }
 
 std::unique_ptr<ral::frame::BlazingTable> logicalSort(const ral::frame::BlazingTableView & table,
-      const std::vector<int> & sortColIndices,	const std::vector<cudf::order> & sortOrderTypes);
+    const std::vector<int> & sortColIndices,
+    const std::vector<cudf::order> & sortOrderTypes,
+    const std::vector<cudf::null_order> & sortOrderNulls);
 
-std::tuple<std::vector<int>, std::vector<cudf::order>, cudf::size_type> get_sort_vars(const std::string & query_part);
+std::tuple<std::vector<int>, std::vector<cudf::order>, std::vector<cudf::null_order>, cudf::size_type> get_sort_vars(const std::string & query_part);
 
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part);
+std::tuple< std::vector<int>, std::vector<cudf::order>, std::vector<cudf::null_order> > get_vars_to_partition(const std::string & query_part);
 
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part);
+std::tuple< std::vector<int>, std::vector<cudf::order>, std::vector<cudf::null_order> > get_vars_to_orders(const std::string & query_part);
 
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition_and_order(const std::string & query_part);
+std::tuple< std::vector<int>, std::vector<cudf::order>, std::vector<cudf::null_order> > get_vars_to_partition_and_order(const std::string & query_part);
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
@@ -40,7 +42,10 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
     std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan,
-	const ral::frame::BlazingTableView & sortedTable, const std::vector<cudf::order> & sortOrderTypes,	const std::vector<int> & sortColIndices);
+    const ral::frame::BlazingTableView & sortedTable,
+    const std::vector<cudf::order> & sortOrderTypes,
+    const std::vector<int> & sortColIndices,
+    const std::vector<cudf::null_order> & sortOrderNulls);
 
 bool has_limit_only(const std::string & query_part);
 

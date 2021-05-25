@@ -6,6 +6,8 @@
 
 #include <cudf/column/column_factories.hpp>
 #include <cudf/detail/utilities/vector_factories.hpp>
+#include <cudf/io/orc_metadata.hpp>
+
 #include <numeric>
 
 std::basic_string<char> get_typed_vector_str_content(cudf::type_id dtype, std::vector<std::string> & vector) {
@@ -35,35 +37,33 @@ std::vector<std::string> get_all_str_values_in_the_same_col(
 	return output_v;
 }
 
-bool type_statistic_valid(cudf::io::statistics_type stat_type) {
-
-	switch (stat_type)
-	{
-	case cudf::io::statistics_type::INT:
-	case cudf::io::statistics_type::STRING:
-	case cudf::io::statistics_type::DOUBLE:
-	case cudf::io::statistics_type::BUCKET:
-	case cudf::io::statistics_type::TIMESTAMP:
-	case cudf::io::statistics_type::DATE:
-		return true;
-	default:
+bool type_statistic_valid(cudf::io::column_statistics cs) {
+	if ( std::holds_alternative<cudf::io::no_statistics>(cs.type_specific_stats) ||
+		 std::holds_alternative<cudf::io::decimal_statistics>(cs.type_specific_stats) ||
+		 std::holds_alternative<cudf::io::binary_statistics>(cs.type_specific_stats) ) {
 		return false;
 	}
+
+	return true;
 }
 
-cudf::type_id statistic_to_dtype(cudf::io::statistics_type stat_type) {
-	if (stat_type == cudf::io::statistics_type::INT) {
+cudf::type_id statistic_to_dtype(cudf::io::column_statistics cs) {
+	auto aa = cs.type_specific_stats;
+	if (std::holds_alternative<cudf::io::integer_statistics>(cs.type_specific_stats)) {
 		return cudf::type_id::INT32;
-	} else if (stat_type == cudf::io::statistics_type::STRING) {
+	} else if (std::holds_alternative<cudf::io::string_statistics>(cs.type_specific_stats)) {
 		return cudf::type_id::STRING;
-	} else if (stat_type == cudf::io::statistics_type::DOUBLE) {
+	} else if (std::holds_alternative<cudf::io::double_statistics>(cs.type_specific_stats)) {
 		return cudf::type_id::FLOAT64;
-	} else if (stat_type == cudf::io::statistics_type::BUCKET) {
+	} else if (std::holds_alternative<cudf::io::bucket_statistics>(cs.type_specific_stats)) {
 		return cudf::type_id::BOOL8;
-	} else if (stat_type == cudf::io::statistics_type::TIMESTAMP) {
+	} else if (std::holds_alternative<cudf::io::timestamp_statistics>(cs.type_specific_stats)) {
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
-	} else if (stat_type == cudf::io::statistics_type::DATE) {
+	} else if (std::holds_alternative<cudf::io::date_statistics>(cs.type_specific_stats)) {
 		return cudf::type_id::TIMESTAMP_DAYS;
+	// TODO: Not support for decimal type for now
+	//} else if (std::holds_alternative<cudf::io::decimal_statistics>(cs.type_specific_stats) {
+	//	return cudf::type_id::DECIMAL64;
 	} else {
 		return cudf::type_id::EMPTY;
 	}
@@ -88,9 +88,9 @@ void set_min_max_string(
 	std::vector<std::string> & minmax_string_metadata_table,
 	cudf::io::column_statistics & statistic, int col_index) {
 
-	auto type_stat = statistic.type_specific_stats<cudf::io::string_statistics>();
-	std::string min = *type_stat->minimum();
-	std::string max = *type_stat->maximum();
+	auto& ts = std::get<cudf::io::string_statistics>(statistic.type_specific_stats);
+	std::string min = *ts.minimum;
+	std::string max = *ts.maximum;
 	minmax_string_metadata_table[col_index] = min;
 	minmax_string_metadata_table[col_index + 1] = max;
 }
@@ -99,46 +99,46 @@ void set_min_max(
 	std::vector<int64_t> & minmax_metadata_table,
 	cudf::io::column_statistics & statistic, int col_index) {
 	// TODO: support for more dtypes
-	if (statistic.type() == cudf::io::statistics_type::INT) {
-		auto type_stat = statistic.type_specific_stats<cudf::io::integer_statistics>();
-		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int32_t>::min();
-		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int32_t>::max();
+	if (std::holds_alternative<cudf::io::integer_statistics>(statistic.type_specific_stats)) {
+		auto& ts = std::get<cudf::io::integer_statistics>(statistic.type_specific_stats);
+		auto min = ts.minimum ? *ts.minimum : std::numeric_limits<int32_t>::min();
+		auto max = ts.maximum ? *ts.maximum : std::numeric_limits<int32_t>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
-	} else if (statistic.type() == cudf::io::statistics_type::DOUBLE) {
+	} else if (std::holds_alternative<cudf::io::double_statistics>(statistic.type_specific_stats)) {
 		int64_t dummy = 0;
 		minmax_metadata_table[col_index] = dummy;
 		minmax_metadata_table[col_index + 1] = dummy;
-		auto type_stat = statistic.type_specific_stats<cudf::io::double_statistics>();
-		double min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<double>::min();
-		double max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<double>::max();
+		auto& ts = std::get<cudf::io::double_statistics>(statistic.type_specific_stats);
+		double min = ts.minimum ? *ts.minimum : std::numeric_limits<double>::min();
+		double max = ts.maximum ? *ts.maximum : std::numeric_limits<double>::max();
 		// here we want to reinterpret cast minmax_metadata_table to be double so that we can just use this same vector as if they were double
 		size_t current_row_index = minmax_metadata_table.size() - 1;
 		double* casted_metadata_min = reinterpret_cast<double*>(&(minmax_metadata_table[col_index]));
 		double* casted_metadata_max = reinterpret_cast<double*>(&(minmax_metadata_table[col_index + 1]));
 		casted_metadata_min[0] = min;
 		casted_metadata_max[0] = max;
-	} else if (statistic.type() == cudf::io::statistics_type::BUCKET) {
-		auto type_stat = statistic.type_specific_stats<cudf::io::bucket_statistics>();
+	} else if (std::holds_alternative<cudf::io::bucket_statistics>(statistic.type_specific_stats)) {
+		auto& ts = std::get<cudf::io::bucket_statistics>(statistic.type_specific_stats);
 		auto min = std::numeric_limits<bool>::min();
 		auto max = std::numeric_limits<bool>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
-	} else if (statistic.type() == cudf::io::statistics_type::TIMESTAMP) {
-		auto type_stat = statistic.type_specific_stats<cudf::io::timestamp_statistics>();
-		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int64_t>::min();
-		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int64_t>::max();
+	} else if (std::holds_alternative<cudf::io::timestamp_statistics>(statistic.type_specific_stats)) {
+		auto& ts = std::get<cudf::io::timestamp_statistics>(statistic.type_specific_stats);
+		auto min = ts.minimum ? *ts.minimum : std::numeric_limits<int64_t>::min();
+		auto max = ts.maximum ? *ts.maximum : std::numeric_limits<int64_t>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
-	} else if (statistic.type() == cudf::io::statistics_type::DATE) {
-		auto type_stat = statistic.type_specific_stats<cudf::io::date_statistics>();
-		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int32_t>::min();
-		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int32_t>::max();
+	} else if (std::holds_alternative<cudf::io::date_statistics>(statistic.type_specific_stats)) {
+		auto& ts = std::get<cudf::io::date_statistics>(statistic.type_specific_stats);
+		auto min = ts.minimum ? *ts.minimum : std::numeric_limits<int32_t>::min();
+		auto max = ts.maximum ? *ts.maximum : std::numeric_limits<int32_t>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
-	} else if (statistic.type() == cudf::io::statistics_type::DECIMAL) {
+	} else if (std::holds_alternative<cudf::io::decimal_statistics>(statistic.type_specific_stats)) {
 		throw std::runtime_error("ERROR: currently not supported statistic type for DECIMAL in ORC set_min_max");
-	} else if (statistic.type() == cudf::io::statistics_type::BINARY) {
+	} else if (std::holds_alternative<cudf::io::binary_statistics>(statistic.type_specific_stats)) {
 		throw std::runtime_error("ERROR: currently not supported statistic type for BINARY in ORC set_min_max");
 	} else {
 		throw std::runtime_error("ERROR: not supported statistic type for NONE in ORC set_min_max");
@@ -196,8 +196,8 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 
 	if (num_stripes > 0) {
 		for (std::size_t colIndex = 0; colIndex < file_metadata.size(); colIndex++) {
-			cudf::data_type dtype = cudf::data_type(statistic_to_dtype(file_metadata[colIndex].type())) ;
-			if ( type_statistic_valid(file_metadata[colIndex].type()) ) {
+			cudf::data_type dtype = cudf::data_type(statistic_to_dtype(file_metadata[colIndex]));
+			if ( type_statistic_valid(file_metadata[colIndex]) ) {
 				// -1: to match with the project columns when calling skipdata
 				std::string col_name_min = "min_" + std::to_string(colIndex - 1) + "_" + col_names[colIndex];
 				metadata_names.push_back(col_name_min);
@@ -206,11 +206,10 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 				metadata_names.push_back(col_name_max);
 				metadata_dtypes.push_back(dtype);
 
-				if (file_metadata[colIndex].type() == cudf::io::statistics_type::STRING) {
+				if (std::holds_alternative<cudf::io::string_statistics>(file_metadata[colIndex].type_specific_stats)) {
 					columns_with_string_metadata.push_back(colIndex);
 				} 
 				else columns_with_metadata.push_back(colIndex);
-				
 			}
 		}
 		
@@ -240,12 +239,12 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 				std::size_t not_string_count = 0;
 				// due to the default first column `col_0`
 				for (std::size_t col_count = 0; col_count < total_cols_with_metadata + 1; col_count++) {
-					if (statistics_per_stripe[col_count].type() != cudf::io::statistics_type::NONE) {
+					if ( !std::holds_alternative<cudf::io::no_statistics>(statistics_per_stripe[col_count].type_specific_stats) ) {
 						// when there is no string columns
 						if (columns_with_string_metadata.size() == 0) {
 							set_min_max(this_minmax_metadata, statistics_per_stripe[col_count], (col_count - 1) * 2);
 						} else {
-							if (statistics_per_stripe[col_count].type() == cudf::io::statistics_type::STRING) {
+							if ( std::holds_alternative<cudf::io::string_statistics>(statistics_per_stripe[col_count].type_specific_stats)) {
 								set_min_max_string(this_minmax_metadata_string, statistics_per_stripe[col_count], string_count * 2);
 								string_count++;
 							} 

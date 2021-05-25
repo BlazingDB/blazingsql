@@ -1082,7 +1082,7 @@ def run_query(
         elif isinstance(engine, SparkSession):
             # Spark
             base_results_gd = run_query_spark(engine, query_spark)
-
+            
     else:  # GPUCI
 
         if "compare_results" in Settings.data["RunSettings"]:
