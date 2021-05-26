@@ -47,13 +47,13 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 
 		if (args.get_header() > 0) {
 			args.set_header(args.get_header());
-		}
-		else if (args_map["has_header_csv"] == "True") {
+		} else if (args_map["has_header_csv"] == "True") {
 			args.set_header(0);
-		} 
-		else args.set_header(-1);
+		} else {
+			args.set_header(-1);
+		}
 
-		// Overrride `byte_range_size` to read just `max_bytes_chunk_read` bytes (note: always reads complete rows)
+		// Overrride `_byte_range_size` param to read first `max_bytes_chunk_read` bytes (note: always reads complete rows)
 		auto iter = args_map.find("max_bytes_chunk_read");
 		if(iter != args_map.end()) {
 			auto chunk_size = std::stoll(iter->second);
