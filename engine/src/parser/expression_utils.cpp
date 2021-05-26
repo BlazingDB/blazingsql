@@ -360,9 +360,28 @@ bool is_number(const std::string & token) {
 	return std::regex_match(token, re);
 }
 
-bool is_hour(const std::string & token) {
+bool is_time_until_s(const std::string & token) {
 	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2})"};
 	return std::regex_match(token, re);
+}
+
+bool is_time_until_ms(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time_until_us(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time_until_ns(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time(const std::string & token) {
+	return (is_time_until_s(token) || is_time_until_ms(token) || is_time_until_us(token) || is_time_until_ns(token));
 }
 
 bool is_date_with_dash(const std::string & token) {
@@ -479,7 +498,7 @@ bool is_operator_token(const std::string & token) {
 
 bool is_literal(const std::string & token) {
 	return is_null(token) || is_bool(token) || is_number(token) || is_date(token) || is_string(token) ||
-		   is_timestamp(token);
+		   is_timestamp(token) || is_time(token);
 }
 
 bool is_var_column(const std::string& token){
@@ -1084,6 +1103,9 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(BOTH),", "TRIM(\"BOTH\",");
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(LEADING),", "TRIM(\"LEADING\",");
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
+	StringUtil::findAndReplaceAll(ret, "DAY TO SECOND", "SECOND");
+	StringUtil::findAndReplaceAll(ret, "HOUR TO SECOND", "SECOND");
+	StringUtil::findAndReplaceAll(ret, "MINUTE TO SECOND", "SECOND");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 
@@ -1296,6 +1318,23 @@ std::string convert_ms_to_ns_units(std::string expression) {
 	return expression;	
 }
 
+// input: CAST($0):TIMESTAMP
+// output: 0
+size_t get_index_from_expression_str(std::string expression) {
+	// $0
+	if (expression[0] == '$') {
+		expression = expression.substr(1, expression.size() - 1);
+		return std::stoi(expression);
+	}
+
+	// CAST($0):TIMESTAMP
+	size_t start_pos = expression.find('$') + 1;
+	size_t end_pos = expression.find(')');
+
+	expression = expression.substr(start_pos, end_pos - start_pos);
+	return std::stoi(expression);
+}
+
 // By default any TIMESTAMP literal expression is handled as TIMESTAMP_NANOSECONDS
 // Using the `Reinterpret` clause we can get the right TIMESTAMP unit using the expression
 // expression: CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $0)), 86400000)):INTEGER
@@ -1318,20 +1357,21 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 	std::vector<std::string> reduced_expressions = get_expressions_from_expression_list(reduced_expr);
 	std::string left_expression = reduced_expressions[0], right_expression = reduced_expressions[1];
 	std::string timest_str;
-	int col_indice;
+	size_t col_indice;
 
 	assert(reduced_expressions.size() == 2);
 
-	// Case 1:  Reinterpret(-(1996-12-01 12:00:01, $0))
-	if (is_timestamp(left_expression) && right_expression[0] == '$') {
+	// Cases 1:  Reinterpret(-(1996-12-01 12:00:01, $0))
+	//       2:  Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP))
+	if (is_timestamp(left_expression)) {
 		timest_str = left_expression;
-		right_expression.erase(right_expression.begin());
-		col_indice = std::stoi(right_expression);
-	} // Case 2:  Reinterpret(-($0, 1996-12-01 12:00:01))
-	else if (left_expression[0] == '$' && is_timestamp(right_expression)) {
+		col_indice = get_index_from_expression_str(right_expression);
+	}
+	// Cases  1:  Reinterpret(-($0, 1996-12-01 12:00:01))
+	//        2:  Reinterpret(-(CAST($0):TIMESTAMP, 1996-12-01 12:00:01))
+	else if (is_timestamp(right_expression)) {
 		timest_str = right_expression;
-		left_expression.erase(left_expression.begin());
-		col_indice = std::stoi(left_expression);
+		col_indice = get_index_from_expression_str(left_expression);
 	} else {
 		return expression;
 	}
@@ -1342,7 +1382,49 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_MILLISECONDS");
 	} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MICROSECONDS) {
 		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_MICROSECONDS");
-	} // by default it will be TIMESTAMP_NANOSECONDS as before
+	} else {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP");
+	}
+
+	return expression;
+}
+
+// By default Calcite returns Interval types in ms unit. So we want to convert them to the right INTERVAL unit
+// to do correct operations
+// TODO: any issue related with INTERVAL operations (and parsing expressions) should be handled here
+std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema) {
+	std::string interval_expr = ":INTERVAL";
+	if (table_schema.size() == 0 || expression.find(interval_expr) == expression.npos) return expression;
+
+	// op with intervals
+	if (expression.find("+") != expression.npos || expression.find("-") != expression.npos) {
+		std::string plus_expr = "+($", sub_expr = "-($";
+
+		size_t start_pos = 0;
+		if (expression.find(plus_expr) != expression.npos) {
+			start_pos = expression.find(plus_expr) + plus_expr.size();
+		} else if (expression.find(sub_expr) != expression.npos) {
+			start_pos = expression.find(sub_expr) + sub_expr.size();
+		}
+		
+		std::string new_expr = expression.substr(start_pos, expression.size() - start_pos);
+		size_t last_pos = new_expr.find(", ");
+		new_expr = new_expr.substr(0, last_pos);
+		int col_indice =  std::stoi(new_expr);
+
+		if (table_schema[col_indice].id() == cudf::type_id::DURATION_SECONDS) {
+			return StringUtil::replace(expression, "000" + interval_expr, interval_expr);
+		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_MICROSECONDS) {
+			return StringUtil::replace(expression, "000" + interval_expr, "000000" + interval_expr);
+		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_NANOSECONDS) {
+			return StringUtil::replace(expression, "000" + interval_expr, "000000000" + interval_expr);
+		} else return expression; // duration ms
+	}
+
+	// Literal interval
+	if (expression.find("$") == expression.npos && expression.find("000:INTERVAL") != expression.npos) {
+		return StringUtil::replace(expression, "000" + interval_expr, interval_expr);
+	}
 
 	return expression;
 }

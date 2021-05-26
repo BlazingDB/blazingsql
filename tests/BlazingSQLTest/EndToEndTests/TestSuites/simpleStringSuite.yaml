@@ -1,0 +1,184 @@
+# Simple String Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select o_orderkey, sum(o_totalprice)/count(o_orderstatus)
+                    from orders where o_custkey < 100
+                    group by o_orderstatus, o_orderkey
+    SETUP:
+      COMPARE_WITH: spark #because Drill outputs some inf's instead of NaN
+
+  TEST_02:
+    SQL: |
+        select o_orderkey, o_orderstatus
+                from orders where o_custkey < 10
+                and o_orderstatus <> 'O'
+                order by o_orderkey, o_orderstatus limit 50
+
+  TEST_03:
+    SQL: |
+        select count(o_orderstatus)
+                    from orders where o_orderstatus <> 'O'
+
+  TEST_04:
+    SQL: |
+        select count(o_orderkey), sum(o_orderkey), o_clerk
+                    from orders where o_custkey < 1000
+                    group by o_clerk, o_orderstatus
+
+  TEST_05:
+    SQL: |
+        select avg(CAST(o_orderkey AS DOUBLE))
+                    from orders group by o_orderstatus
+
+  TEST_06:
+    SQL: |
+        select count(o_shippriority), sum(o_totalprice)
+                    from orders group by o_shippriority
+
+  TEST_07:
+    SQL: |
+        with regionTemp as (
+                        select r_regionkey, r_name
+                        from region where r_regionkey > 2
+                    ), nationTemp as (
+                        select n_nationkey, n_regionkey as fkey, n_name
+                        from nation where n_nationkey > 3
+                        order by n_nationkey
+                    )
+                    select regionTemp.r_name, nationTemp.n_name
+                    from regionTemp inner join nationTemp
+                    on regionTemp.r_regionkey = nationTemp.fkey
+
+  TEST_08:
+    SQL: |
+        select c_custkey, CHAR_LENGTH(c_comment)
+                    from customer where MOD(CHAR_LENGTH(c_comment), 7) = 0
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_09:
+    SQL: |
+        select sum(CHAR_LENGTH(c_comment)) from customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_10:
+    SQL: |
+        SELECT
+                REPLACE(c_comment, 'in', '') as empty_replace,
+                REPLACE(c_comment, 'the', '&&') as and_replace,
+                REPLACE(c_comment, 'a', '$e*u') as a_replace
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_11:
+    SQL: |
+        SELECT
+                REPLACE(SUBSTRING(c_comment, 2, 10), 'e', '&&') as rep_sub,
+                CAST(REPLACE(c_comment, 'a', 'e') LIKE '%the%' AS INT) as rep_like,
+                SUBSTRING(REPLACE(c_comment, 'e', '&#'), 2, 30) as sub_rep
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_12:
+    SQL: |
+        SELECT
+                TRIM(c_comment) as both_space_trim,
+                TRIM(LEADING 'Cu' FROM c_name) as leading_char_trim,
+                TRIM(TRAILING 'E' FROM c_mktsegment) as trailing_char_trim,
+                LTRIM(c_comment) as left_trim,
+                RTRIM(c_comment) as right_trim
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_13:
+    SQL: |
+        SELECT
+                TRIM(TRAILING 'er' FROM SUBSTRING(c_name, 0, 7)) as trim_subs,
+                TRIM(LEADING 'CU' FROM UPPER(c_name)) as trim_upper,
+                LOWER(TRIM('AE' FROM c_mktsegment)) as lower_trim,
+                LTRIM(REPLACE(c_name, 'Customer', '   Test')) as ltrim_replace,
+                CAST(RTRIM(c_comment) LIKE '%the%' AS INT) as rtrim_like
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_14:
+    SQL: |
+        SELECT
+                REVERSE(c_comment) as reversed_c,
+                SUBSTRING(REVERSE(c_comment), 2, 10) as sub_reversed_c,
+                CAST(SUBSTRING(REVERSE(c_comment), 2, 10) LIKE '%or%' AS INT) as cast_sub_reversed_c
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_15:
+    SQL: |
+        SELECT
+                COUNT(SUBSTRING(REVERSE(c_comment), 2, 10)) as reverse_subbed_count
+                FROM customer
+                GROUP BY SUBSTRING(REVERSE(c_comment), 2, 10)
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_16:
+    SQL: |
+        SELECT
+                REGEXP_REPLACE(c_comment, 'a', 'the') as rep_a,
+                REGEXP_REPLACE(c_comment, 'e|a|i|o|u', 'Z') as vowel_z,
+                CHAR_LENGTH(REGEXP_REPLACE(c_comment, '[a-z]+', 'L')) char_len_rep,
+                REGEXP_REPLACE(c_comment, '[a-z]+(.+)', 'Z') as capture_rep
+                FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_17:
+    SQL: |
+        SELECT
+            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '\2--\1') as backref,
+            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '\2--\1', 4) as backref_pos,
+            REGEXP_REPLACE(c_comment, 'e|a|i|o|u', 'Z', 4) as vowel_pos,
+            REGEXP_REPLACE(c_comment, '[a-z]+(.+)', 'Z', 10) as capture_pos
+            FROM customer
+
+    SPARK: |
+        SELECT
+            REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '$2--$1') as backref,
+            CONCAT(
+                SUBSTRING(c_comment, 0, 3),
+                REGEXP_REPLACE(SUBSTRING(c_comment, 4), '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '$2--$1')
+            ) as backref_pos,
+            CONCAT(SUBSTRING(c_comment, 0, 3), REGEXP_REPLACE(SUBSTRING(c_comment, 4), 'e|a|i|o|u', 'Z')) as vowel_pos,
+            CONCAT(SUBSTRING(c_comment, 0, 9), REGEXP_REPLACE(SUBSTRING(c_comment, 10), '[a-z]+(.+)', 'Z')) as capture_pos
+            FROM customer
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_18:
+    SQL: |
+        select c_custkey, c_nationkey, c_name
+            from customer where c_custkey > 300 and c_custkey < 600
+            order by c_nationkey, c_custkey
+    SETUP:
+      APPLY_ORDER: False

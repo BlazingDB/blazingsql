@@ -1,0 +1,67 @@
+# Common Table Expression Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: false
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        with nationTemp as
+                    (select n_nationkey, n_regionkey as fkey
+                    from nation where n_nationkey > 3
+                    order by n_nationkey)
+                    select region.r_regionkey, nationTemp.n_nationkey
+                    from region inner join nationTemp
+                    on region.r_regionkey = nationTemp.fkey
+
+  TEST_02:
+    SQL: |
+        with regionTemp as (
+                    select r_regionkey from region where r_regionkey > 2 ),
+                    nationTemp as(select n_nationkey, n_regionkey as fkey
+                    from nation where n_nationkey > 3 order by n_nationkey)
+                    select regionTemp.r_regionkey, nationTemp.fkey
+                    from regionTemp inner join nationTemp
+                    on regionTemp.r_regionkey = nationTemp.fkey
+
+  TEST_03:
+    SQL: |
+      with ordersTemp as (
+                    select min(o_orderkey) as priorityKey, o_custkey
+                    from orders group by o_custkey
+                    ), ordersjoin as( select orders.o_custkey from orders
+                    inner join ordersTemp
+                    on ordersTemp.priorityKey = orders.o_orderkey)
+                    select customer.c_custkey, customer.c_nationkey
+                    from customer inner join ordersjoin
+                    on ordersjoin.o_custkey =  customer.c_custkey
+
+  TEST_04:
+    SQL: |
+        with ordersTemp as (
+                    select min(orders.o_orderkey) as priorityKey, o_custkey
+                    from orders group by o_custkey
+                    ), ordersjoin as( select orders.o_orderkey, orders.o_custkey
+                    / (orders.o_custkey + 1) as o_custkey,
+                    (ordersTemp.priorityKey + 1) as priorityKey from orders
+                    inner join ordersTemp on
+                    (ordersTemp.priorityKey = orders.o_orderkey)
+                    )
+                    select (customer.c_custkey + 1)
+                    / (customer.c_custkey - customer.c_custkey + 1) from customer
+                    inner join ordersjoin on ordersjoin.o_custkey = customer.c_custkey
+                    where (customer.c_custkey > 1 or customer.c_custkey < 100)
+
+  

@@ -4,8 +4,6 @@
 #include "common_metadata.h"
 #include <cudf/io/orc_metadata.hpp>
 
-cudf::type_id to_dtype(cudf::io::statistics_type stat_type);
-
 void set_min_max(
 	std::vector<std::vector<int64_t>> & minmax_metadata_table,
 	cudf::io::column_statistics & statistic,

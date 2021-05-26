@@ -1,0 +1,56 @@
+# Full outer join Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select n1.n_nationkey as n1key,
+                    n2.n_nationkey as n2key, n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+
+  TEST_02:
+    SQL: |
+        select n1.n_nationkey as n1key,
+                        n2.n_nationkey as n2key,
+                        n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    where n1.n_nationkey < 10
+
+  TEST_03:
+    SQL: |
+      select n1.n_nationkey as n1key,
+                        n2.n_nationkey as n2key,
+                        n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    where n1.n_nationkey < 10 and n1.n_nationkey > 5
+
+  TEST_04:
+    SQL: |
+        select n1.n_nationkey as n1key,
+                        n2.n_nationkey as n2key,
+                        n1.n_nationkey + n2.n_nationkey
+                    from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_nationkey + 6
+                    and n1.n_nationkey + 1 = n2.n_nationkey + 7
+                    and n1.n_nationkey + 2 = n2.n_nationkey + 8

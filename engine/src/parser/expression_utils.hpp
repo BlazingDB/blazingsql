@@ -103,7 +103,10 @@ operator_type map_to_operator_type(const std::string & operator_token);
 
 bool is_null(const std::string & token);
 bool is_number(const std::string & token);
-bool is_hour(const std::string & token);
+bool is_time_until_s(const std::string & token);
+bool is_time_until_ms(const std::string & token);
+bool is_time_until_us(const std::string & token);
+bool is_time_until_ns(const std::string & token);
 bool is_date_with_dash(const std::string & token);
 bool is_date_with_bar(const std::string & token);
 bool is_date(const std::string & token);
@@ -262,4 +265,8 @@ bool is_cast_to_date(std::string expression);
 
 std::string convert_ms_to_ns_units(std::string expression);
 
+size_t get_index_from_expression_str(std::string expression);
+
 std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema);
+
+std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema);

@@ -86,13 +86,21 @@ void task::run(cudaStream_t stream, executor * executor){
                     //if its cpu and it fails the buffers arent deleted
                     //if its disk and fails the file isnt deleted
                     //so this should be safe
+                    if (this->kernel->has_limit_ && this->kernel->accumulated_rows.load() > this->kernel->limit_rows_) {
+                        // enough rows for queries like 
+                        // "select col_a, col_b from table limit N" or "select * from table limit N"
+                        break;
+                    }
+
                     last_input_decached++;
-                    input_gpu.push_back(std::move(input->decache()));
+                    auto decached_input = input->decache();
+                    this->kernel->accumulated_rows += decached_input->num_rows();
+                    input_gpu.push_back(std::move(decached_input));
             }
     }catch(const rmm::bad_alloc& e){
         int i = 0;
         for(auto & input : inputs){
-            if (i < last_input_decached && input->get_type() == ral::cache::CacheDataType::GPU ){
+            if (i < last_input_decached && input->get_type() == ral::cache::CacheDataType::GPU){
                 //this was a gpu cachedata so now its not valid
                 static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
             }
@@ -131,7 +139,7 @@ void task::run(cudaStream_t stream, executor * executor){
     }
     
     CodeTimer executionEventTimer;
-    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+    auto task_result = kernel->process(std::move(input_gpu), output, stream, args);
 
     if(task_logger) {
         task_logger->info("{time_started}|{ral_id}|{query_id}|{kernel_id}|{duration_decaching}|{duration_execution}|{input_num_rows}|{input_num_bytes}",
@@ -233,7 +241,7 @@ void executor::execute(){
             active_tasks_counter++;
 
             try {
-                cur_task->run(this->streams[thread_id],this);
+                cur_task->run(this->streams[thread_id], this);
             } catch(...) {
                 std::unique_lock<std::mutex> lock(exception_holder_mutex);
                 exception_holder.push(std::current_exception());

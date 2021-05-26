@@ -10,7 +10,7 @@ Inside a conda environment:
 
 ```shell-script
 conda install --yes -c conda-forge openjdk=8.0 maven pyspark=3.0.0 pytest
-pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
+pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client sql_metadata pyyaml
 ```
 
 You will also need [Apache Drill](https://drill.apache.org/download/)
@@ -43,10 +43,10 @@ cd blazingsql
 ./test.sh e2e
 
 # Run only the round end to end test group.
-./test.sh e2e tests=roundTest
+./test.sh e2e tests=roundSuite
 
 # Run the round and orderby end to end test groups.
-./test.sh e2e tests=roundTest,orderbyTest
+./test.sh e2e tests=roundSuite,orderbySuite
 ```
 
 ### Adding new Tests
@@ -64,10 +64,10 @@ cd blazingsql
 ./test.sh e2e
 
 # Run only the round end to end test group.
-./test.sh e2e tests=roundTest
+./test.sh e2e tests=roundSuite
 
 # Run the round and orderby end to end test groups.
-./test.sh e2e tests=roundTest,orderbyTest
+./test.sh e2e tests=roundSuite,orderbySuite
 ```
 
 ### Custom settings

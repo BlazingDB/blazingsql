@@ -15,6 +15,7 @@ kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context>
           context{context},
           has_limit_(false),
           limit_rows_(-1),
+          accumulated_rows(0),
           logger(spdlog::get("batch_logger")) {
 
     std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
@@ -76,11 +77,6 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream,
     const std::map<std::string, std::string>& args){
-
-    // TODO: figure out if this can be re enabled;
-    // if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
-    //     return;
-    // }
 
     if(inputs.size()==0){
         return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};

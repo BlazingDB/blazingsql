@@ -34,7 +34,8 @@ typedef blazingdb::transport::Node Node;
 std::unique_ptr<BlazingTable> generatePartitionPlans(
 	cudf::size_type number_partitions,
 	const std::vector<std::unique_ptr<ral::frame::BlazingTable>> & samples,
-	const std::vector<cudf::order> & sortOrderTypes) {
+	const std::vector<cudf::order> & sortOrderTypes,
+	const std::vector<cudf::null_order> & sortOrderNulls) {
 
 	// just to call concatTables
 	std::vector<BlazingTableView> samplesView;
@@ -43,11 +44,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 	}
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samplesView);
-
-	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
-	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
-
+	std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order(concatSamples->view(), sortOrderTypes, sortOrderNulls);
 	std::unique_ptr<CudfTable> sortedSamples = cudf::detail::gather( concatSamples->view(), sort_indices->view(), cudf::out_of_bounds_policy::DONT_CHECK, cudf::detail::negative_index_policy::NOT_ALLOWED );
 
 	// lets get names from a non-empty table
@@ -66,13 +63,14 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 }
 
 // This function locates the pivots in the table and partitions the data on those pivot points.
-// IMPORTANT: This function expects data to already be sorted according to the searchColIndices and sortOrderTypes
+// IMPORTANT: This function expects data to already be sorted according to the searchColIndices, sortOrderTypes and sortOrderNulls
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
 std::vector<NodeColumnView> partitionData(Context * context,
 	const BlazingTableView & table,
 	const BlazingTableView & pivots,
 	const std::vector<int> & searchColIndices,
-	std::vector<cudf::order> sortOrderTypes) {
+	std::vector<cudf::order> sortOrderTypes,
+	const std::vector<cudf::null_order> & sortOrderNulls) {
 
 	RAL_EXPECTS(static_cast<size_t>(pivots.view().num_columns()) == searchColIndices.size(), "Mismatched pivots num_columns and searchColIndices");
 
@@ -90,7 +88,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 		sortOrderTypes.assign(searchColIndices.size(), cudf::order::ASCENDING);
 	}
 
-	std::vector<CudfTableView> partitioned_data = ral::operators::partition_table(pivots, table, sortOrderTypes, searchColIndices);
+	std::vector<CudfTableView> partitioned_data = ral::operators::partition_table(pivots, table, sortOrderTypes, searchColIndices, sortOrderNulls);
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
@@ -108,16 +106,14 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
 	const std::vector<cudf::order> & sortOrderTypes,
-	const std::vector<int> & sortColIndices) {
-
-	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
+	const std::vector<int> & sortColIndices,
+	const std::vector<cudf::null_order> & sortOrderNulls) {
 
 	std::vector<CudfTableView> cudf_table_views(tables.size());
 	for(size_t i = 0; i < tables.size(); i++) {
 		cudf_table_views[i] = tables[i].view();
 	}
-	std::unique_ptr<CudfTable> merged_table = cudf::merge(cudf_table_views, sortColIndices, sortOrderTypes, null_orders);
+	std::unique_ptr<CudfTable> merged_table = cudf::merge(cudf_table_views, sortColIndices, sortOrderTypes, sortOrderNulls);
 
 	// lets get names from a non-empty table
 	std::vector<std::string> names;
