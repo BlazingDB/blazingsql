@@ -423,7 +423,7 @@ def print_validation_results(sql, queryId, input_type, queryType, error_message,
         logger, queryType, input_type, queryId, sql, result, error_message, None, None, None
     )
 
-def print_performance_results((sql, queryId, queryType, resultgdf):
+def print_performance_results(sql, queryId, queryType, resultgdf):
     print(queryId)
     print("#QUERY:")
     print(sql)
@@ -1255,7 +1255,7 @@ def run_query_performance(
     query_blz = query  # get_blazingsql_query('main', query)
     result_gdf = bc.sql(query_blz).get()
     if result_gdf.error_message == "":
-        print_performance_results((query, queryId, queryType, result_gdf)
+        print_performance_results(query, queryId, queryType, result_gdf)
     else:
         print_validation_results(query, queryId, queryType, result_gdf.error_message)
 
