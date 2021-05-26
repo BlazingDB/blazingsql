@@ -46,14 +46,12 @@ TEST_SUITE:
 
   TEST_07:
     SQL: |
-        SELECT count(c_nationkey, c_custkey)
-                    from customer
+        SELECT count(c_nationkey, c_custkey) from customer
     SETUP:
       COMPARE_WITH: spark
 
   TEST_08:
     SQL: |
-        SELECT count(o_orderkey, o_custkey, o_totalprice)
-                    from orders
+        SELECT count(o_orderkey, o_custkey, o_totalprice) from orders
     SETUP:
       COMPARE_WITH: spark
