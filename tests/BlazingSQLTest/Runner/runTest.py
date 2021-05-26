@@ -305,22 +305,58 @@ def print_fixed_log(
     logger.info(total_time)
 
 
-def print_query_results(
+def comparing_results(  pdf1,
+						pdf2,
+						acceptable_difference,
+						use_percentage,
+						engine,
+						comparing=True
+					):
+
+    compareResults = True
+    error_message = ""
+    stringResult = ""
+
+    if "compare_results" in Settings.data["RunSettings"]:
+        compareResults = Settings.data["RunSettings"]["compare_results"]
+
+    # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+    if not comparing:
+        compareResults = False
+
+    if compareResults:
+        columnNamesComparison = compare_column_names(pdf1, pdf2)
+        if columnNamesComparison is not True:
+            error_message = "Column names are not the same"
+
+        resultComparisson = compare_results(
+            pdf1, pdf2, acceptable_difference, use_percentage, engine
+        )
+        if resultComparisson != "Success":
+            error_message = resultComparisson[6:]
+
+        stringResult = resultComparisson
+        if resultComparisson != "Success" or columnNamesComparison is False:
+            stringResult = "Fail"
+    else:
+        stringResult = "Success"
+
+    return error_message, stringResult, columnNamesComparison, resultComparisson
+
+def print_comparison_results(
     sql,
     queryId,
     queryType,
     pdf1,
     pdf2,
-    resultgdf,
-    acceptable_difference,
-    use_percentage,
     print_result,
     engine,
     input_type,
-    load_time,
-    engine_time,
     total_time,
-    comparing=True
+    error_message,
+    stringResult,
+    columnNamesComparison,
+    resultComparisson
 ):
     if print_result:
         print("#BLZ:")
@@ -341,43 +377,16 @@ def print_query_results(
     print("#QUERY:")
     print(sql)
     print("RESULT:")
-
-    error_message = ""
-    stringResult = ""
-
-    compareResults = True
-    if "compare_results" in Settings.data["RunSettings"]:
-        compareResults = Settings.data["RunSettings"]["compare_results"]
-
-    # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
-    if not comparing:
-        compareResults = False
-
-    if compareResults:
-        columnNamesComparison = compare_column_names(pdf1, pdf2)
-        if columnNamesComparison is not True:
-            print("Columns:")
-            print(pdf1.columns)
-            print(pdf2.columns)
-
-            error_message = "Column names are not the same"
-            print("ERROR:")
-            print(error_message)
-
-        resultComparisson = compare_results(
-            pdf1, pdf2, acceptable_difference, use_percentage, engine
-        )
-        if resultComparisson != "Success":
-            error_message = resultComparisson[6:]
-            print("ERROR:")
-            print(error_message)
-
-        stringResult = resultComparisson
-        if resultComparisson != "Success" or columnNamesComparison is False:
-            stringResult = "Fail"
-    else:
-        stringResult = "Success"
     print(stringResult)
+    if columnNamesComparison is not True:
+        print("Columns:")
+        print(pdf1.columns)
+        print(pdf2.columns)
+        print("ERROR:")
+        print(error_message)
+    if resultComparisson != "Success":
+        print("ERROR:")
+        print(error_message)
 
     print("TOTAL TIME: ")
     print(total_time)
@@ -387,25 +396,7 @@ def print_query_results(
     # print(resultgdf.total_nodes)
     print("===================================================")
 
-    logger = logginghelper(name)
-
-    # TODO percy kharoly bindings we need to get the number from internal api
-    # print_fixed_log(logger, queryType, queryId, sql, stringResult,
-    #                                          error_message, 1, 1, 2)
-    print_fixed_log(
-        logger,
-        queryType,
-        input_type,
-        queryId,
-        sql,
-        stringResult,
-        error_message,
-        load_time,
-        engine_time,
-        total_time,
-    )
-
-def print_query_results2(sql, queryId, input_type, queryType, error_message, message_validation):
+def print_validation_results(sql, queryId, input_type, queryType, error_message, message_validation):
     print(queryId)
     print("#QUERY:")
     print(sql)
@@ -432,7 +423,7 @@ def print_query_results2(sql, queryId, input_type, queryType, error_message, mes
         logger, queryType, input_type, queryId, sql, result, error_message, None, None, None
     )
 
-def print_query_results_performance(sql, queryId, queryType, resultgdf):
+def print_performance_results((sql, queryId, queryType, resultgdf):
     print(queryId)
     print("#QUERY:")
     print(sql)
@@ -970,11 +961,11 @@ def run_query_log(
             if type(result_gdf) is dask_cudf.core.DataFrame:
                 result_gdf = result_gdf.compute()
 
-            print_query_results2(
+            print_validation_results(
                 query, queryId, DataType.CUDF, queryType, error_message, message_validation
             )
     else:
-        print_query_results2(
+        print_validation_results(
             query, queryId, DataType.CUDF, queryType, error_message, message_validation
         )
 
@@ -1101,7 +1092,7 @@ def run_query(
     resultFile = None
 
     if not message_validation== "":
-        print_query_results2(
+        print_validation_results(
                         query,
                         queryId,
                         input_type,
@@ -1199,7 +1190,6 @@ def results_processing(result_gdf,
                 if compareResults == "true":
                         format_pdf(pdf1, worder, orderBy)
                         pdf2 = get_results(resultFile)
-                        print(pdf2)
                 else:
                     pdf2 = pd.DataFrame()
                     formatResults(pdf1, pdf2, worder, orderBy)
@@ -1207,26 +1197,45 @@ def results_processing(result_gdf,
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 results_file_generator(testsWithNulls, filename, engine, pdf2)
             else:
-                print_query_results(
+                error_message, stringResult, columnNamesComparison, resultComparisson = comparing_results( pdf1,
+                                                                                                            pdf2,
+                                                                                                            acceptable_difference,
+                                                                                                            use_percentage,
+                                                                                                            engine,
+                                                                                                            comparing)
+                print_comparison_results(
                     query,
                     queryId,
                     queryType,
                     pdf1,
                     pdf2,
-                    result_gdf,
-                    acceptable_difference,
-                    use_percentage,
                     print_result,
                     engine,
                     input_type,
+                    total_time,
+                    error_message,
+                    stringResult,
+                    columnNamesComparison,
+                    resultComparisson
+                )
+
+                logger = logginghelper(name)
+
+                # TODO percy kharoly bindings we need to get the number from internal api
+                print_fixed_log(
+                    logger,
+                    queryType,
+                    input_type,
+                    queryId,
+                    query,
+                    stringResult,
+                    error_message,
                     load_time,
                     engine_time,
                     total_time,
-                    comparing
                 )
-
         else:
-            print_query_results2(
+            print_validation_results(
                 query, queryId, queryType, result_gdf.error_message
             )
 
@@ -1246,9 +1255,9 @@ def run_query_performance(
     query_blz = query  # get_blazingsql_query('main', query)
     result_gdf = bc.sql(query_blz).get()
     if result_gdf.error_message == "":
-        print_query_results_performance(query, queryId, queryType, result_gdf)
+        print_performance_results((query, queryId, queryType, result_gdf)
     else:
-        print_query_results2(query, queryId, queryType, result_gdf.error_message)
+        print_validation_results(query, queryId, queryType, result_gdf.error_message)
 
 
 def formatResults(pdf1, pdf2, worder, orderBy):
