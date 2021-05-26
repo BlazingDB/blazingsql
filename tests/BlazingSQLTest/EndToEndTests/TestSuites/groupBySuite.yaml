@@ -9,11 +9,6 @@ TEST_SUITE:
     SKIP_WITH:
       - SINGLENODE:
         - DASK_CUDF
-      - MULTINODE:
-        - WITH_NULLS:
-          - CUDF
-      - WITH_NULLS:
-        - DASK_CUDF
       - JSON
 
   TEST_01:
