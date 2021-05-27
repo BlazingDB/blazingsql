@@ -16,7 +16,7 @@
 - #1547 Update RAPIDS version references
 - #1539 Support ORDERing by null values
 - #1551 Support for spdlog 1.8.5
-
+- #1554 return ok for filesystems
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
