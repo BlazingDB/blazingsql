@@ -724,7 +724,7 @@ def _verify_prev_google_sheet_results(log_pdf):
             print(
                 """####### ======= >>>>>>> WARNING this test run will not
                    be compared against old results from Google Docs. Define
-                   the env var BLAZINGSQL_E2E_LOG_INFO"""
+                   the LOG_INFO in config.yaml"""
             )
             return None
 
