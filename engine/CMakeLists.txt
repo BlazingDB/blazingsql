@@ -411,7 +411,7 @@ target_link_libraries(blazingsql-engine
 
     # TODO jp c.gonzales make use of standard cmake find_package here (see above)
     #spdlog::spdlog
-    libspdlog.a
+    libspdlog.so
 
     # Library needed for blazing communication repository (debug)
     gcov
