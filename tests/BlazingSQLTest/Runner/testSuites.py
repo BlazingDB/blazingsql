@@ -26,7 +26,7 @@ class TestSuites():
 
     def __loadDefaultConfigFromFile(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
-        if "-config_file" in sys.argv and len(sys.argv) >= 3:
+        if "--config-file" in sys.argv and len(sys.argv) >= 3:
             fileName = cwd + "/" + sys.argv[2]
         else:
             fileName = cwd + "/config.yaml"
