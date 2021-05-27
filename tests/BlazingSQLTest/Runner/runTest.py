@@ -102,7 +102,19 @@ def get_null_constants(df):
     return null_values
 
 
-def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
+def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):   
+    """
+        The purpose of this functions is to compare the values from blazingsql and drill/spark results.
+
+        ----------
+        pdf1 : blazing results (pandas dataframe)
+        pdf2: drill/spark results (pandas dataframe)
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        engine: pydrill or pyspark instances
+    """
+
     np.warnings.filterwarnings("ignore")
 
     if pdf1.size == 0 and pdf2.size == 0:
@@ -270,7 +282,7 @@ def get_codTest(test_name):
 
     raise Exception("ERROR: CODE configuration not found for '" + test_name + "' in targetTest.yaml, i.e. CODE: BALIAS")
 
-def print_fixed_log(
+def logger_results(
     logger,
     test_name,
     input_type,
@@ -312,6 +324,18 @@ def comparing_results(  pdf1,
 						engine,
 						comparing=True
 					):
+
+    """
+        Compare values, number of rows, columns, and column names
+
+        ----------
+        pdf1 : blazing results (pandas dataframe)
+        pdf2: drill/spark results (pandas dataframe)
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        comparing: Parameter to indicate if the results from blazingsql will be compared with the results from drill or spark
+    """
 
     compareResults = True
     error_message = ""
@@ -419,7 +443,7 @@ def print_validation_results(sql, queryId, input_type, queryType, error_message,
 
     logger = logginghelper(name)
 
-    print_fixed_log(
+    logger_results(
         logger, queryType, input_type, queryId, sql, result, error_message, None, None, None
     )
 
@@ -440,7 +464,7 @@ def print_performance_results(sql, queryId, queryType, resultgdf):
 
     logger = logginghelper(name)
 
-    print_fixed_log(
+    logger_results(
         logger,
         queryType,
         queryId,
@@ -462,6 +486,9 @@ class Test:
 
 
 def save_log(gpu_ci_mode=False):
+    """
+        put the log into a pandas dataframe
+    """
 
     c = 1
     cadena = []
@@ -565,6 +592,13 @@ def save_log(gpu_ci_mode=False):
 
 def create_summary_detail(df, no_color):
 
+    """
+        Build a summary with the details about hoy many queries pass/fail  and what queries have the failed status.
+
+        ----------
+        df : pdf log
+    """
+
     pdf = df
     pdf["Result"] = df["Result"].replace(1, "Success")
     pdf["Result"] = df["Result"].replace(0, "Fail")
@@ -650,6 +684,13 @@ def on_jenkins():
 
 
 def print_tests(tests, onlyFails=False):
+    """
+        After we have the pdf log with this function we are printing the values on the screem at the end of the execution tests.
+
+        ----------
+        tests : pdf log
+        onlyFails: we can choose print only the failed results and queries.
+    """
     print(
         """************************************************************
           *******************"""
@@ -972,8 +1013,7 @@ def run_query_log(
 def save_results_parquet(filename, pdf2):
     pdf2.to_parquet(filename, compression="GZIP")
 
-def results_file_generator(testsWithNulls, filename, engine, pdf2):
-
+def results_file_generator(file_results_dir, testsWithNulls, filename, engine, pdf2):
     file_res_drill_dir = None
     if testsWithNulls != "true":
         file_res_drill_dir = (
@@ -986,7 +1026,6 @@ def results_file_generator(testsWithNulls, filename, engine, pdf2):
 
     if not os.path.exists(file_res_drill_dir):
         save_results_parquet(file_res_drill_dir, pdf2)
-        
     print(engine.capitalize() + ": " + filename + " generated.")
 
 
@@ -1038,6 +1077,23 @@ def run_query(
     input_type,
     **kwargs
 ):
+    """
+        This function execute the query with blazingsql and drill/spark and call the functions to compare, print results
+        and logs.
+
+        ----------
+        bc : blazing context
+        engine: It's the instance of the engine (pydrill/ỳspark).
+        query: Executed query.
+        queryId: Query Id.
+        worder : (True/False) parameter to indicate if it's neccesary to order the results.
+        orderBy : It indicate by what column we want to order the results.
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        input_type: The data type (CSV, PARQUET, DASK_CUDF, JSON, ORC, GDF) that we use to run the query.
+    """
+
     print(query)
 
     worder = 1 if worder == True else worder
@@ -1091,6 +1147,8 @@ def run_query(
 
     resultFile = None
 
+    str_engine = ""
+
     if not message_validation== "":
         print_validation_results(
                         query,
@@ -1101,18 +1159,18 @@ def run_query(
                         message_validation
                 )
     elif not isinstance(engine, str):
-
         if isinstance(engine, PyDrill):
             # Drill
             query_drill = get_drill_query(query)
             base_results_gd = run_query_drill(engine, query_drill)
+            str_engine="drill"
 
         elif isinstance(engine, SparkSession):
             # Spark
             base_results_gd = run_query_spark(engine, query_spark)
-            
-    else:  # GPUCI
+            str_engine="spark"
 
+    else:  # GPUCI
         if "compare_results" in Settings.data["RunSettings"]:
             compareResults = Settings.data["RunSettings"]["compare_results"]
 
@@ -1141,8 +1199,11 @@ def run_query(
                         total_time,
                         comparing,
                         compareResults,
-                        resultFile)
-      
+                        resultFile,
+                        file_results_dir,
+                        str_engine)
+
+
 def results_processing(result_gdf, 
                     base_results_gd, 
                     worder, 
@@ -1162,7 +1223,39 @@ def results_processing(result_gdf,
                     total_time,
                     comparing,
                     compareResults,
-                    resultFile):
+                    resultFile,
+                    file_results_dir,
+                    str_engine
+                    ):
+
+    """
+        Results processing of the query execution with blazingsql and drill/spark.
+        It include the results formatting, comparison and print of results.
+
+        ----------
+        result_gdf : blazing results gdf
+        base_results_gd : drill/spark results gdf
+        worder : (True/False) parameter to indicate if it's neccesary to order the results.
+        orderBy : It indicate by what column we want to order the results
+        testsWithNulls : that is about the data with we get the results, if it contains nulls or not.
+        filename: it's the name that the generated result file will have.
+        query: Executed query.
+        queryId: Query Id.
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        print_result: (True/False) To show the query results information on the screen.
+        engine: It's the instance of the engine (pydrill/ỳspark).
+        input_type: The data type (CSV, PARQUET, DASK_CUDF, JSON, ORC, GDF) that we use to run the query.
+        load_time: 
+        engine_time: 
+        total_time: Total time to execute the query 
+        comparing: It indicate if the results will be compared with the results with the based engines (drill/spark)
+        resultFile: Complete path where the results file will be saved.
+        file_results_dir: Path where the results file will be saved. 
+        str_engine: the values will be drill/spark
+
+    """
 
     if result_gdf is not None:
         if result_gdf.columns is not None:
@@ -1195,7 +1288,8 @@ def results_processing(result_gdf,
                     formatResults(pdf1, pdf2, worder, orderBy)
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
-                results_file_generator(testsWithNulls, filename, engine, pdf2)
+                results_file_generator(file_results_dir, testsWithNulls, filename, str_engine, pdf2)
+                print("==============================")
             else:
                 error_message, stringResult, columnNamesComparison, resultComparisson = comparing_results( pdf1,
                                                                                                             pdf2,
@@ -1222,7 +1316,7 @@ def results_processing(result_gdf,
                 logger = logginghelper(name)
 
                 # TODO percy kharoly bindings we need to get the number from internal api
-                print_fixed_log(
+                logger_results(
                     logger,
                     queryType,
                     input_type,

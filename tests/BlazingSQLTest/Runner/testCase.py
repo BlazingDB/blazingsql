@@ -212,11 +212,6 @@ class TestCase():
             for test_name in listCase:
                 test_case = self.data[test_name]
 
-                if Settings.execution_mode == ExecutionMode.GENERATOR:
-                    print("==============================")
-                    break_flag = True
-                    break
-
                 configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
 
                 if self.__skip_test(fileSchemaType, configTest): continue
@@ -224,10 +219,12 @@ class TestCase():
                 query = self.__getQuery(test_case)
                 engine = self.drill if configTest.compare_with == "drill" else self.spark
 
-                print("==>> Run query for test case", self.name)
-                if configTest.message_validation == "":
-                    print("PLAN:")
-                    print(self.bc.explain(query, True))
+                if not Settings.execution_mode == ExecutionMode.GENERATOR:
+                    print("==>> Run query for test case", self.name)
+                    if configTest.message_validation == "":
+                        print("PLAN:")
+                        print(self.bc.explain(query, True))
+
                 runTest.run_query(
                     self.bc,
                     engine,
