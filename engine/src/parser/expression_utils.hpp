@@ -132,8 +132,6 @@ bool is_SQL_data_type(const std::string & token);
 bool is_operator_token(const std::string & token);
 bool is_literal(const std::string & token);
 bool is_var_column(const std::string& token);
-size_t num_var_columns_inside_expression(const std::string& expression);
-std::vector<int> get_all_indices_from_expression(const std::string& expression);
 bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
@@ -272,3 +270,7 @@ size_t get_index_from_expression_str(std::string expression);
 std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema);
 
 std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema);
+
+std::vector<int> get_all_indices_from_count_expression(const std::string& expression);
+
+std::string expand_indices_to_apply_casts(std::vector<int> indices);

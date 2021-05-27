@@ -129,12 +129,12 @@ TEST_SUITE:
 
   TEST_18:
     SQL: |
-        SELECT count(distinct o_custkey, o_orderkey, o_totalprice) from orders
+        SELECT count(distinct o_custkey, o_orderkey, o_orderdate) from orders
     SETUP:
       COMPARE_WITH: spark
 
   TEST_19:
     SQL: |
-        SELECT count(distinct o_totalprice, o_custkey, o_orderkey) from orders
+        SELECT count(distinct o_totalprice, o_custkey, o_shippriority) from orders
     SETUP:
       COMPARE_WITH: spark

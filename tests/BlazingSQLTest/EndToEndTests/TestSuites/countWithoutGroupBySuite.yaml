@@ -55,3 +55,15 @@ TEST_SUITE:
         SELECT count(o_orderkey, o_custkey, o_totalprice) from orders
     SETUP:
       COMPARE_WITH: spark
+
+  TEST_09:
+    SQL: |
+        SELECT count(o_orderkey, o_orderstatus, o_totalprice) from orders
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_10:
+    SQL: |
+        SELECT count(o_orderkey, o_orderdate, o_clerk) from orders
+    SETUP:
+      COMPARE_WITH: spark

@@ -84,14 +84,6 @@ TEST_SUITE:
                     GROUP BY l_partkey, l_suppkey
     SETUP:
       COMPARE_WITH: spark
-      SKIP_WITH:
-        - WITH_NULLS:
-          - DASK_CUDF
-          - CSV
-          - ORC
-          - PARQUET
-          - CUDF
-          - JSON
 
   TEST_09:
     SQL: |
