@@ -5,6 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import yaml
 import os
+import sys
 
 __all__ = ["TestSuites"]
 
@@ -20,15 +21,21 @@ class TestSuites():
         self.globalConfig = ConfigTest()
         self.dataTestSuite = None
 
-        self.__setupTest()
+        self.__loadDefaultConfigFromFile()
         self.__loadTargetTestDataFromFile()
 
-    def __loadConfigFromFile(self):
+    def __loadDefaultConfigFromFile(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
-        fileName = cwd + "/config.yaml"
+        if "-config_file" in sys.argv and len(sys.argv) >= 3:
+            fileName = cwd + "/" + sys.argv[2]
+        else:
+            fileName = cwd + "/config.yaml"
+
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
                 fileYaml = yaml.safe_load(stream)
+        else:
+            raise Exception("Error: " + fileName + " not exist")
 
         if "SETUP" in fileYaml:
             setup = fileYaml["SETUP"]
@@ -39,27 +46,8 @@ class TestSuites():
             if setup.get("COMPARE_WITH") is not None: self.globalConfig.compare_with = setup.get("COMPARE_WITH")
             if setup.get("USE_PERCENTAGE") is not None: self.globalConfig.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.globalConfig.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
-
-    def __setupTest(self):
-        self.globalConfig.comparing = True
-        self.globalConfig.spark_query = ""
-        self.globalConfig.order_by_col = ""
-        self.globalConfig.apply_order = True
-        self.globalConfig.print_result = True
-        self.globalConfig.compare_with = 'drill'
-        self.globalConfig.use_percentage = False
-        self.globalConfig.message_validation = ""
-        self.globalConfig.acceptable_difference = 0.01
-        self.globalConfig.data_types = [
-            DataType.DASK_CUDF,
-            DataType.CUDF,
-            DataType.CSV,
-            DataType.PARQUET,
-            DataType.ORC,
-            DataType.JSON
-        ]
-
-        self.__loadConfigFromFile()
+            if setup.get("DATA_TYPES") is not None: self.globalConfig.data_types = setup.get("DATA_TYPES")
+            self.globalConfig.data_types = [DataType[item] for item in self.globalConfig.data_types]
 
     def __loadTargetTestDataFromFile(self):
         cwd = os.path.dirname(os.path.realpath(__file__))

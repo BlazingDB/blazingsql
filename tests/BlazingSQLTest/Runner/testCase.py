@@ -13,6 +13,7 @@ import os
 import yaml
 import re
 import copy
+import sys
 
 __all__ = ["TestCase", "ConfigTest"]
 
@@ -20,14 +21,14 @@ class ConfigTest():
     apply_order = None
     use_percentage = None
     acceptable_difference = None
-    order_by_col = None
+    order_by_col = ""
     print_result = None
     data_types = None
     compare_with = None
     skip_with = []
-    spark_query = None
+    spark_query = ""
     comparing = None
-    message_validation = None
+    message_validation = ""
 
 class ConfigConcurrent():
     token = 0
@@ -214,10 +215,16 @@ class TestCase():
 
     def __isConcurrentTest(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
-        fileName = cwd + "/config.yaml"
+        if "-config_file" in sys.argv and len(sys.argv) >= 3:
+            fileName = cwd + "/" + sys.argv[2]
+        else:
+            fileName = cwd + "/config.yaml"
+
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
                 fileYaml = yaml.safe_load(stream)
+        else:
+            raise Exception("Error: " + fileName + " not exist")
 
         if "CONCURRENT" in fileYaml:
             return fileYaml["CONCURRENT"]
