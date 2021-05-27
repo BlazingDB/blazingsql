@@ -257,6 +257,7 @@ public:
 
 	bool has_limit_; /**< Indicates if the Logical plan only contains a LogicalTableScan (or BindableTableScan) and LogicalLimit. */
 	int64_t limit_rows_; /**< Specifies the maximum number of rows to return. */
+	std::atomic<int64_t> accumulated_rows; /**< Accumulates n rows, useful when the plan only contains a LogicalTableScan (or BindableTableScan) and LogicalLimit */
 
 	std::shared_ptr<spdlog::logger> logger;
 };
