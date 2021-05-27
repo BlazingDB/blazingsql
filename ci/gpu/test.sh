@@ -203,7 +203,7 @@ else
             cd ${WORKSPACE}/tests/BlazingSQLTest/
             SECONDS=0
 
-            python -m EndToEndTests.mainE2ETests
+            python -m EndToEndTests.mainE2ETests -config_file config.yaml
 
             duration=$SECONDS
             logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
@@ -221,7 +221,7 @@ else
                 cd ${WORKSPACE}/tests/BlazingSQLTest/
                 SECONDS=0
 
-                python -m EndToEndTests.mainE2ETests
+                python -m EndToEndTests.mainE2ETests -config_file config.yaml
 
                 duration=$SECONDS
                 logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
