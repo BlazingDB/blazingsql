@@ -226,8 +226,8 @@ class TestCase():
         else:
             raise Exception("Error: " + fileName + " not exist")
 
-        if "CONCURRENT" in fileYaml:
-            return fileYaml["CONCURRENT"]
+        if "CONCURRENT" in fileYaml["RUN_SETTINGS"]:
+            return fileYaml["RUN_SETTINGS"]["CONCURRENT"]
 
         return False
 
