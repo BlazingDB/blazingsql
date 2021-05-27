@@ -1691,12 +1691,17 @@ class BlazingContext(object):
     # BEGIN FileSystem interface
 
     def localfs(self, prefix, **kwargs):
+        """
+        returns a boolean meaning True when Registered Successfully
+        """
+
         return self.fs.localfs(self.dask_client, prefix, **kwargs)
 
     # Use result, error_msg = hdfs(args) where result can be True|False
     def hdfs(self, prefix, **kwargs):
         """
         Register a Hadoop Distributed File System (HDFS) Cluster.
+        returns a boolean meaning True when Registered Successfully
 
         Parameters
         ----------
@@ -1737,6 +1742,7 @@ class BlazingContext(object):
     def s3(self, prefix, **kwargs):
         """
         Register an AWS S3 bucket.
+        returns a boolean meaning True when Registered Successfully
 
         Parameters
         ----------
@@ -1786,6 +1792,7 @@ class BlazingContext(object):
     def gs(self, prefix, **kwargs):
         """
         Register a Google Storage bucket.
+        returns a boolean meaning True when Registered Successfully
 
         Parameters
         ----------
