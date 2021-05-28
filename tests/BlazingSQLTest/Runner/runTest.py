@@ -110,7 +110,7 @@ def get_null_constants(df):
     return null_values
 
 
-def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):   
+def compare_result_values(pdf1, pdf2, acceptable_difference, use_percentage, engine):   
     """
         The purpose of this functions is to compare the values from blazingsql and drill/spark results.
 
@@ -325,7 +325,7 @@ def logger_results(
     logger.info(total_time)
 
 
-def comparing_results(  pdf1,
+def compare_test_results(  pdf1,
 						pdf2,
 						acceptable_difference,
 						use_percentage,
@@ -349,8 +349,8 @@ def comparing_results(  pdf1,
     error_message = ""
     stringResult = ""
 
-    if "compare_results" in Settings.data["RunSettings"]:
-        compareResults = Settings.data["RunSettings"]["compare_results"]
+    if "compare_result_values" in Settings.data["RunSettings"]:
+        compareResults = Settings.data["RunSettings"]["compare_result_values"]
 
     # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
     if not comparing:
@@ -361,7 +361,7 @@ def comparing_results(  pdf1,
         if columnNamesComparison is not True:
             error_message = "Column names are not the same"
 
-        resultComparisson = compare_results(
+        resultComparisson = compare_result_values(
             pdf1, pdf2, acceptable_difference, use_percentage, engine
         )
         if resultComparisson != "Success":
@@ -1180,8 +1180,8 @@ def run_query(
             str_engine="spark"
 
     else:  # GPUCI
-        if "compare_results" in Settings.data["RunSettings"]:
-            compareResults = Settings.data["RunSettings"]["compare_results"]
+        if "compare_result_values" in Settings.data["RunSettings"]:
+            compareResults = Settings.data["RunSettings"]["compare_result_values"]
 
         if compareResults == "true":
             if testsWithNulls != "true":
@@ -1300,7 +1300,7 @@ def results_processing(result_gdf,
                 results_file_generator(file_results_dir, testsWithNulls, filename, str_engine, pdf2)
                 print("==============================")
             else:
-                error_message, stringResult, columnNamesComparison, resultComparisson = comparing_results( pdf1,
+                error_message, stringResult, columnNamesComparison, resultComparisson = compare_test_results( pdf1,
                                                                                                             pdf2,
                                                                                                             acceptable_difference,
                                                                                                             use_percentage,
