@@ -51,6 +51,7 @@ requirements:
         - netifaces
         - pyhive
         - sqlite 3
+        - spdlog >=1.8.5,<2.0.0a0
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
