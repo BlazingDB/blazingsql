@@ -348,6 +348,8 @@ def compare_test_results(  pdf1,
     compareResults = True
     error_message = ""
     stringResult = ""
+    columnNamesComparison = True
+    resultComparisson = ""
 
     if "compare_result_values" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_result_values"]
@@ -693,7 +695,7 @@ def on_jenkins():
 
 def print_tests(tests, onlyFails=False):
     """
-        After we have the pdf log with this function we are printing the values on the screem at the end of the execution tests.
+        After we have the pdf log with this function we are printing the values on the screen at the end of the execution tests.
 
         ----------
         tests : pdf log
