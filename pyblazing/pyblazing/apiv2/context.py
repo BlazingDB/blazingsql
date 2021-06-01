@@ -2477,11 +2477,17 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
+            has_csv_metadata = False
+            if 'max_bytes_chunk_read' in parsedSchema['args'].keys():
+                if parsedSchema['args']['max_bytes_chunk_read'] > 0:
+                    has_csv_metadata = True
+            
             # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
+                or has_csv_metadata 
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
@@ -2523,6 +2529,7 @@ class BlazingContext(object):
                     row_groups_col = row_meta_ids.tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
+                print("row_groups_ids: ", row_groups_ids)
                 table.row_groups_ids = row_groups_ids
 
         elif isinstance(input, dask_cudf.core.DataFrame):

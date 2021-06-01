@@ -21,7 +21,8 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups)
+	std::vector<cudf::size_type> row_groups,
+	int /*current_batch*/)
 {
 
 	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
@@ -71,7 +72,9 @@ void orc_parser::parse_schema(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(
-	std::vector<ral::io::data_handle> handles, int offset) {
+	std::vector<ral::io::data_handle> handles, int offset,
+	std::map<std::string, std::string> args_map)
+{
 	std::vector<size_t> num_stripes(handles.size());
 	std::vector<cudf::io::parsed_orc_statistics> statistics(handles.size());
 	for(size_t file_index = 0; file_index < handles.size(); file_index++) {

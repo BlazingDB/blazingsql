@@ -31,7 +31,8 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups)
+	std::vector<cudf::size_type> row_groups,
+	int /*current_batch*/)
 {
 	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
 	if(file == nullptr) {
@@ -105,7 +106,9 @@ void parquet_parser::parse_schema(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(
-	std::vector<ral::io::data_handle> handles, int offset){
+	std::vector<ral::io::data_handle> handles, int offset,
+	std::map<std::string, std::string> args_map)
+{
 	std::vector<size_t> num_row_groups(handles.size());
 	BlazingThread threads[handles.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(handles.size());

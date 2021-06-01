@@ -30,11 +30,16 @@ public:
 		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
-		std::vector<cudf::size_type> row_groups);
+		std::vector<cudf::size_type> row_groups,
+		int current_batch);
 
 	void parse_schema(ral::io::data_handle handle, ral::io::Schema & schema);
 
 	size_t max_bytes_chunk_size() const;
+
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
+		std::vector<ral::io::data_handle> handles, int offset,
+		std::map<std::string, std::string> args_map);
 
 	DataType type() const override { return DataType::CSV; }
 
