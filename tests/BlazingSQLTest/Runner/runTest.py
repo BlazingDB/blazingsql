@@ -1156,7 +1156,7 @@ def run_query(
 
     compareResults = True
 
-    resultFile = None
+    resultFile = ""
 
     str_engine = ""
 
@@ -1185,12 +1185,14 @@ def run_query(
         if "compare_result_values" in Settings.data["RunSettings"]:
             compareResults = Settings.data["RunSettings"]["compare_result_values"]
 
-        if compareResults == "true":
+        if compareResults:
             if testsWithNulls != "true":
                 resultFile = file_results_dir + "/" + str(engine) + "/" + filename
             else:
                 resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
 
+            #base_results_gd = get_results(resultFile)
+            
     results_processing(result_gdf, 
                         base_results_gd, 
                         worder, 
@@ -1291,9 +1293,9 @@ def results_processing(result_gdf,
 
                 formatResults(pdf1, pdf2, worder, orderBy)
             else:
-                if compareResults == "true":
-                        format_pdf(pdf1, worder, orderBy)
-                        pdf2 = get_results(resultFile)
+                if compareResults:
+                    format_pdf(pdf1, worder, orderBy)
+                    pdf2 = get_results(resultFile)
                 else:
                     pdf2 = pd.DataFrame()
                     formatResults(pdf1, pdf2, worder, orderBy)
