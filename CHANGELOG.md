@@ -27,6 +27,7 @@
 - #1543 Enables provider unit_tests
 - #1548 Fix orc statistic building
 - #1550 Fix Decimal/Fixed Point issue
+- #1519 Fix for max_bytes_chunk_read param to csv files
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)
