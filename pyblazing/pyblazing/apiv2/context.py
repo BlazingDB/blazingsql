@@ -2478,16 +2478,16 @@ class BlazingContext(object):
                 table.metadata = parsedMetadata
 
             has_csv_metadata = False
-            if 'max_bytes_chunk_read' in parsedSchema['args'].keys():
-                if parsedSchema['args']['max_bytes_chunk_read'] > 0:
+            if "max_bytes_chunk_read" in parsedSchema["args"].keys():
+                if parsedSchema["args"]["max_bytes_chunk_read"] > 0:
                     has_csv_metadata = True
-            
+
             # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
-                or has_csv_metadata 
+                or has_csv_metadata
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
