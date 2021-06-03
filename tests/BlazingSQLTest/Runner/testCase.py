@@ -29,6 +29,7 @@ class ConfigTest():
     spark_query = ""
     comparing = None
     message_validation = ""
+    is_concurrent = False
 
 class ConfigConcurrent():
     token = 0
@@ -53,7 +54,6 @@ class TestCase():
         self.spark = None
 
         self.config_concurrent = {}
-        self.is_concurrent = self.__isConcurrentTest()
 
         self.nRals = Settings.data["RunSettings"]["nRals"]
         self.dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
@@ -71,6 +71,13 @@ class TestCase():
             self.data = yaml.safe_load(stream)["TEST_SUITE"]
 
     def __loadConfigTest(self):
+        if "RUN_SETTINGS" in self.data:
+            run_settings = self.data["RUN_SETTINGS"]
+
+            if run_settings.get("CONCURRENT") is not None: self.configLocal.is_concurrent = run_settings.get("CONCURRENT")
+
+            self.data.pop("RUN_SETTINGS", None)
+
         if "SETUP" in self.data:
             setup = self.data["SETUP"]
 
@@ -138,7 +145,7 @@ class TestCase():
             return True
 
         skipConcurrent = [item["CONCURRENT"] for item in configTest.skip_with if isinstance(item, dict) and "CONCURRENT" in item]
-        if skipConcurrent and self.is_concurrent == skipConcurrent[0]:
+        if skipConcurrent and configTest.is_concurrent == skipConcurrent[0]:
             return True
 
 
@@ -213,86 +220,74 @@ class TestCase():
             return test_case["SQL_WITH_NULLS"]
         return test_case["SQL"]
 
-    def __isConcurrentTest(self):
-        cwd = os.path.dirname(os.path.realpath(__file__))
-        if "--config-file" in sys.argv and len(sys.argv) >= 3:
-            fileName = cwd + "/" + sys.argv[2]
-        else:
-            fileName = cwd + "/config.yaml"
-
-        if os.path.isfile(fileName):
-            with open(fileName, 'r') as stream:
-                fileYaml = yaml.safe_load(stream)
-        else:
-            raise Exception("Error: " + fileName + " not exist")
-
-        if "CONCURRENT" in fileYaml["RUN_SETTINGS"]:
-            return fileYaml["RUN_SETTINGS"]["CONCURRENT"]
-
-        return False
-
     def __executionTest(self):
         listCase = list(self.data.keys())
 
         print("######## Starting queries ...########")
 
-        for n in range(0, len(self.configLocal.data_types)):
+        concurrent_list = self.configLocal.is_concurrent if isinstance(self.configLocal.is_concurrent, list) else [self.configLocal.is_concurrent]
 
-            fileSchemaType = self.configLocal.data_types[n]
+        for concurrent in concurrent_list:
+            print("CONCURRENT: " + str(concurrent))
+            self.configLocal.is_concurrent = concurrent
 
-            if self.__skip_test(fileSchemaType, self.configLocal): continue
+            for n in range(0, len(self.configLocal.data_types)):
 
-            createSchema.create_tables(self.bc, self.dir_data_file, fileSchemaType, tables=list(self.tables))
+                fileSchemaType = self.configLocal.data_types[n]
 
-            for test_name in listCase:
-                test_case = self.data[test_name]
+                if self.__skip_test(fileSchemaType, self.configLocal): continue
 
-                if Settings.execution_mode == ExecutionMode.GENERATOR:
-                    print("==============================")
-                    break_flag = True
-                    break
+                createSchema.create_tables(self.bc, self.dir_data_file, fileSchemaType, tables=list(self.tables))
 
-                configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
+                for test_name in listCase:
+                    test_case = self.data[test_name]
 
-                if self.__skip_test(fileSchemaType, configTest): continue
+                    if Settings.execution_mode == ExecutionMode.GENERATOR:
+                        print("==============================")
+                        break_flag = True
+                        break
 
-                query = self.__getQuery(test_case)
-                engine = self.drill if configTest.compare_with == "drill" else self.spark
+                    configTest = self.__loadTestCaseConfig(test_name, fileSchemaType)
 
-                print("==>> Run query for test case", self.name)
-                if configTest.message_validation == "":
-                    print("PLAN:")
-                    print(self.bc.explain(query, True))
+                    if self.__skip_test(fileSchemaType, configTest): continue
 
-                if self.is_concurrent:
-                    name_token = test_name + "_" + fileSchemaType.name
-                    self.config_concurrent[name_token] = ConfigConcurrent()
+                    query = self.__getQuery(test_case)
+                    engine = self.drill if configTest.compare_with == "drill" else self.spark
 
-                    self.config_concurrent[name_token].token = self.bc.sql(query, return_token=True)
-                    self.config_concurrent[name_token].fileSchemaType = fileSchemaType
-                    self.config_concurrent[name_token].test_name = test_name
-                    self.config_concurrent[name_token].query = query
-                    self.config_concurrent[name_token].configTest = copy.deepcopy(configTest)
+                    print("==>> Run query for test case", self.name)
+                    if configTest.message_validation == "":
+                        print("PLAN:")
+                        print(self.bc.explain(query, True))
 
-                else:
-                    runTest.run_query(
-                        self.bc,
-                        engine,
-                        query,
-                        test_name,
-                        self.name,
-                        configTest.apply_order,
-                        configTest.order_by_col,
-                        configTest.acceptable_difference,
-                        configTest.use_percentage,
-                        fileSchemaType,
-                        print_result=configTest.print_result,
-                        query_spark=configTest.spark_query,
-                        comparing=configTest.comparing,
-                        message_validation=configTest.message_validation
-                    )
+                    if configTest.is_concurrent:
+                        name_token = test_name + "_" + fileSchemaType.name
+                        self.config_concurrent[name_token] = ConfigConcurrent()
 
-            if self.is_concurrent: self.__fetch_results()
+                        self.config_concurrent[name_token].token = self.bc.sql(query, return_token=True)
+                        self.config_concurrent[name_token].fileSchemaType = fileSchemaType
+                        self.config_concurrent[name_token].test_name = test_name
+                        self.config_concurrent[name_token].query = query
+                        self.config_concurrent[name_token].configTest = copy.deepcopy(configTest)
+
+                    else:
+                        runTest.run_query(
+                            self.bc,
+                            engine,
+                            query,
+                            test_name,
+                            self.name,
+                            configTest.apply_order,
+                            configTest.order_by_col,
+                            configTest.acceptable_difference,
+                            configTest.use_percentage,
+                            fileSchemaType,
+                            print_result=configTest.print_result,
+                            query_spark=configTest.spark_query,
+                            comparing=configTest.comparing,
+                            message_validation=configTest.message_validation
+                        )
+
+                if configTest.is_concurrent: self.__fetch_results()
 
     def __fetch_results(self):
         done_count = 0

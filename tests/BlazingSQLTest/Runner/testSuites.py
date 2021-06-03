@@ -37,6 +37,11 @@ class TestSuites():
         else:
             raise Exception("Error: " + fileName + " not exist")
 
+        if "RUN_SETTINGS" in fileYaml:
+            run_settings = fileYaml["RUN_SETTINGS"]
+
+            if run_settings.get("CONCURRENT") is not None: self.globalConfig.is_concurrent = run_settings.get("CONCURRENT")
+
         if "SETUP" in fileYaml:
             setup = fileYaml["SETUP"]
 
