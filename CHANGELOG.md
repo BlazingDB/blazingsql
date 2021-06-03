@@ -27,6 +27,7 @@
 - #1543 Enables provider unit_tests
 - #1548 Fix orc statistic building
 - #1550 Fix Decimal/Fixed Point issue
+- #1519 Fix for max_bytes_chunk_read param to csv files
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)
@@ -408,3 +409,4 @@
 - #932 Import pydrill and pyspark only when its generator or full mode.
 - #1031 adding notebooks into BlazingSQL Tests
 - #1486 Define generic templates for E2E Testing framework.
+- #1542 Cleaning code on E2E Test framework.
