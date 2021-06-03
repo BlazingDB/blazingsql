@@ -180,7 +180,7 @@ def init_drill():
 
     drill = PyDrill(host="localhost", port=8047)
     createSchema.init_drill_schema(
-        drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
+        drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True, interval_test=True
     )
     createSchema.init_drill_schema(
         drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET

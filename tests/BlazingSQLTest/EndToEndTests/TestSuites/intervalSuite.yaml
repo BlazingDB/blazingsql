@@ -253,6 +253,7 @@ TEST_SUITE:
         (select i_id, i_duration_ms from interval_table where i_id < 55)
 
   # union with DURARION diff unit
+  # Randomly fails in gpuci -> issue https://github.com/BlazingDB/blazingsql/issues/1555
   # TEST_57:
   #   SQL: |
   #       (select i_id, i_duration_s from interval_table limit 36)
