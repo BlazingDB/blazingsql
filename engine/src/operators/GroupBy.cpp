@@ -180,7 +180,6 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 		std::move(aggregation_types), std::move(aggregation_column_assigned_aliases));
 }
 
-
 std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>,	std::vector<std::string>>
 	modGroupByParametersPostComputeAggregations(const std::vector<int> & group_column_indices,
 		const std::vector<AggregateKind> & aggregation_types, const std::vector<std::string> & merging_column_names) {
@@ -214,28 +213,42 @@ std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
-		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_input_expressions,
-		const std::vector<AggregateKind> & aggregation_types, const std::vector<std::string> & aggregation_column_assigned_aliases){
-
+	const ral::frame::BlazingTableView & table,
+	const std::vector<std::string> & aggregation_input_expressions,
+	const std::vector<AggregateKind> & aggregation_types,
+	const std::vector<std::string> & aggregation_column_assigned_aliases)
+{
 	std::vector<std::unique_ptr<cudf::scalar>> reductions;
 	std::vector<std::string> agg_output_column_names;
+	std::vector<int> all_indices;
+	bool is_multi_var = false;
 	for (size_t i = 0; i < aggregation_types.size(); i++){
-		if(aggregation_input_expressions[i] == "" && aggregation_types[i] == AggregateKind::COUNT_ALL) { // this is a COUNT(*)
+		std::string agg_input_expr = aggregation_input_expressions[i];
+		if (agg_input_expr == "" && aggregation_types[i] == AggregateKind::COUNT_ALL) { // this is a COUNT(*)
 			std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT64));
 			auto numeric_s = static_cast< cudf::scalar_type_t<int64_t>* >(scalar.get());
 			numeric_s->set_value((int64_t)(table.view().num_rows()));
 			reductions.emplace_back(std::move(scalar));
 		} else {
 			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> aggregation_input_scope_holder;
-			CudfColumnView aggregation_input;
-			if(is_var_column(aggregation_input_expressions[i]) || is_number(aggregation_input_expressions[i])) {
-				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
+			cudf::column_view aggregation_input;
+
+			// For operations like `COUNT($0, $1)`
+			size_t num_columns_to_count = StringUtil::findAndCountAllMatches(agg_input_expr, "$");
+			if (num_columns_to_count > 1 && aggregation_types[i] == AggregateKind::COUNT_VALID) {
+				is_multi_var = true;
+				// As we just want to count valid values, lets apply a rule (+) for all kind of columns
+				agg_input_expr = modify_multi_column_count_expression(agg_input_expr, all_indices);
+			}
+
+			if (num_columns_to_count == 1 || is_number(agg_input_expr)) {
+				aggregation_input = table.view().column(get_index(agg_input_expr));
 			} else {
-				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.view(), {aggregation_input_expressions[i]});
+				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.view(), {agg_input_expr});
 				aggregation_input = aggregation_input_scope_holder[0]->view();
 			}
 
-			if( aggregation_types[i] == AggregateKind::COUNT_VALID) {
+			if (aggregation_types[i] == AggregateKind::COUNT_VALID) {
 				std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT64));
 				auto numeric_s = static_cast< cudf::scalar_type_t<int64_t>* >(scalar.get());
 				numeric_s->set_value((int64_t)(aggregation_input.size() - aggregation_input.null_count()));
@@ -244,8 +257,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 				std::unique_ptr<cudf::aggregation> agg = makeCudfAggregation<cudf::aggregation>(aggregation_types[i]);
 				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i], false);
 				std::unique_ptr<cudf::scalar> reduction_out = cudf::reduce(aggregation_input, agg, cudf::data_type(output_type));
-				if (aggregation_types[i] == AggregateKind::SUM0 && !reduction_out->is_valid()){ // if this aggregation was a SUM0, and it was not valid, we want it to be a valid 0 instead
-					std::unique_ptr<cudf::scalar> zero_scalar = get_scalar_from_string("0", reduction_out->type()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
+
+				// if this aggregation was a SUM0, and it was not valid, we want it to be a valid 0 instead
+				if (aggregation_types[i] == AggregateKind::SUM0 && !reduction_out->is_valid()){
+					// this does not need to be from a string, but this is a convenient way to make the scalar i need
+					std::unique_ptr<cudf::scalar> zero_scalar = get_scalar_from_string("0", reduction_out->type());
 					reductions.emplace_back(std::move(zero_scalar));
 				} else {
 					reductions.emplace_back(std::move(reduction_out));
@@ -255,15 +271,25 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 
 		// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 		if(aggregation_column_assigned_aliases[i] == "") {
-			if(aggregation_input_expressions[i] == "" && aggregation_types[i] == AggregateKind::COUNT_ALL) { // this is a COUNT(*)
+			if(agg_input_expr == "" && aggregation_types[i] == AggregateKind::COUNT_ALL) { // this is a COUNT(*)
 				agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(*)");
 			} else {
-				agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(" + table.names().at(get_index(aggregation_input_expressions[i])) + ")");
+				std::string output_name = aggregator_to_string(aggregation_types[i]) + "(";
+				if (is_multi_var) {
+					for (size_t i = 0; i < all_indices.size(); ++i) {
+						output_name += table.names().at(all_indices[i]) + ", ";
+					}
+					output_name = output_name.substr(0, output_name.size() - 2) + ")";
+				} else {
+					output_name += table.names().at(get_index(aggregation_input_expressions[i])) + ")";
+				}
+				agg_output_column_names.push_back(output_name);
 			}
 		} else {
 			agg_output_column_names.push_back(aggregation_column_assigned_aliases[i]);
 		}
 	}
+
 	// convert scalars into columns
 	std::vector<std::unique_ptr<cudf::column>> output_columns;
 	for (size_t i = 0; i < reductions.size(); i++){
@@ -274,9 +300,12 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
-		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_input_expressions, const std::vector<AggregateKind> & aggregation_types,
-		const std::vector<std::string> & aggregation_column_assigned_aliases, const std::vector<int> & group_column_indices) {
-
+	const ral::frame::BlazingTableView & table,
+	const std::vector<std::string> & aggregation_input_expressions,
+	const std::vector<AggregateKind> & aggregation_types,
+	const std::vector<std::string> & aggregation_column_assigned_aliases,
+	const std::vector<int> & group_column_indices)
+{
 	// lets get the unique expressions. This is how many aggregation requests we will need
 	std::vector<std::string> unique_expressions = aggregation_input_expressions;
 	std::sort( unique_expressions.begin(), unique_expressions.end() );
@@ -293,22 +322,33 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	for (size_t u = 0; u < unique_expressions.size(); u++){
 		std::string expression = unique_expressions[u];
 
-		CudfColumnView aggregation_input; // this is the input from which we will crete the aggregation request
+		cudf::column_view aggregation_input; // this is the input from which we will crete the aggregation request
 		bool got_aggregation_input = false;
+		std::vector<int> all_indices;
+		bool is_multi_var = false;
 		std::vector<std::unique_ptr<cudf::aggregation>> agg_ops_for_request;
 		for (size_t i = 0; i < aggregation_input_expressions.size(); i++){
-			if (expression == aggregation_input_expressions[i]){
+			std::string agg_input_expr = aggregation_input_expressions[i];
+			if (expression == agg_input_expr){
+				
+				// For operations like `COUNT($0, $1)`
+				size_t num_columns_to_count = StringUtil::findAndCountAllMatches(agg_input_expr, "$");
+				if (num_columns_to_count > 1 && aggregation_types[i] == AggregateKind::COUNT_VALID) {
+					is_multi_var = true;
+					// As we just want to count valid values, lets apply a rule (+) for all kind of columns
+					agg_input_expr = modify_multi_column_count_expression(agg_input_expr, all_indices);
+				}
 
 				int column_index = -1;
 				// need to calculate or determine the aggregation input only once
 				if (!got_aggregation_input) {
 					if(expression == "" && aggregation_types[i] == AggregateKind::COUNT_ALL ) { // this is COUNT(*). Lets just pick the first column
 						aggregation_input = table.view().column(0);
-					} else if(is_var_column(expression) || is_number(expression)) {
+					} else if(num_columns_to_count == 1 || is_number(expression)) {
 						column_index = get_index(expression);
 						aggregation_input = table.view().column(column_index);
 					} else {
-						std::vector< std::unique_ptr<ral::frame::BlazingColumn> > computed_columns = ral::processor::evaluate_expressions(table.view(), {expression});
+						std::vector< std::unique_ptr<ral::frame::BlazingColumn> > computed_columns = ral::processor::evaluate_expressions(table.view(), {agg_input_expr});
 						aggregation_inputs_scope_holder.insert(aggregation_inputs_scope_holder.end(), std::make_move_iterator(computed_columns.begin()), std::make_move_iterator(computed_columns.end()));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					}
@@ -333,7 +373,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				}
 			}
 		}
-			requests.push_back(cudf::groupby::aggregation_request {.values = aggregation_input, .aggregations = std::move(agg_ops_for_request)});
+		requests.push_back(cudf::groupby::aggregation_request {.values = aggregation_input, .aggregations = std::move(agg_ops_for_request)});
 	}
 
 	CudfTableView keys = table.view().select(group_column_indices);
@@ -353,7 +393,8 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	}
 	for (size_t i = 0; i < agg_out_indices.size(); i++){
 		if (aggregation_types[agg_out_indices[i]] == AggregateKind::SUM0 && agg_cols_out[i]->null_count() > 0){
-			std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", agg_cols_out[i]->type()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
+			// this does not need to be from a string, but this is a convenient way to make the scalar i need
+			std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", agg_cols_out[i]->type());
 			std::unique_ptr<cudf::column> temp = cudf::replace_nulls(agg_cols_out[i]->view(), *scalar );
 			output_columns[agg_out_indices[i] + group_column_indices.size()] = std::move(temp);
 		} else {

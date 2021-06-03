@@ -4,15 +4,10 @@ TEST_SUITE:
   SETUP:
     APPLY_ORDER: True
     USE_PERCENTAGE: False
-    ACCEPTABLE_DIFFERENCE: 0.01 #0.1
+    ACCEPTABLE_DIFFERENCE: 0.01
     COMPARE_WITH: drill
     SKIP_WITH:
       - SINGLENODE:
-        - DASK_CUDF
-      - MULTINODE:
-        - WITH_NULLS:
-          - CUDF
-      - WITH_NULLS:
         - DASK_CUDF
       - JSON
 
@@ -44,16 +39,12 @@ TEST_SUITE:
         select count(distinct(o_custkey)), avg(o_totalprice),
                 (o_orderkey + o_custkey) as num from orders
                 where o_custkey < 100 group by o_custkey, o_orderkey
-#    SETUP:
-#      ACCEPTABLE_DIFFERENCE: 0.01
 
   TEST_05:
     SQL: |
         select count(distinct(o_custkey)), max(o_totalprice),
                     min(o_totalprice), avg(o_totalprice)
                     from orders group by o_custkey
-#    SETUP:
-#      ACCEPTABLE_DIFFERENCE: 0.01
 
   TEST_06:
     SQL: |
@@ -117,3 +108,33 @@ TEST_SUITE:
                     SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
                     right outer join region as r on n.n_nationkey = r.r_regionkey
                     GROUP BY r.r_regionkey, n.n_nationkey
+
+  TEST_15:
+    SQL: |
+      SELECT count(distinct c_nationkey, c_custkey) from customer
+    SETUP:
+        COMPARE_WITH: spark
+  
+  TEST_16:
+    SQL: |
+      SELECT count(distinct c_custkey, c_nationkey) from customer
+    SETUP:
+        COMPARE_WITH: spark
+
+  TEST_17:
+    SQL: |
+        SELECT count(distinct o_orderkey, o_custkey, o_totalprice) from orders
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_18:
+    SQL: |
+        SELECT count(distinct o_custkey, o_orderkey, o_orderdate) from orders
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_19:
+    SQL: |
+        SELECT count(distinct o_totalprice, o_custkey, o_shippriority) from orders
+    SETUP:
+      COMPARE_WITH: spark

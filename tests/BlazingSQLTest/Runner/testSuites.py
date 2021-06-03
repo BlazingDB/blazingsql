@@ -5,6 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import yaml
 import os
+import sys
 
 __all__ = ["TestSuites"]
 
@@ -20,31 +21,42 @@ class TestSuites():
         self.globalConfig = ConfigTest()
         self.dataTestSuite = None
 
-        self.__setupTest()
+        self.__loadDefaultConfigFromFile()
         self.__loadTargetTestDataFromFile()
 
-    def __setupTest(self):
-        self.globalConfig.apply_order = True
-        self.globalConfig.use_percentage = False
-        self.globalConfig.acceptable_difference = 0.01
-        self.globalConfig.order_by_col = ""
-        self.globalConfig.print_result = True
-        self.globalConfig.compare_with = 'drill'
-        self.globalConfig.spark_query = ""
-        self.globalConfig.comparing = True
-        self.globalConfig.message_validation = ""
-        self.globalConfig.data_types = [
-            DataType.DASK_CUDF,
-            DataType.CUDF,
-            DataType.CSV,
-            DataType.PARQUET,
-            DataType.ORC,
-            DataType.JSON
-        ]
+    def __loadDefaultConfigFromFile(self):
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        if "--config-file" in sys.argv and len(sys.argv) >= 3:
+            fileName = cwd + "/" + sys.argv[2]
+        else:
+            fileName = cwd + "/config.yaml"
+
+        if os.path.isfile(fileName):
+            with open(fileName, 'r') as stream:
+                fileYaml = yaml.safe_load(stream)
+        else:
+            raise Exception("Error: " + fileName + " not exist")
+
+        if "RUN_SETTINGS" in fileYaml:
+            run_settings = fileYaml["RUN_SETTINGS"]
+
+            if run_settings.get("CONCURRENT") is not None: self.globalConfig.is_concurrent = run_settings.get("CONCURRENT")
+
+        if "SETUP" in fileYaml:
+            setup = fileYaml["SETUP"]
+
+            if setup.get("COMPARING") is not None: self.globalConfig.comparing = setup.get("COMPARING")
+            if setup.get("APPLY_ORDER") is not None: self.globalConfig.apply_order = setup.get("APPLY_ORDER")
+            if setup.get("PRINT_RESULT") is not None: self.globalConfig.print_result = setup.get("PRINT_RESULT")
+            if setup.get("COMPARE_WITH") is not None: self.globalConfig.compare_with = setup.get("COMPARE_WITH")
+            if setup.get("USE_PERCENTAGE") is not None: self.globalConfig.use_percentage = setup.get("USE_PERCENTAGE")
+            if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.globalConfig.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
+            if setup.get("DATA_TYPES") is not None: self.globalConfig.data_types = setup.get("DATA_TYPES")
+            self.globalConfig.data_types = [DataType[item] for item in self.globalConfig.data_types]
 
     def __loadTargetTestDataFromFile(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
-        fileName = cwd + "/targetTest.yml"
+        fileName = cwd + "/targetTest.yaml"
         if os.path.isfile(fileName):
             with open(fileName, 'r') as stream:
                 fileYaml = yaml.safe_load(stream)
@@ -52,7 +64,7 @@ class TestSuites():
             self.dataTestSuite = fileYaml["LIST_TEST"]
             return
 
-        raise RuntimeError("ERROR: Runner/targetTest.yml not found")
+        raise RuntimeError("ERROR: Runner/targetTest.yaml not found")
 
     def __existTestData(self, test):
         cwd = os.path.dirname(os.path.realpath(__file__))

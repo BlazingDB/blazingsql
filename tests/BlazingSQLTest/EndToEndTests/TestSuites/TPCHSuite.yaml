@@ -1,6 +1,10 @@
 # TPCH Test Suite
 
 TEST_SUITE:
+  RUN_SETTINGS:
+    CONCURRENT:
+      - False
+      - True
   SETUP:
     APPLY_ORDER: True
     USE_PERCENTAGE: False

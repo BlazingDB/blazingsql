@@ -12,7 +12,6 @@ from EndToEndTests.oldScripts import loggingTest
 from EndToEndTests.oldScripts import smilesTest
 from EndToEndTests.oldScripts import configOptionsTest
 from EndToEndTests.oldScripts import tablesFromSQL
-from EndToEndTests.oldScripts import concurrentTest
 
 def runLegacyTest(bc, dask_client, drill, spark):
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
@@ -64,10 +63,6 @@ def runLegacyTest(bc, dask_client, drill, spark):
         if Settings.execution_mode != ExecutionMode.GPUCI:
             if runAllTests or ("tablesFromSQL" in targetTestGroups):
                 tablesFromSQL.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-
-    # if testsWithNulls != "true":
-    #     if runAllTests or ("concurrentTest" in targetTestGroups):
-    #         concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test ----------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

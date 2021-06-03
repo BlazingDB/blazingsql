@@ -1428,3 +1428,35 @@ std::string apply_interval_conversion(std::string expression, std::vector<cudf::
 
 	return expression;
 }
+
+// For this function `indices` vector starts empty
+// inputs:
+// 	expression: "$0, $1, $3"
+//  indices: []
+// output: "+(+(CAST($0):INTEGER, CAST($1):INTEGER), CAST($3):INTEGER)"
+std::string modify_multi_column_count_expression(std::string expression, std::vector<int> & indices) {
+	size_t first_post = expression.find("$");
+	if (first_post == expression.npos) return expression;
+
+	std::string reduced_expr = expression.substr(first_post + 1, expression.size() - first_post);
+	StringUtil::findAndReplaceAll(reduced_expr, "$", "");
+	std::vector<std::string> indices_str = get_expressions_from_expression_list(reduced_expr);
+
+	if (indices_str.size() == 1) {
+		indices.push_back(std::stoi(indices_str[0]));
+		return expression;
+	}
+
+	for (size_t i = 0; i < indices_str.size(); ++i) {
+		indices.push_back(std::stoi(indices_str[i]));
+	}
+
+	std::string add_expr = "+(", cast_expr = "CAST($", integer_expr = "):INTEGER";
+	expression = add_expr + cast_expr + std::to_string(indices[0]) + integer_expr + ", " + cast_expr + std::to_string(indices[1]) + integer_expr + ")";
+
+	for (size_t i = 2; i < indices.size(); ++i) {
+		expression = add_expr + expression + ", " + cast_expr + std::to_string(indices[i]) + integer_expr + ")";
+	}
+
+	return expression;
+}

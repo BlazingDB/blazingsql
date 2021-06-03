@@ -6,7 +6,7 @@
 - #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 - #1505 Support for right outer join
 - #1523 Support for DURATION type
-
+- #1552 Support for concurrency in E2E tests
 
 ## Improvements
 - #1464 Better Support for unsigned types in C++ side
@@ -16,7 +16,7 @@
 - #1547 Update RAPIDS version references
 - #1539 Support ORDERing by null values
 - #1551 Support for spdlog 1.8.5
-
+- #1553 multiple columns inside COUNT() statement
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
@@ -410,3 +410,4 @@
 - #932 Import pydrill and pyspark only when its generator or full mode.
 - #1031 adding notebooks into BlazingSQL Tests
 - #1486 Define generic templates for E2E Testing framework.
+- #1542 Cleaning code on E2E Test framework.

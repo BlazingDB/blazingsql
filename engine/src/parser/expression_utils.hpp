@@ -270,3 +270,5 @@ size_t get_index_from_expression_str(std::string expression);
 std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema);
 
 std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema);
+
+std::string modify_multi_column_count_expression(std::string expression, std::vector<int> & indices);
