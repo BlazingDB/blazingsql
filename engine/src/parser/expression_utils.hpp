@@ -271,6 +271,4 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 
 std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema);
 
-std::vector<int> get_all_indices_from_count_expression(const std::string& expression);
-
-std::string expand_indices_to_apply_casts(std::vector<int> indices);
+std::string modify_multi_column_count_expression(std::string expression, std::vector<int> & indices);

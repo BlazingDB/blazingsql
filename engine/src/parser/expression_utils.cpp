@@ -1429,33 +1429,26 @@ std::string apply_interval_conversion(std::string expression, std::vector<cudf::
 	return expression;
 }
 
-// input: COUNT($0, $1, $3)
-// output: [0, 1, 3]
-std::vector<int> get_all_indices_from_count_expression(const std::string& expression){
-	std::vector<int> indices;
-
+// For this function `indices` vector starts empty
+// inputs:
+// 	expression: "$0, $1, $3"
+//  indices: []
+// output: "+(+(CAST($0):INTEGER, CAST($1):INTEGER), CAST($3):INTEGER)"
+std::string modify_multi_column_count_expression(std::string expression, std::vector<int> & indices) {
 	size_t first_post = expression.find("$");
-	if (first_post == expression.npos) return indices;
+	if (first_post == expression.npos) return expression;
 
 	std::string reduced_expr = expression.substr(first_post + 1, expression.size() - first_post);
 	StringUtil::findAndReplaceAll(reduced_expr, "$", "");
 	std::vector<std::string> indices_str = get_expressions_from_expression_list(reduced_expr);
 
-	for (size_t i = 0; i < indices_str.size(); ++i) {
-		indices.push_back(std::stoi(indices_str[i]));
+	if (indices_str.size() == 1) {
+		indices.push_back(std::stoi(indices_str[0]));
+		return expression;
 	}
 
-	return indices;
-}
-
-// input: [0, 1, 3]
-// output: +(+(CAST($0):INTEGER, CAST($1):INTEGER), CAST($3):INTEGER)
-std::string expand_indices_to_apply_casts(std::vector<int> indices) {
-	std::string expression;
-	if (indices.size() == 0 ) {
-		return expression;
-	} else if (indices.size() == 1) {
-		return "$" + std::to_string(indices[0]);
+	for (size_t i = 0; i < indices_str.size(); ++i) {
+		indices.push_back(std::stoi(indices_str[i]));
 	}
 
 	std::string add_expr = "+(", cast_expr = "CAST($", integer_expr = "):INTEGER";

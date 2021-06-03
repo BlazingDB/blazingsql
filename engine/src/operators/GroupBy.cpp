@@ -237,10 +237,8 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			size_t num_columns_to_count = StringUtil::findAndCountAllMatches(agg_input_expr, "$");
 			if (num_columns_to_count > 1 && aggregation_types[i] == AggregateKind::COUNT_VALID) {
 				is_multi_var = true;
-				all_indices = get_all_indices_from_count_expression(agg_input_expr);
-
 				// As we just want to count valid values, lets apply a rule (+) for all kind of columns
-				agg_input_expr = expand_indices_to_apply_casts(all_indices);
+				agg_input_expr = modify_multi_column_count_expression(agg_input_expr, all_indices);
 			}
 
 			if (num_columns_to_count == 1 || is_number(agg_input_expr)) {
@@ -337,10 +335,8 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				size_t num_columns_to_count = StringUtil::findAndCountAllMatches(agg_input_expr, "$");
 				if (num_columns_to_count > 1 && aggregation_types[i] == AggregateKind::COUNT_VALID) {
 					is_multi_var = true;
-					all_indices = get_all_indices_from_count_expression(agg_input_expr);
-
 					// As we just want to count valid values, lets apply a rule (+) for all kind of columns
-					agg_input_expr = expand_indices_to_apply_casts(all_indices);
+					agg_input_expr = modify_multi_column_count_expression(agg_input_expr, all_indices);
 				}
 
 				int column_index = -1;

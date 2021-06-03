@@ -605,64 +605,53 @@ TEST_F(ExpressionUtilsTest, reinterpreting_timestamp_ns)
 	EXPECT_EQ(out_expression, expected_str);
 }
 
-TEST_F(ExpressionUtilsTest, get_indices_from_expression_empty)
+TEST_F(ExpressionUtilsTest, modify_multi_column_count_expression_empty)
 {
 	std::string expression = "";
-	std::vector<int> indices = get_all_indices_from_count_expression(expression);
+	std::vector<int> indices;
+	std::string out_expr = modify_multi_column_count_expression(expression, indices);
+	EXPECT_EQ(out_expr.size(), 0);
 	EXPECT_EQ(indices.size(), 0);
 }
 
-TEST_F(ExpressionUtilsTest, get_indices_from_expression_count_all)
+TEST_F(ExpressionUtilsTest, modify_multi_column_count_expression_count_all)
 {
 	std::string expression = "COUNT(*)";
-	std::vector<int> indices = get_all_indices_from_count_expression(expression);
+	std::vector<int> indices;
+	std::string out_expr = modify_multi_column_count_expression(expression, indices);
+	EXPECT_EQ(out_expr, expression);
 	EXPECT_EQ(indices.size(), 0);
 }
 
-TEST_F(ExpressionUtilsTest, get_indices_from_expression_single_col)
+TEST_F(ExpressionUtilsTest, modify_multi_column_count_expression_single_col)
 {
 	std::string expression = "COUNT($2)";
-	std::vector<int> indices = get_all_indices_from_count_expression(expression);
+	std::vector<int> indices;
+	std::string out_expr = modify_multi_column_count_expression(expression, indices);
+	EXPECT_EQ(out_expr, expression);
 	EXPECT_EQ(indices.size(), 1);
 	EXPECT_EQ(indices[0], 2);
 }
 
-TEST_F(ExpressionUtilsTest, get_indices_from_expression_multi_col)
+TEST_F(ExpressionUtilsTest, modify_multi_column_count_expression_two_cols)
+{
+	std::string expression = "COUNT($1, $4)";
+	std::vector<int> indices;
+	std::string out_expr = modify_multi_column_count_expression(expression, indices);
+	EXPECT_EQ(out_expr, "+(CAST($1):INTEGER, CAST($4):INTEGER)");
+	EXPECT_EQ(indices.size(), 2);
+	EXPECT_EQ(indices[0], 1);
+	EXPECT_EQ(indices[1], 4);
+}
+
+TEST_F(ExpressionUtilsTest, modify_multi_column_count_expression_three_cols)
 {
 	std::string expression = "COUNT($0, $1, $3)";
-	std::vector<int> indices = get_all_indices_from_count_expression(expression);
-	std::vector<int> expected_indices = {0, 1, 3};
-	EXPECT_EQ(indices.size(), expected_indices.size());
-
-	for (size_t i = 0; i < indices.size(); ++i) {
-		EXPECT_EQ(indices[i], expected_indices[i]);
-	}
-}
-
-TEST_F(ExpressionUtilsTest, expand_indices_to_apply_casts_empty)
-{
 	std::vector<int> indices;
-	std::string expression = expand_indices_to_apply_casts(indices);
-	EXPECT_EQ(expression.size(), 0);
-}
-
-TEST_F(ExpressionUtilsTest, expand_indices_to_apply_casts_one_col)
-{
-	std::vector<int> indices = {1};
-	std::string expression = expand_indices_to_apply_casts(indices);
-	EXPECT_EQ(expression, "$1");
-}
-
-TEST_F(ExpressionUtilsTest, expand_indices_to_apply_casts_two_cols)
-{
-	std::vector<int> indices = {1, 4};
-	std::string expression = expand_indices_to_apply_casts(indices);
-	EXPECT_EQ(expression, "+(CAST($1):INTEGER, CAST($4):INTEGER)");
-}
-
-TEST_F(ExpressionUtilsTest, expand_indices_to_apply_casts_three_cols)
-{
-	std::vector<int> indices = {0, 1, 3};
-	std::string expression = expand_indices_to_apply_casts(indices);
-	EXPECT_EQ(expression, "+(+(CAST($0):INTEGER, CAST($1):INTEGER), CAST($3):INTEGER)");
+	std::string out_expr = modify_multi_column_count_expression(expression, indices);
+	EXPECT_EQ(out_expr, "+(+(CAST($0):INTEGER, CAST($1):INTEGER), CAST($3):INTEGER)");
+	EXPECT_EQ(indices.size(), 3);
+	EXPECT_EQ(indices[0], 0);
+	EXPECT_EQ(indices[1], 1);
+	EXPECT_EQ(indices[2], 3);
 }
