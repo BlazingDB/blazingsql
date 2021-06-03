@@ -110,14 +110,14 @@ def get_null_constants(df):
     return null_values
 
 
-def compare_result_values(pdf1, pdf2, acceptable_difference, use_percentage, engine):   
+def compare_result_values(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     """
         The purpose of this functions is to compare the values from blazingsql and drill/spark results.
 
         ----------
         pdf1 : blazing results (pandas dataframe)
         pdf2: drill/spark results (pandas dataframe)
-        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        acceptable_difference: This parameter is related to the acceptable difference beetween values
         from blazingsql results and drill/spark results.
         use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
         engine: pydrill or pyspark instances
@@ -275,7 +275,7 @@ def get_resultId(resultComparisson):
 
 def get_codTest(test_name):
     cwd = os.path.dirname(os.path.realpath(__file__))
-    fileName = cwd + "/targetTest.yml"
+    fileName = cwd + "/targetTest.yaml"
     if os.path.isfile(fileName):
         with open(fileName, 'r') as stream:
             fileYaml = yaml.safe_load(stream)["LIST_TEST"]
@@ -339,7 +339,7 @@ def compare_test_results(  pdf1,
         ----------
         pdf1 : blazing results (pandas dataframe)
         pdf2: drill/spark results (pandas dataframe)
-        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        acceptable_difference: This parameter is related to the acceptable difference beetween values
         from blazingsql results and drill/spark results.
         use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
         comparing: Parameter to indicate if the results from blazingsql will be compared with the results from drill or spark
@@ -968,7 +968,7 @@ def run_query_drill(drill, query_str):
     return result
 
 
-def run_query_spark(spark, query_str):  
+def run_query_spark(spark, query_str):
     query_result = spark.sql(query_str)
     df = query_result.toPandas()
     if df.size == 0:
@@ -1041,7 +1041,7 @@ def results_file_generator(file_results_dir, testsWithNulls, filename, engine, p
 
 
 def run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_result):
-    
+
     result_gdf = None
 
     load_time = 0
@@ -1052,7 +1052,7 @@ def run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_
 
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
-        query_blz = query 
+        query_blz = query
         if algebra == "":
             start_time = time.time()
             try:
@@ -1071,9 +1071,9 @@ def run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_
 
     else:  # for nested queries as column basis test
         result_gdf = blz_result
-    
+
     return result_gdf, load_time, engine_time, total_time, error_message
-        
+
 
 def run_query(
     bc,
@@ -1099,7 +1099,7 @@ def run_query(
         queryId: Query Id.
         worder : (True/False) parameter to indicate if it's neccesary to order the results.
         orderBy : It indicate by what column we want to order the results.
-        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        acceptable_difference: This parameter is related to the acceptable difference beetween values
         from blazingsql results and drill/spark results.
         use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
         input_type: The data type (CSV, PARQUET, DASK_CUDF, JSON, ORC, GDF) that we use to run the query.
@@ -1192,15 +1192,15 @@ def run_query(
                 resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
 
             #base_results_gd = get_results(resultFile)
-            
-    results_processing(result_gdf, 
-                        base_results_gd, 
-                        worder, 
-                        orderBy, 
-                        testsWithNulls, 
-                        filename, 
-                        query, 
-                        queryId, 
+
+    results_processing(result_gdf,
+                        base_results_gd,
+                        worder,
+                        orderBy,
+                        testsWithNulls,
+                        filename,
+                        query,
+                        queryId,
                         queryType,
                         acceptable_difference,
                         use_percentage,
@@ -1217,14 +1217,14 @@ def run_query(
                         str_engine)
 
 
-def results_processing(result_gdf, 
-                    base_results_gd, 
-                    worder, 
-                    orderBy, 
-                    testsWithNulls, 
-                    filename, 
-                    query, 
-                    queryId, 
+def results_processing(result_gdf,
+                    base_results_gd,
+                    worder,
+                    orderBy,
+                    testsWithNulls,
+                    filename,
+                    query,
+                    queryId,
                     queryType,
                     acceptable_difference,
                     use_percentage,
@@ -1254,18 +1254,18 @@ def results_processing(result_gdf,
         filename: it's the name that the generated result file will have.
         query: Executed query.
         queryId: Query Id.
-        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        acceptable_difference: This parameter is related to the acceptable difference beetween values
         from blazingsql results and drill/spark results.
         use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
         print_result: (True/False) To show the query results information on the screen.
         engine: It's the instance of the engine (pydrill/ỳspark).
         input_type: The data type (CSV, PARQUET, DASK_CUDF, JSON, ORC, GDF) that we use to run the query.
-        load_time: 
-        engine_time: 
-        total_time: Total time to execute the query 
+        load_time:
+        engine_time:
+        total_time: Total time to execute the query
         comparing: It indicate if the results will be compared with the results with the based engines (drill/spark)
         resultFile: Complete path where the results file will be saved.
-        file_results_dir: Path where the results file will be saved. 
+        file_results_dir: Path where the results file will be saved.
         str_engine: the values will be drill/spark
 
     """
