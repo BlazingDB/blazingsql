@@ -1,23 +1,23 @@
 # Cast column to f64 before convert it to pandas
 # This is a hack, use the assert_equal comparator when nulls is
 # fully supported on cudf.sort_values
+
 import json
 import logging
 import os
 import re
 import time
 import yaml
+import numpy as np
+import pandas as pd
 
 import blazingsql
 from blazingsql import DataType
 
-# import git
-import numpy as np
-import pandas as pd
-
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
+
 from DataBase import createSchema as cs
 
 if ((Settings.execution_mode == ExecutionMode.FULL and
@@ -34,17 +34,9 @@ class Result:
         self.resultSet = resultSet
         self.resultBlz = resultBlz
 
-
 name = "blzlogging"
 
 HANDLER = lhandler.logging_handler()
-
-
-class loggerblz:
-    def __init__(self, query, error, totaltime):
-        self.query = query
-        self.error = error
-        self.totaltime = totaltime
 
 
 class result:
@@ -118,7 +110,19 @@ def get_null_constants(df):
     return null_values
 
 
-def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
+def compare_result_values(pdf1, pdf2, acceptable_difference, use_percentage, engine):   
+    """
+        The purpose of this functions is to compare the values from blazingsql and drill/spark results.
+
+        ----------
+        pdf1 : blazing results (pandas dataframe)
+        pdf2: drill/spark results (pandas dataframe)
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        engine: pydrill or pyspark instances
+    """
+
     np.warnings.filterwarnings("ignore")
 
     if pdf1.size == 0 and pdf2.size == 0:
@@ -286,8 +290,7 @@ def get_codTest(test_name):
 
     raise Exception("ERROR: CODE configuration not found for '" + test_name + "' in targetTest.yaml, i.e. CODE: BALIAS")
 
-
-def print_fixed_log(
+def logger_results(
     logger,
     test_name,
     input_type,
@@ -322,22 +325,72 @@ def print_fixed_log(
     logger.info(total_time)
 
 
-def print_query_results(
+def compare_test_results(  pdf1,
+						pdf2,
+						acceptable_difference,
+						use_percentage,
+						engine,
+						comparing=True
+					):
+
+    """
+        Compare values, number of rows, columns, and column names
+
+        ----------
+        pdf1 : blazing results (pandas dataframe)
+        pdf2: drill/spark results (pandas dataframe)
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        comparing: Parameter to indicate if the results from blazingsql will be compared with the results from drill or spark
+    """
+
+    compareResults = True
+    error_message = ""
+    stringResult = ""
+    columnNamesComparison = True
+    resultComparisson = ""
+
+    if "compare_result_values" in Settings.data["RunSettings"]:
+        compareResults = Settings.data["RunSettings"]["compare_result_values"]
+
+    # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+    if not comparing:
+        compareResults = False
+
+    if compareResults:
+        columnNamesComparison = compare_column_names(pdf1, pdf2)
+        if columnNamesComparison is not True:
+            error_message = "Column names are not the same"
+
+        resultComparisson = compare_result_values(
+            pdf1, pdf2, acceptable_difference, use_percentage, engine
+        )
+        if resultComparisson != "Success":
+            error_message = resultComparisson[6:]
+
+        stringResult = resultComparisson
+        if resultComparisson != "Success" or columnNamesComparison is False:
+            stringResult = "Fail"
+    else:
+        stringResult = "Success"
+
+    return error_message, stringResult, columnNamesComparison, resultComparisson
+
+def print_comparison_results(
     sql,
     queryId,
     queryType,
     pdf1,
     pdf2,
-    resultgdf,
-    acceptable_difference,
-    use_percentage,
     print_result,
     engine,
     input_type,
-    load_time,
-    engine_time,
     total_time,
-    comparing=True
+    error_message,
+    stringResult,
+    columnNamesComparison,
+    resultComparisson
 ):
     if print_result:
         print("#BLZ:")
@@ -358,43 +411,16 @@ def print_query_results(
     print("#QUERY:")
     print(sql)
     print("RESULT:")
-
-    error_message = ""
-    stringResult = ""
-
-    compareResults = True
-    if "compare_results" in Settings.data["RunSettings"]:
-        compareResults = Settings.data["RunSettings"]["compare_results"]
-
-    # For dateTest (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
-    if not comparing:
-        compareResults = False
-
-    if compareResults:
-        columnNamesComparison = compare_column_names(pdf1, pdf2)
-        if columnNamesComparison is not True:
-            print("Columns:")
-            print(pdf1.columns)
-            print(pdf2.columns)
-
-            error_message = "Column names are not the same"
-            print("ERROR:")
-            print(error_message)
-
-        resultComparisson = compare_results(
-            pdf1, pdf2, acceptable_difference, use_percentage, engine
-        )
-        if resultComparisson != "Success":
-            error_message = resultComparisson[6:]
-            print("ERROR:")
-            print(error_message)
-
-        stringResult = resultComparisson
-        if resultComparisson != "Success" or columnNamesComparison is False:
-            stringResult = "Fail"
-    else:
-        stringResult = "Success"
     print(stringResult)
+    if columnNamesComparison is not True:
+        print("Columns:")
+        print(pdf1.columns)
+        print(pdf2.columns)
+        print("ERROR:")
+        print(error_message)
+    if resultComparisson != "Success":
+        print("ERROR:")
+        print(error_message)
 
     print("TOTAL TIME: ")
     print(total_time)
@@ -404,25 +430,7 @@ def print_query_results(
     # print(resultgdf.total_nodes)
     print("===================================================")
 
-    logger = logginghelper(name)
-
-    # TODO percy kharoly bindings we need to get the number from internal api
-    # print_fixed_log(logger, queryType, queryId, sql, stringResult,
-    #                                          error_message, 1, 1, 2)
-    print_fixed_log(
-        logger,
-        queryType,
-        input_type,
-        queryId,
-        sql,
-        stringResult,
-        error_message,
-        load_time,
-        engine_time,
-        total_time,
-    )
-
-def print_query_results2(sql, queryId, input_type, queryType, error_message, message_validation):
+def print_validation_results(sql, queryId, input_type, queryType, error_message, message_validation):
     print(queryId)
     print("#QUERY:")
     print(sql)
@@ -445,11 +453,11 @@ def print_query_results2(sql, queryId, input_type, queryType, error_message, mes
 
     logger = logginghelper(name)
 
-    print_fixed_log(
+    logger_results(
         logger, queryType, input_type, queryId, sql, result, error_message, None, None, None
     )
 
-def print_query_results_performance(sql, queryId, queryType, resultgdf):
+def print_performance_results(sql, queryId, queryType, resultgdf):
     print(queryId)
     print("#QUERY:")
     print(sql)
@@ -466,7 +474,7 @@ def print_query_results_performance(sql, queryId, queryType, resultgdf):
 
     logger = logginghelper(name)
 
-    print_fixed_log(
+    logger_results(
         logger,
         queryType,
         queryId,
@@ -479,62 +487,6 @@ def print_query_results_performance(sql, queryId, queryType, resultgdf):
     )
 
 
-def print_query_results_dist(
-    sql,
-    queryId,
-    queryType,
-    pdf1,
-    pdf2,
-    resultgdf,
-    acceptable_difference,
-    use_percentage,
-    print_result,
-):
-    if print_result:
-        print("#BLZ:")
-        print(pdf1)
-        print("#DRILL:")
-        print(pdf2)
-    print(queryId)
-    print("#QUERY:")
-    print(sql)
-    print("RESULT:")
-    resultComparisson = compare_results(
-        pdf1.values, pdf2.values, acceptable_difference, use_percentage
-    )
-    error_message = ""
-    if resultComparisson != "Success":
-        error_message = resultComparisson[6:]
-        resultComparisson = "Fail"
-        print(resultComparisson)
-        print("ERROR:")
-        print(error_message)
-    else:
-        print(resultComparisson)
-    print("CALCITE TIME: ")
-    print(resultgdf.calciteTime)
-    print("RAL TIME: ")
-    print(resultgdf.ralTime)
-    print("EXECUTION TIME: ")
-    print(resultgdf.totalTime)
-
-    print("===================================================")
-
-    logger = logginghelper(name)
-
-    print_fixed_log(
-        logger,
-        queryType,
-        queryId,
-        sql,
-        resultComparisson,
-        error_message,
-        None,
-        None,
-        None,
-    )
-
-
 class Test:
     def __init__(self, test_name):
         self.test_name = test_name
@@ -544,6 +496,9 @@ class Test:
 
 
 def save_log(gpu_ci_mode=False):
+    """
+        put the log into a pandas dataframe
+    """
 
     c = 1
     cadena = []
@@ -647,6 +602,13 @@ def save_log(gpu_ci_mode=False):
 
 def create_summary_detail(df, no_color):
 
+    """
+        Build a summary with the details about hoy many queries pass/fail  and what queries have the failed status.
+
+        ----------
+        df : pdf log
+    """
+
     pdf = df
     pdf["Result"] = df["Result"].replace(1, "Success")
     pdf["Result"] = df["Result"].replace(0, "Fail")
@@ -692,326 +654,6 @@ def create_summary_detail(df, no_color):
     )
 
 
-# This function use the google spreadsheet to compare the current results
-# against historic ones
-# Returns a tuple with 2 entries:
-# 1st element: False in case gpuci should be fail, True otherwise
-# 2nd element: A list of error messages (in case 1st element is False)
-# Example:
-# result, error_msgs = verify_prev_google_sheet_results(log_pdf)
-# if result == False:
-#     exits the python process and do not move to next steps
-# TODO william kharoly felipe we should try to enable and use
-# this function in the future
-def _verify_prev_google_sheet_results(log_pdf):
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials
-
-    def get_the_data_from_sheet():
-        # Use creds to create a client to interact with the Google Drive API
-        scope = [
-            "https://www.googleapis.com/auth/drive",
-            "https://spreadsheets.google.com/feeds",
-        ]
-        # Using credentials from BlazingSQL
-        # os.getcwd() #Settings.data['TestSettings']['workspaceDirectory']
-        # # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
-        # current_dir = "/home/ubuntu/.conda/envs/e2e"
-
-        log_info = Settings.data["RunSettings"]["logInfo"]
-
-        if log_info == "":
-            print(
-                """####### ======= >>>>>>> WARNING this test run will not
-                   be compared against old results from Google Docs. Define
-                   the env var BLAZINGSQL_E2E_LOG_INFO"""
-            )
-            return None
-
-        log_info = json.loads(log_info)
-        creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(
-            log_info, scope
-        )
-        client_blazing = gspread.authorize(creds_blazing)
-        # Find a Locally workbook by name and open a sheet
-        work_sheet = "BSQL Log Results"
-
-        if "worksheet" in Settings.data["RunSettings"]:
-            work_sheet = Settings.data["RunSettings"]["worksheet"]
-
-        sheet_blazing = client_blazing.open("BSQL End-to-End Tests").worksheet(
-            work_sheet
-        )
-        # Writing log results into Blazing sheet
-        ret = pd.DataFrame(sheet_blazing.get_all_records())
-        # NOTE percy kharo william we need to patch these columns
-        # before convert to parquet
-        ret["LoadingTime"] = ret["LoadingTime"].astype(str)
-        ret["EngineTotalTime"] = ret["EngineTotalTime"].astype(str)
-        ret["TotalTime"] = ret["TotalTime"].astype(str)
-        return ret
-
-    dir_log = Settings.data["TestSettings"]["logDirectory"]
-    gspreadCacheHint = Settings.data["RunSettings"]["gspreadCacheHint"]
-    gspread_e2e_cache_path = dir_log + "/e2e-gspread-cache.parquet"
-
-    gspread_df = None
-
-    if gspreadCacheHint == "false":
-        gspread_df = get_the_data_from_sheet()
-        if gspread_df is not None:
-            # Always save a cache (so when gspreadCacheHint
-            # is false will refresh the cache)
-            gspread_df.to_parquet(gspread_e2e_cache_path)
-    elif gspreadCacheHint == "true":
-        if os.path.isfile(gspread_e2e_cache_path):
-            gspread_df = pd.read_parquet(gspread_e2e_cache_path)
-        else:
-            gspread_df = get_the_data_from_sheet()
-            if gspread_df is not None:
-                gspread_df.to_parquet(gspread_e2e_cache_path)
-
-    if gspread_df is None:
-        error_msg = """ERROR: This test run could not be compared
-                     against old results from Google Docs"""
-        return False, [error_msg]
-
-    log_pdf_copy = log_pdf.copy()
-    prev_nrals = gspread_df["nRALS"][0]
-    curr_nrals = Settings.data["RunSettings"]["nRals"]
-
-    # Assume prev_nrals == curr_nrals
-    last_e2e_run_id = gspread_df["Timestamp"][0]
-    # NOTE If prev_nrals != curr_nrals we need to search the first
-    # Timestamp (a.k.a ID) for the current nRals target
-    if prev_nrals != curr_nrals:
-        gspread_df_uniques = gspread_df.drop_duplicates()
-        gspread_df_uniques_target_nrals = gspread_df_uniques.loc[
-            gspread_df_uniques["nRALS"] == curr_nrals
-        ]
-        last_e2e_run_id = gspread_df_uniques_target_nrals.iloc[
-            0, 1
-        ]  # select the first Timestamp from the unique values
-
-    print(
-        "####### ======= >>>>>>> E2E INFO: We will compare the"
-        + " current run against the ID (Timestamp): "
-        + last_e2e_run_id
-    )
-
-    last_e2e_run_df = gspread_df.loc[gspread_df["Timestamp"] == last_e2e_run_id]
-
-    # NOTE percy kharo william we need to rename some columns to use our dfs
-    log_pdf_copy = log_pdf_copy.rename(
-        columns={
-            "TestGroup": "Test Group",
-            "InputType": "Input Type",
-            "nRals": "nRALS",
-            "DataDirectory": "data_dir",
-        }
-    )
-
-    # NOTE For debugging
-    # log_pdf_copy['TimeStamp'] = log_pdf_copy['TimeStamp'].astype(str)
-    # log_pdf_copy.to_parquet('/home/percy/workspace/logtest/ultimo.parquet',
-    #                                                    compression='GZIP')
-    # log_pdf_copy = pd.read_parquet('/home/user/last_run_log_df.parquet')
-
-    error_msgs = []
-
-    prev_summary = last_e2e_run_df.groupby("Test Group").count()
-    curr_summary = log_pdf_copy.groupby("Test Group").count()
-
-    prev_test_groups = prev_summary.index.tolist()
-    curr_test_groups = curr_summary.index.tolist()
-
-    has_less_test_groups = len(prev_test_groups) > len(curr_test_groups)
-
-    # Check if someone deleted some tests
-    # (there more test groups in the sheet)
-    if has_less_test_groups:
-        list_difference = [
-            item for item in prev_test_groups if item not in curr_test_groups
-        ]
-        error_msg = (
-            "ERROR: current e2e has less test groups than"
-            + " previous run, delta is %s" % list_difference
-        )
-        error_msgs.append(error_msg)
-
-    # Just check the common test groups
-    if has_less_test_groups:
-        test_groups = curr_test_groups
-    else:
-        test_groups = prev_test_groups
-
-    for test_group in test_groups:
-        prev_test_group_df = last_e2e_run_df.loc[
-            last_e2e_run_df["Test Group"] == test_group
-        ]
-        prev_input_types = (
-            prev_test_group_df.groupby("Input Type").count().index.tolist()
-        )
-
-        curr_test_group_df = log_pdf_copy.loc[log_pdf_copy["Test Group"] == test_group]
-        cur_input_typ = curr_test_group_df.groupby("Input Type").count().index.tolist()
-
-        has_less_input_types = len(prev_input_types) > len(cur_input_typ)
-
-        if has_less_input_types is True:
-            list_difference = [
-                item for item in prev_input_types if item not in cur_input_typ
-            ]
-            error_msg = """ERROR: current test group %s has less
-                         input types cases, delta is %s""" % (
-                test_group,
-                list_difference,
-            )
-            error_msgs.append(error_msg)
-
-        for input_type in prev_input_types:
-            prev_tests_df = prev_test_group_df.loc[
-                prev_test_group_df["Input Type"] == input_type
-            ]
-            prev_tests_df.sort_values(by=["QueryID"])
-
-            curr_tests_df = curr_test_group_df.loc[
-                curr_test_group_df["Input Type"] == input_type
-            ]
-            curr_tests_df.sort_values(by=["QueryID"])
-
-            # We need to make a copy since we are going to drop some row
-            prev_tests_df = prev_tests_df.copy()
-            curr_tests_df = curr_tests_df.copy()
-
-            # NOTE for debugging
-            # print("============================================PREV!")
-            # print(prev_tests_df.head())
-            # print(len(prev_tests_df))
-            # print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxCURR!")
-            # print(curr_tests_df.head())
-            # print(len(curr_tests_df))
-
-            # Check if current run has less tests than previous run
-            len_prev_tests_df = len(prev_tests_df)
-            len_curr_tests_df = len(curr_tests_df)
-            has_less_tests = len_prev_tests_df > len_curr_tests_df
-
-            # NOTE for debugging
-            # print("====== PREV TESTS ======")
-            # print(prev_tests_df)
-            # print("====== CURR TESTS ======")
-            # print(curr_tests_df)
-
-            if has_less_tests:
-                prev_tests = prev_tests_df["QueryID"].tolist()
-                curr_tests = curr_tests_df["QueryID"].tolist()
-                list_difference = [
-                    item for item in prev_tests if item not in curr_tests
-                ]
-                error_msg = """ERROR: The test group %s has less tests than
-                              previous run for input type %s, delta is %s""" % (
-                    test_group,
-                    input_type,
-                    list_difference,
-                )
-                error_msgs.append(error_msg)
-
-                n = len_prev_tests_df - len_curr_tests_df
-                prev_tests_df.drop(prev_tests_df.tail(n).index, inplace=True)
-            elif len_prev_tests_df < len_curr_tests_df:
-                n = len_curr_tests_df - len_prev_tests_df
-                curr_tests_df.drop(curr_tests_df.tail(n).index, inplace=True)
-
-            prev_tests_results = prev_tests_df["Result"].to_list()
-            curr_tests_results = curr_tests_df["Result"].to_list()
-
-            for i in range(0, len(prev_tests_results)):
-                prev_test_result = prev_tests_results[i]
-                curr_test_result = curr_tests_results[i]
-
-                if prev_test_result == 1 and curr_test_result == 0:
-                    error_msg = """ERROR: Test %d for %s (%s) is now failing
-                                  but before was ok!""" % (
-                        i + 1,
-                        test_group,
-                        input_type,
-                    )
-                    error_msgs.append(error_msg)
-
-    succs = len(error_msgs) == 0
-    return succs, error_msgs
-
-
-def saving_google_sheet_results(log_pdf):
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials
-
-    log_info = Settings.data["RunSettings"]["logInfo"]
-
-    if log_info == "":
-        print(
-            """####### ======= >>>>>>> WARNING this test run will
-             not save its results into the Google spreadsheet."""
-        )
-        return
-
-    # Create an empty list
-    log_list = []
-
-    # Iterate over each row
-    for index, rows in log_pdf.iterrows():
-        # Create a list for the current row (ADDS)
-        current_list = [
-            rows.QueryID,
-            str(rows.TimeStamp),
-            str(rows.TestGroup),
-            rows.InputType,
-            rows.Query,
-            rows.Result,
-            rows.Error,
-            rows.Branch,
-            str(rows.CommitHash),
-            rows.nRals,
-            rows.nGPUs,
-            rows.DataDirectory,
-            rows.LoadingTime,
-            rows.EngineTotalTime,
-            rows.TotalTime,
-        ]
-
-        # append the list to the final list
-        log_list.append(current_list)
-    # Use creds to create a client to interact with the Google Drive API
-    scope = [
-        "https://www.googleapis.com/auth/drive",
-        "https://spreadsheets.google.com/feeds",
-    ]
-    # === 1. BlazingSQL =====
-    # Using credentials from BlazingSQL
-    # os.getcwd() #Settings.data['TestSettings']['workspaceDirectory']
-    # # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
-    current_dir = "/home/ubuntu/.conda/envs/e2e"
-    print(current_dir)
-
-    log_info = json.loads(log_info)
-    creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
-    client_blazing = gspread.authorize(creds_blazing)
-    # Find a Locally workbook by name and open a sheet
-    work_sheet = "BSQL Log Results"
-    if "worksheet" in Settings.data["RunSettings"]:
-        work_sheet = Settings.data["RunSettings"]["worksheet"]
-    blaz_googlesheat = client_blazing.open("BSQL End-to-End Tests")
-    sheet_blazing = blaz_googlesheat.worksheet(work_sheet)
-    # Writing log results into Blazing sheet
-    total_queries = len(log_list)
-    for i in range(0, total_queries):
-        sheet_blazing.append_row(log_list[i])
-        time.sleep(1)
-
-    print("\nTable was uptdated into Blazing Google SpreadSheet")
-
-
 def saveLogInFile(df):
     dir_log = Settings.data["TestSettings"]["logDirectory"]
     filepath = getFileName(dir_log)
@@ -1052,6 +694,13 @@ def on_jenkins():
 
 
 def print_tests(tests, onlyFails=False):
+    """
+        After we have the pdf log with this function we are printing the values on the screen at the end of the execution tests.
+
+        ----------
+        tests : pdf log
+        onlyFails: we can choose print only the failed results and queries.
+    """
     print(
         """************************************************************
           *******************"""
@@ -1223,8 +872,6 @@ def getFileName(dir_log):
     return dir_log + "LogTest" + fecha + hora + ".xlsx"  #
 
 
-# ===========================================================================
-
 tableNames = [
     "customer",
     "orders",
@@ -1310,9 +957,6 @@ def get_drill_query(query):
     return new_query
 
 
-# ================================================================================================================
-
-
 def run_query_drill(drill, query_str):
     timeout = 400
     query_result = drill.query(query_str, timeout)
@@ -1324,7 +968,7 @@ def run_query_drill(drill, query_str):
     return result
 
 
-def run_query_spark(spark, query_str):
+def run_query_spark(spark, query_str):  
     query_result = spark.sql(query_str)
     df = query_result.toPandas()
     if df.size == 0:
@@ -1344,354 +988,6 @@ def save_results_arrow(filename, pdf2):
         writer = pa.RecordBatchFileWriter(f, table.schema)
         writer.write(table)
         writer.close()
-
-
-def save_results_parquet(filename, pdf2):
-    pdf2.to_parquet(filename, compression="GZIP")
-
-
-def run_query(
-    bc,
-    engine,
-    query,
-    queryId,
-    queryType,
-    worder,
-    orderBy,
-    acceptable_difference,
-    use_percentage,
-    input_type,
-    **kwargs
-):
-    print(query)
-
-    worder = 1 if worder == True else worder
-    query_spark = kwargs.get("query_spark", query)
-
-    algebra = kwargs.get("algebra", "")
-
-    comparing = kwargs.get("comparing", True)
-
-    nRals = Settings.data["RunSettings"]["nRals"]
-
-    print_result = kwargs.get("print_result")
-    if print_result is None:
-        print_result = False
-
-    message_validation = kwargs.get("message_validation", "")
-    if message_validation is None:
-        message_validation = False
-
-    data_type = cs.get_extension(input_type)
-
-    if Settings.execution_mode != "generator":
-        print(
-            "\n=============== New query: "
-            + str(queryId)
-            + " - "
-            + data_type
-            + " ("+queryType+")" + "================="
-        )
-
-    load_time = 0
-    engine_time = 0
-    total_time = 0
-
-    nested_query = kwargs.get("nested_query", False)
-
-    error_message = ""
-    result_gdf = None
-
-    if not nested_query:
-        # if int(nRals) == 1:  # Single Node
-        query_blz = query  # get_blazingsql_query('main', query)
-        if algebra == "":
-            start_time = time.time()
-            try:
-                result_gdf = bc.sql(query_blz)
-            except Exception as e:
-                error_message=str(e)
-
-            if not message_validation:
-                end_time = time.time()
-                total_time = (end_time - start_time) * 1000
-                # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
-                # duration ELSE 0 END) AS load_time,
-                # MAX(load_time) AS load_time,
-                # log_result = bc.log(
-                #     """SELECT
-                #         MAX(end_time) as end_time, query_id,
-                #         MAX(total_time) AS total_time
-                #     FROM (
-                #         SELECT
-                #             query_id, node_id,
-                #             SUM(CASE WHEN info = 'Query Execution Done' THEN
-                #             duration ELSE 0 END) AS total_time,
-                #             MAX(log_time) AS end_time
-                #         FROM
-                #             bsql_logs
-                #         WHERE
-                #             info = 'evaluate_split_query load_data'
-                #             OR info = 'Query Execution Done'
-                #         GROUP BY
-                #             node_id, query_id
-                #         )
-                #     GROUP BY
-                #         query_id
-                #     ORDER BY
-                #         end_time DESC limit 1"""
-                # )
-
-                # if int(nRals) == 1:  # Single Node
-                #     n_log = log_result
-                # else:  # Simple Distribution
-                #     n_log = log_result.compute()
-
-                load_time = 0  # n_log['load_time'][0]
-                engine_time = 0 #n_log["total_time"][0]
-        else:
-            result_gdf = bc.sql(query_blz, algebra=algebra)
-
-    else:  # for nested queries as column basis test
-        result_gdf = kwargs.get("blz_result", [])
-
-    str_code_test = str(get_codTest(queryType)).upper()
-    filename = str_code_test + "-" + str(queryId) + ".parquet"
-
-    result_dir = Settings.data["TestSettings"]["fileResultsDirectory"]
-    file_results_dir = str(result_dir)
-
-    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-
-    if not message_validation== "":
-        print_query_results2(
-                        query,
-                        queryId,
-                        input_type,
-                        queryType,
-                        error_message,
-                        message_validation
-                )
-    elif not isinstance(engine, str):
-        if isinstance(engine, PyDrill):
-            # Drill
-            query_drill = get_drill_query(query)
-            result_drill_gd = run_query_drill(engine, query_drill)
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-                    # FOR DASK CUDF
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    pdf2 = to_pandas_f64_engine(
-                        result_drill_gd.resultSet, expected_dtypes
-                    )
-                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
-                    formatResults(pdf1, pdf2, worder, orderBy)
-
-                    if Settings.execution_mode == ExecutionMode.GENERATOR:
-
-                        file_res_drill_dir = None
-                        if testsWithNulls != "true":
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "drill" + "/" + filename
-                            )
-                        else:
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "drill-nulls" + "/" + filename
-                            )
-
-                        if not os.path.exists(file_res_drill_dir):
-                            save_results_parquet(file_res_drill_dir, pdf2)
-
-                        print("Drill: " + filename + " generated.")
-
-                    else:
-                        print_query_results(
-                            query,
-                            queryId,
-                            queryType,
-                            pdf1,
-                            pdf2,
-                            result_gdf,
-                            acceptable_difference,
-                            use_percentage,
-                            print_result,
-                            engine,
-                            input_type,
-                            load_time,
-                            engine_time,
-                            total_time,
-                            comparing
-                        )
-
-                else:
-                    print_query_results2(
-                        query, queryId, queryType, result_gdf.error_message
-                    )
-        elif isinstance(engine, SparkSession):
-            # Spark
-            result_spark_df = run_query_spark(engine, query_spark)
-
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-
-                    pdf2 = to_pandas_f64_engine(
-                        result_spark_df.resultSet, expected_dtypes
-                    )
-                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
-                    formatResults(pdf1, pdf2, worder, orderBy)
-
-                    if Settings.execution_mode == ExecutionMode.GENERATOR:
-
-                        file_res_drill_dir = None
-                        if testsWithNulls != "true":
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "spark" + "/" + filename
-                            )
-                        else:
-                            file_res_drill_dir = (
-                                file_results_dir + "/" + "spark-nulls" + "/" + filename
-                            )
-
-                        if not os.path.exists(file_res_drill_dir):
-                            save_results_parquet(file_res_drill_dir, pdf2)
-                            print("Spark: " + filename + " generated.")
-
-                    else:
-                        print_query_results(
-                            query_spark,
-                            queryId,
-                            queryType,
-                            pdf1,
-                            pdf2,
-                            result_gdf,
-                            acceptable_difference,
-                            use_percentage,
-                            print_result,
-                            engine,
-                            input_type,
-                            load_time,
-                            engine_time,
-                            total_time,
-                            comparing
-                        )
-                else:
-                    print_query_results2(
-                        query_spark, queryId, queryType, result_gdf.error_message
-                    )
-    else:  # GPUCI
-
-        compareResults = True
-        if "compare_results" in Settings.data["RunSettings"]:
-            compareResults = Settings.data["RunSettings"]["compare_results"]
-
-        if compareResults == "true":
-            resultFile = None
-            if testsWithNulls != "true":
-                resultFile = file_results_dir + "/" + str(engine) + "/" + filename
-            else:
-                resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
-
-            pdf2 = get_results(resultFile)
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-                    # FOR DASK CUDF
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    format_pdf(pdf1, worder, orderBy)
-                    print(pdf2)
-
-                    print_query_results(
-                        query,
-                        queryId,
-                        queryType,
-                        pdf1,
-                        pdf2,
-                        result_gdf,
-                        acceptable_difference,
-                        use_percentage,
-                        print_result,
-                        engine,
-                        input_type,
-                        load_time,
-                        engine_time,
-                        total_time,
-                        comparing
-                    )
-
-                else:
-                    print_query_results2(
-                        query, queryId, queryType, result_gdf.error_message
-                    )
-        else:
-            if result_gdf is not None:
-                if result_gdf.columns is not None:
-                    # FOR DASK CUDF
-                    import dask_cudf
-
-                    if type(result_gdf) is dask_cudf.core.DataFrame:
-                        result_gdf = result_gdf.compute()
-
-                    expected_dtypes = result_gdf.dtypes.to_list()
-                    pdf1 = (
-                        upcast_to_float(result_gdf)
-                        .fillna(get_null_constants(result_gdf))
-                        .to_pandas()
-                    )
-                    pdf2 = pd.DataFrame()
-                    formatResults(pdf1, pdf2, worder, orderBy)
-
-                    print_query_results(
-                        query,
-                        queryId,
-                        queryType,
-                        pdf1,
-                        pdf2,
-                        result_gdf,
-                        acceptable_difference,
-                        use_percentage,
-                        print_result,
-                        engine,
-                        input_type,
-                        load_time,
-                        engine_time,
-                        total_time,
-                        comparing
-                    )
-            else:
-                print_query_results2(
-                    query, queryId, queryType, result_gdf.error_message
-                )
 
 def run_query_log(
     bc,
@@ -1717,13 +1013,338 @@ def run_query_log(
             if type(result_gdf) is dask_cudf.core.DataFrame:
                 result_gdf = result_gdf.compute()
 
-            print_query_results2(
+            print_validation_results(
                 query, queryId, DataType.CUDF, queryType, error_message, message_validation
             )
     else:
-        print_query_results2(
+        print_validation_results(
             query, queryId, DataType.CUDF, queryType, error_message, message_validation
         )
+
+def save_results_parquet(filename, pdf2):
+    pdf2.to_parquet(filename, compression="GZIP")
+
+def results_file_generator(file_results_dir, testsWithNulls, filename, engine, pdf2):
+    file_res_drill_dir = None
+    if testsWithNulls != "true":
+        file_res_drill_dir = (
+            file_results_dir + "/" + engine + "/" + filename
+        )
+    else:
+        file_res_drill_dir = (
+            file_results_dir + "/" + engine + "-nulls" + "/" + filename
+        )
+
+    if not os.path.exists(file_res_drill_dir):
+        save_results_parquet(file_res_drill_dir, pdf2)
+    print(engine.capitalize() + ": " + filename + " generated.")
+
+
+def run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_result):
+    
+    result_gdf = None
+
+    load_time = 0
+    engine_time = 0
+    total_time = 0
+
+    error_message = ""
+
+    if not nested_query:
+        # if int(nRals) == 1:  # Single Node
+        query_blz = query 
+        if algebra == "":
+            start_time = time.time()
+            try:
+                result_gdf = bc.sql(query_blz)
+            except Exception as e:
+                error_message=str(e)
+
+            if not message_validation:
+                end_time = time.time()
+                total_time = (end_time - start_time) * 1000
+
+                load_time = 0  # n_log['load_time'][0]
+                engine_time = 0 #n_log["total_time"][0]
+        else:
+            result_gdf = bc.sql(query_blz, algebra=algebra)
+
+    else:  # for nested queries as column basis test
+        result_gdf = blz_result
+    
+    return result_gdf, load_time, engine_time, total_time, error_message
+        
+
+def run_query(
+    bc,
+    engine,
+    query,
+    queryId,
+    queryType,
+    worder,
+    orderBy,
+    acceptable_difference,
+    use_percentage,
+    input_type,
+    **kwargs
+):
+    """
+        This function execute the query with blazingsql and drill/spark and call the functions to compare, print results
+        and logs.
+
+        ----------
+        bc : blazing context
+        engine: It's the instance of the engine (pydrill/ỳspark).
+        query: Executed query.
+        queryId: Query Id.
+        worder : (True/False) parameter to indicate if it's neccesary to order the results.
+        orderBy : It indicate by what column we want to order the results.
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        input_type: The data type (CSV, PARQUET, DASK_CUDF, JSON, ORC, GDF) that we use to run the query.
+    """
+
+    print(query)
+
+    worder = 1 if worder == True else worder
+
+    query_spark = kwargs.get("query_spark", query)
+
+    algebra = kwargs.get("algebra", "")
+
+    comparing = kwargs.get("comparing", True)
+
+    nRals = Settings.data["RunSettings"]["nRals"]
+
+    print_result = kwargs.get("print_result")
+    if print_result is None:
+        print_result = False
+
+    message_validation = kwargs.get("message_validation", "")
+    if message_validation is None:
+        message_validation = False
+
+    nested_query = kwargs.get("nested_query", False)
+
+    blz_result = None
+    if nested_query:
+        blz_result = kwargs.get("blz_result", [])
+
+    data_type = cs.get_extension(input_type)
+
+    if Settings.execution_mode != "generator":
+        print(
+            "\n=============== New query: "
+            + str(queryId)
+            + " - "
+            + data_type
+            + " ("+queryType+")" + "================="
+        )
+
+    str_code_test = str(get_codTest(queryType)).upper()
+    filename = str_code_test + "-" + str(queryId) + ".parquet"
+
+    result_dir = Settings.data["TestSettings"]["fileResultsDirectory"]
+    file_results_dir = str(result_dir)
+
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
+    result_gdf, load_time, engine_time, total_time, error_message = run_query_blazing(bc, nested_query, query, algebra, message_validation, blz_result)
+
+    base_results_gd = None
+
+    compareResults = True
+
+    resultFile = ""
+
+    str_engine = ""
+
+    if not message_validation== "":
+        print_validation_results(
+                        query,
+                        queryId,
+                        input_type,
+                        queryType,
+                        error_message,
+                        message_validation
+                )
+    elif not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            # Drill
+            query_drill = get_drill_query(query)
+            base_results_gd = run_query_drill(engine, query_drill)
+            str_engine="drill"
+
+        elif isinstance(engine, SparkSession):
+            # Spark
+            base_results_gd = run_query_spark(engine, query_spark)
+            str_engine="spark"
+
+    else:  # GPUCI
+        if "compare_result_values" in Settings.data["RunSettings"]:
+            compareResults = Settings.data["RunSettings"]["compare_result_values"]
+
+        if compareResults:
+            if testsWithNulls != "true":
+                resultFile = file_results_dir + "/" + str(engine) + "/" + filename
+            else:
+                resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
+
+            #base_results_gd = get_results(resultFile)
+            
+    results_processing(result_gdf, 
+                        base_results_gd, 
+                        worder, 
+                        orderBy, 
+                        testsWithNulls, 
+                        filename, 
+                        query, 
+                        queryId, 
+                        queryType,
+                        acceptable_difference,
+                        use_percentage,
+                        print_result,
+                        engine,
+                        input_type,
+                        load_time,
+                        engine_time,
+                        total_time,
+                        comparing,
+                        compareResults,
+                        resultFile,
+                        file_results_dir,
+                        str_engine)
+
+
+def results_processing(result_gdf, 
+                    base_results_gd, 
+                    worder, 
+                    orderBy, 
+                    testsWithNulls, 
+                    filename, 
+                    query, 
+                    queryId, 
+                    queryType,
+                    acceptable_difference,
+                    use_percentage,
+                    print_result,
+                    engine,
+                    input_type,
+                    load_time,
+                    engine_time,
+                    total_time,
+                    comparing,
+                    compareResults,
+                    resultFile,
+                    file_results_dir,
+                    str_engine
+                    ):
+
+    """
+        Results processing of the query execution with blazingsql and drill/spark.
+        It include the results formatting, comparison and print of results.
+
+        ----------
+        result_gdf : blazing results gdf
+        base_results_gd : drill/spark results gdf
+        worder : (True/False) parameter to indicate if it's neccesary to order the results.
+        orderBy : It indicate by what column we want to order the results
+        testsWithNulls : that is about the data with we get the results, if it contains nulls or not.
+        filename: it's the name that the generated result file will have.
+        query: Executed query.
+        queryId: Query Id.
+        acceptable_difference: This parameter is related to the acceptable difference beetween values 
+        from blazingsql results and drill/spark results.
+        use_percentage: (True/False) to indicate if the results will be compared by percentage or difference.
+        print_result: (True/False) To show the query results information on the screen.
+        engine: It's the instance of the engine (pydrill/ỳspark).
+        input_type: The data type (CSV, PARQUET, DASK_CUDF, JSON, ORC, GDF) that we use to run the query.
+        load_time: 
+        engine_time: 
+        total_time: Total time to execute the query 
+        comparing: It indicate if the results will be compared with the results with the based engines (drill/spark)
+        resultFile: Complete path where the results file will be saved.
+        file_results_dir: Path where the results file will be saved. 
+        str_engine: the values will be drill/spark
+
+    """
+
+    if result_gdf is not None:
+        if result_gdf.columns is not None:
+            # FOR DASK CUDF
+            import dask_cudf
+
+            if type(result_gdf) is dask_cudf.core.DataFrame:
+                result_gdf = result_gdf.compute()
+
+            expected_dtypes = result_gdf.dtypes.to_list()
+            pdf1 = (
+                upcast_to_float(result_gdf)
+                .fillna(get_null_constants(result_gdf))
+                .to_pandas()
+            )
+
+            if not isinstance(engine, str):
+                pdf2 = to_pandas_f64_engine(
+                    base_results_gd.resultSet, expected_dtypes
+                )
+                pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
+
+                formatResults(pdf1, pdf2, worder, orderBy)
+            else:
+                if compareResults:
+                    format_pdf(pdf1, worder, orderBy)
+                    pdf2 = get_results(resultFile)
+                else:
+                    pdf2 = pd.DataFrame()
+                    formatResults(pdf1, pdf2, worder, orderBy)
+
+            if Settings.execution_mode == ExecutionMode.GENERATOR:
+                results_file_generator(file_results_dir, testsWithNulls, filename, str_engine, pdf2)
+                print("==============================")
+            else:
+                error_message, stringResult, columnNamesComparison, resultComparisson = compare_test_results( pdf1,
+                                                                                                            pdf2,
+                                                                                                            acceptable_difference,
+                                                                                                            use_percentage,
+                                                                                                            engine,
+                                                                                                            comparing)
+                print_comparison_results(
+                    query,
+                    queryId,
+                    queryType,
+                    pdf1,
+                    pdf2,
+                    print_result,
+                    engine,
+                    input_type,
+                    total_time,
+                    error_message,
+                    stringResult,
+                    columnNamesComparison,
+                    resultComparisson
+                )
+
+                logger = logginghelper(name)
+
+                # TODO percy kharoly bindings we need to get the number from internal api
+                logger_results(
+                    logger,
+                    queryType,
+                    input_type,
+                    queryId,
+                    query,
+                    stringResult,
+                    error_message,
+                    load_time,
+                    engine_time,
+                    total_time,
+                )
+        else:
+            print_validation_results(
+                query, queryId, queryType, result_gdf.error_message
+            )
 
 def run_query_performance(
     bc,
@@ -1741,9 +1362,9 @@ def run_query_performance(
     query_blz = query  # get_blazingsql_query('main', query)
     result_gdf = bc.sql(query_blz).get()
     if result_gdf.error_message == "":
-        print_query_results_performance(query, queryId, queryType, result_gdf)
+        print_performance_results(query, queryId, queryType, result_gdf)
     else:
-        print_query_results2(query, queryId, queryType, result_gdf.error_message)
+        print_validation_results(query, queryId, queryType, result_gdf.error_message)
 
 
 def formatResults(pdf1, pdf2, worder, orderBy):

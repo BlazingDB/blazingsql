@@ -221,10 +221,12 @@ class TestCase():
                 query = self.__getQuery(test_case)
                 engine = self.drill if configTest.compare_with == "drill" else self.spark
 
-                print("==>> Run query for test case", self.name)
-                if configTest.message_validation == "":
-                    print("PLAN:")
-                    print(self.bc.explain(query, True))
+                if not Settings.execution_mode == ExecutionMode.GENERATOR:
+                    print("==>> Run query for test case", self.name)
+                    if configTest.message_validation == "":
+                        print("PLAN:")
+                        print(self.bc.explain(query, True))
+
                 runTest.run_query(
                     self.bc,
                     engine,
