@@ -2529,7 +2529,7 @@ class BlazingContext(object):
                     row_groups_col = row_meta_ids.tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
-                print("row_groups_ids: ", row_groups_ids)
+
                 table.row_groups_ids = row_groups_ids
 
         elif isinstance(input, dask_cudf.core.DataFrame):
