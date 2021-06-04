@@ -162,7 +162,7 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::get_metadata(
 	std::vector<int> file_index_values, row_group_values;
 	for (int i = 0; i < num_batches_per_file.size(); ++i) {
 		for (int j = 0; j < num_batches_per_file[i]; ++j) {
-			file_index_values.push_back(i);
+			file_index_values.push_back(i + offset);
 			row_group_values.push_back(j);
 		}
 	}
