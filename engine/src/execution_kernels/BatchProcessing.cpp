@@ -166,42 +166,16 @@ kstatus TableScan::run() {
             auto file_schema = schema.fileSchema(file_index);
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now
-            std::unique_ptr<ral::cache::CacheData> input;
-            if (parser->type() == ral::io::DataType::CSV) {
-                auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
-                size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
-                if (max_bytes_chunk_size > 0) {
-                    is_batched_csv = true;
-                    int index_csv_file = 0;
-                    for (size_t i = 0; i < row_group_ids.size(); ++i) {
-                        std::vector<std::unique_ptr<ral::cache::CacheData>> csv_inputs;
-                        std::vector<cudf::size_type> temp_batch_id(1, row_group_ids[index_csv_file++]);
-                        input = CacheDataDispatcher(handle, parser, schema, file_schema, temp_batch_id, projections);
-                        csv_inputs.push_back(std::move(input));
+            std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+            std::unique_ptr<ral::cache::CacheData> input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
+            inputs.push_back(std::move(input));
 
-                        auto output_cache = this->output_cache();
-                        ral::execution::executor::get_instance()->add_task(
-                                std::move(csv_inputs),
-                                output_cache,
-                                this);
-                    }
-                } else{
-                    is_batched_csv = false;
-                }
-            }
-
-            if (!is_batched_csv) {
-                std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
-                input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
-                inputs.push_back(std::move(input));
-
-                auto output_cache = this->output_cache();
-                ral::execution::executor::get_instance()->add_task(
-                        std::move(inputs),
-                        output_cache,
-                        this);
-            }
-
+            auto output_cache = this->output_cache();
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    output_cache,
+                    this);
+           
             file_index++;
         }
 

@@ -11,6 +11,7 @@ ITALICRED="\e[3;${RED}"
 ENDCOLOR="\e[0m"
 
 RAPIDS_VERSION="21.06"
+UCX_PY_VERSION="0.20"
 CUDA_VERSION="11.0"
 CHANNEL=""
 
@@ -33,7 +34,7 @@ conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cpp
 
 
 echo -e "${GREEN}Install RAPIDS dependencies${ENDCOLOR}"
-conda install --yes -c rapidsai$CHANNEL -c nvidia -c conda-forge -c defaults dask-cuda=$RAPIDS_VERSION dask-cudf=$RAPIDS_VERSION cudf=$RAPIDS_VERSION ucx-py=$RAPIDS_VERSION ucx-proc=*=gpu cudatoolkit=$CUDA_VERSION
+conda install --yes -c rapidsai$CHANNEL -c nvidia -c conda-forge -c defaults dask-cuda=$RAPIDS_VERSION dask-cudf=$RAPIDS_VERSION cudf=$RAPIDS_VERSION ucx-py=$UCX_PY_VERSION ucx-proc=*=gpu cudatoolkit=$CUDA_VERSION
 
 echo -e "${GREEN}Install E2E test dependencies${ENDCOLOR}"
 

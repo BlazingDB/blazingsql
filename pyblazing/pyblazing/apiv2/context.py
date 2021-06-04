@@ -2851,12 +2851,18 @@ class BlazingContext(object):
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
     def _expand_to_one_rowgroup_per_file(self, files, uri_values, row_groups_ids):
-        files = sum(([files[i]]*len(row_groups_ids[i]) 
-            for i in range(len(files))), [])
-        uri_values = sum(([uri_values[i]]*len(row_groups_ids[i]) 
-            for i in range(len(uri_values))), [])
-        row_groups_ids = [[row_groups_ids[i][j]] 
-            for i in range(len(row_groups_ids)) for j in range(len(row_groups_ids[i])) ]
+        files = sum(
+            ([files[i]] * len(row_groups_ids[i]) for i in range(len(files))), []
+        )
+        uri_values = sum(
+            ([uri_values[i]] * len(row_groups_ids[i]) for i in range(len(uri_values))),
+            [],
+        )
+        row_groups_ids = [
+            [row_groups_ids[i][j]]
+            for i in range(len(row_groups_ids))
+            for j in range(len(row_groups_ids[i]))
+        ]
         return (files, uri_values, row_groups_ids)
 
     def _optimize_skip_data_getSlices(self, current_table, scan_table_query):
@@ -2911,9 +2917,15 @@ class BlazingContext(object):
             row_groups_ids = current_table.row_groups_ids
 
         if self.dask_client is None:
-            # for CSV files broken into batches due to max_bytes_chunk_read, then lets have just one "row_group" per file
-            if (current_table.fileType == DataType.CSV):
-                (actual_files, uri_values, row_groups_ids) = self._expand_to_one_rowgroup_per_file(actual_files, uri_values, row_groups_ids)
+            # for CSV files broken into batches due to `max_bytes_chunk_read`, then lets have just one "row_group" per file
+            if current_table.fileType == DataType.CSV:
+                (
+                    actual_files,
+                    uri_values,
+                    row_groups_ids,
+                ) = self._expand_to_one_rowgroup_per_file(
+                    actual_files, uri_values, row_groups_ids
+                )
 
             curr_calcite = current_table.calcite_to_file_indices
             bt = BlazingTable(
@@ -2953,12 +2965,19 @@ class BlazingContext(object):
                     row_groups_ids,
                     current_table.mapping_files,
                 )
-            # for CSV files broken into batches due to max_bytes_chunk_read, then lets have just one "row_group" per file
-            if (current_table.fileType == DataType.CSV):
-                # make this into a function: 
+            # for CSV files broken into batches due to `max_bytes_chunk_read`, then lets have just one "row_group" per file
+            if current_table.fileType == DataType.CSV:
+                # make this into a function:
                 for node_ind in range(len(all_sliced_files)):
-                    (all_sliced_files[node_ind], all_sliced_uri_values[node_ind], all_sliced_row_groups_ids[node_ind]) = self._expand_to_one_rowgroup_per_file(all_sliced_files[node_ind], all_sliced_uri_values[node_ind], all_sliced_row_groups_ids[node_ind])
-                   
+                    (
+                        all_sliced_files[node_ind],
+                        all_sliced_uri_values[node_ind],
+                        all_sliced_row_groups_ids[node_ind],
+                    ) = self._expand_to_one_rowgroup_per_file(
+                        all_sliced_files[node_ind],
+                        all_sliced_uri_values[node_ind],
+                        all_sliced_row_groups_ids[node_ind],
+                    )
 
             for i, node in enumerate(self.nodes):
                 curr_calcite = current_table.calcite_to_file_indices
