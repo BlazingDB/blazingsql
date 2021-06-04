@@ -31,8 +31,7 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups,
-	int current_batch) {
+	std::vector<cudf::size_type> row_groups) {
 	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
 
 	if(file == nullptr) {
@@ -58,7 +57,7 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		auto iter = args_map.find("max_bytes_chunk_read");
 		if(iter != args_map.end()) {
 			auto chunk_size = std::stoll(iter->second);
-			args.set_byte_range_offset(chunk_size * current_batch);
+			args.set_byte_range_offset(chunk_size * row_groups[0]);
 			args.set_byte_range_size(chunk_size);
 		}
 

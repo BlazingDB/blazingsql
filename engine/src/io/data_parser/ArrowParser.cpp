@@ -20,8 +20,7 @@ std::unique_ptr<ral::frame::BlazingTable> arrow_parser::parse_batch(
 		ral::io::data_handle data_handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
-		std::vector<cudf::size_type> /*row_groups*/,
-		int /*current_batch*/){
+		std::vector<cudf::size_type> /*row_groups*/){
 
 	if(schema.get_num_columns() == 0) {
 		return nullptr;

@@ -20,8 +20,7 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
-		std::vector<cudf::size_type> row_groups,
-		int current_batch) override;
+		std::vector<cudf::size_type> row_groups) override;
 
 	void parse_schema(ral::io::data_handle handle, Schema & schema);
 

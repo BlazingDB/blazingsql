@@ -170,12 +170,13 @@ kstatus TableScan::run() {
             if (parser->type() == ral::io::DataType::CSV) {
                 auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
                 size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
-                
                 if (max_bytes_chunk_size > 0) {
                     is_batched_csv = true;
+                    int index_csv_file = 0;
                     for (size_t i = 0; i < row_group_ids.size(); ++i) {
                         std::vector<std::unique_ptr<ral::cache::CacheData>> csv_inputs;
-                        input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections, row_group_ids[i]);
+                        std::vector<cudf::size_type> temp_batch_id(1, row_group_ids[index_csv_file++]);
+                        input = CacheDataDispatcher(handle, parser, schema, file_schema, temp_batch_id, projections);
                         csv_inputs.push_back(std::move(input));
 
                         auto output_cache = this->output_cache();
@@ -191,7 +192,7 @@ kstatus TableScan::run() {
 
             if (!is_batched_csv) {
                 std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
-                input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections, 0);
+                input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
                 inputs.push_back(std::move(input));
 
                 auto output_cache = this->output_cache();
@@ -334,9 +335,11 @@ kstatus BindableTableScan::run() {
                 size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
                 if (max_bytes_chunk_size > 0) {
                     is_batched_csv = true;
+                    int index_csv_file = 0;
                     for (size_t i = 0; i < row_group_ids.size(); ++i) {
                         std::vector<std::unique_ptr<ral::cache::CacheData>> csv_inputs;
-                        input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections, row_group_ids[i]);
+                        std::vector<cudf::size_type> temp_batch_id(1, row_group_ids[index_csv_file++]);
+                        input = CacheDataDispatcher(handle, parser, schema, file_schema, temp_batch_id, projections);
                         csv_inputs.push_back(std::move(input));
 
                         auto output_cache = this->output_cache();
@@ -351,7 +354,7 @@ kstatus BindableTableScan::run() {
             }
             if (!is_batched_csv) {
                 std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
-                input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections, 0);
+                input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
                 inputs.push_back(std::move(input));
 
                 auto output_cache = this->output_cache();

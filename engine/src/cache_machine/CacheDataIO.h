@@ -22,8 +22,7 @@ public:
 		ral::io::Schema schema,
 		ral::io::Schema file_schema,
 		std::vector<int> row_group_ids,
-		std::vector<int> projections,
-		int current_csv_batch
+		std::vector<int> projections
 	);
 
 	/**
@@ -61,7 +60,6 @@ private:
 	ral::io::Schema file_schema;
 	std::vector<int> row_group_ids;
 	std::vector<int> projections;
-	int current_csv_batch;
 };
 
 } // namespace cache

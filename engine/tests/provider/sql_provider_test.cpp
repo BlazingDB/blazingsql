@@ -70,7 +70,7 @@ TEST_F(SQLProviderTest, DISABLED_postgresql_select_all) {
     std::iota(column_indices.begin(), column_indices.end(), 0);
 
   std::vector<cudf::size_type> row_groups;
-  auto table = parser.parse_batch(handle, schema, column_indices, row_groups, 0);
+  auto table = parser.parse_batch(handle, schema, column_indices, row_groups);
 
   std::cout << "TABLE" << std::endl
             << " ncolumns =  " << table->num_columns() << std::endl
@@ -84,7 +84,7 @@ void print_batch(const ral::io::data_handle & handle,
     const std::vector<int> & column_indices) {
   std::vector<cudf::size_type> row_groups;
   std::unique_ptr<ral::frame::BlazingTable> bztbl =
-      parser.parse_batch(handle, schema, column_indices, row_groups, 0);
+      parser.parse_batch(handle, schema, column_indices, row_groups);
   static int i = 0;
   ral::utilities::print_blazing_table_view(
       bztbl->toBlazingTableView(), "holis" + std::to_string(++i));
@@ -236,7 +236,7 @@ TEST_F(SQLProviderTest, DISABLED_sqlite_select_all) {
   std::iota(column_indices.begin(), column_indices.end(), 0);
 
   std::vector<cudf::size_type> row_groups;
-  auto table = parser.parse_batch(handle, schema, column_indices, row_groups, 0);
+  auto table = parser.parse_batch(handle, schema, column_indices, row_groups);
 
   std::cout << "TABLE" << std::endl
             << " ncolumns =  " << table->num_columns() << std::endl

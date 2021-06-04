@@ -25,8 +25,7 @@ public:
 		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
-		std::vector<cudf::size_type> row_groups,
-		int current_batch);
+		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(ral::io::data_handle /*handle*/, ral::io::Schema & schema);
 

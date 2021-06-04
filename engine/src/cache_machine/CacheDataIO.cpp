@@ -9,13 +9,11 @@ CacheDataIO::CacheDataIO(ral::io::data_handle handle,
 	ral::io::Schema schema,
 	ral::io::Schema file_schema,
 	std::vector<int> row_group_ids,
-	std::vector<int> projections,
-	int current_batch)
+	std::vector<int> projections)
 	: CacheData(CacheDataType::IO_FILE, schema.get_names(), schema.get_data_types(), 1),
 	handle(handle), parser(parser), schema(schema),
 	file_schema(file_schema), row_group_ids(row_group_ids),
-	projections(projections),
-	current_csv_batch(current_batch)
+	projections(projections)
 	{
 
 	}
@@ -26,7 +24,7 @@ size_t CacheDataIO::sizeInBytes() const{
 
 std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 	if (schema.all_in_file()){
-		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, projections, row_group_ids, current_csv_batch);
+		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, projections, row_group_ids);
 		return loaded_table;
 	} else {
 		std::vector<int> column_indices_in_file;  // column indices that are from files
@@ -41,7 +39,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 		std::vector<std::string> names;
 		cudf::size_type num_rows;
 		if (column_indices_in_file.size() > 0){
-			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse_batch(handle, file_schema, column_indices_in_file, row_group_ids, current_csv_batch);
+			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse_batch(handle, file_schema, column_indices_in_file, row_group_ids);
 			names = current_blazing_table->names();
 			std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
 			num_rows = current_table->num_rows();
@@ -49,7 +47,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 
 		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
 			std::vector<int> temp_column_indices = {0};
-			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, temp_column_indices, row_group_ids, current_csv_batch);
+			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, temp_column_indices, row_group_ids);
 			num_rows = loaded_table->num_rows();
 		}
 

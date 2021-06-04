@@ -40,8 +40,7 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups,
-  int /*current_batch*/)
+	std::vector<cudf::size_type> row_groups)
 {
   void *src = nullptr;
 
