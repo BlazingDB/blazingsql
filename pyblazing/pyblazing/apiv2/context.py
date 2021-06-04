@@ -619,22 +619,15 @@ def parseHiveMetadata(curr_table, uri_values):
 
 def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
 
-    if fileMetadata.shape[0] != hiveMetadata.shape[0]:
-        print(
-            "ERROR: number of rows from fileMetadata: "
-            + str(fileMetadata.shape[0])
-            + " does not match hiveMetadata: "
-            + str(hiveMetadata.shape[0])
-        )
-        return hiveMetadata
-
-    file_hand_hive = hiveMetadata["file_handle_index"]
-    if not fileMetadata["file_handle_index"].equals(file_hand_hive):
-        print(
-            """ERROR: file_handle_index of fileMetadata does not match
-             the same order as in hiveMetadata"""
-        )
-        return hiveMetadata
+    # we actually dont need this column here
+    hiveMetadata = hiveMetadata.drop(columns=["row_group_index"])
+    fileMetadata = fileMetadata.merge(
+        hiveMetadata,
+        left_on=["file_handle_index"],
+        right_on=["file_handle_index"],
+        how="inner",
+    )
+    fileMetadata = fileMetadata.sort_values(by=["file_handle_index", "row_group_index"])
 
     result = fileMetadata
     columns = curr_table.column_names
@@ -652,7 +645,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     names.append("row_group_index")
 
     for col_name in hiveMetadata._data.keys():
-        result[col_name] = hiveMetadata[col_name]
+        result[col_name] = fileMetadata[col_name]
 
     result_col_names = [col_name for col_name in result._data.keys()]
 
@@ -666,6 +659,8 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
 
     frame = OrderedDict((key, value) for (key, value) in zip(final_names, series))
     result = cudf.DataFrame(frame)
+
+    result = result.reset_index()  # if we dont reset index, other logic gets messed up
     return result
 
 
