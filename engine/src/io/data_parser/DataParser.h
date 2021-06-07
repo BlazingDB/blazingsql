@@ -40,7 +40,8 @@ public:
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_metadata(
 		std::vector<ral::io::data_handle> /*handles*/,
-		int /*offset*/) {
+		int /*offset*/,
+		std::map<std::string, std::string> /*args_map*/) {
 		return nullptr;
 	}
 

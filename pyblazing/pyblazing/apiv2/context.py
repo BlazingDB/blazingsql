@@ -619,22 +619,15 @@ def parseHiveMetadata(curr_table, uri_values):
 
 def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
 
-    if fileMetadata.shape[0] != hiveMetadata.shape[0]:
-        print(
-            "ERROR: number of rows from fileMetadata: "
-            + str(fileMetadata.shape[0])
-            + " does not match hiveMetadata: "
-            + str(hiveMetadata.shape[0])
-        )
-        return hiveMetadata
-
-    file_hand_hive = hiveMetadata["file_handle_index"]
-    if not fileMetadata["file_handle_index"].equals(file_hand_hive):
-        print(
-            """ERROR: file_handle_index of fileMetadata does not match
-             the same order as in hiveMetadata"""
-        )
-        return hiveMetadata
+    # we actually dont need this column here
+    hiveMetadata = hiveMetadata.drop(columns=["row_group_index"])
+    fileMetadata = fileMetadata.merge(
+        hiveMetadata,
+        left_on=["file_handle_index"],
+        right_on=["file_handle_index"],
+        how="inner",
+    )
+    fileMetadata = fileMetadata.sort_values(by=["file_handle_index", "row_group_index"])
 
     result = fileMetadata
     columns = curr_table.column_names
@@ -652,7 +645,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     names.append("row_group_index")
 
     for col_name in hiveMetadata._data.keys():
-        result[col_name] = hiveMetadata[col_name]
+        result[col_name] = fileMetadata[col_name]
 
     result_col_names = [col_name for col_name in result._data.keys()]
 
@@ -666,6 +659,8 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
 
     frame = OrderedDict((key, value) for (key, value) in zip(final_names, series))
     result = cudf.DataFrame(frame)
+
+    result = result.reset_index()  # if we dont reset index, other logic gets messed up
     return result
 
 
@@ -2477,11 +2472,17 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
+            has_csv_metadata = False
+            if "max_bytes_chunk_read" in parsedSchema["args"].keys():
+                if parsedSchema["args"]["max_bytes_chunk_read"] > 0:
+                    has_csv_metadata = True
+
             # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
+                or has_csv_metadata
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
@@ -2523,6 +2524,7 @@ class BlazingContext(object):
                     row_groups_col = row_meta_ids.tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
+
                 table.row_groups_ids = row_groups_ids
 
         elif isinstance(input, dask_cudf.core.DataFrame):
@@ -2843,6 +2845,21 @@ class BlazingContext(object):
 
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
+    def _expand_to_one_rowgroup_per_file(self, files, uri_values, row_groups_ids):
+        files = sum(
+            ([files[i]] * len(row_groups_ids[i]) for i in range(len(files))), []
+        )
+        uri_values = sum(
+            ([uri_values[i]] * len(row_groups_ids[i]) for i in range(len(uri_values))),
+            [],
+        )
+        row_groups_ids = [
+            [row_groups_ids[i][j]]
+            for i in range(len(row_groups_ids))
+            for j in range(len(row_groups_ids[i]))
+        ]
+        return (files, uri_values, row_groups_ids)
+
     def _optimize_skip_data_getSlices(self, current_table, scan_table_query):
         nodeFilesList = []
 
@@ -2895,6 +2912,16 @@ class BlazingContext(object):
             row_groups_ids = current_table.row_groups_ids
 
         if self.dask_client is None:
+            # for CSV files broken into batches due to `max_bytes_chunk_read`, then lets have just one "row_group" per file
+            if current_table.fileType == DataType.CSV:
+                (
+                    actual_files,
+                    uri_values,
+                    row_groups_ids,
+                ) = self._expand_to_one_rowgroup_per_file(
+                    actual_files, uri_values, row_groups_ids
+                )
+
             curr_calcite = current_table.calcite_to_file_indices
             bt = BlazingTable(
                 current_table.name,
@@ -2933,6 +2960,19 @@ class BlazingContext(object):
                     row_groups_ids,
                     current_table.mapping_files,
                 )
+            # for CSV files broken into batches due to `max_bytes_chunk_read`, then lets have just one "row_group" per file
+            if current_table.fileType == DataType.CSV:
+                # make this into a function:
+                for node_ind in range(len(all_sliced_files)):
+                    (
+                        all_sliced_files[node_ind],
+                        all_sliced_uri_values[node_ind],
+                        all_sliced_row_groups_ids[node_ind],
+                    ) = self._expand_to_one_rowgroup_per_file(
+                        all_sliced_files[node_ind],
+                        all_sliced_uri_values[node_ind],
+                        all_sliced_row_groups_ids[node_ind],
+                    )
 
             for i, node in enumerate(self.nodes):
                 curr_calcite = current_table.calcite_to_file_indices

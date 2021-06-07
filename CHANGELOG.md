@@ -29,6 +29,7 @@
 - #1550 Fix Decimal/Fixed Point issue
 - #1519 Fix for max_bytes_chunk_read param to csv files
 - #1559 Fix `ucx-py` versioning specs
+- #1557 Reading chunks of max bytes for csv files
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)
