@@ -150,9 +150,27 @@ else
                 cd blazingsql-testing-files
                 git pull
             else
+                set +e
                 logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
                 cd $CONDA_PREFIX
-                git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
+
+                # Only for PRs
+                PR_BR="blazingdb:"${TARGET_BRANCH}
+                if [ ! -z "${PR_AUTHOR}" ]; then
+                    echo "PR_AUTHOR: "${PR_AUTHOR}
+                    git clone --depth 1 https://github.com/${PR_AUTHOR}/blazingsql-testing-files.git --branch ${SOURCE_BRANCH} --single-branch
+                    # if branch exits
+                    if [ $? -eq 0 ]; then
+                        echo "The fork exists"
+                        PR_BR=${PR_AUTHOR}":"${SOURCE_BRANCH}
+                    else
+                        echo "The fork doesn't exist"
+                        git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch ${TARGET_BRANCH} --single-branch
+                    fi
+                fi
+                set -e
+
+                echo "Cloned from "${PR_BR}
                 cd blazingsql-testing-files/data
                 tar xf tpch.tar.gz
                 tar xf tpch-with-nulls.tar.gz
@@ -184,11 +202,9 @@ else
 
             cd ${WORKSPACE}/tests/BlazingSQLTest/
             SECONDS=0
-            if [ "$E2E_TEST_GROUP" == "" ]; then
-                python -m EndToEndTests.allE2ETest
-            else
-                python -m EndToEndTests.$E2E_TEST_GROUP
-            fi
+
+            python -m EndToEndTests.mainE2ETests --config-file config.yaml
+
             duration=$SECONDS
             logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 
@@ -204,11 +220,9 @@ else
                 export BLAZINGSQL_E2E_TEST_WITH_NULLS=$include_nulls
                 cd ${WORKSPACE}/tests/BlazingSQLTest/
                 SECONDS=0
-                if [ "$E2E_TEST_GROUP" == "" ]; then
-                    python -m EndToEndTests.allE2ETest
-                else
-                    python -m EndToEndTests.$E2E_TEST_GROUP
-                fi
+
+                python -m EndToEndTests.mainE2ETests --config-file config.yaml
+
                 duration=$SECONDS
                 logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
                 logger "End to end tests DISTRIBUTED (nrals=2), including nulls: $include_nulls ... DONE!"

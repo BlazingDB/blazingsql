@@ -13,7 +13,7 @@
 #include "cudf_test/type_lists.hpp"
 #include "cudf_test/type_list_utilities.hpp"
 #include "Interpreter/interpreter_cpp.h"
-#include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_kernels/LogicalProject.h"
 #include "tests/utilities/BlazingUnitTest.h"
 #include <thrust/host_vector.h>
 

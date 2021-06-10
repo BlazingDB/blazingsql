@@ -143,7 +143,7 @@ def create_and_load_tpch_schema(sql: sql_connection, only_create_tables : bool =
     for table, table_description in mysql_tpch_table_descriptions.items():
         ok = create_mysql_table(table_description, cursor)
         if ok and not only_create_tables:
-            table_files = "%s/%s*.psv" % (tabs_dir, table)
+            table_files = "%s/%s_*.psv" % (tabs_dir, table)
             mysql_load_data_in_file(table, table_files, cursor, cnx)
         else:
             print("MySQL table %s already exists, will not load any data!" % table)

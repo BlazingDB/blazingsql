@@ -106,6 +106,11 @@ Directories
 .. toctree::
    :maxdepth: 5
 
+   dir_engine_src_io_data_provider_sql_compatibility.rst
+
+.. toctree::
+   :maxdepth: 5
+
    dir_engine_src_operators.rst
 
 .. toctree::
@@ -901,6 +906,16 @@ Files
    :maxdepth: 5
 
    file_engine_src_io_data_parser_sql_SQLiteParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_sql_compatibility_SQLTranspiler.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_sql_compatibility_SQLTranspiler.h.rst
 
 .. toctree::
    :maxdepth: 5

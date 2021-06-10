@@ -1,7 +1,7 @@
 #ifndef METADATA_H_
 #define METADATA_H_
 
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 
 std::unique_ptr<ral::frame::BlazingTable> make_dummy_metadata_table_from_col_names(std::vector<std::string> col_names);
 

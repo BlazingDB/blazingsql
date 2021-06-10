@@ -1,0 +1,70 @@
+# Message Validation Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - CONCURRENT: True
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select c_custkeynew, c_nationkey, c_acctbal
+                    from customer where c_custkey < 15
+    SETUP:
+        ORDER_BY_COL: c_custkey
+        MESSAGE_VALIDATION: Column 'c_custkeynew' not found in any table
+
+  TEST_02:
+    SQL: |
+        select c_custkey, c_nationkey, c_acctbal
+                    from customer1 where c_custkey < 150 
+                    and c_nationkey = 5
+    SETUP:
+        ORDER_BY_COL: c_custkey
+        MESSAGE_VALIDATION: Object 'customer1' not found
+
+  TEST_03:
+    SQL: |
+        select maxi(c_custkey), c_nationkey as nkey
+                    from customer where c_custkey < 0
+    SETUP:
+        ORDER_BY_COL: c_custkey
+        MESSAGE_VALIDATION: No match found for function signature maxi(<NUMERIC>)
+
+  TEST_04:
+    SQL: |
+        select max(c_custkey) c_nationkey as nkey
+                    from customer where c_custkey < 0
+    SETUP:
+        ORDER_BY_COL: c_custkey
+        MESSAGE_VALIDATION: |
+            SqlSyntaxException
+
+                            select max(c_custkey) c_nationkey as nkey
+                                                            ^^
+                                                from customer where c_custkey < 0
+
+                            Encountered "as" at line 1, column 35.
+                            Was expecting one of:
+                                <EOF>
+                                "EXCEPT" ...
+                                "FETCH" ...
+                                "FROM" ...
+                                "INTERSECT" ...
+                                "LIMIT" ...
+                                "OFFSET" ...
+                                "ORDER" ...
+                                "MINUS" ...
+                                "UNION" ...
+                                "," ...

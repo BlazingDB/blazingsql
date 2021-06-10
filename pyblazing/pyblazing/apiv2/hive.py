@@ -47,6 +47,16 @@ def convertTypeNameStrToCudfType(hiveType):
         return 15  # TIMESTAMP_MICROSECONDS
     elif hiveType == "timestamp[ns]":
         return 16  # TIMESTAMP_NANOSECONDS
+    elif hiveType == "timedelta[D]":
+        return 17  # DURATION_DAYS
+    elif hiveType == "timedelta64[s]":
+        return 18  # DURATION_SECONDS
+    elif hiveType == "timedelta64[ms]":
+        return 19  # DURATION_MILLISECONDS
+    elif hiveType == "timedelta64[us]":
+        return 20  # DURATION_MICROSECONDS
+    elif hiveType == "timedelta" or hiveType == "timedelta64[ns]":
+        return 21  # DURATION_NANOSECONDS
     elif hiveType == "decimal" or hiveType == "numeric":
         return None
     else:
@@ -73,7 +83,13 @@ cudfTypeToCsvType = {
     14: "timestamp[ms]",
     15: "timestamp[us]",
     16: "timestamp[ns]",
+    17: "timedelta[D]",
+    18: "timedelta64[s]",
+    19: "timedelta64[ms]",
+    20: "timedelta64[us]",
+    21: "timedelta64[ns]",
     23: "str",
+    26: "decimal64",
 }
 
 

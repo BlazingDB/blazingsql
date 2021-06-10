@@ -69,8 +69,8 @@ int to_int(std::string value) { return std::atoi(value.c_str()); }
 
 std::vector<std::string> to_vector_string(std::string value) {
 	std::string vec = StringUtil::replace(value, "'", "");
-	vec = StringUtil::replace(vec, "[", "");
-	vec = StringUtil::replace(vec, "]", "");
+	// removing `[` and `]` characters
+	vec = vec.substr(1, vec.size() - 2);
 	vec = StringUtil::replace(vec, " ", "");
 	std::vector<std::string> ret = StringUtil::split(vec, ",");
 	return ret;
@@ -276,8 +276,8 @@ sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
   if (args_map.find("password") != args_map.end()) {
     sql.password = args_map.at("password");
   }
-  if (args_map.find("schema") != args_map.end()) {
-    sql.schema = args_map.at("schema");
+  if (args_map.find("database") != args_map.end()) {
+    sql.schema = args_map.at("database");
   }
   if (args_map.find("table") != args_map.end()) {
     sql.table = args_map.at("table");

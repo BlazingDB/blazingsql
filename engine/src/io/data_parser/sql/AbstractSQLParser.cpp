@@ -44,15 +44,35 @@ std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::parse_batch(
 {
   void *src = nullptr;
 
+  if (type() == DataType::MYSQL) {
 #if defined(MYSQL_SUPPORT)
-  src = handle.sql_handle.mysql_resultset.get();
-#elif defined(POSTGRESQL_SUPPORT)
-  src = handle.sql_handle.postgresql_result.get();
-#elif defined(SQLITE_SUPPORT)
-  src = handle.sql_handle.sqlite_statement.get();
+    src = handle.sql_handle.mysql_resultset.get();
+#else
+    throw std::runtime_error(
+      "Unsupported MySQL parser for this BlazingSQL version");
 #endif
+  }
 
-  return this->parse_raw_batch(src, schema, column_indices, row_groups, handle.sql_handle.row_count);
+  if (type() == DataType::POSTGRESQL) {
+#if defined(POSTGRESQL_SUPPORT)
+    src = handle.sql_handle.postgresql_result.get();
+#else
+    throw std::runtime_error(
+      "Unsupported PostgreSQL parser for this BlazingSQL version");
+#endif
+  }
+
+  if (type() == DataType::SQLITE) {
+#if defined(SQLITE_SUPPORT)
+    src = handle.sql_handle.sqlite_statement.get();
+#else
+    throw std::runtime_error(
+      "Unsupported Sqlite3 parser for this BlazingSQL version");
+#endif
+  }
+
+  return this->parse_raw_batch(
+    src, schema, column_indices, row_groups, handle.sql_handle.row_count);
 }
 
 void abstractsql_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {
@@ -67,7 +87,9 @@ void abstractsql_parser::parse_schema(ral::io::data_handle handle, ral::io::Sche
 
 // TODO percy
 std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::get_metadata(
-	std::vector<ral::io::data_handle> handles, int offset){
+	std::vector<ral::io::data_handle> handles, int offset,
+  std::map<std::string, std::string> args_map)
+{
 //	std::vector<size_t> num_row_groups(files.size());
 //	BlazingThread threads[files.size()];
 //	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
@@ -277,7 +299,7 @@ std::pair<std::vector<void*>, std::vector<std::vector<cudf::bitmask_type>>> init
       case cudf::type_id::NUM_TYPE_IDS: {} break;
     }
   }
-  
+
   return std::make_pair(host_cols, null_masks);
 }
 

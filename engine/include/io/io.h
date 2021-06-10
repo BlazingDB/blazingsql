@@ -9,8 +9,8 @@
 #include <set>
 #include <arrow/table.h>
 #include <memory>
-#include <execution_graph/logic_controllers/LogicPrimitives.h>
-#include "../../src/error.hpp"
+#include <execution_kernels/LogicPrimitives.h>
+#include "../../src/utilities/error.hpp"
 
 typedef ral::io::DataType DataType;
 
@@ -39,7 +39,7 @@ struct TableSchema {
 
 	ral::frame::BlazingTableView metadata;
 	std::vector<std::vector<int>> row_groups_ids;
-	std::shared_ptr<arrow::Table> arrow_table;
+	std::shared_ptr<arrow::Table> arrow_table; //must be a vector?
 };
 
 struct HDFS {

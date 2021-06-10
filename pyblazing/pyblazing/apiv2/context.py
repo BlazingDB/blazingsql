@@ -3,8 +3,9 @@ import cudf
 
 
 from cudf.core.column.column import build_column
+from cudf.utils.dtypes import is_decimal_dtype
 from dask.distributed import get_worker
-
+from datetime import datetime
 
 from collections import OrderedDict
 
@@ -300,6 +301,7 @@ def generateGraphs(
     algebra,
     config_options,
     sql,
+    current_timestamp,
 ):
 
     worker = get_worker()
@@ -331,6 +333,7 @@ def generateGraphs(
             algebra,
             config_options,
             sql,
+            current_timestamp,
         )
         graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
@@ -478,7 +481,14 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = []
     n_cols = len(curr_table.column_names)
 
-    dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+    dtypes = []
+    for t in curr_table.column_types:
+        # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
+        # so just for this case let's get TIMESTAMP_SECONDS
+        if t != 12:
+            dtypes.append(cio.cudf_type_int_to_np_types(t))
+        else:
+            dtypes.append(cio.cudf_type_int_to_np_types(13))
 
     columns = curr_table.column_names
     for index in range(n_cols):
@@ -609,22 +619,15 @@ def parseHiveMetadata(curr_table, uri_values):
 
 def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
 
-    if fileMetadata.shape[0] != hiveMetadata.shape[0]:
-        print(
-            "ERROR: number of rows from fileMetadata: "
-            + str(fileMetadata.shape[0])
-            + " does not match hiveMetadata: "
-            + str(hiveMetadata.shape[0])
-        )
-        return hiveMetadata
-
-    file_hand_hive = hiveMetadata["file_handle_index"]
-    if not fileMetadata["file_handle_index"].equals(file_hand_hive):
-        print(
-            """ERROR: file_handle_index of fileMetadata does not match
-             the same order as in hiveMetadata"""
-        )
-        return hiveMetadata
+    # we actually dont need this column here
+    hiveMetadata = hiveMetadata.drop(columns=["row_group_index"])
+    fileMetadata = fileMetadata.merge(
+        hiveMetadata,
+        left_on=["file_handle_index"],
+        right_on=["file_handle_index"],
+        how="inner",
+    )
+    fileMetadata = fileMetadata.sort_values(by=["file_handle_index", "row_group_index"])
 
     result = fileMetadata
     columns = curr_table.column_names
@@ -642,7 +645,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     names.append("row_group_index")
 
     for col_name in hiveMetadata._data.keys():
-        result[col_name] = hiveMetadata[col_name]
+        result[col_name] = fileMetadata[col_name]
 
     result_col_names = [col_name for col_name in result._data.keys()]
 
@@ -656,6 +659,8 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
 
     frame = OrderedDict((key, value) for (key, value) in zip(final_names, series))
     result = cudf.DataFrame(frame)
+
+    result = result.reset_index()  # if we dont reset index, other logic gets messed up
     return result
 
 
@@ -922,7 +927,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "port",
             "username",
             "password",
-            "schema",
+            "database",
             "table_filter",
             "table_batch_size",
         ]
@@ -1055,11 +1060,28 @@ class BlazingTable(object):
 
         if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
-            data_values = self.input._data.values()
-            self.column_types = [cio.np_to_cudf_types_int(x.dtype) for x in data_values]
+            for x in self.input._data.values():
+                # for now `decimal` type is not considered from `np_to_cudf_types_int` call
+                if is_decimal_dtype(x.dtype):
+                    print(
+                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+                    )
+                    type_int = 26
+                else:
+                    type_int = cio.np_to_cudf_types_int(x.dtype)
+                self.column_types.append(type_int)
         elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
-            self.column_types = [cio.np_to_cudf_types_int(x) for x in input.dtypes]
+            for x in input.dtypes:
+                # for now `decimal` type is not considered from `np_to_cudf_types_int` call
+                if is_decimal_dtype(x):
+                    print(
+                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+                    )
+                    type_int = 26
+                else:
+                    type_int = cio.np_to_cudf_types_int(x)
+                self.column_types.append(type_int)
 
         # file_column_names are usually the same as column_names, except
         # for when in a hive table the column names defined by the hive schema
@@ -2450,11 +2472,17 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
+            has_csv_metadata = False
+            if "max_bytes_chunk_read" in parsedSchema["args"].keys():
+                if parsedSchema["args"]["max_bytes_chunk_read"] > 0:
+                    has_csv_metadata = True
+
             # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
+                or has_csv_metadata
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
@@ -2496,6 +2524,7 @@ class BlazingContext(object):
                     row_groups_col = row_meta_ids.tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
+
                 table.row_groups_ids = row_groups_ids
 
         elif isinstance(input, dask_cudf.core.DataFrame):
@@ -2816,6 +2845,21 @@ class BlazingContext(object):
 
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
+    def _expand_to_one_rowgroup_per_file(self, files, uri_values, row_groups_ids):
+        files = sum(
+            ([files[i]] * len(row_groups_ids[i]) for i in range(len(files))), []
+        )
+        uri_values = sum(
+            ([uri_values[i]] * len(row_groups_ids[i]) for i in range(len(uri_values))),
+            [],
+        )
+        row_groups_ids = [
+            [row_groups_ids[i][j]]
+            for i in range(len(row_groups_ids))
+            for j in range(len(row_groups_ids[i]))
+        ]
+        return (files, uri_values, row_groups_ids)
+
     def _optimize_skip_data_getSlices(self, current_table, scan_table_query):
         nodeFilesList = []
 
@@ -2868,6 +2912,16 @@ class BlazingContext(object):
             row_groups_ids = current_table.row_groups_ids
 
         if self.dask_client is None:
+            # for CSV files broken into batches due to `max_bytes_chunk_read`, then lets have just one "row_group" per file
+            if current_table.fileType == DataType.CSV:
+                (
+                    actual_files,
+                    uri_values,
+                    row_groups_ids,
+                ) = self._expand_to_one_rowgroup_per_file(
+                    actual_files, uri_values, row_groups_ids
+                )
+
             curr_calcite = current_table.calcite_to_file_indices
             bt = BlazingTable(
                 current_table.name,
@@ -2906,6 +2960,19 @@ class BlazingContext(object):
                     row_groups_ids,
                     current_table.mapping_files,
                 )
+            # for CSV files broken into batches due to `max_bytes_chunk_read`, then lets have just one "row_group" per file
+            if current_table.fileType == DataType.CSV:
+                # make this into a function:
+                for node_ind in range(len(all_sliced_files)):
+                    (
+                        all_sliced_files[node_ind],
+                        all_sliced_uri_values[node_ind],
+                        all_sliced_row_groups_ids[node_ind],
+                    ) = self._expand_to_one_rowgroup_per_file(
+                        all_sliced_files[node_ind],
+                        all_sliced_uri_values[node_ind],
+                        all_sliced_row_groups_ids[node_ind],
+                    )
 
             for i, node in enumerate(self.nodes):
                 curr_calcite = current_table.calcite_to_file_indices
@@ -3077,6 +3144,9 @@ class BlazingContext(object):
 
         table_names = []
 
+        # Make sure the timestamp value be unique for all the nodes
+        current_timestamp = str(datetime.now()).encode()
+
         if len(config_options) == 0:
             query_config_options = self.config_options
         else:
@@ -3142,7 +3212,7 @@ class BlazingContext(object):
             elif (
                 query_table.fileType == DataType.MYSQL
                 or query_table.fileType == DataType.SQLITE
-                # or query_table.fileType == DataType.
+                or query_table.fileType == DataType.POSTGRESQL
             ):
                 if query_table.has_metadata():
                     currentTableNodes = self._optimize_skip_data_getSlices(
@@ -3179,6 +3249,7 @@ class BlazingContext(object):
                     algebra,
                     query_config_options,
                     query,
+                    current_timestamp,
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
                 self.graphs[ctxToken] = graph
@@ -3214,6 +3285,7 @@ class BlazingContext(object):
                         algebra,
                         query_config_options,
                         query,
+                        current_timestamp,
                         workers=[worker],
                         pure=False,
                     )

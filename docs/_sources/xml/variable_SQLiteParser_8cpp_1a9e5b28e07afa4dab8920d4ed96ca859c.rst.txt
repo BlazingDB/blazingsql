@@ -1,0 +1,13 @@
+.. _exhale_variable_SQLiteParser_8cpp_1a9e5b28e07afa4dab8920d4ed96ca859c:
+
+Variable ral::io::mysql_string_types_hints
+==========================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_sql_SQLiteParser.cpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::io::mysql_string_types_hints

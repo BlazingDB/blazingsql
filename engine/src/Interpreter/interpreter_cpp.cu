@@ -9,8 +9,8 @@
 #include <random>
 
 #include "interpreter_ops.cuh"
-#include "CalciteExpressionParsing.h"
-#include "error.hpp"
+#include "parser/CalciteExpressionParsing.h"
+#include "utilities/error.hpp"
 #include <curand_kernel.h>
 
 namespace interops {

@@ -1,0 +1,42 @@
+# Like Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF 
+        - CSV
+        - ORC 
+        - PARQUET
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select p_partkey, p_mfgr
+                    from part
+                    where p_size = 35 and p_type like 'STEEL%'
+
+  TEST_02:
+    SQL: |
+        select s.s_acctbal, s.s_name, p.p_partkey,
+                        p.p_mfgr, s.s_address, s.s_phone, s.s_comment
+                    from part p
+                    inner join partsupp ps on ps.ps_partkey = p.p_partkey
+                    inner join supplier s on s.s_suppkey = ps.ps_suppkey
+                    where p.p_type like '%STEEL'
+
+  TEST_03:
+    SQL: |
+      SELECT 100.00* SUM(CASE WHEN p.p_type LIKE 'PROMO%'
+                        THEN l.l_extendedprice*(1-l.l_discount) ELSE 0 END)
+                        / SUM(l.l_extendedprice*(1-l.l_discount)) AS
+                        promo_revenue
+                      FROM lineitem l
+                      INNER JOIN part p ON l.l_partkey = p.p_partkey
+                      WHERE l.l_shipdate < '1995-09-01'
+
+ 

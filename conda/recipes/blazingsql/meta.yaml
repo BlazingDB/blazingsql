@@ -9,7 +9,6 @@ package:
 
 source:
     git_url: ../../..
-
 build:
     number: {{ GIT_DESCRIBE_NUMBER }}
     string: cuda_{{ cuda_version }}_py{{ py_version }}_{{ GIT_DESCRIBE_HASH }}_{{ GIT_DESCRIBE_NUMBER }}
@@ -25,40 +24,43 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
-        - google-cloud-cpp 1.25.0
+        - google-cloud-cpp >=1.25.0
         - mysql-connector-cpp 8.0.23
         - libpq 13
         - nlohmann_json 3.9.1
         - cppzmq
         - python
         - setuptools
-        - spdlog >=1.7.0,<1.8.0
+        - spdlog >=1.8.5,<2.0.0a0
         - cython >=0.29,<0.30
-        - openjdk >=8.0
+        - openjdk >=8.0, <9.0
         - maven
         - cudf {{ minor_version }}.*
-        - ucx-py {{ minor_version }}.*
+        - ucx-py 0.20.*
         - ucx-proc=*=gpu
+        - boost-cpp 1.72.0
         - dlpack
         - cudatoolkit {{ cuda_version }}.*
     run:
         - python
         - nlohmann_json 3.9.1
         - aws-sdk-cpp
-        - google-cloud-cpp 1.25.0
-        - openjdk >=8.0
+        - google-cloud-cpp >=1.25.0
+        - openjdk >=8.0, <9.0
         - jpype1
         - netifaces
         - pyhive
         - sqlite 3
+        - spdlog >=1.8.5,<2.0.0a0
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - ucx-py {{ minor_version }}.*
+        - ucx-py 0.20.*
         - ucx-proc=*=gpu
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm
         - ipywidgets
+        - boost-cpp 1.72.0
 
 test:
     requires:
@@ -66,7 +68,8 @@ test:
         - gtest 1.10
         - nlohmann_json 3.9.1
         - aws-sdk-cpp
-        - google-cloud-cpp 1.25.0
+        - google-cloud-cpp >=1.25.0
+        - boost-cpp 1.72.0
     imports:
         - cio
 

@@ -36,6 +36,10 @@ public:
 
 	size_t max_bytes_chunk_size() const;
 
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
+		std::vector<ral::io::data_handle> handles, int offset,
+		std::map<std::string, std::string> args_map);
+
 	DataType type() const override { return DataType::CSV; }
 
 private:

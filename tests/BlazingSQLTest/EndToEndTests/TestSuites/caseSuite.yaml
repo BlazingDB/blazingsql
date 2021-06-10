@@ -1,0 +1,132 @@
+# Case Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - MULTINODE:
+        - WITH_NULLS:
+          - CUDF
+      - WITH_NULLS:
+        - DASK_CUDF
+      - JSON
+      
+  TEST_01:
+    SQL: |
+        select case when o_custkey > 20 then o_orderkey
+                    else o_custkey - 20 end
+                    from orders where o_orderkey <= 50
+
+  TEST_02:
+    SQL: |
+        SELECT l.l_shipmode, sum(case
+                        when o.o_orderpriority = '1-URGENT'
+                        OR o.o_orderpriority = '2-HIGH' then 1
+                        else 0 end) as high_line_count
+                    FROM orders o
+                    inner join lineitem l on o.o_orderkey = l.l_orderkey
+                    WHERE l.l_commitdate < l.l_receiptdate
+                    AND l.l_shipdate < l.l_commitdate
+                    AND l.l_receiptdate >= date '1994-01-01'
+                    GROUP BY l.l_shipmode
+                    ORDER BY l.l_shipmode
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
+
+  TEST_04:
+    SQL: |
+      select r_name, (case when r_name = 'AFRICA' then
+                          r_name  else 'AFROBEAT' end) as n_rname
+                          from region
+                          where ( case when r_name = 'AFRICA' then
+                          r_name  else 'AFROBEAT' end ) = 'AFROBEAT'
+
+  TEST_06:
+    SQL: |
+        select case when o_custkey > 20 then o_orderkey
+                          when o_custkey > 10 then o_custkey - 20 else
+                          o_custkey - 10 end from orders where o_orderkey <= 50
+
+  TEST_07:
+    SQL: |
+        SELECT l.l_shipmode, sum(case when
+                          o.o_orderpriority = '1-URGENT'
+                          OR o.o_orderpriority = '2-HIGH'then 1 else 0 end)
+                          as high_line_count,
+                          sum(case when o.o_orderpriority <> '1-URGENT'
+                          AND o.o_orderpriority <> '2-HIGH' then 1 else 0 end)
+                          AS low_line_count
+                          FROM orders o
+                          INNER JOIN lineitem l ON o.o_orderkey = l.l_orderkey
+                          WHERE l.l_commitdate < l.l_receiptdate
+                          AND l.l_shipdate < l.l_commitdate
+                          AND l.l_receiptdate < date '1994-01-01'
+                          GROUP BY l.l_shipmode
+                          ORDER BY l.l_shipmode
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
+
+  TEST_08:
+    SQL: |
+      select 100.00 * sum(case when p.p_type = 'PROMO'
+                              then l.l_extendedprice*(1-l.l_discount) else 0 end)
+                              / sum(l.l_extendedprice * (1 - l.l_discount))
+                              as promo_revenue from lineitem l
+                              inner join part p on l.l_partkey = p.p_partkey
+
+  TEST_09:
+    SQL: |
+      select o_orderkey, o_custkey, case when
+                          o_custkey > 10000 then o_orderkey else NULL end
+                          from orders where o_orderkey <= 50
+
+  TEST_10:
+    SQL: |
+      select o_orderkey, o_custkey,
+                          case when o_custkey > 20000 then o_orderkey else null
+                          end from orders where o_orderkey <= 30
+
+  TEST_11:
+    SQL: |
+        select o_totalprice, o_custkey,
+                    case when o_totalprice > 100000.2 then o_totalprice
+                    else null end
+                    from orders where o_orderkey < 20
+  TEST_12:
+    SQL: |
+        select n_nationkey, n_regionkey,
+                    case when n_nationkey > 10 then n_regionkey else NULL end
+                    from nation
+  TEST_13:
+    SQL: |
+        select CASE WHEN mod(l_linenumber,  2) <> 1 THEN 0 ELSE
+                    l_quantity END as s, l_linenumber, l_quantity
+                    from lineitem
+                    order by s, l_linenumber, l_quantity limit 100
+  TEST_14:
+    SQL: |
+        select CASE WHEN l_comment in ('ABC') THEN 'CDE' END S, l_quantity
+                    from lineitem order by l_quantity, l_comment desc limit 1000
+  TEST_15:
+    SQL: |
+        select CASE WHEN l_comment in ('ABC') THEN l_comment END S, l_quantity
+                    from lineitem order by l_quantity, l_comment desc limit 1000
+  TEST_16:
+    SQL: |
+        select CASE WHEN l_comment is null THEN 'ABC' END S, l_quantity
+                    from lineitem order by l_quantity, l_comment desc limit 1000
+
+  TEST_17:
+    SQL: |
+        select CASE WHEN l_comment is null THEN 'ABC' END AS col_null
+                        from lineitem
+                        where l_comment is null

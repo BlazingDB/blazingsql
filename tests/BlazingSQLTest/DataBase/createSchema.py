@@ -38,8 +38,8 @@ tpchTables = [
     "nation",
     "region",
 ]
-# extraTables = ["perf", "acq", "names", "bool_orders"]
-extraTables = ["bool_orders"]
+# extraTables = ["perf", "acq", "names", "bool_orders", "interval_table"]
+extraTables = ["bool_orders", "interval_table"]
 tableNames = tpchTables + extraTables
 
 smilesTables = ["docked", "dcoids", "smiles", "split"]
@@ -61,23 +61,32 @@ class sql_connection:
 
 
 def get_sql_connection(fileSchemaType: DataType):
-    sql_hostname = os.getenv("BLAZINGSQL_E2E_SQL_HOSTNAME", "")
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if not sql_hostname: return None
+    if fileSchemaType is DataType.SQLITE:
+        return get_sqlite_connection()
 
-    sql_port = int(os.getenv("BLAZINGSQL_E2E_SQL_PORT", 0))
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if sql_port == 0: return None
+    if fileSchemaType is DataType.MYSQL:
+        return get_mysql_connection()
 
-    sql_username = os.getenv("BLAZINGSQL_E2E_SQL_USERNAME", "")
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if not sql_username: return None
+    if fileSchemaType is DataType.POSTGRESQL:
+        return get_postgresql_connection()
 
-    sql_password = os.getenv("BLAZINGSQL_E2E_SQL_PASSWORD", "")
-    if fileSchemaType in [DataType.MYSQL, DataType.POSTGRESQL]:
-        if not sql_password: return None
+    raise ValueError('Unsupported data type {fileSchemaType}')
 
-    sql_schema = os.getenv("BLAZINGSQL_E2E_SQL_SCHEMA", "")
+
+def get_mysql_connection() -> sql_connection:
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_MYSQL_HOSTNAME", "")
+    if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_MYSQL_PORT", 0))
+    if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_MYSQL_USERNAME", "")
+    if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_MYSQL_PASSWORD", "")
+    if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_MYSQL_DATABASE", "")
     if not sql_schema: return None
 
     ret = sql_connection(hostname = sql_hostname,
@@ -86,6 +95,40 @@ def get_sql_connection(fileSchemaType: DataType):
                          password = sql_password,
                          schema = sql_schema)
     return ret
+
+
+def get_postgresql_connection() -> sql_connection:
+    sql_hostname = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_HOSTNAME", "")
+    if not sql_hostname: return None
+
+    sql_port = int(os.getenv("BLAZINGSQL_E2E_POSTGRESQL_PORT", 0))
+    if sql_port == 0: return None
+
+    sql_username = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_USERNAME", "")
+    if not sql_username: return None
+
+    sql_password = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_PASSWORD", "")
+    if not sql_password: return None
+
+    sql_schema = os.getenv("BLAZINGSQL_E2E_POSTGRESQL_DATABASE", "")
+    if not sql_schema: return None
+
+    ret = sql_connection(hostname = sql_hostname,
+                         port = sql_port,
+                         username = sql_username,
+                         password = sql_password,
+                         schema = sql_schema)
+    return ret
+
+
+def get_sqlite_connection() -> sql_connection:
+    sql_schema = os.getenv("BLAZINGSQL_E2E_SQLITE_DATABASE", "")
+    if not sql_schema: return None
+    return sql_connection(hostname='',
+                          port=0,
+                          username='',
+                          password='',
+                          schema=sql_schema)
 
 
 def getFiles_to_tmp(tpch_dir, n_files, ext):
@@ -344,7 +387,7 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
         dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, 'psv')
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test and testsWithNulls != "true":
+    if bool_test:
         drill.query(
             "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": "bool_orders"}, timeout
@@ -369,6 +412,29 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
                 CASE WHEN columns[9] = '' OR columns[9] = 'null' THEN null
                 ELSE cast(columns[9] as boolean) END as o_confirmed
         FROM table(dfs.`%(dir_data_lc)s/bool_orders_*.psv`
+         (type => 'text', fieldDelimiter => '|'))
+        """
+            % {"dir_data_lc": dir_data_lc},
+            timeout,
+        )
+
+    interval_test = kwargs.get("interval_test", None)
+    if interval_test:
+        drill.query(
+            "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
+            % {"table": "interval_table"}, timeout
+        )
+
+        drill.query(
+            """
+        create table dfs.tmp.`interval_table/` as
+            select CASE WHEN columns[0] = '' OR columns[0] = 'null' THEN null
+                ELSE cast(columns[0] as bigint) END as i_id,
+                CASE WHEN columns[1] = '' OR columns[1] = 'null' THEN null
+                ELSE columns[1] END as i_duration_s,
+                CASE WHEN columns[2] = '' OR columns[2] = 'null' THEN null
+                ELSE columns[2] END as i_duration_ms
+        FROM table(dfs.`%(dir_data_lc)s/interval_table_*.psv`
          (type => 'text', fieldDelimiter => '|'))
         """
             % {"dir_data_lc": dir_data_lc},
@@ -493,7 +559,7 @@ def init_drill_mortgage_schema(drill, tpch_dir):
 
 
 # ***************** READ DATA FROM TPCH CSV FILES **************************
-def get_column_names(table_name, bool_column=False):
+def get_column_names(table_name, bool_column=False, interval_column=False):
     switcher = {
         "customer": [
             "c_custkey",
@@ -579,6 +645,17 @@ def get_column_names(table_name, bool_column=False):
                     "o_shippriority",
                     "o_comment",
                     "o_confirmed",
+                ]
+            }
+        )
+
+    if interval_column:
+        switcher.update(
+            {
+                "interval_table": [
+                    "i_id",
+                    "i_duration_s",
+                    "i_duration_ms",
                 ]
             }
         )
@@ -669,7 +746,7 @@ def get_dtypes_wstrings(table_name):
     return func
 
 
-def get_dtypes(table_name, bool_column=False):
+def get_dtypes(table_name, bool_column=False, interval_column=False):
     switcher = {
         "customer": [
             "int32",
@@ -741,6 +818,17 @@ def get_dtypes(table_name, bool_column=False):
                     "str",
                     "str",
                     "boolean",
+                ]
+            }
+        )
+
+    if interval_column:
+        switcher.update(
+            {
+                "interval_table": [
+                    "int32",
+                    "timedelta64[s]",
+                    "timedelta64[ms]",
                 ]
             }
         )
@@ -939,9 +1027,9 @@ def get_filenames_table(table, dir_data_lc, n_files, ext='psv', **kwargs):
     return dataFiles
 
 
-def read_data(table, dir_data_file, bool_column=False):
-    column_names = get_column_names(table, bool_column)
-    data_types = get_dtypes(table, bool_column)
+def read_data(table, dir_data_file, bool_column=False, interval_column=False):
+    column_names = get_column_names(table, bool_column, interval_column)
+    data_types = get_dtypes(table, bool_column, interval_column)
     table_gdf = Read_tpch_files(column_names, dir_data_file, table, data_types)
 
     return table_gdf
@@ -1247,8 +1335,10 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     ext = get_extension(fileSchemaType)
 
     tables = kwargs.get("tables", tpchTables)
+    tables = list(set(tables) & set(tableNames))
     table_names = kwargs.get("table_names", tables)
-    bool_orders_index = kwargs.get("bool_orders_index", -1)
+    bool_orders_index = tables.index("bool_orders") if "bool_orders" in tables else -1
+    interval_table_index = tables.index("interval_table") if "interval_table" in tables else -1
 
     testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
@@ -1266,25 +1356,31 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         table_files = ("%s/%s_[0-9]*.%s") % (dir_data_lc, table, ext)
         if fileSchemaType == DataType.CSV or fileSchemaType == DataType.JSON:
             bool_orders_flag = False
+            interval_table_flag = False
 
             if i == bool_orders_index:
                 bool_orders_flag = True
+            
+            if i == interval_table_index:
+                interval_table_index = True
 
-            dtypes = get_dtypes(table, bool_orders_flag)
-            col_names = get_column_names(table, bool_orders_flag)
+            dtypes = get_dtypes(table, bool_orders_flag, interval_table_index)
+            col_names = get_column_names(table, bool_orders_flag, interval_table_index)
             bc.create_table(
                 table_names[i], table_files, delimiter="|", dtype=dtypes,
                 names=col_names
             )
         elif fileSchemaType == DataType.CUDF:
             bool_column = bool_orders_index != -1
-            gdf = read_data(table, dir_data_lc, bool_column)
+            interval_column = interval_table_index != -1
+            gdf = read_data(table, dir_data_lc, bool_column, interval_column)
             bc.create_table(table_names[i], gdf)
         elif fileSchemaType == DataType.DASK_CUDF:
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
             bool_column = bool_orders_index != -1
-            gdf = read_data(table, dir_data_lc, bool_column)
+            interval_column = interval_table_index != -1
+            gdf = read_data(table, dir_data_lc, bool_column, interval_column)
             ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
             bc.create_table(table_names[i], ds)
         # elif fileSchemaType == DataType.DASK_CUDF:
@@ -1319,7 +1415,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
                 port = sql_port,
                 username = sql_username,
                 password = sql_password,
-                schema = sql_schema,
+                database = sql_schema,
                 table_filter = sql_table_filter,
                 table_batch_size = sql_table_batch_size)
         else:

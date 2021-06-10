@@ -132,9 +132,11 @@ cudf::type_id to_dtype(parquet::Type::type physical, parquet::ConvertedType::typ
 	// is superceded by 'logical' type whenever available.
 	switch (logical) {
 	case parquet::ConvertedType::type::UINT_8:
+		return cudf::type_id::UINT8;
 	case parquet::ConvertedType::type::INT_8:
 		return cudf::type_id::INT8;
 	case parquet::ConvertedType::type::UINT_16:
+		return cudf::type_id::UINT16;
 	case parquet::ConvertedType::type::INT_16:
 		return cudf::type_id::INT16;
 	case parquet::ConvertedType::type::DATE:

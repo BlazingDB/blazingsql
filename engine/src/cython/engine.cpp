@@ -1,5 +1,5 @@
 #include "engine/engine.h"
-#include "../CalciteInterpreter.h"
+#include "../execution_graph/CalciteInterpreter.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/GDFParser.h"
@@ -8,21 +8,27 @@
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_provider/GDFDataProvider.h"
+#include "../io/data_provider/ArrowDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
-#include "../execution_graph/logic_controllers/LogicalFilter.h"
+#include "../execution_kernels/LogicalFilter.h"
 
 #include <numeric>
 #include <map>
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
-#include "CodeTimer.h"
+#include "utilities/CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
-#include "error.hpp"
+#include "utilities/error.hpp"
 
 #ifdef MYSQL_SUPPORT
 #include "../io/data_parser/sql/MySQLParser.h"
 #include "../io/data_provider/sql/MySQLDataProvider.h"
+#endif
+
+#ifdef POSTGRESQL_SUPPORT
+#include "../io/data_parser/sql/PostgreSQLParser.h"
+#include "../io/data_provider/sql/PostgreSQLDataProvider.h"
 #endif
 
 #ifdef SQLITE_SUPPORT
@@ -78,7 +84,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == ral::io::DataType::CSV) {
 			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
-	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
+			parser = std::make_shared<ral::io::arrow_parser>();
 		} else if(fileType == ral::io::DataType::MYSQL) {
 #ifdef MYSQL_SUPPORT
       parser = std::make_shared<ral::io::mysql_parser>();
@@ -88,30 +94,44 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 #else
       throw std::runtime_error("ERROR: This BlazingSQL version doesn't support MySQL integration");
 #endif
-    } else if(fileType == ral::io::DataType::SQLITE) {
+    } else if(fileType == ral::io::DataType::POSTGRESQL) {
+#ifdef POSTGRESQL_SUPPORT
+		parser = std::make_shared<ral::io::postgresql_parser>();
+    auto sql = ral::io::getSqlInfo(args_map);
+    provider = std::make_shared<ral::io::postgresql_data_provider>(sql, 0, 0);
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support PostgreSQL integration");
+#endif
+    isSqlProvider = true;
+	} else if(fileType == ral::io::DataType::SQLITE) {
 #ifdef SQLITE_SUPPORT
   		parser = std::make_shared<ral::io::sqlite_parser>();
       auto sql = ral::io::getSqlInfo(args_map);
       provider = std::make_shared<ral::io::sqlite_data_provider>(sql, total_number_of_nodes, self_node_idx);
       isSqlProvider = true;
+#else
+      throw std::runtime_error("ERROR: This BlazingSQL version doesn't support SQLite integration");
 #endif
     }
-
 		std::vector<Uri> uris;
 		for(size_t fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
 			schema.add_file(filesAll[i][fileIndex]);
 		}
 
-    if (!isSqlProvider) {
-      if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
-        // is gdf
-        provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
-      } else {
-        // is file (this includes the case where fileType is UNDEFINED too)
-        provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
-      }
-    }
+		if (!isSqlProvider) {
+			if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
+				// is gdf
+				provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
+			} else if (fileType == ral::io::DataType::ARROW) {
+				std::vector<std::shared_ptr<arrow::Table>> arrow_tables = {tableSchema.arrow_table};
+				provider = std::make_shared<ral::io::arrow_data_provider>(arrow_tables, uri_values[i]);
+			} else {
+				// is file (this includes the case where fileType is UNDEFINED too)
+				provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
+			}
+		}
+
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
 		schemas.push_back(schema);
@@ -162,7 +182,7 @@ std::string runGeneratePhysicalGraph(uint32_t masterIndex,
     for (const auto &worker_id : worker_ids) {
         contextNodes.emplace_back(worker_id);
     }
-    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}};
+    Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", {}, ""};
 
     return get_physical_plan(query, queryContext);
 }
@@ -180,7 +200,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::string query,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
-	std::string sql)
+	std::string sql,
+	std::string current_timestamp)
 {
   using blazingdb::manager::Context;
   using blazingdb::transport::Node;
@@ -191,15 +212,14 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
   for (const auto &worker_id : worker_ids) {
     contextNodes.emplace_back(worker_id);
   }
-	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
-  auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-  int self_node_idx = queryContext.getNodeIndex(self_node);
+	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options, current_timestamp};
+  	auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+  	int self_node_idx = queryContext.getNodeIndex(self_node);
+
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values, contextNodes.size(), self_node_idx);
-
-
 
   	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 

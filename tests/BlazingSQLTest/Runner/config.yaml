@@ -1,0 +1,40 @@
+TEST_SETTINGS:
+#  DATA_DIRECTORY: $CONDA_PREFIX/blazingsql-testing-files/data/ - Not yet supported in yaml.
+#  FILE_RESULT_DIRECTORY: $CONDA_PREFIX/blazingsql-testing-files/results/ - Not yet supported in yaml.
+  LOG_DIRECTORY: $CONDA_PREFIX/
+  DATA_SIZE: "100MB2Part"
+  EXECUTION_ENV: "local"
+  DASK_CONNECTION: "local" # values: "dask-scheduler-ip:port", "local"
+
+RUN_SETTINGS:
+#  SAVE_LOG: "false" - Not yet supported in yaml.
+  EXEC_MODE: gpuci #gpuci, full, generator
+  NGPUS: 1
+  NETWORK_INTERFACE: lo
+  WORKSHEET: BSQL Log Results # or "BSQL Performance Results"
+  LOG_INFO:
+#  NRALS:  # Not yet supported in yaml.
+#    - 1
+#    - 2
+#  TEST_WITH_NULLS:  # Not yet supported in yaml.
+#    - "true"
+#    - "false"
+  CONCURRENT: False
+#  CONCURRENT:  # The options list is not yet supported by yaml.
+#    - False
+#    - True
+
+SETUP:
+  APPLY_ORDER: True
+  USE_PERCENTAGE: False
+  ACCEPTABLE_DIFFERENCE: 0.01
+  PRINT_RESULT: True
+  COMPARE_WITH: drill
+  COMPARING: True
+  DATA_TYPES:
+    - CUDF
+    - DASK_CUDF
+    - ORC
+    - PARQUET
+    - CSV
+    - JSON

@@ -1,0 +1,13 @@
+.. _exhale_function_BatchJoinProcessing_8cpp_1ab83d8958750d6e018565d3cbd170d376:
+
+Function ral::batch::reordering_columns_due_to_right_join
+=========================================================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ral::batch::reordering_columns_due_to_right_join(std::unique_ptr<cudf::table>, size_t)

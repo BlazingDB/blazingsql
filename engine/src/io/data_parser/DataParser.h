@@ -12,7 +12,7 @@
 #include "../DataType.h"
 #include "../data_provider/DataProvider.h"
 
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "execution_kernels/LogicPrimitives.h"
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
@@ -40,7 +40,8 @@ public:
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_metadata(
 		std::vector<ral::io::data_handle> /*handles*/,
-		int /*offset*/) {
+		int /*offset*/,
+		std::map<std::string, std::string> /*args_map*/) {
 		return nullptr;
 	}
 

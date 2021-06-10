@@ -4,14 +4,13 @@
 #include <numeric>
 
 #include "utilities/CommonOperations.h"
-
-#include <CodeTimer.h>
+#include "utilities/CodeTimer.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "ExceptionHandling/BlazingThread.h"
 #include <cudf/filling.hpp>
 #include <cudf/column/column_factories.hpp>
-#include "CalciteExpressionParsing.h"
-#include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "parser/CalciteExpressionParsing.h"
+#include "execution_kernels/LogicalFilter.h"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
@@ -64,19 +63,18 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	this->provider->reset();
 }
 
-std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {
-
+std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset,
+	std::map<std::string, std::string> args_map)
+{
 	std::size_t NUM_FILES_AT_A_TIME = 64;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> metadata_batches;
-	std::vector<ral::frame::BlazingTableView> metadata_batches_views;
 	while(this->provider->has_next()){
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
 		std::vector<data_handle> handles = this->provider->get_some(NUM_FILES_AT_A_TIME);
 		for(auto handle : handles) {
 			files.push_back(handle.file_handle);
 		}
-		metadata_batches.emplace_back(this->parser->get_metadata(handles, offset));
-		metadata_batches_views.emplace_back(metadata_batches.back()->toBlazingTableView());
+		metadata_batches.emplace_back(this->parser->get_metadata(handles, offset, args_map));
 		offset += files.size();
 		this->provider->close_file_handles();
 	}
@@ -84,7 +82,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 	if (metadata_batches.size() == 1){
 		return std::move(metadata_batches[0]);
 	} else {
-		if(ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batches_views)) {
+		if(ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batches)) {
             std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
             if(logger){
                 logger->warn("|||{info}|||||",
@@ -92,7 +90,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
             }
 		}
 
-		return ral::utilities::concatTables(metadata_batches_views);
+		return ral::utilities::concatTables(std::move(metadata_batches));
 	}
 }
 

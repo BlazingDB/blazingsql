@@ -1,0 +1,127 @@
+# Group by Test Suite
+
+TEST_SUITE:
+  SETUP:
+    APPLY_ORDER: True
+    USE_PERCENTAGE: False
+    ACCEPTABLE_DIFFERENCE: 0.01
+    COMPARE_WITH: drill
+    SKIP_WITH:
+      - SINGLENODE:
+        - DASK_CUDF
+      - JSON
+
+  TEST_01:
+    SQL: |
+        select count(c_custkey), sum(c_acctbal),
+                        avg(c_acctbal), min(c_custkey), max(c_nationkey),
+                        c_nationkey
+                    from customer group by c_nationkey
+
+  TEST_02:
+    SQL: |
+        select count(c_custkey), sum(c_acctbal),
+                            count(c_acctbal), avg(c_acctbal), min(c_custkey),
+                            max(c_custkey), c_nationkey
+                        from customer where c_custkey < 50
+                        group by c_nationkey
+
+  TEST_03:
+    SQL: |
+      select count(c_custkey) + sum(c_acctbal) +
+                        avg(c_acctbal), min(c_custkey) - max(c_nationkey),
+                        c_nationkey * 2 as key
+                    from customer where  c_nationkey * 2 < 40
+                    group by  c_nationkey * 2
+
+  TEST_04:
+    SQL: |
+        select c_nationkey, count(c_acctbal)
+                    from customer group by c_nationkey, c_custkey
+
+  TEST_05:
+    SQL: |
+        select l.l_suppkey, l.l_linestatus,
+                            min(l.l_commitdate), max(l.l_commitdate),
+                            max(l.l_orderkey), count(l.l_orderkey)
+                        FROM
+                        (
+                            SELECT l_suppkey, l_linestatus, l_shipmode,
+                                l_orderkey, l_commitdate
+                            from lineitem
+                            WHERE l_linenumber = 6
+                            and l_commitdate < DATE '1993-01-01'
+                        ) AS l
+                        LEFT OUTER JOIN orders AS o
+                        ON l.l_orderkey + 100 = o.o_orderkey
+                        GROUP BY l.l_suppkey, l.l_linestatus
+                        order by l.l_suppkey, l.l_linestatus
+                        limit 10000
+    SETUP:
+      SKIP_WITH:
+        - ORC
+
+  TEST_06:
+    SQL: |
+        select l.l_suppkey, l.l_linestatus, max(l.l_shipmode),
+                        max(l.l_orderkey), count(l.l_orderkey)
+                    FROM lineitem AS l LEFT OUTER JOIN orders AS o
+                    ON l.l_orderkey + 100 = o.o_orderkey
+                    GROUP BY l.l_suppkey, l.l_linestatus
+
+  TEST_07:
+    SQL: |
+        SELECT count(distinct l_orderkey),
+                        count(distinct l_partkey),
+                        count(distinct l_suppkey)
+                    FROM lineitem
+                    GROUP BY l_orderkey, l_partkey, l_suppkey
+
+  TEST_08:
+    SQL: |
+        SELECT count(distinct l_partkey, l_suppkey)
+                    FROM lineitem
+                    GROUP BY l_partkey, l_suppkey
+    SETUP:
+      COMPARE_WITH: spark
+
+  TEST_09:
+    SQL: |
+        select l_orderkey, l_extendedprice, l_shipdate
+                    from lineitem where l_orderkey < 100
+                    group by l_orderkey, l_extendedprice,
+                    l_shipdate, l_linestatus
+    SETUP:
+      COMPARE_WITH:
+        ORC: spark
+        OTHER: drill
+
+  TEST_10:
+    SQL: |
+      select l.l_suppkey, l.l_linestatus,
+                            min(l.l_commitdate), max(l.l_commitdate),
+                            max(l.l_orderkey), count(l.l_orderkey)
+                        FROM
+                        (
+                            SELECT l_suppkey, l_linestatus, l_shipmode,
+                                l_orderkey, l_commitdate
+                            from lineitem
+                            WHERE l_linenumber = 6
+                            and l_commitdate < DATE '1993-01-01'
+                        ) AS l
+                        RIGHT OUTER JOIN orders AS o
+                        ON l.l_orderkey + 100 = o.o_orderkey
+                        GROUP BY l.l_suppkey, l.l_linestatus
+                        order by l.l_suppkey, l.l_linestatus
+                        limit 10000
+    SETUP:
+      SKIP_WITH:
+        - ORC
+
+  TEST_11:
+    SQL: |
+      select l.l_suppkey, l.l_linestatus, max(l.l_shipmode),
+                            max(l.l_orderkey), count(l.l_orderkey)
+                        FROM lineitem AS l RIGHT OUTER JOIN orders AS o
+                        ON l.l_orderkey + 100 = o.o_orderkey
+                        GROUP BY l.l_suppkey, l.l_linestatus

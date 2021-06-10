@@ -4,8 +4,8 @@
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "expression_utils.hpp"
-#include "CalciteExpressionParsing.h"
-#include "error.hpp"
+#include "parser/CalciteExpressionParsing.h"
+#include "utilities/error.hpp"
 
 bool is_nullary_operator(operator_type op){
 switch (op)
@@ -21,6 +21,7 @@ bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_ABS:
 	case operator_type::BLZ_FLOOR:
 	case operator_type::BLZ_CEIL:
@@ -42,6 +43,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_SECOND:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_CAST_TINYINT:
 	case operator_type::BLZ_CAST_SMALLINT:
 	case operator_type::BLZ_CAST_INTEGER:
@@ -49,6 +52,9 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_FLOAT:
 	case operator_type::BLZ_CAST_DOUBLE:
 	case operator_type::BLZ_CAST_DATE:
+	case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
+	case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+	case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -134,6 +140,12 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::FLOAT64;
 	case operator_type::BLZ_CAST_DATE:
 		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_CAST_TIMESTAMP_SECONDS:
+		return cudf::type_id::TIMESTAMP_SECONDS;
+	case operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS:
+		return cudf::type_id::TIMESTAMP_MILLISECONDS;
+	case operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS:
+		return cudf::type_id::TIMESTAMP_MICROSECONDS;
 	case operator_type::BLZ_CAST_TIMESTAMP:
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	case operator_type::BLZ_STR_LOWER:
@@ -171,8 +183,11 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_ABS:
 		return input_left_type;
 	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_TRUE:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_IS_NOT_TRUE:
+	case operator_type::BLZ_IS_NOT_FALSE:
 	case operator_type::BLZ_IS_NOT_DISTINCT_FROM:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_CHAR_LENGTH:
@@ -257,7 +272,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
-		{"IS NOT TRUE", operator_type::BLZ_NOT},
+		{"IS NOT TRUE", operator_type::BLZ_IS_NOT_TRUE},
+		{"IS NOT FALSE", operator_type::BLZ_IS_NOT_FALSE},
+		{"IS TRUE", operator_type::BLZ_IS_TRUE},
 		{"SIN", operator_type::BLZ_SIN},
 		{"ASIN", operator_type::BLZ_ASIN},
 		{"COS", operator_type::BLZ_COS},
@@ -285,6 +302,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_FLOAT", operator_type::BLZ_CAST_FLOAT},
 		{"CAST_DOUBLE", operator_type::BLZ_CAST_DOUBLE},
 		{"CAST_DATE", operator_type::BLZ_CAST_DATE},
+		{"CAST_TIMESTAMP_SECONDS", operator_type::BLZ_CAST_TIMESTAMP_SECONDS},
+		{"CAST_TIMESTAMP_MILLISECONDS", operator_type::BLZ_CAST_TIMESTAMP_MILLISECONDS},
+		{"CAST_TIMESTAMP_MICROSECONDS", operator_type::BLZ_CAST_TIMESTAMP_MICROSECONDS},
 		{"CAST_TIMESTAMP", operator_type::BLZ_CAST_TIMESTAMP},
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
@@ -340,23 +360,127 @@ bool is_number(const std::string & token) {
 	return std::regex_match(token, re);
 }
 
-bool is_date(const std::string & token) {
-	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
-	return std::regex_match(token, re);
-}
-
-bool is_hour(const std::string & token) {
+bool is_time_until_s(const std::string & token) {
 	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2})"};
 	return std::regex_match(token, re);
 }
 
-bool is_timestamp(const std::string & token) {
-	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})");
+bool is_time_until_ms(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time_until_us(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time_until_ns(const std::string & token) {
+	static const std::regex re{"([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})"};
+	return std::regex_match(token, re);
+}
+
+bool is_time(const std::string & token) {
+	return (is_time_until_s(token) || is_time_until_ms(token) || is_time_until_us(token) || is_time_until_ns(token));
+}
+
+bool is_date_with_dash(const std::string & token) {
+	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
+	return std::regex_match(token, re);
+}
+
+bool is_date_with_bar(const std::string & token) {
+	static const std::regex re{R"([0-9]{4}/[0-9]{2}/[0-9]{2})"};
+	return std::regex_match(token, re);
+}
+
+bool is_date(const std::string & token) {
+	return (is_date_with_bar(token) || is_date_with_dash(token));
+}
+
+bool is_timestamp_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2})?[Z]?");
 	bool ret = std::regex_match(token, re);
 	return ret;
 }
 
+bool is_timestamp_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp(const std::string & token) {
+	return (is_timestamp_with_bar(token) || is_timestamp_with_dash(token));
+}
+
+bool is_timestamp_ms_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ms_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ms(const std::string & token) {
+	return (is_timestamp_ms_with_bar(token) || is_timestamp_ms_with_dash(token));
+}
+
+bool is_timestamp_us_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_us_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{6})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_us(const std::string & token) {
+	return (is_timestamp_us_with_bar(token) || is_timestamp_us_with_dash(token));
+}
+
+bool is_timestamp_ns_with_dash(const std::string & token) {
+	static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ns_with_bar(const std::string & token) {
+	static const std::regex re("([0-9]{4})/([0-9]{2})/([0-9]{2})?[ T]?([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{9})?[Z]?");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
+
+bool is_timestamp_ns(const std::string & token) {
+	return (is_timestamp_ns_with_bar(token) || is_timestamp_ns_with_dash(token));
+}
+
+bool is_timestamp_with_decimals(const std::string & token) {
+	return (is_timestamp_ms(token) || is_timestamp_us(token) || is_timestamp_ns(token));
+}
+
+bool is_timestamp_with_decimals_and_dash(const std::string & token) {
+	return (is_timestamp_ns_with_dash(token) || is_timestamp_us_with_dash(token) || is_timestamp_ms_with_dash(token));
+}
+
+bool is_timestamp_with_decimals_and_bar(const std::string & token) {
+	return (is_timestamp_ns_with_bar(token) || is_timestamp_us_with_bar(token) || is_timestamp_ms_with_bar(token));
+}
+
 bool is_bool(const std::string & token) { return (token == "true" || token == "false"); }
+
+bool is_join_expression(const std::string & token) {
+	static const std::regex re("=[/(][/$][0-9]{1,4},[ ][/$][0-9]{1,4}[/)]");
+	bool ret = std::regex_match(token, re);
+	return ret;
+}
 
 bool is_SQL_data_type(const std::string & token) {
 	static std::vector<std::string> CALCITE_DATA_TYPES = {
@@ -374,7 +498,7 @@ bool is_operator_token(const std::string & token) {
 
 bool is_literal(const std::string & token) {
 	return is_null(token) || is_bool(token) || is_number(token) || is_date(token) || is_string(token) ||
-		   is_timestamp(token);
+		   is_timestamp(token) || is_time(token);
 }
 
 bool is_var_column(const std::string& token){
@@ -664,19 +788,35 @@ std::tuple< int, int > get_bounds_from_window_expression(const std::string & log
 
 	// getting the first limit value
 	std::string between_expr = "BETWEEN ";
-	std::string preceding_expr = " PRECEDING";
+	std::string and_expr = "AND ";
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
-	size_t end_pos = over_clause.find(preceding_expr);
-	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	preceding_value = std::stoi(first_limit);
+	size_t end_pos = over_clause.find(and_expr);
+
+	std::string preceding_clause = over_clause.substr(start_pos, end_pos - start_pos);
+	std::string following_clause = over_clause.substr(end_pos + and_expr.size());
+
+	if (preceding_clause.find("CURRENT ROW") != std::string::npos){
+		preceding_value = 0;
+	} else if (preceding_clause.find("UNBOUNDED") != std::string::npos){
+		preceding_value = -1;
+	} else {
+		std::string preceding_expr = " PRECEDING";
+		end_pos = preceding_clause.find(preceding_expr);
+		std::string str_value = preceding_clause.substr(0, end_pos);
+		preceding_value = std::stoi(str_value);
+	}
 
 	// getting the second limit value
-	std::string and_expr = "AND ";
-	std::string following_expr = " FOLLOWING";
-	start_pos = over_clause.find(and_expr) + and_expr.size();
-	end_pos = over_clause.find(following_expr);
-	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	following_value = std::stoi(second_limit);
+	if (following_clause.find("CURRENT ROW") != std::string::npos){
+		following_value = 0;
+	} else if (following_clause.find("UNBOUNDED") != std::string::npos){
+		following_value = -1;
+	} else {
+		std::string following_expr = " FOLLOWING";
+		end_pos = following_clause.find(following_expr);
+		std::string str_value = following_clause.substr(0, end_pos);
+		following_value = std::stoi(str_value);
+	}
 
 	return std::make_tuple(preceding_value, following_value);
 }
@@ -739,48 +879,57 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 // input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             max_keys=[MAX(4) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)])
-// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [3] >
+// output: < [0, 4, 0], ["MIN", "MAX", "LEAD"], [0, 0, 3] >
 std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<std::string> aggregations;
-	std::vector<int> agg_param_values;
+	std::vector<int> agg_param_values; // will be set to 0 when not actually used
 
 	std::string query_part = get_query_part(logical_plan);
 	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
 
 	// we want all expressions that contains an OVER clause
 	for (size_t i = 0; i < project_expressions.size(); ++i) {
-		if (project_expressions[i].find("OVER") != std::string::npos) {
-			std::string express_i = project_expressions[i];
-			size_t start_pos = express_i.find("[") + 1;
-			size_t end_pos = express_i.find("OVER");
-			express_i = express_i.substr(start_pos, end_pos - start_pos);
-			std::string express_i_wo_trim = StringUtil::trim(express_i);
-			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
-			if (split_parts[0] == "ROW_NUMBER()") {
-				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
-				column_index.push_back(0);
-			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
-				// we need to get the constant values
-				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
-				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
-				aggregations.push_back(split_parts[0]);
-				column_index.push_back(std::stoi(inside_parts[0]));
-				agg_param_values.push_back(std::stoi(inside_parts[1]));
-			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
-				aggregations.push_back("COUNT");
-				aggregations.push_back("$SUM0");
-				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
-				column_index.push_back(std::stoi(indice));
-				column_index.push_back(std::stoi(indice));
-			} else {
+ 		if (project_expressions[i].find("OVER") != std::string::npos) {
+ 			std::string express_i = project_expressions[i];
+ 			size_t start_pos = express_i.find("[") + 1;
+ 			size_t end_pos = express_i.find("OVER");
+ 			express_i = express_i.substr(start_pos, end_pos - start_pos);
+ 			std::string express_i_wo_trim = StringUtil::trim(express_i);
+ 			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
+ 			if (split_parts[0] == "ROW_NUMBER()") {
+ 				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
+ 				column_index.push_back(0);
+				agg_param_values.push_back(0);
+ 			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
+ 				// we need to get the constant values
+ 				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
+ 				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
+ 				aggregations.push_back(split_parts[0]);
+ 				column_index.push_back(std::stoi(inside_parts[0]));
+ 				agg_param_values.push_back(std::stoi(inside_parts[1]));
+ 			} else if ( is_sum_window_function(project_expressions[i]) || is_avg_window_function(project_expressions[i]) ) {
+ 				aggregations.push_back("COUNT");
+ 				aggregations.push_back("$SUM0");
+ 				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
+ 				column_index.push_back(std::stoi(indice));
+ 				column_index.push_back(std::stoi(indice));
+				agg_param_values.push_back(0);
+				agg_param_values.push_back(0);
+			} else if (is_last_value_window(project_expressions[i])) {
 				aggregations.push_back(split_parts[0]);
 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
 				column_index.push_back(std::stoi(col_index));
-			}
-		}
-	}
+				agg_param_values.push_back(-1);			
+ 			} else {
+ 				aggregations.push_back(split_parts[0]);
+ 				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
+ 				column_index.push_back(std::stoi(col_index));
+				agg_param_values.push_back(0);
+ 			}
+ 		}
+ 	}
 
 	return std::make_tuple(column_index, aggregations, agg_param_values);
 }
@@ -916,7 +1065,6 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 	return expressions;
 }
 
-
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
 
@@ -955,8 +1103,12 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(BOTH),", "TRIM(\"BOTH\",");
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(LEADING),", "TRIM(\"LEADING\",");
 	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
+	StringUtil::findAndReplaceAll(ret, "DAY TO SECOND", "SECOND");
+	StringUtil::findAndReplaceAll(ret, "HOUR TO SECOND", "SECOND");
+	StringUtil::findAndReplaceAll(ret, "MINUTE TO SECOND", "SECOND");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
+
 	return ret;
 }
 
@@ -1031,4 +1183,280 @@ std::string convert_concat_expression_into_multiple_binary_concat_ops(std::strin
 	}
 
 	return new_expression;
+}
+
+const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string) {
+	if (scalar_string[0] != '\'' && scalar_string[scalar_string.size() - 1] != '\'') {
+		return scalar_string;
+	}
+
+	std::string temp_str = scalar_string;
+	const std::string cleaned_timestamp = temp_str.substr(1, temp_str.size() - 2);
+
+	return cleaned_timestamp;
+}
+
+// Calcite translates the `col_1 IS NOT DISTINCT FROM col_3` subquery to the
+//     OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))  
+// expression. So let's do the same here
+// input: IS_NOT_DISTINCT_FROM($1, $3)
+// output: OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))
+std::string replace_is_not_distinct_as_calcite(std::string expression) {
+	if (expression.find("IS_NOT_DISTINCT_FROM") == expression.npos) {
+		return expression;
+	}
+	
+	size_t start_pos = expression.find("(") + 1;
+	size_t end_pos = expression.find(")");
+	
+	// $1, $3
+	std::string reduced_expr = expression.substr(start_pos, end_pos - start_pos);
+	std::vector<std::string> var_str = get_expressions_from_expression_list(reduced_expr);
+
+	if (var_str.size() != 2) {
+		throw std::runtime_error("IS_NOT_DISTINCT_FROM must contains only 2 variables.");
+	}
+    
+    return "OR(AND(IS NULL(" + var_str[0] + "), IS NULL(" + var_str[1] + ")), IS TRUE(=(" + var_str[0] + " , " + var_str[1] + ")))";
+}
+
+// input: AND(=($0, $3), IS_NOT_DISTINCT_FROM($1, $3))
+// output: ["=($0, $3)" , "OR(AND(IS NULL($1), IS NULL($3)), IS TRUE(=($1 , $3)))"]
+std::tuple<std::string, std::string> update_join_and_filter_expressions_from_is_not_distinct_expr(const std::string & expression) {
+
+	std::string origin_expr = expression;
+	size_t total_is_not_distinct_expr = StringUtil::findAndCountAllMatches(origin_expr, "IS_NOT_DISTINCT_FROM");
+	
+	std::string left_expr = origin_expr.substr(0, 4);
+	if (!(left_expr == "AND(") || (total_is_not_distinct_expr == 0)) {
+		return std::make_tuple(origin_expr, "");
+	}
+
+	// "=($0, $3), IS_NOT_DISTINCT_FROM($1, $3)"
+	std::string reduced_expr = origin_expr.erase(0, left_expr.size());
+	reduced_expr = reduced_expr.substr(0, reduced_expr.size() - 1);
+	std::vector<std::string> all_expressions = get_expressions_from_expression_list(reduced_expr);
+
+	// Let's get the index of the join condition (using regex) if exists
+	size_t join_pos_operation;
+	bool contains_join_express = false;
+	for (size_t i = 0; i < all_expressions.size(); ++i) {
+		if (is_join_expression(all_expressions[i])) {
+			join_pos_operation = i;
+			contains_join_express = true;
+			break;
+		}
+	}
+
+	if (!contains_join_express) {
+		return std::make_tuple(expression, "");
+	}
+
+	size_t total_filter_conditions = all_expressions.size() - 1;
+
+	std::string new_join_statement_express = all_expressions[join_pos_operation], filter_statement_expression;
+
+	assert(total_filter_conditions > 0);
+
+	if (total_filter_conditions == 1) {
+		size_t not_join_pos = (join_pos_operation == 0) ? 1 : 0;
+		filter_statement_expression = replace_is_not_distinct_as_calcite(all_expressions[not_join_pos]);
+	} else {
+		filter_statement_expression = "AND(";
+		for (size_t i = 0; i < all_expressions.size(); ++i) {
+			if (i != join_pos_operation) {
+				filter_statement_expression += replace_is_not_distinct_as_calcite(all_expressions[i]) + ", ";
+			}
+		}
+		filter_statement_expression = filter_statement_expression.substr(0, filter_statement_expression.size() - 2);
+		filter_statement_expression += ")";
+	}
+
+	return std::make_tuple(new_join_statement_express, filter_statement_expression);
+}
+
+bool is_cast_to_timestamp(std::string expression) {
+	return (expression.find("CAST(") != expression.npos && expression.find(":TIMESTAMP") != expression.npos);
+}
+
+bool is_cast_to_date(std::string expression) {
+	return (expression.find("CAST(") != expression.npos && expression.find(":DATE") != expression.npos);
+}
+
+// Calcite by default returns units in milliseconds, as we are getting a
+// TIMESTAMP_NANOSECONDS from BLZ_TO_TIMESTAMP, we want to convert these to nanoseconds units
+// input: CAST(/INT(Reinterpret(-(2020-10-15 10:58:02, CAST($0):TIMESTAMP(0))), 86400000)):INTEGER
+// output: CAST(/INT(Reinterpret(-(2020-11-10 12:00:01, CAST($0):TIMESTAMP(0))), 86400000000000)):INTEGER
+std::string convert_ms_to_ns_units(std::string expression) {
+	if (!is_cast_to_timestamp(expression) && !is_cast_to_date(expression) ) {
+		return expression;
+	}
+
+	std::string ns_str_to_concat = "000000";
+	// For timestampdiff
+	if (expression.find("Reinterpret(") != expression.npos) {
+		std::string day_ms = "86400000", hour_ms = "3600000", min_ms = "60000", sec_ms = "1000";
+		if (expression.find(day_ms) != expression.npos) {
+			return StringUtil::replace(expression, day_ms, day_ms + ns_str_to_concat);
+		} else if(expression.find(hour_ms) != expression.npos) {
+			return StringUtil::replace(expression, hour_ms, hour_ms + ns_str_to_concat);
+		} else if(expression.find(min_ms) != expression.npos) {
+			return StringUtil::replace(expression, min_ms, min_ms + ns_str_to_concat);
+		} else if(expression.find(sec_ms) != expression.npos) {
+			return StringUtil::replace(expression, sec_ms, sec_ms + ns_str_to_concat);
+		}
+	}
+
+	// For timestampdadd
+	size_t start_interval_pos = expression.find(":INTERVAL");
+	if (start_interval_pos != expression.npos) {
+		size_t start_pos = expression.find(", ") + 2;
+		std::string time_value_str = expression.substr(start_pos, start_interval_pos - start_pos);
+		return StringUtil::replace(expression, time_value_str, time_value_str + ns_str_to_concat);	 
+	}
+
+	return expression;	
+}
+
+// input: CAST($0):TIMESTAMP
+// output: 0
+size_t get_index_from_expression_str(std::string expression) {
+	// $0
+	if (expression[0] == '$') {
+		expression = expression.substr(1, expression.size() - 1);
+		return std::stoi(expression);
+	}
+
+	// CAST($0):TIMESTAMP
+	size_t start_pos = expression.find('$') + 1;
+	size_t end_pos = expression.find(')');
+
+	expression = expression.substr(start_pos, end_pos - start_pos);
+	return std::stoi(expression);
+}
+
+// By default any TIMESTAMP literal expression is handled as TIMESTAMP_NANOSECONDS
+// Using the `Reinterpret` clause we can get the right TIMESTAMP unit using the expression
+// expression: CAST(/INT(Reinterpret(-(1996-12-01 12:00:01, $0)), 86400000)):INTEGER
+std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data_type> table_schema) {
+	if (table_schema.size() == 0) return expression;
+
+	std::string reint_express = "Reinterpret(-(";
+	size_t start_reint_pos = expression.find(reint_express);
+	if (start_reint_pos == expression.npos) {
+		return expression;
+	}
+
+	size_t remove_until_pos = start_reint_pos + reint_express.size();
+	std::string reduced_expr = expression.substr(remove_until_pos, expression.size() - remove_until_pos);
+	size_t start_closing_parent_pos = reduced_expr.find("))");
+
+	// 1996-12-01 12:00:01, $0
+	reduced_expr = reduced_expr.substr(0, start_closing_parent_pos);
+
+	std::vector<std::string> reduced_expressions = get_expressions_from_expression_list(reduced_expr);
+	std::string left_expression = reduced_expressions[0], right_expression = reduced_expressions[1];
+	std::string timest_str;
+	size_t col_indice;
+
+	assert(reduced_expressions.size() == 2);
+
+	// Cases 1:  Reinterpret(-(1996-12-01 12:00:01, $0))
+	//       2:  Reinterpret(-(1996-12-01 12:00:01, CAST($0):TIMESTAMP))
+	if (is_timestamp(left_expression)) {
+		timest_str = left_expression;
+		col_indice = get_index_from_expression_str(right_expression);
+	}
+	// Cases  1:  Reinterpret(-($0, 1996-12-01 12:00:01))
+	//        2:  Reinterpret(-(CAST($0):TIMESTAMP, 1996-12-01 12:00:01))
+	else if (is_timestamp(right_expression)) {
+		timest_str = right_expression;
+		col_indice = get_index_from_expression_str(left_expression);
+	} else {
+		return expression;
+	}
+
+	if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_SECONDS) {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_SECONDS");
+	} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_MILLISECONDS");
+	} else if (table_schema[col_indice].id() == cudf::type_id::TIMESTAMP_MICROSECONDS) {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP_MICROSECONDS");
+	} else {
+		expression = StringUtil::replace(expression, timest_str, "CAST(" + timest_str + "):TIMESTAMP");
+	}
+
+	return expression;
+}
+
+// By default Calcite returns Interval types in ms unit. So we want to convert them to the right INTERVAL unit
+// to do correct operations
+// TODO: any issue related with INTERVAL operations (and parsing expressions) should be handled here
+std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema) {
+	std::string interval_expr = ":INTERVAL";
+	if (table_schema.size() == 0 || expression.find(interval_expr) == expression.npos) return expression;
+
+	// op with intervals
+	if (expression.find("+") != expression.npos || expression.find("-") != expression.npos) {
+		std::string plus_expr = "+($", sub_expr = "-($";
+
+		size_t start_pos = 0;
+		if (expression.find(plus_expr) != expression.npos) {
+			start_pos = expression.find(plus_expr) + plus_expr.size();
+		} else if (expression.find(sub_expr) != expression.npos) {
+			start_pos = expression.find(sub_expr) + sub_expr.size();
+		}
+		
+		std::string new_expr = expression.substr(start_pos, expression.size() - start_pos);
+		size_t last_pos = new_expr.find(", ");
+		new_expr = new_expr.substr(0, last_pos);
+		int col_indice =  std::stoi(new_expr);
+
+		if (table_schema[col_indice].id() == cudf::type_id::DURATION_SECONDS) {
+			return StringUtil::replace(expression, "000" + interval_expr, interval_expr);
+		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_MICROSECONDS) {
+			return StringUtil::replace(expression, "000" + interval_expr, "000000" + interval_expr);
+		} else if (table_schema[col_indice].id() == cudf::type_id::DURATION_NANOSECONDS) {
+			return StringUtil::replace(expression, "000" + interval_expr, "000000000" + interval_expr);
+		} else return expression; // duration ms
+	}
+
+	// Literal interval
+	if (expression.find("$") == expression.npos && expression.find("000:INTERVAL") != expression.npos) {
+		return StringUtil::replace(expression, "000" + interval_expr, interval_expr);
+	}
+
+	return expression;
+}
+
+// For this function `indices` vector starts empty
+// inputs:
+// 	expression: "$0, $1, $3"
+//  indices: []
+// output: "+(+(CAST($0):INTEGER, CAST($1):INTEGER), CAST($3):INTEGER)"
+std::string modify_multi_column_count_expression(std::string expression, std::vector<int> & indices) {
+	size_t first_post = expression.find("$");
+	if (first_post == expression.npos) return expression;
+
+	std::string reduced_expr = expression.substr(first_post + 1, expression.size() - first_post);
+	StringUtil::findAndReplaceAll(reduced_expr, "$", "");
+	std::vector<std::string> indices_str = get_expressions_from_expression_list(reduced_expr);
+
+	if (indices_str.size() == 1) {
+		indices.push_back(std::stoi(indices_str[0]));
+		return expression;
+	}
+
+	for (size_t i = 0; i < indices_str.size(); ++i) {
+		indices.push_back(std::stoi(indices_str[i]));
+	}
+
+	std::string add_expr = "+(", cast_expr = "CAST($", integer_expr = "):INTEGER";
+	expression = add_expr + cast_expr + std::to_string(indices[0]) + integer_expr + ", " + cast_expr + std::to_string(indices[1]) + integer_expr + ")";
+
+	for (size_t i = 2; i < indices.size(); ++i) {
+		expression = add_expr + expression + ", " + cast_expr + std::to_string(indices[i]) + integer_expr + ")";
+	}
+
+	return expression;
 }
