@@ -1,4 +1,4 @@
-# BlazingSQL 21.06.00 (Date TBS)
+# BlazingSQL 21.06.00 (June 10th, 2021)
 
 
 ## New Features
