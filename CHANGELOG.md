@@ -1,5 +1,16 @@
-# BlazingSQL 21.06.00 (June 10th, 2021)
+# BlazingSQL 21.08.00 (TBD)
 
+## New Features
+
+
+## Improvements
+
+
+## Bug Fixes
+
+
+
+# BlazingSQL 21.06.00 (June 10th, 2021)
 
 ## New Features
 - #1471 Unbounded partitioned windows 
