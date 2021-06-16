@@ -41,11 +41,11 @@ std::unique_ptr<cudf::column> make_cudf_column_from_vector(cudf::data_type dtype
 	size_t width_per_value = cudf::size_of(dtype);
 	if (vector.size() != 0) {
 		auto buffer_size = width_per_value * column_size;
-		rmm::device_buffer gpu_buffer(vector.data(), buffer_size);
+		rmm::device_buffer gpu_buffer(vector.data(), buffer_size, rmm::cuda_stream_view{});
 		return std::make_unique<cudf::column>(dtype, column_size, std::move(gpu_buffer));
 	} else {
 		auto buffer_size = width_per_value * column_size;
-		rmm::device_buffer gpu_buffer(buffer_size);
+		rmm::device_buffer gpu_buffer(buffer_size, rmm::cuda_stream_view{});
 		return std::make_unique<cudf::column>(dtype, column_size, buffer_size);
 	}
 }
