@@ -9,7 +9,7 @@ namespace comm {
 
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 	const std::vector<blazingdb::transport::ColumnTransport> & columns_offsets,
-	const std::vector<rmm::device_buffer> & raw_buffers,
+	std::vector<rmm::device_buffer> & raw_buffers,
 	cudaStream_t stream) {
 	size_t num_columns = columns_offsets.size();
 	std::vector<std::unique_ptr<cudf::column>> received_samples(num_columns);
@@ -35,7 +35,7 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 					std::move(raw_buffers[columns_offsets[i].strings_data]));
 			rmm::device_buffer null_mask;
 			if(columns_offsets[i].strings_nullmask != -1)
-				null_mask = rmm::device_buffer(std::move(raw_buffers[columns_offsets[i].strings_nullmask]));
+				null_mask = std::move(raw_buffers[columns_offsets[i].strings_nullmask]);
 
 			cudf::size_type null_count = columns_offsets[i].metadata.null_count;
 			auto unique_column = cudf::make_strings_column(

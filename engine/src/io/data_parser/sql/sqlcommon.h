@@ -40,7 +40,7 @@ build_fixed_width_cudf_col(size_t total_rows,
   auto null_mask_buff = rmm::device_buffer{
       null_mask.data(), null_mask.size() * sizeof(decltype(null_mask.front())), rmm::cuda_stream_view{}};
   auto ret = std::make_unique<cudf::column>(
-      data_type, size, data, null_mask_buff, cudf::UNKNOWN_NULL_COUNT);
+      data_type, size, std::move(data), std::move(null_mask_buff), cudf::UNKNOWN_NULL_COUNT);
   return ret;
 }
 

@@ -22,7 +22,7 @@ namespace comm {
  */
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
   const std::vector<blazingdb::transport::ColumnTransport> & columns_offsets,
-  const std::vector<rmm::device_buffer> & raw_buffers,
+  std::vector<rmm::device_buffer> & raw_buffers,
   cudaStream_t stream = 0);
 
 } // namespace comm
