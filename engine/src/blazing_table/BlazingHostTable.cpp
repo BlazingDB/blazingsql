@@ -1,6 +1,8 @@
 #include "BlazingHostTable.h"
 #include "bmr/BlazingMemoryResource.h"
 #include "bmr/BufferProvider.h"
+#include "rmm/cuda_stream_view.hpp"
+#include "rmm/device_buffer.hpp"
 #include "communication/CommunicationInterface/serializer.hpp"
 
 using namespace fmt::literals;
@@ -83,7 +85,7 @@ std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
     try{
         int buffer_index = 0;
         for(auto & chunked_column_info : chunked_column_infos){
-            gpu_raw_buffers[buffer_index].resize(chunked_column_info.use_size);
+            gpu_raw_buffers[buffer_index].resize(chunked_column_info.use_size, rmm::cuda_stream_view{});
             size_t position = 0;
             for(size_t i = 0; i < chunked_column_info.chunk_index.size(); i++){
                 size_t chunk_index = chunked_column_info.chunk_index[i];

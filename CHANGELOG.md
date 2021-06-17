@@ -7,7 +7,7 @@
 
 
 ## Bug Fixes
-
+- #1570 Fix build due to changes in rmm device buffer 
 
 
 # BlazingSQL 21.06.00 (June 10th, 2021)

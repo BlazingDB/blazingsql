@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <rmm/device_buffer.hpp>
+#include <rmm/cuda_stream_view.hpp>
 #include <cudf/utilities/error.hpp>
 #include <cuda_runtime.h>
 
@@ -34,7 +35,7 @@ void MemoryConsumer::run() {
 	size_t idx = 0;
 	while (stopRequested() == false) {
 		size_t size = memory_sizes[idx];
-		rmm::device_buffer buffer(size);
+		rmm::device_buffer buffer(size, rmm::cuda_stream_view{});
 
 		idx = (idx + 1) % memory_sizes.size();
 
