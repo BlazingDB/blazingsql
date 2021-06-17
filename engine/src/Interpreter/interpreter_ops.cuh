@@ -920,6 +920,10 @@ private:
 				double out = curand_uniform_double(&state);
 				store_data_in_buffer(out, buffer, output_position);
 			}
+			if(oper == operator_type::BLZ_CURRENT_DATE) {
+				cudf::timestamp_D computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::days>(cuda::std::chrono::system_clock::now());
+				store_data_in_buffer(static_cast<std::int64_t>(computed.time_since_epoch().count()), buffer, output_position);
+			}
 			setColumnValid(row_valids, output_position, true);
 		}
 	}

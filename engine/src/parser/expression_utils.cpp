@@ -11,6 +11,7 @@ bool is_nullary_operator(operator_type op){
 switch (op)
 	{
 	case operator_type::BLZ_RAND:
+	case operator_type::BLZ_CURRENT_DATE:
 		return true;
 	default:
 		return false;
@@ -117,6 +118,8 @@ cudf::type_id get_output_type(operator_type op) {
 	{
 	case operator_type::BLZ_RAND:
 		return cudf::type_id::FLOAT64;
+	case operator_type::BLZ_CURRENT_DATE:
+		return cudf::type_id::TIMESTAMP_DAYS;
 	default:
 	 	assert(false);
 		return cudf::type_id::EMPTY;
@@ -269,6 +272,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 	static std::map<std::string, operator_type> OPERATOR_MAP = {
 		// Nullary operators
 		{"BLZ_RND", operator_type::BLZ_RAND},
+		{"CURRENT_DATE", operator_type::BLZ_CURRENT_DATE},
 
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
