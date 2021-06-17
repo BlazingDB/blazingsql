@@ -87,7 +87,9 @@ void abstractsql_parser::parse_schema(ral::io::data_handle handle, ral::io::Sche
 
 // TODO percy
 std::unique_ptr<ral::frame::BlazingTable> abstractsql_parser::get_metadata(
-	std::vector<ral::io::data_handle> handles, int offset){
+	std::vector<ral::io::data_handle> handles, int offset,
+  std::map<std::string, std::string> args_map)
+{
 //	std::vector<size_t> num_row_groups(files.size());
 //	BlazingThread threads[files.size()];
 //	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());

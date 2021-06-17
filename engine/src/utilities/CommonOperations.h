@@ -4,6 +4,8 @@
 #include <vector>
 #include "execution_kernels/LogicPrimitives.h"
 #include "cudf/column/column_factories.hpp"
+#include "rmm/cuda_stream_view.hpp"
+#include "rmm/device_buffer.hpp"
 
 namespace ral {
 namespace utilities {
@@ -35,7 +37,7 @@ void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const s
 // This is only for numerics
 template<typename T>
 std::unique_ptr<cudf::column> vector_to_column(std::vector<T> vect, cudf::data_type type){
-	return std::make_unique<cudf::column>(type, vect.size(), rmm::device_buffer{vect.data(), vect.size() * sizeof(T)});
+	return std::make_unique<cudf::column>(type, vect.size(), rmm::device_buffer{vect.data(), vect.size() * sizeof(T), rmm::cuda_stream_view{}});
 }
 
 // This is only for numerics

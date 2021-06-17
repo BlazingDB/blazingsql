@@ -105,7 +105,9 @@ void parquet_parser::parse_schema(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(
-	std::vector<ral::io::data_handle> handles, int offset){
+	std::vector<ral::io::data_handle> handles, int offset,
+	std::map<std::string, std::string> args_map)
+{
 	std::vector<size_t> num_row_groups(handles.size());
 	BlazingThread threads[handles.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(handles.size());

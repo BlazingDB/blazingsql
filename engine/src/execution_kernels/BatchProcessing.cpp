@@ -106,26 +106,8 @@ bool BatchSequenceBypass::has_next_now() {
 TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 : kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), provider(provider), parser(parser), schema(schema), num_batches(0)
 {
-    if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
+    if (parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
         num_batches = std::max(provider->get_num_handles(), (size_t)1);
-    } else if (parser->type() == ral::io::DataType::CSV)	{
-        auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
-        num_batches = 0;
-        size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
-        if (max_bytes_chunk_size > 0) {
-            while (provider->has_next()) {
-                auto data_handle = provider->get_next();
-                int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
-                size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
-                std::vector<int> file_row_groups(num_chunks);
-                std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
-                schema.get_rowgroups().push_back(std::move(file_row_groups));
-                num_batches += num_chunks;
-            }
-            provider->reset();
-        } else {
-            num_batches = provider->get_num_handles();
-        }
     } else if (parser->type() == ral::io::DataType::MYSQL)	{
 #ifdef MYSQL_SUPPORT
       ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns()));
@@ -175,7 +157,7 @@ kstatus TableScan::run() {
     if (!provider->has_next()) {
         this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
     } else {
-
+        bool is_batched_csv = false;
         while(provider->has_next()) {
             //retrieve the file handle but do not open the file
             //this will allow us to prevent from having too many open file handles by being
@@ -184,18 +166,16 @@ kstatus TableScan::run() {
             auto file_schema = schema.fileSchema(file_index);
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now
-            std::unique_ptr<ral::cache::CacheData> input =
-                CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
-
-            std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+            std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+            std::unique_ptr<ral::cache::CacheData> input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
             inputs.push_back(std::move(input));
-            auto output_cache = this->output_cache();
 
+            auto output_cache = this->output_cache();
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     output_cache,
                     this);
-
+           
             file_index++;
         }
 
@@ -252,27 +232,9 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
     this->filterable = is_filtered_bindable_scan(expression);
     this->predicate_pushdown_done = false;
 
-    if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
+    if (parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
         num_batches = std::max(provider->get_num_handles(), (size_t)1);
-    } else if (parser->type() == ral::io::DataType::CSV)	{
-        auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
-        num_batches = 0;
-        size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
-        if (max_bytes_chunk_size > 0) {
-            while (provider->has_next()) {
-                auto data_handle = provider->get_next();
-                int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
-                size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
-                std::vector<int> file_row_groups(num_chunks);
-                std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
-                schema.get_rowgroups().push_back(std::move(file_row_groups));
-                num_batches += num_chunks;
-            }
-            provider->reset();
-        } else {
-            num_batches = provider->get_num_handles();
-        }
-    } else if (parser->type() == ral::io::DataType::MYSQL)	{
+    } else if (parser->type() == ral::io::DataType::MYSQL) {
 #ifdef MYSQL_SUPPORT
       ral::io::set_sql_projections<ral::io::mysql_data_provider>(provider.get(), get_projections_wrapper(schema.get_num_columns(), queryString));
       predicate_pushdown_done = ral::io::set_sql_predicate_pushdown<ral::io::mysql_data_provider>(provider.get(), queryString);
@@ -332,7 +294,7 @@ kstatus BindableTableScan::run() {
         empty->setNames(fix_column_aliases(empty->names(), expression));
         this->add_to_output_cache(std::move(empty));
     } else {
-
+        bool is_batched_csv = false;
         while(provider->has_next()) {
             //retrieve the file handle but do not open the file
             //this will allow us to prevent from having too many open file handles by being
@@ -341,18 +303,16 @@ kstatus BindableTableScan::run() {
             auto file_schema = schema.fileSchema(file_index);
             auto row_group_ids = schema.get_rowgroup_ids(file_index);
             //this is the part where we make the task now
-            std::unique_ptr<ral::cache::CacheData> input =
-                CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
             std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+            std::unique_ptr<ral::cache::CacheData> input = CacheDataDispatcher(handle, parser, schema, file_schema, row_group_ids, projections);
             inputs.push_back(std::move(input));
 
             auto output_cache = this->output_cache();
-
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     output_cache,
                     this);
-
+           
             file_index++;
         }
 

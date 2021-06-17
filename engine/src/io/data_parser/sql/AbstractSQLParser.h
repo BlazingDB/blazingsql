@@ -30,8 +30,8 @@ public:
 	void parse_schema(ral::io::data_handle handle, Schema & schema) override;
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
-      std::vector<ral::io::data_handle> handles,
-      int offset) override;
+      std::vector<ral::io::data_handle> handles, int offset,
+      std::map<std::string, std::string> args_map) override;
 
 	DataType type() const override { return this->sql_datatype; }
 

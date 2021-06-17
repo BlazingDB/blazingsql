@@ -33,8 +33,8 @@ public:
 	void parse_schema(ral::io::data_handle handle, Schema & schema);
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata( 
-		std::vector<ral::io::data_handle> handles,
-		int offset);
+		std::vector<ral::io::data_handle> handles, int offset,
+		std::map<std::string, std::string> args_map);
 
 	DataType type() const override { return DataType::PARQUET; }
 };

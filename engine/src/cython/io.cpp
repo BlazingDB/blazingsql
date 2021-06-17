@@ -232,7 +232,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 	try{
-		std::unique_ptr<ral::frame::BlazingTable> metadata = loader->get_metadata(offset.first);
+		std::unique_ptr<ral::frame::BlazingTable> metadata = loader->get_metadata(offset.first, args_map);
 		// ral::utilities::print_blazing_table_view(metadata->toBlazingTableView());
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = metadata->names();

@@ -95,6 +95,7 @@ fi
 # Get version number
 export GIT_DESCRIBE_TAG=`git describe --tags`
 export MINOR_VERSION=`echo $GIT_DESCRIBE_TAG | grep -o -E '([0-9]+\.[0-9]+)'`
+export UCX_PY_VERSION="0.20"
 
 # Process flags
 if hasArg -v; then
@@ -163,7 +164,7 @@ fi
 ################################################################################
 
 if hasArg update; then
-    conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults librmm=$MINOR_VERSION rmm=$MINOR_VERSION libcudf=$MINOR_VERSION cudf=$MINOR_VERSION dask-cudf=$MINOR_VERSION dask-cuda=$MINOR_VERSION ucx-py=$MINOR_VERSION ucx-proc=*=gpu
+    conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults librmm=$MINOR_VERSION rmm=$MINOR_VERSION libcudf=$MINOR_VERSION cudf=$MINOR_VERSION dask-cudf=$MINOR_VERSION dask-cuda=$MINOR_VERSION ucx-py=$UCX_PY_VERSION ucx-proc=*=gpu
 fi
 
 ################################################################################

@@ -1,12 +1,23 @@
-# BlazingSQL 21.06.00 (Date TBS)
+# BlazingSQL 21.08.00 (TBD)
 
+## New Features
+
+
+## Improvements
+- #1554 return ok for filesystems
+
+## Bug Fixes
+- #1570 Fix build due to changes in rmm device buffer 
+
+
+# BlazingSQL 21.06.00 (June 10th, 2021)
 
 ## New Features
 - #1471 Unbounded partitioned windows 
 - #1445 Support for CURRENT_DATE, CURRENT_TIME and CURRENT_TIMESTAMP
 - #1505 Support for right outer join
 - #1523 Support for DURATION type
-
+- #1552 Support for concurrency in E2E tests
 
 ## Improvements
 - #1464 Better Support for unsigned types in C++ side
@@ -16,7 +27,7 @@
 - #1547 Update RAPIDS version references
 - #1539 Support ORDERing by null values
 - #1551 Support for spdlog 1.8.5
-- #1554 return ok for filesystems
+- #1553 multiple columns inside COUNT() statement
 
 ## Bug Fixes
 - #1455 Support for IS NOT FALSE condition
@@ -28,6 +39,8 @@
 - #1548 Fix orc statistic building
 - #1550 Fix Decimal/Fixed Point issue
 - #1519 Fix for max_bytes_chunk_read param to csv files
+- #1559 Fix `ucx-py` versioning specs
+- #1557 Reading chunks of max bytes for csv files
 
 
 # BlazingSQL 0.19.0 (April 21, 2021)
