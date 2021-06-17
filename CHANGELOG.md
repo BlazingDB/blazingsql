@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #1571 Update ucx-py versions to 0.21
 - #1554 return ok for filesystems
 
 ## Bug Fixes
