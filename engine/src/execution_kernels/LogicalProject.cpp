@@ -955,12 +955,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
 
         std::string name = named_expr.substr(0, named_expr.find("=["));
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
-        expression = fill_minus_op_with_zero(expression);
-        expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
-        expression = get_current_date_or_timestamp(expression, context);
-        expression = convert_ms_to_ns_units(expression);
-        expression = reinterpret_timestamp(expression, blazing_table_in->get_schema());
-        expression = apply_interval_conversion(expression, blazing_table_in->get_schema());
+        expression = preprocess_expression_for_evaluation(expression, context, blazing_table_in->get_schema());
 
         expressions[i] = expression;
         out_column_names[i] = name;

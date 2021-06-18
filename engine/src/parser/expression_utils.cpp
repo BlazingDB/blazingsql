@@ -1486,3 +1486,13 @@ std::string get_current_date_or_timestamp(std::string expression, blazingdb::man
 
 	return StringUtil::replace(expression, str_to_replace, timestamp_str);
 }
+
+std::string preprocess_expression_for_evaluation(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
+	expression = fill_minus_op_with_zero(expression);
+	expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	expression = get_current_date_or_timestamp(expression, context);
+	expression = convert_ms_to_ns_units(expression);
+	expression = reinterpret_timestamp(expression, schema);
+	expression = apply_interval_conversion(expression, schema);
+  return expression;
+}
