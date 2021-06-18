@@ -11,7 +11,6 @@ enum class operator_type {
 
 	// Nullary operators
 	BLZ_RAND,
-	BLZ_CURRENT_DATE,
 
 	// Unary operators
 	BLZ_NOT,
