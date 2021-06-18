@@ -6,7 +6,6 @@
 #include "expression_utils.hpp"
 #include "parser/CalciteExpressionParsing.h"
 #include "utilities/error.hpp"
-#include "execution_graph/Context.h"
 
 bool is_nullary_operator(operator_type op){
 switch (op)

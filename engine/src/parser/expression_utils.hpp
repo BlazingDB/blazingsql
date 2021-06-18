@@ -6,6 +6,8 @@
 #include <cudf/types.hpp>
 #include <cudf/aggregation.hpp>
 
+#include "execution_graph/Context.h"
+
 enum class operator_type {
 	BLZ_INVALID_OP,
 
