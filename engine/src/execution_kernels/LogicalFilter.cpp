@@ -28,32 +28,6 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
     filteredTable),table.names());
 }
 
-std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context) {
-    // We want `CURRENT_TIME` holds the same value as `CURRENT_TIMESTAMP`
-	if (expression.find("CURRENT_TIME") != expression.npos) {
-		expression = StringUtil::replace(expression, "CURRENT_TIME", "CURRENT_TIMESTAMP");
-	}
-
-	std::size_t date_pos = expression.find("CURRENT_DATE");
-	std::size_t timestamp_pos = expression.find("CURRENT_TIMESTAMP");
-
-	if (date_pos == expression.npos && timestamp_pos == expression.npos) {
-		return expression;
-	}
-
-    // CURRENT_TIMESTAMP will return a `ms` format
-	std::string	timestamp_str = context->getCurrentTimestamp().substr(0, 23);
-    std::string str_to_replace = "CURRENT_TIMESTAMP";
-
-	// In case CURRENT_DATE we want only the date value
-	if (date_pos != expression.npos) {
-		str_to_replace = "CURRENT_DATE";
-        timestamp_str = timestamp_str.substr(0, 10);
-	}
-
-	return StringUtil::replace(expression, str_to_replace, timestamp_str);
-}
-
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table_view,
   const std::string & query_part,
