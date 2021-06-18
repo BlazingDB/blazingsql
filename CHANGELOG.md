@@ -5,7 +5,7 @@
 
 ## Improvements
 - #1571 Update ucx-py versions to 0.21
-
+- #1554 return ok for filesystems
 
 ## Bug Fixes
 - #1570 Fix build due to changes in rmm device buffer 
