@@ -6,6 +6,8 @@
 #include <cudf/types.hpp>
 #include <cudf/aggregation.hpp>
 
+#include "execution_graph/Context.h"
+
 enum class operator_type {
 	BLZ_INVALID_OP,
 
@@ -272,3 +274,8 @@ std::string reinterpret_timestamp(std::string expression, std::vector<cudf::data
 std::string apply_interval_conversion(std::string expression, std::vector<cudf::data_type> table_schema);
 
 std::string modify_multi_column_count_expression(std::string expression, std::vector<int> & indices);
+
+std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context);
+
+// see LogicalProject or LogicalFilter
+std::string preprocess_expression_for_evaluation(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema);
