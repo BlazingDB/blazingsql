@@ -9,6 +9,7 @@
 
 ## Bug Fixes
 - #1570 Fix build due to changes in rmm device buffer 
+- VDE-289 Fix reading decimal columns from orc file
 
 
 # BlazingSQL 21.06.00 (June 10th, 2021)
