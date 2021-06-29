@@ -44,8 +44,8 @@ conda activate rapids
 
 gpuci_logger "Check versions"
 python --version
-gcc --version
-g++ --version
+$CC --version
+$CXX --version
 
 gpuci_logger "Conda Information"
 conda info
