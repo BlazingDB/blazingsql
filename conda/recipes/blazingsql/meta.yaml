@@ -17,6 +17,7 @@ build:
       - PARALLEL_LEVEL
       - CUDA_VERSION
       - CUDACXX
+      - CUDAHOSTCXX
       - CC
       - CXX
 
