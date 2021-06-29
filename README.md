@@ -117,14 +117,14 @@ This is the recommended way of building all of the BlazingSQL components and dep
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-./dependencies.sh 21.06 $CUDA_VERSION
+./dependencies.sh 21.08 $CUDA_VERSION
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-./dependencies.sh 21.06 10.1
+./dependencies.sh 21.08 10.1
 ```
 
 ### Build
