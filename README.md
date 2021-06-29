@@ -117,14 +117,14 @@ This is the recommended way of building all of the BlazingSQL components and dep
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-./dependencies.sh 21.08 $CUDA_VERSION
+./dependencies.sh 21.06 $CUDA_VERSION
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-./dependencies.sh 21.08 10.1
+./dependencies.sh 21.06 10.1
 ```
 
 ### Build
@@ -240,3 +240,4 @@ The RAPIDS suite of open source software libraries aim to enable execution of en
 ## Apache Arrow on GPU
 
 The GPU version of [Apache Arrow](https://arrow.apache.org/) is a common API that enables efficient interchange of tabular data between processes running on the GPU. End-to-end computation on the GPU avoids unnecessary copying and converting of data off the GPU, reducing compute time and cost for high-performance analytics common in artificial intelligence workloads. As the name implies, cuDF uses the Apache Arrow columnar data format on the GPU. Currently, a subset of the features in Apache Arrow are supported. 
+
