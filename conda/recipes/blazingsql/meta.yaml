@@ -17,6 +17,9 @@ build:
       - PARALLEL_LEVEL
       - CUDA_VERSION
       - CUDACXX
+      - CUDAHOSTCXX
+      - CC
+      - CXX
 
 requirements:
     build:
@@ -77,4 +80,4 @@ about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
     license_family: Apache
-    summary: GPU-powered distributed SQL engine in Python 
+    summary: GPU-powered distributed SQL engine in Python

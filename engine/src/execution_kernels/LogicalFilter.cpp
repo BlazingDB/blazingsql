@@ -5,6 +5,7 @@
 #include "LogicalProject.h"
 #include "parser/expression_utils.hpp"
 #include "utilities/error.hpp"
+#include "Util/StringUtil.h"
 
 namespace ral {
 namespace processor {
@@ -30,7 +31,7 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table_view,
   const std::string & query_part,
-  blazingdb::manager::Context * /*context*/) {
+  blazingdb::manager::Context * context) {
 
 	if(table_view.num_rows() == 0) {
 		return std::make_unique<ral::frame::BlazingTable>(cudf::empty_like(table_view.view()), table_view.names());
@@ -40,8 +41,10 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 	if(conditional_expression.empty()) {
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
-
-  std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = evaluate_expressions(table_view.view(), {conditional_expression});
+	
+	conditional_expression = preprocess_expression_for_evaluation(conditional_expression, context, table_view.get_schema());
+  
+	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = evaluate_expressions(table_view.view(), {conditional_expression});
 
   RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
 

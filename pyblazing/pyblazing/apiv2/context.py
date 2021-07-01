@@ -2479,17 +2479,19 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            has_csv_metadata = False
+            # When reading CSV files, we want to set up by default the size of chunks
             if "max_bytes_chunk_read" in parsedSchema["args"].keys():
-                if parsedSchema["args"]["max_bytes_chunk_read"] > 0:
-                    has_csv_metadata = True
+                if parsedSchema["args"]["max_bytes_chunk_read"] <= 0:
+                    parsedSchema["args"]["max_bytes_chunk_read"] = 268435456  # 256 MBs
+            else:
+                parsedSchema["args"]["max_bytes_chunk_read"] = 268435456  # 256 MBs
 
             # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
-                or has_csv_metadata
+                or parsedSchema["file_type"] == DataType.CSV
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
