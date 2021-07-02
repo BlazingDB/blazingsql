@@ -1476,12 +1476,12 @@ std::string get_current_date_or_timestamp(std::string expression, blazingdb::man
 
     // CURRENT_TIMESTAMP will return a `ms` format
 	std::string	timestamp_str = context->getCurrentTimestamp().substr(0, 23);
-    std::string str_to_replace = "CURRENT_TIMESTAMP";
+	std::string str_to_replace = "CURRENT_TIMESTAMP";
 
 	// In case CURRENT_DATE we want only the date value
 	if (date_pos != expression.npos) {
 		str_to_replace = "CURRENT_DATE";
-        timestamp_str = timestamp_str.substr(0, 10);
+		timestamp_str = timestamp_str.substr(0, 10);
 	}
 
 	return StringUtil::replace(expression, str_to_replace, timestamp_str);
