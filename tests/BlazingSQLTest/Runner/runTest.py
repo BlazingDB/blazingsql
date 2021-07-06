@@ -1193,6 +1193,9 @@ def run_query(
 
             #base_results_gd = get_results(resultFile)
 
+    expected_source = kwargs.get('expected_source')
+    expected_path = kwargs.get('expected_path')
+
     results_processing(result_gdf,
                         base_results_gd,
                         worder,
@@ -1214,7 +1217,9 @@ def run_query(
                         compareResults,
                         resultFile,
                         file_results_dir,
-                        str_engine)
+                        str_engine,
+                        expected_source,
+                        expected_path)
 
 
 def results_processing(result_gdf,
@@ -1238,8 +1243,9 @@ def results_processing(result_gdf,
                     compareResults,
                     resultFile,
                     file_results_dir,
-                    str_engine
-                    ):
+                    str_engine,
+                    expected_source,
+                    expected_path):
 
     """
         Results processing of the query execution with blazingsql and drill/spark.
@@ -1267,7 +1273,8 @@ def results_processing(result_gdf,
         resultFile: Complete path where the results file will be saved.
         file_results_dir: Path where the results file will be saved.
         str_engine: the values will be drill/spark
-
+        expected_source: In case we want compute the expected dataframe instead of read a static file (orc, parquet, etc.)
+        expected_path: Path to python file executed to get the expected dataframe
     """
 
     if result_gdf is not None:
@@ -1285,20 +1292,23 @@ def results_processing(result_gdf,
                 .to_pandas()
             )
 
-            if not isinstance(engine, str):
-                pdf2 = to_pandas_f64_engine(
-                    base_results_gd.resultSet, expected_dtypes
-                )
-                pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
+            if expected_source == 'python_script':
+              pdf2 = read_python_script(expected_path)
+            else:  # format result
+                if not isinstance(engine, str):
+                    pdf2 = to_pandas_f64_engine(
+                        base_results_gd.resultSet, expected_dtypes
+                    )
+                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
 
-                formatResults(pdf1, pdf2, worder, orderBy)
-            else:
-                if compareResults:
-                    format_pdf(pdf1, worder, orderBy)
-                    pdf2 = get_results(resultFile)
-                else:
-                    pdf2 = pd.DataFrame()
                     formatResults(pdf1, pdf2, worder, orderBy)
+                else:
+                    if compareResults:
+                        format_pdf(pdf1, worder, orderBy)
+                        pdf2 = get_results(resultFile)
+                    else:
+                        pdf2 = pd.DataFrame()
+                        formatResults(pdf1, pdf2, worder, orderBy)
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 results_file_generator(file_results_dir, testsWithNulls, filename, str_engine, pdf2)
@@ -1387,3 +1397,19 @@ def get_results(result_file):
     df = pd.read_parquet(result_file)
 
     return df
+
+
+def read_python_script(expected_path: str):
+    if not isinstance(expected_path, str):
+        raise TypeError('expected_path must be a string')
+
+    basedir = Settings.data['TestSettings']['pyScriptsDirectory']
+    pyscript_path = os.path.join(basedir, expected_path)
+
+    import importlib.machinery
+    try:
+        pyscipt_module = importlib.machinery.SourceFileLoader('python_script', pyscript_path).load_module()
+    except BaseException as pyscript_error:
+        raise RuntimeError('Error processing expected python script') from pyscript_error
+
+    return pyscipt_module.expected

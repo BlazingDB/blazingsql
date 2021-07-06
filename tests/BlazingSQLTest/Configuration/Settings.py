@@ -73,6 +73,11 @@ def create_json():
         conda_prefix + "/blazingsql-testing-files/results/",
     )
 
+    # Python scripts directory for expected tests
+    SQLTEST_DIR = os.path.dirname(os.path.dirname(__file__))
+    E2E_DIR = os.path.join(SQLTEST_DIR, 'EndToEndTests')
+    pyScriptsDirectory = os.path.join(E2E_DIR, 'PythonScripts')
+
     # AWS S3 env vars
     awsS3BucketName = os.getenv("BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME", "")
     awsS3AccessKeyId = os.getenv("BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID", "")
@@ -124,6 +129,7 @@ def create_json():
         "logDirectory": logDirectory,
         # 'workspaceDirectory': workspaceDirectory,
         "fileResultsDirectory": fileResultsDirectory,
+        "pyScriptsDirectory": pyScriptsDirectory,
         "dataSize": dataSize,
         "executionEnv": executionEnv,
         "daskConnection": daskConnection,
