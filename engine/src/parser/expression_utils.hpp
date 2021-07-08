@@ -277,6 +277,8 @@ std::string modify_multi_column_count_expression(std::string expression, std::ve
 
 std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context);
 
+std::string convert_internals_nary_concat_to_nested_binary_concat(const std::string & expression);
+
 // see process_project function for LogicalProject or LogicalFilter
 std::string preprocess_expression_for_project(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema);
 std::string preprocess_expression_for_filter(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema);

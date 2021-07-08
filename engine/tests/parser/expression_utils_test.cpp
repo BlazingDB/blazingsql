@@ -655,3 +655,13 @@ TEST_F(ExpressionUtilsTest, modify_multi_column_count_expression_three_cols)
 	EXPECT_EQ(indices[1], 1);
 	EXPECT_EQ(indices[2], 3);
 }
+
+TEST_F(ExpressionUtilsTest, filter_expression_with_concat) {
+	std::string expression =
+		"FUNCTION(CONCAT('Customer#000000', CAST($0):VARCHAR), 'Customer#0000001', "
+		"CONCAT('=order', CAST($901):STRING, 'another+op'))";
+	std::string out_expr = convert_internals_nary_concat_to_nested_binary_concat(expression);
+	EXPECT_EQ(out_expr,
+		"FUNCTION(CONCAT('Customer#000000', CAST($0):VARCHAR), 'Customer#0000001', CONCAT(CONCAT('=order', "
+		"CAST($901):STRING), 'another+op'))");
+}

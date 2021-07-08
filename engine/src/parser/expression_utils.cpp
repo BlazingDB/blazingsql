@@ -1569,7 +1569,7 @@ nary_to_nestedbinary(const std::string & expression,
   return tokens_oss.str();
 }
 
-static inline std::string convert_internals_nary_concat_to_nested_binary_concat(
+std::string convert_internals_nary_concat_to_nested_binary_concat(
     const std::string & expression) {
   return nary_to_nestedbinary(expression, "CONCAT");
 }
