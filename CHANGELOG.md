@@ -12,6 +12,7 @@
 ## Bug Fixes
 - #1570 Fix build due to changes in rmm device buffer
 - #1576 Fix `CC`/`CXX` variables in CI
+- #1583 Fix concat suite E2E test
 
 
 # BlazingSQL 21.06.00 (June 10th, 2021)
