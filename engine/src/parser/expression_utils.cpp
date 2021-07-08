@@ -1578,8 +1578,8 @@ std::string preprocess_expression_for_filter(std::string expression, blazingdb::
 	expression = fill_minus_op_with_zero(expression);
 	// expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
 	// When preprocess an expression with `concat` statements in filters, there are expressions with nested calls, for instance `LIKE(str, etc, CONCAT(a, b, c))`
-	// So the function `convert_internals_nary_concat_to_nested_binary_concat` deals with that cases. We keep another preprocess function for `project` cases
-	// because the former function is better to preprocess simple no nested cases like `CONCAT(a, b, c)`
+	// So the function `convert_internals_nary_concat_to_nested_binary_concat` deals with that cases. We keep `preprocess_expression_for_project` function
+	// because is better to preprocess no-nested cases like `CONCAT(a, b, c)`
 	expression = convert_internals_nary_concat_to_nested_binary_concat(expression);
 	expression = get_current_date_or_timestamp(expression, context);
 	expression = convert_ms_to_ns_units(expression);
