@@ -1497,11 +1497,90 @@ std::string preprocess_expression_for_project(std::string expression, blazingdb:
   return expression;
 }
 
-// This function exists because there was an error performing e2e tests about concat.
-// The function `convert_concat_expression_into_multiple_binary_concat_ops` was removed.
+static inline std::size_t find_last_bracket_pos(const std::string & expression,
+                                                std::ptrdiff_t pos) {
+  std::size_t bracket_counter = 0;
+  const std::string::value_type * pchar = expression.data() + pos;
+
+  do {
+    switch (*pchar) {
+    case '(': ++bracket_counter; break;
+    case ')': --bracket_counter; break;
+    }
+    ++pos;
+  } while (*(++pchar) && bracket_counter);
+
+  if (!*pchar) { throw std::runtime_error{"end expression reached"}; }
+
+  return pos;
+}
+
+static inline std::string make_nested_token(const std::string & subexpression,
+                                            const std::string & operator_name) {
+  static const std::string::value_type arg_separator = ',';
+
+  std::istringstream iss{subexpression};
+  std::vector<std::string> targs;
+  std::string targ;
+  while (std::getline(iss, targ, arg_separator)) { targs.emplace_back(targ); }
+
+  std::ostringstream oss;
+  std::size_t n_calls = targs.size() - 1;
+  while (n_calls--) { oss << operator_name << '('; }
+
+  std::vector<std::string>::const_iterator tbegin = targs.cbegin();
+  std::vector<std::string>::const_iterator tend = targs.cend();
+  oss << *tbegin;
+  while (++tbegin != tend) { oss << arg_separator << *tbegin << ')'; }
+
+  return oss.str();
+}
+
+static inline std::string
+nary_to_nestedbinary(const std::string & expression,
+                     const std::string & operator_name) {
+  std::string::size_type last_pos = expression.find(operator_name);
+
+  std::ostringstream tokens_oss;
+  std::size_t subexpr_pos = 0;
+
+  while (last_pos != std::string::npos) {
+    // boundaries subexpression positions
+    const std::size_t args_start_pos = last_pos + operator_name.length();
+    const std::size_t args_end_pos =
+        find_last_bracket_pos(expression, args_start_pos);
+
+    // extract subexpression and generate nested calls
+    tokens_oss << expression.substr(subexpr_pos,
+                                    args_start_pos - operator_name.length() -
+                                        subexpr_pos);
+
+    const std::string subexpression =
+        expression.substr(args_start_pos + 1,
+                          args_end_pos - (args_start_pos + 2));
+    tokens_oss << make_nested_token(subexpression, operator_name);
+
+    subexpr_pos = args_end_pos;
+    last_pos = expression.find(operator_name, args_end_pos);
+  }
+  tokens_oss << expression.substr(subexpr_pos,
+                                  expression.length() - subexpr_pos);
+
+  return tokens_oss.str();
+}
+
+static inline std::string convert_internals_nary_concat_to_nested_binary_concat(
+    const std::string & expression) {
+  return nary_to_nestedbinary(expression, "CONCAT");
+}
+
 std::string preprocess_expression_for_filter(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
 	expression = fill_minus_op_with_zero(expression);
 	// expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	// When preprocess an expression with `concat` statements in filters, there are expressions with nested calls, for instance `LIKE(str, etc, CONCAT(a, b, c))`
+	// So the function `convert_internals_nary_concat_to_nested_binary_concat` deals with that cases. We keep another preprocess function for `project` cases
+	// because the former function is better to preprocess simple no nested cases like `CONCAT(a, b, c)`
+	expression = convert_internals_nary_concat_to_nested_binary_concat(expression);
 	expression = get_current_date_or_timestamp(expression, context);
 	expression = convert_ms_to_ns_units(expression);
 	expression = reinterpret_timestamp(expression, schema);
