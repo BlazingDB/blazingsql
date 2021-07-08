@@ -14,12 +14,12 @@ TEST_SUITE:
 
   TEST_01: # current_date is not implemented as a nullaryOps, but need to be considered
     SQL: |
-        select o_orderkey from orders where cast(o_orderdate as date) < current_date order by o_orderkey limit 5
+        select current_date, o_orderkey from orders where cast(o_orderdate as date) < current_date order by o_orderkey limit 5
     SETUP:
       EXPECTED_PATH: nullaryOpsSuite/currentDate.py
 
   TEST_02: # current_timestamp is not implemented as a nullaryOps, but need to be considered
     SQL: |
-        select o_orderkey from orders where o_orderdate < current_timestamp order by o_orderkey limit 5
+        select current_date, o_orderkey from orders where o_orderdate < current_timestamp order by o_orderkey limit 5
     SETUP:
       EXPECTED_PATH: nullaryOpsSuite/currentTimestamp.py
