@@ -1267,6 +1267,7 @@ def results_processing(result_gdf,
         resultFile: Complete path where the results file will be saved.
         file_results_dir: Path where the results file will be saved.
         str_engine: the values will be drill/spark
+
     """
 
     if result_gdf is not None:
