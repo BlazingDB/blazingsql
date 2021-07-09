@@ -253,8 +253,6 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 
 std::string fill_minus_op_with_zero(std::string expression);
 
-std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression);
-
 const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string);
 
 std::string replace_is_not_distinct_as_calcite(std::string expression);
@@ -277,8 +275,7 @@ std::string modify_multi_column_count_expression(std::string expression, std::ve
 
 std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context);
 
-std::string convert_internals_nary_concat_to_nested_binary_concat(const std::string & expression);
+std::string convert_nary_to_binary_concat(const std::string & expression);
 
 // see process_project function for LogicalProject or LogicalFilter
-std::string preprocess_expression_for_project(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema);
-std::string preprocess_expression_for_filter(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema);
+std::string preprocess_expression(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema);

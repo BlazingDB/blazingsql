@@ -1163,28 +1163,6 @@ std::string fill_minus_op_with_zero(std::string expression) {
 	return expression;
 }
 
-// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' : ', $2)
-// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' : '), $2)"
-std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
-	if (expression.find("CONCAT") == expression.npos) {
-		return expression;
-	}
-
-	// just to remove `CONCAT( )`
-	std::string expression_wo_concat = get_query_part(expression);
-	std::vector<std::string> expressions_to_concat = get_expressions_from_expression_list(expression_wo_concat);
-
-	if (expressions_to_concat.size() < 2) throw std::runtime_error("CONCAT operator must have at least two children, as CONCAT($0, $1) .");
-
-	std::string new_expression =  "CONCAT(" + expressions_to_concat[0] + ", " + expressions_to_concat[1] + ")";
-
-	for (size_t i = 2; i < expressions_to_concat.size(); ++i) {
-		new_expression = "CONCAT(" + new_expression + ", " + expressions_to_concat[i] + ")";
-	}
-
-	return new_expression;
-}
-
 const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string) {
 	if (scalar_string[0] != '\'' && scalar_string[scalar_string.size() - 1] != '\'') {
 		return scalar_string;
@@ -1487,16 +1465,6 @@ std::string get_current_date_or_timestamp(std::string expression, blazingdb::man
 	return StringUtil::replace(expression, str_to_replace, timestamp_str);
 }
 
-std::string preprocess_expression_for_project(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
-	expression = fill_minus_op_with_zero(expression);
-	expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
-	expression = get_current_date_or_timestamp(expression, context);
-	expression = convert_ms_to_ns_units(expression);
-	expression = reinterpret_timestamp(expression, schema);
-	expression = apply_interval_conversion(expression, schema);
-  return expression;
-}
-
 // Used by `nary_to_nestedbinary` to find the end pos for expression call
 static inline std::size_t find_last_bracket_pos(const std::string & expression,
                                                 std::ptrdiff_t pos) {
@@ -1511,31 +1479,51 @@ static inline std::size_t find_last_bracket_pos(const std::string & expression,
     ++pos;
   } while (*(++pchar) && bracket_counter);
 
-  if (!*pchar) { throw std::runtime_error{"end expression reached"}; }
+  if (!*pchar && bracket_counter) { throw std::runtime_error{"end expression reached"}; }
 
   return pos;
 }
 
 // Used by `nary_to_nestedbinary` to convert an expression string CALL(arg1, arg2, arg3, ...) to CALL(CALL(CALL(arg1, arg2), arg3), ...)
-static inline std::string make_nested_token(const std::string & subexpression,
+static inline std::string make_nested_token(std::string & subexpression,
                                             const std::string & operator_name) {
   static const std::string::value_type arg_separator = ',';
+	static const std::string::value_type flag_separator = 1;
 
-  std::istringstream iss{subexpression};
-  std::vector<std::string> targs;
-  std::string targ;
-  while (std::getline(iss, targ, arg_separator)) { targs.emplace_back(targ); }
+	bool not_ignore = true;
+	std::string::value_type * data = subexpression.data();
+	do {
+		if (*data == '\'') { not_ignore = !not_ignore; }
+		if (not_ignore && *data == arg_separator) { *data = flag_separator; }
+	} while (*data++);
 
-  std::ostringstream oss;
-  std::size_t n_calls = targs.size() - 1;
-  while (n_calls--) { oss << operator_name << '('; }
+	std::istringstream iss{subexpression};
+	std::vector<std::string> targs;
+	std::string targ;
+	while (std::getline(iss, targ, flag_separator)) {
+		targs.emplace_back(targ);
+	}
 
-  std::vector<std::string>::const_iterator tbegin = targs.cbegin();
-  std::vector<std::string>::const_iterator tend = targs.cend();
-  oss << *tbegin;
-  while (++tbegin != tend) { oss << arg_separator << *tbegin << ')'; }
+	if (targs.size() < 2) {
+		throw std::runtime_error(
+			"CONCAT operator must have at least two children, as CONCAT($0, "
+			"$1) .");
+	}
 
-  return oss.str();
+	std::ostringstream oss;
+	std::size_t n_calls = targs.size() - 1;
+	while (n_calls--) {
+		oss << operator_name << '(';
+	}
+
+	std::vector<std::string>::const_iterator tbegin = targs.cbegin();
+	std::vector<std::string>::const_iterator tend = targs.cend();
+	oss << *tbegin;
+	while (++tbegin != tend) {
+		oss << arg_separator << *tbegin << ')';
+	}
+
+	return oss.str();
 }
 
 // Used by `convert_internals_nary_concat_to_nested_binary_concat` to expand an n-ary function calls to multiple binary calls.
@@ -1555,12 +1543,10 @@ nary_to_nestedbinary(const std::string & expression,
 
     // extract subexpression and generate nested calls
     tokens_oss << expression.substr(subexpr_pos,
-                                    args_start_pos - operator_name.length() -
-                                        subexpr_pos);
+                                    args_start_pos - operator_name.length() - subexpr_pos);
 
-    const std::string subexpression =
-        expression.substr(args_start_pos + 1,
-                          args_end_pos - (args_start_pos + 2));
+    std::string subexpression = expression.substr(args_start_pos + 1,
+                                                  args_end_pos - (args_start_pos + 2));
     tokens_oss << make_nested_token(subexpression, operator_name);
 
     subexpr_pos = args_end_pos;
@@ -1572,18 +1558,13 @@ nary_to_nestedbinary(const std::string & expression,
   return tokens_oss.str();
 }
 
-std::string convert_internals_nary_concat_to_nested_binary_concat(
-    const std::string & expression) {
+std::string convert_nary_to_binary_concat(const std::string & expression) {
   return nary_to_nestedbinary(expression, "CONCAT");
 }
 
-std::string preprocess_expression_for_filter(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
+std::string preprocess_expression(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
 	expression = fill_minus_op_with_zero(expression);
-	// expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
-	// When preprocess an expression with `concat` statements in filters, there are expressions with nested calls, for instance `LIKE(str, etc, CONCAT(a, b, c))`
-	// So the function `convert_internals_nary_concat_to_nested_binary_concat` deals with that cases. We keep `preprocess_expression_for_project` function
-	// because is better to preprocess no-nested cases like `CONCAT(a, b, c)`
-	expression = convert_internals_nary_concat_to_nested_binary_concat(expression);
+	expression = convert_nary_to_binary_concat(expression);
 	expression = get_current_date_or_timestamp(expression, context);
 	expression = convert_ms_to_ns_units(expression);
 	expression = reinterpret_timestamp(expression, schema);
