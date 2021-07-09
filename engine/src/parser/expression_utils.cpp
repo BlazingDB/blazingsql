@@ -1490,11 +1490,18 @@ static inline std::string make_nested_token(std::string & subexpression,
   static const std::string::value_type arg_separator = ',';
 	static const std::string::value_type flag_separator = 1;
 
-	bool not_ignore = true;
+	bool isnt_string = true;
+	std::size_t bracket_count = 0;
 	std::string::value_type * data = subexpression.data();
 	do {
-		if (*data == '\'') { not_ignore = !not_ignore; }
-		if (not_ignore && *data == arg_separator) { *data = flag_separator; }
+		switch (*data) {
+		case '(': ++bracket_count; break;
+		case ')': --bracket_count; break;
+		case '\'': isnt_string = !isnt_string; break;
+		}
+		if (isnt_string && !bracket_count && *data == arg_separator) {
+			*data = flag_separator;
+		}
 	} while (*data++);
 
 	std::istringstream iss{subexpression};
