@@ -1238,7 +1238,8 @@ def results_processing(result_gdf,
                     compareResults,
                     resultFile,
                     file_results_dir,
-                    str_engine):
+                    str_engine
+                    ):
 
     """
         Results processing of the query execution with blazingsql and drill/spark.

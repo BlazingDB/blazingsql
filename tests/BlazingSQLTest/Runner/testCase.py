@@ -282,7 +282,7 @@ class TestCase():
                             print_result=configTest.print_result,
                             query_spark=configTest.spark_query,
                             comparing=configTest.comparing,
-                            message_validation=configTest.message_validation,
+                            message_validation=configTest.message_validation
                         )
 
                 if configTest.is_concurrent: self.__fetch_results()
@@ -317,7 +317,7 @@ class TestCase():
                             query_spark=configTest.spark_query,
                             comparing=configTest.comparing,
                             message_validation=configTest.message_validation,
-                            blz_result=result_gdf,
+                            blz_result=result_gdf
                         )
 
         self.config_concurrent = {}

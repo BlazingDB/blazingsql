@@ -1497,6 +1497,7 @@ std::string preprocess_expression_for_project(std::string expression, blazingdb:
   return expression;
 }
 
+// Used by `nary_to_nestedbinary` to find the end pos for expression call
 static inline std::size_t find_last_bracket_pos(const std::string & expression,
                                                 std::ptrdiff_t pos) {
   std::size_t bracket_counter = 0;
@@ -1515,6 +1516,7 @@ static inline std::size_t find_last_bracket_pos(const std::string & expression,
   return pos;
 }
 
+// Used by `nary_to_nestedbinary` to convert an expression string CALL(arg1, arg2, arg3, ...) to CALL(CALL(CALL(arg1, arg2), arg3), ...)
 static inline std::string make_nested_token(const std::string & subexpression,
                                             const std::string & operator_name) {
   static const std::string::value_type arg_separator = ',';
@@ -1536,6 +1538,7 @@ static inline std::string make_nested_token(const std::string & subexpression,
   return oss.str();
 }
 
+// Used by `convert_internals_nary_concat_to_nested_binary_concat` to expand an n-ary function calls to multiple binary calls.
 static inline std::string
 nary_to_nestedbinary(const std::string & expression,
                      const std::string & operator_name) {
