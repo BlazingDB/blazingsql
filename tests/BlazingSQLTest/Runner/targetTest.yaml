@@ -202,10 +202,6 @@ LIST_TEST:
     NAME: TPCH Queries
     FILE: TPCHSuite.yaml
     CODE: TPCH
-  nullaryOpsSuite:
-    NAME: Nullary ops
-    FILE: nullaryOpsSuite.yaml
-    CODE: NULLARYOPS
   unaryOpsSuite:
     NAME: Unary ops
     FILE: unaryOpsSuite.yaml
