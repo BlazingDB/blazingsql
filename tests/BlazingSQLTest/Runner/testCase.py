@@ -30,8 +30,6 @@ class ConfigTest():
     comparing = None
     message_validation = ""
     is_concurrent = False
-    expected_source = None
-    expected_path = None
 
 class ConfigConcurrent():
     token = 0
@@ -92,7 +90,6 @@ class TestCase():
             if setup.get("USE_PERCENTAGE") is not None: self.configLocal.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("MESSAGE_VALIDATION") is not None: self.configLocal.message_validation = setup.get("MESSAGE_VALIDATION")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: self.configLocal.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
-            if "EXPECTED_SOURCE" in setup: self.configLocal.expected_source = setup.get("EXPECTED_SOURCE")
 
             self.data.pop("SETUP", None)
 
@@ -128,7 +125,6 @@ class TestCase():
             if setup.get("USE_PERCENTAGE") is not None: config.use_percentage = setup.get("USE_PERCENTAGE")
             if setup.get("MESSAGE_VALIDATION") is not None: config.message_validation = setup.get("MESSAGE_VALIDATION")
             if setup.get("ACCEPTABLE_DIFFERENCE") is not None: config.acceptable_difference = setup.get("ACCEPTABLE_DIFFERENCE")
-            if "EXPECTED_PATH" in setup: config.expected_path = setup.get("EXPECTED_PATH")
 
         if 'SETUP' in self.data[test_name].keys():
             if "COMPARE_WITH" in self.data[test_name]['SETUP'].keys():
@@ -287,8 +283,6 @@ class TestCase():
                             query_spark=configTest.spark_query,
                             comparing=configTest.comparing,
                             message_validation=configTest.message_validation,
-                            expected_source=self.configLocal.expected_source,
-                            expected_path=configTest.expected_path
                         )
 
                 if configTest.is_concurrent: self.__fetch_results()
@@ -324,8 +318,6 @@ class TestCase():
                             comparing=configTest.comparing,
                             message_validation=configTest.message_validation,
                             blz_result=result_gdf,
-                            expected_source=self.configLocal.expected_source,
-                            expected_path=configTest.expected_path
                         )
 
         self.config_concurrent = {}
