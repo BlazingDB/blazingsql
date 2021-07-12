@@ -11,7 +11,7 @@ LC_ALL=C.UTF-8
 LANG=C.UTF-8
 
 # Activate common conda env
-source activate gdf
+source activate rapids
 
 # Run isort and get results/return code
 # TODO: cordova in a near future consider hive.py and context.py
