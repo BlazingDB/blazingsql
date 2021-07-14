@@ -483,12 +483,19 @@ def parseHiveMetadata(curr_table, uri_values):
 
     dtypes = []
     for t in curr_table.column_types:
-        # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
-        # so just for this case let's get TIMESTAMP_SECONDS
-        if t != 12:
-            dtypes.append(cio.cudf_type_int_to_np_types(t))
+        # this hack allows to read an orc file with decimal columns casting the decimal column to float64
+        if t == 26:  # check decimal
+            print(
+                "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+            )
+            dtypes.append(np.dtype("float64"))
         else:
-            dtypes.append(cio.cudf_type_int_to_np_types(13))
+          # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
+          # so just for this case let's get TIMESTAMP_SECONDS
+          if t != 12:
+              dtypes.append(cio.cudf_type_int_to_np_types(t))
+          else:
+              dtypes.append(cio.cudf_type_int_to_np_types(13))
 
     columns = curr_table.column_names
     for index in range(n_cols):
