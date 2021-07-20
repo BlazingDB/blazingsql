@@ -331,23 +331,21 @@ TEST_F(ExpressionUtilsTest, concat_operator_using_comma_as_literal)
 	EXPECT_EQ(out_expression, expected_str);
 }
 
-TEST_F(ExpressionUtilsTest, concat_operator_using_binary_cast_op)
+TEST_F(ExpressionUtilsTest, concat_operator_inside_a_like_operator)
 {
-	std::string expression = "CONCAT($1, '-', CAST(+($0, 1)):VARCHAR)";
-	std::string out_expression = convert_nary_to_binary_concat(expression);
-	std::string expected_str = "CONCAT(CONCAT($1, '-'), CAST(+($0, 1)):VARCHAR)";
+	std::string expression = "LIKE(CONCAT('Customer#000000', $0), 'Customer#0000001')";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
 
-	EXPECT_EQ(out_expression, expected_str);
+	EXPECT_EQ(out_expression, expression);
 }
 
-TEST_F(ExpressionUtilsTest, concat_operator_into_another_operator) {
-	std::string expression =
-		"OPERATOR(CONCAT('Customer#000000', CAST($0):VARCHAR), 'Customer#0000001', "
-		"CONCAT('=order', CAST($901):STRING, 'another+op'))";
-	std::string out_expr = convert_nary_to_binary_concat(expression);
-	EXPECT_EQ(out_expr,
-		"OPERATOR(CONCAT('Customer#000000', CAST($0):VARCHAR), 'Customer#0000001', CONCAT(CONCAT('=order', "
-		"CAST($901):STRING), 'another+op'))");
+TEST_F(ExpressionUtilsTest, multiple_concat_operator_inside_a_like_operator)
+{
+	std::string expression = "LIKE(CONCAT('abcd', '0000', $0), '001')";
+	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string expected_str = "LIKE(CONCAT(CONCAT('abcd', '0000'), $0), '001')";
+
+	EXPECT_EQ(out_expression, expected_str);
 }
 
 TEST_F(ExpressionUtilsTest, replace_is_not_distinct_as_calcite__empty)

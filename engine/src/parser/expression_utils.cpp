@@ -1163,6 +1163,58 @@ std::string fill_minus_op_with_zero(std::string expression) {
 	return expression;
 }
 
+// input: CONCAT($0, ' - ', CAST($1):VARCHAR, ' : ', $2)
+// output: "CONCAT(CONCAT(CONCAT(CONCAT($0, ' - '), CAST($1):VARCHAR), ' : '), $2)"
+std::string convert_concat_expression_into_multiple_binary_concat_ops(std::string expression) {
+	size_t start_concat_pos = expression.find("CONCAT(");
+	if (start_concat_pos == expression.npos) {
+		return expression;
+	}
+
+	std::string concat_expression;
+	bool start_with_concat = false;
+	if (start_concat_pos != 0) {
+		// Let's find out how many `(` there are before `CONCAT`
+		std::string left_expression = expression.substr(0, start_concat_pos);
+		size_t total_open_parenth = StringUtil::findAndCountAllMatches(left_expression, "(");
+
+		std::string reverse_expression(expression);
+		std::reverse(reverse_expression.begin(), reverse_expression.end());
+
+		size_t offset = 0;
+		for (size_t i = 0; i <= total_open_parenth; ++i) {
+			size_t closed_parenth_pos = reverse_expression.find(")");
+			offset += closed_parenth_pos;
+			reverse_expression = reverse_expression.substr(closed_parenth_pos + 1, expression.size() - (closed_parenth_pos + 1));
+		}
+		concat_expression = expression.substr(start_concat_pos, expression.size() - offset - start_concat_pos - 1);
+	} else {
+		start_with_concat = true;
+		concat_expression = expression;
+	}
+
+	// just to remove `CONCAT( )`
+	std::string expression_wo_concat = get_query_part(concat_expression);
+	std::vector<std::string> expressions_to_concat = get_expressions_from_expression_list(expression_wo_concat);
+
+	if (expressions_to_concat.size() < 2) throw std::runtime_error("CONCAT operator must have at least two children, as CONCAT($0, $1) .");
+
+	std::string new_expression =  "CONCAT(" + expressions_to_concat[0] + ", " + expressions_to_concat[1] + ")";
+
+	for (size_t i = 2; i < expressions_to_concat.size(); ++i) {
+		new_expression = "CONCAT(" + new_expression + ", " + expressions_to_concat[i] + ")";
+	}
+
+	std::string output_expression;
+	if (start_with_concat) {
+		output_expression = new_expression;
+	} else {
+		output_expression = StringUtil::replace(expression, concat_expression, new_expression);
+	}
+
+	return output_expression;
+}
+
 const std::string remove_quotes_from_timestamp_literal(const std::string & scalar_string) {
 	if (scalar_string[0] != '\'' && scalar_string[scalar_string.size() - 1] != '\'') {
 		return scalar_string;

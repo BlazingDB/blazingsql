@@ -42,8 +42,11 @@ void process_minmax_metadata(){
     size_t total_num_row_groups=2; /*1 rowgroup by each file*/
     size_t columns_with_metadata=1;
 
+    arrow::MemoryPool* pool = arrow::default_memory_pool();
+
     std::shared_ptr<parquet::Statistics> statistics = parquet::Statistics::Make(desc,
-         encoded_min, encoded_max, 100 /*num_values*/, 0 /*null_count*/, 0 /*distinct_count*/, true /*has_min_max*/);
+         encoded_min, encoded_max, 100 /*num_values*/, 0 /*null_count*/, 0 /*distinct_count*/, true /*has_min_max*/,
+          false /*has_null_count*/,  false/*has_distinct_count*/, pool);
 
     size_t num_metadata_cols = 2; //min and max
     std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(num_files);
@@ -87,4 +90,3 @@ TEST_F(ParquetMetadataTest, typed_test) {
     process_minmax_metadata<int64_t, parquet::Type::type::INT64>();
     process_minmax_metadata<double, parquet::Type::type::DOUBLE>();
 }
-
