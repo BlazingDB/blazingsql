@@ -490,12 +490,12 @@ def parseHiveMetadata(curr_table, uri_values):
             )
             dtypes.append(np.dtype("float64"))
         else:
-          # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
-          # so just for this case let's get TIMESTAMP_SECONDS
-          if t != 12:
-              dtypes.append(cio.cudf_type_int_to_np_types(t))
-          else:
-              dtypes.append(cio.cudf_type_int_to_np_types(13))
+            # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
+            # so just for this case let's get TIMESTAMP_SECONDS
+            if t != 12:
+                dtypes.append(cio.cudf_type_int_to_np_types(t))
+            else:
+                dtypes.append(cio.cudf_type_int_to_np_types(13))
 
     columns = curr_table.column_names
     for index in range(n_cols):
