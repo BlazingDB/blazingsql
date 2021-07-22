@@ -50,15 +50,23 @@ bool GoogleCloudStorage::Private::connect(const FileSystemConnection & fileSyste
 		fileSystemConnection.getConnectionProperty(ConnectionProperty::USE_DEFAULT_ADC_JSON_FILE);
 	const std::string adcJsonFile = fileSystemConnection.getConnectionProperty(ConnectionProperty::ADC_JSON_FILE);
 
-	google::cloud::StatusOr<gcs::ClientOptions> opts = gcs::ClientOptions::CreateDefaultClientOptions();
-	if(!opts) {
-		const std::string error =
-			"Couldn't create gcs::ClientOptions for Project ID " + projectId + " status=" + opts.status().message();
-		std::cerr << error << std::endl;
-		throw std::runtime_error(error);
-	}
+	google::cloud::StatusOr<std::shared_ptr<gcs::oauth2::Credentials>> credentials;
+    if (useDefaultAdcJsonFile == "true") {
+        credentials = gcs::oauth2::GoogleDefaultCredentials();
+    }
+    else {
+        credentials = gcs::oauth2::CreateServiceAccountCredentialsFromFilePath(adcJsonFile);
+    }
 
-	auto connConf = opts->set_project_id(projectId);
+    if (!credentials) {
+        const std::string error = "Couldn't create gcs::credentials for Project ID " + projectId + " status=" + credentials.status().message();
+        std::cerr << error << std::endl;
+        throw BlazingS3Exception(error);
+    }
+
+	gcs::ClientOptions opts(*credentials);
+
+	auto connConf = opts.set_project_id(projectId);
 
 	this->gcsClient = std::make_shared<gcs::Client>(connConf);
 
