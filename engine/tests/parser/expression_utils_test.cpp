@@ -353,7 +353,7 @@ TEST_F(ExpressionUtilsTest, concat_operator_into_another_operator) {
 TEST_F(ExpressionUtilsTest, concat_operator_inside_a_like_operator)
 {
 	std::string expression = "LIKE(CONCAT('Customer#000000', $0), 'Customer#0000001')";
-	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string out_expression = convert_nary_to_binary_concat(expression);
 
 	EXPECT_EQ(out_expression, expression);
 }
@@ -361,7 +361,7 @@ TEST_F(ExpressionUtilsTest, concat_operator_inside_a_like_operator)
 TEST_F(ExpressionUtilsTest, multiple_concat_operator_inside_a_like_operator)
 {
 	std::string expression = "LIKE(CONCAT('abcd', '0000', $0), '001')";
-	std::string out_expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	std::string out_expression = convert_nary_to_binary_concat(expression);
 	std::string expected_str = "LIKE(CONCAT(CONCAT('abcd', '0000'), $0), '001')";
 
 	EXPECT_EQ(out_expression, expected_str);
