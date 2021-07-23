@@ -411,7 +411,7 @@ bool is_timestamp_with_bar(const std::string & token) {
 }
 
 bool is_timestamp(const std::string & token) {
-	return (is_timestamp_with_bar(token) || is_timestamp_with_dash(token));
+	return (is_timestamp_with_bar(token) || is_timestamp_with_dash(token) || is_timestamp_with_decimals(token));
 }
 
 bool is_timestamp_ms_with_dash(const std::string & token) {
@@ -1493,7 +1493,7 @@ std::string modify_multi_column_count_expression(std::string expression, std::ve
 
 std::string get_current_date_or_timestamp(std::string expression, blazingdb::manager::Context * context) {
     // We want `CURRENT_TIME` holds the same value as `CURRENT_TIMESTAMP`
-	if (expression.find("CURRENT_TIME") != expression.npos) {
+	if (expression.find("CURRENT_TIME") != expression.npos && expression.find("CURRENT_TIMESTAMP") == expression.npos) {
 		expression = StringUtil::replace(expression, "CURRENT_TIME", "CURRENT_TIMESTAMP");
 	}
 
@@ -1506,20 +1506,124 @@ std::string get_current_date_or_timestamp(std::string expression, blazingdb::man
 
     // CURRENT_TIMESTAMP will return a `ms` format
 	std::string	timestamp_str = context->getCurrentTimestamp().substr(0, 23);
-    std::string str_to_replace = "CURRENT_TIMESTAMP";
+	std::string str_to_replace = "CURRENT_TIMESTAMP";
 
 	// In case CURRENT_DATE we want only the date value
 	if (date_pos != expression.npos) {
 		str_to_replace = "CURRENT_DATE";
-        timestamp_str = timestamp_str.substr(0, 10);
+		timestamp_str = timestamp_str.substr(0, 10);
 	}
 
 	return StringUtil::replace(expression, str_to_replace, timestamp_str);
 }
 
-std::string preprocess_expression_for_evaluation(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
+// Used by `nary_to_nestedbinary` to find the end pos for expression call
+static inline std::size_t find_last_bracket_pos(const std::string & expression,
+                                                std::ptrdiff_t pos) {
+  std::size_t bracket_counter = 0;
+  const std::string::value_type * pchar = expression.data() + pos;
+
+  do {
+    switch (*pchar) {
+    case '(': ++bracket_counter; break;
+    case ')': --bracket_counter; break;
+    }
+    ++pos;
+  } while (*(++pchar) && bracket_counter);
+
+  if (!*pchar && bracket_counter) { throw std::runtime_error{"end expression reached"}; }
+
+  return pos;
+}
+
+// Used by `nary_to_nestedbinary` to convert an expression string CALL(arg1, arg2, arg3, ...) to CALL(CALL(CALL(arg1, arg2), arg3), ...)
+static inline std::string make_nested_token(std::string & subexpression,
+                                            const std::string & operator_name) {
+  static const std::string::value_type arg_separator = ',';
+	static const std::string::value_type flag_separator = 1;
+
+	bool isnt_string = true;
+	std::size_t bracket_count = 0;
+	std::string::value_type * data = subexpression.data();
+	do {
+		switch (*data) {
+		case '(': ++bracket_count; break;
+		case ')': --bracket_count; break;
+		case '\'': isnt_string = !isnt_string; break;
+		}
+		if (isnt_string && !bracket_count && *data == arg_separator) {
+			*data = flag_separator;
+		}
+	} while (*data++);
+
+	std::istringstream iss{subexpression};
+	std::vector<std::string> targs;
+	std::string targ;
+	while (std::getline(iss, targ, flag_separator)) {
+		targs.emplace_back(targ);
+	}
+
+	if (targs.size() < 2) {
+		throw std::runtime_error(
+			"CONCAT operator must have at least two children, as CONCAT($0, "
+			"$1) .");
+	}
+
+	std::ostringstream oss;
+	std::size_t n_calls = targs.size() - 1;
+	while (n_calls--) {
+		oss << operator_name << '(';
+	}
+
+	std::vector<std::string>::const_iterator tbegin = targs.cbegin();
+	std::vector<std::string>::const_iterator tend = targs.cend();
+	oss << *tbegin;
+	while (++tbegin != tend) {
+		oss << arg_separator << *tbegin << ')';
+	}
+
+	return oss.str();
+}
+
+// Used by `convert_internals_nary_concat_to_nested_binary_concat` to expand an n-ary function calls to multiple binary calls.
+static inline std::string
+nary_to_nestedbinary(const std::string & expression,
+                     const std::string & operator_name) {
+  std::string::size_type last_pos = expression.find(operator_name);
+
+  std::ostringstream tokens_oss;
+  std::size_t subexpr_pos = 0;
+
+  while (last_pos != std::string::npos) {
+    // boundaries subexpression positions
+    const std::size_t args_start_pos = last_pos + operator_name.length();
+    const std::size_t args_end_pos =
+        find_last_bracket_pos(expression, args_start_pos);
+
+    // extract subexpression and generate nested calls
+    tokens_oss << expression.substr(subexpr_pos,
+                                    args_start_pos - operator_name.length() - subexpr_pos);
+
+    std::string subexpression = expression.substr(args_start_pos + 1,
+                                                  args_end_pos - (args_start_pos + 2));
+    tokens_oss << make_nested_token(subexpression, operator_name);
+
+    subexpr_pos = args_end_pos;
+    last_pos = expression.find(operator_name, args_end_pos);
+  }
+  tokens_oss << expression.substr(subexpr_pos,
+                                  expression.length() - subexpr_pos);
+
+  return tokens_oss.str();
+}
+
+std::string convert_nary_to_binary_concat(const std::string & expression) {
+  return nary_to_nestedbinary(expression, "CONCAT");
+}
+
+std::string preprocess_expression(std::string expression, blazingdb::manager::Context * context, std::vector<cudf::data_type> schema) {
 	expression = fill_minus_op_with_zero(expression);
-	expression = convert_concat_expression_into_multiple_binary_concat_ops(expression);
+	expression = convert_nary_to_binary_concat(expression);
 	expression = get_current_date_or_timestamp(expression, context);
 	expression = convert_ms_to_ns_units(expression);
 	expression = reinterpret_timestamp(expression, schema);

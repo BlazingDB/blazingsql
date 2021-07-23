@@ -42,7 +42,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
 	
-	conditional_expression = preprocess_expression_for_evaluation(conditional_expression, context, table_view.get_schema());
+	conditional_expression = preprocess_expression(conditional_expression, context, table_view.get_schema());
   
 	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = evaluate_expressions(table_view.view(), {conditional_expression});
 
