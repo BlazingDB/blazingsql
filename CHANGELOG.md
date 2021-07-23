@@ -10,7 +10,8 @@
 
 
 ## Bug Fixes
-- #1570 Fix build due to changes in rmm device buffer
+- #1570 Fix build due to changes in rmm device buffer 
+- #1574 Fix reading decimal columns from orc file
 - #1576 Fix `CC`/`CXX` variables in CI
 - #1581 Fix latest cudf dependencies
 - #1582 Fix concat suite E2E test for nested calls
