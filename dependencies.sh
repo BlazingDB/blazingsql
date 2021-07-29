@@ -2,6 +2,7 @@
 #
 # This script install BlazingSQL dependencies based on rapids version
 #
+set -e
 echo "Usage: ./$0 rapids_version cuda_version nightly"
 
 export GREEN='\033[0;32m'
