@@ -16,6 +16,7 @@
 - #1581 Fix latest cudf dependencies
 - #1582 Fix concat suite E2E test for nested calls
 - #1585 Fix for GCS credentials from filepath
+- #1586 Fix CI Environment Variable
 
 
 # BlazingSQL 21.06.00 (June 10th, 2021)
