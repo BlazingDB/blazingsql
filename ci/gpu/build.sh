@@ -42,7 +42,7 @@ gpuci_logger "Check GPU usage"
 nvidia-smi
 
 gpuci_logger "Activate conda env"
-conda create python=$PYTHON_VER -y -n bsql
+conda create python=$PYTHON_VERSION -y -n bsql
 source activate bsql
 conda config --set ssl_verify False
 
