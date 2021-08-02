@@ -1,3 +1,12 @@
+# BlazingSQL 21.10.00 (TBD)
+## New Features
+
+
+## Improvements
+
+## Bug Fixes
+
+
 # BlazingSQL 21.08.00 (TBD)
 
 ## New Features
