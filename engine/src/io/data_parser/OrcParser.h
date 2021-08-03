@@ -35,6 +35,7 @@ public:
 
 private:
 	std::map<std::string, std::string> args_map;
+	std::vector<std::string> decimal_cols;
 };
 
 } /* namespace io */

@@ -42,6 +42,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 
 		orc_opts.set_columns(col_names);
 		orc_opts.set_stripes({row_groups});
+		orc_opts.set_decimal_cols_as_float(decimal_cols);
 
 		auto result = cudf::io::read_orc(orc_opts);
 
@@ -64,6 +65,14 @@ void orc_parser::parse_schema(
 	for(cudf::size_type i = 0; i < table_out.tbl->num_columns() ; i++) {
 		std::string name = table_out.metadata.column_names[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
+
+		// For now, we deal with decimals casting the column to float64
+		// see parse_batch method to check the casting
+		if (type == cudf::type_id::DECIMAL64) {
+			type = cudf::type_id::FLOAT64;
+			decimal_cols.emplace_back(name);
+		}
+
 		size_t file_index = i;
 		bool is_in_file = true;
 		schema.add_column(name, type, file_index, is_in_file);
