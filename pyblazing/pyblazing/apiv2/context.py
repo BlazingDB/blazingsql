@@ -1070,9 +1070,9 @@ class BlazingTable(object):
             for x in self.input._data.values():
                 # for now `decimal` type is not considered from `np_to_cudf_types_int` call
                 if is_decimal_dtype(x.dtype):
-                    print(
-                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
-                    )
+                    raise Exception(
+                        "ERROR: BlazingSQL currently does not support tables based on cudf DataFrames with DECIMAL datatype columns"
+                    )                    
                     type_int = 26
                 else:
                     type_int = cio.np_to_cudf_types_int(x.dtype)
@@ -1082,9 +1082,9 @@ class BlazingTable(object):
             for x in input.dtypes:
                 # for now `decimal` type is not considered from `np_to_cudf_types_int` call
                 if is_decimal_dtype(x):
-                    print(
-                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
-                    )
+                    raise Exception(
+                        "ERROR: BlazingSQL currently does not support tables based on dask_cudf DataFrames with DECIMAL datatype columns"
+                    )                    
                     type_int = 26
                 else:
                     type_int = cio.np_to_cudf_types_int(x)
