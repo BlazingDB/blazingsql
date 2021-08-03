@@ -36,8 +36,14 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		std::vector<std::string> col_names;
 		col_names.resize(column_indices.size());
 
+		std::vector<std::string> decimal_cols;
+
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
 			col_names[column_i] = schema.get_name(column_indices[column_i]);
+			cudf::type_id type_id = schema.get_dtype(column_indices[column_i]);
+			if (type_id == cudf::type_id::FLOAT64) {
+				decimal_cols.emplace_back(col_names[column_i]);
+			}
 		}
 
 		orc_opts.set_columns(col_names);
@@ -70,7 +76,6 @@ void orc_parser::parse_schema(
 		// see parse_batch method to check the casting
 		if (type == cudf::type_id::DECIMAL64) {
 			type = cudf::type_id::FLOAT64;
-			decimal_cols.emplace_back(name);
 		}
 
 		size_t file_index = i;
