@@ -1072,7 +1072,7 @@ class BlazingTable(object):
                 if is_decimal_dtype(x.dtype):
                     raise Exception(
                         "ERROR: BlazingSQL currently does not support tables based on cudf DataFrames with DECIMAL datatype columns"
-                    )                    
+                    )
                     type_int = 26
                 else:
                     type_int = cio.np_to_cudf_types_int(x.dtype)
@@ -1084,7 +1084,7 @@ class BlazingTable(object):
                 if is_decimal_dtype(x):
                     raise Exception(
                         "ERROR: BlazingSQL currently does not support tables based on dask_cudf DataFrames with DECIMAL datatype columns"
-                    )                    
+                    )
                     type_int = 26
                 else:
                     type_int = cio.np_to_cudf_types_int(x)
