@@ -82,6 +82,7 @@ extensions = [
                             "-Wno-unknown-pragmas",
                             "-Wno-unused-variable",
                             "-Wno-unused-function",
+                            "-DTHRUST_IGNORE_CUB_VERSION_CHECK",
                             '-isystem' + conda_env_inc,
                             '-isystem' + conda_env_inc_cudf,
                             '-isystem' + conda_env_inc_cub,
