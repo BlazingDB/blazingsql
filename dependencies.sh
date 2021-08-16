@@ -10,8 +10,8 @@ BOLDGREEN="\e[1;${GREEN}"
 ITALICRED="\e[3;${RED}"
 ENDCOLOR="\e[0m"
 
-RAPIDS_VERSION="21.06"
-UCX_PY_VERSION="0.20"
+RAPIDS_VERSION="21.08"
+UCX_PY_VERSION="0.21"
 CUDA_VERSION="11.0"
 CHANNEL=""
 
@@ -28,9 +28,9 @@ if [ ! -z $3 ]; then
 fi
 
 echo -e "${GREEN}Installing dependencies${ENDCOLOR}"
-conda install --yes -c conda-forge spdlog'>=1.8.5,<2.0.0a0' google-cloud-cpp=1.25 ninja mysql-connector-cpp=8.0.23 libpq=13 nlohmann_json=3.9.1
+conda install --yes -c conda-forge spdlog'>=1.8.5,<2.0.0a0' google-cloud-cpp'>=1.25' ninja mysql-connector-cpp=8.0.23 libpq=13 nlohmann_json=3.9.1
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
-conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive pytest tqdm ipywidgets boost-cpp=1.72.0
+conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cppzmq cython=0.29 openjdk'>=8.0,<9.0' maven jpype1 netifaces pyhive pytest tqdm ipywidgets boost-cpp=1.72.0
 
 
 echo -e "${GREEN}Install RAPIDS dependencies${ENDCOLOR}"

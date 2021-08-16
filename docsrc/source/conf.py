@@ -44,7 +44,7 @@ author = 'BlazingDB, Inc.'
 language = "en"
 
 # The full version, including alpha/beta/rc tags
-version = '21.06'
+version = '21.08'
 release = f'v{version}'
 
 # -- General configuration ---------------------------------------------------

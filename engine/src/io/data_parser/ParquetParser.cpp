@@ -13,6 +13,7 @@
 #include <parquet/file_writer.h>
 
 #include <cudf/io/parquet.hpp>
+#include <cudf/unary.hpp>
 
 namespace ral {
 namespace io {
@@ -44,7 +45,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 
 		pq_args.enable_convert_strings_to_categories(false);
 		pq_args.enable_use_pandas_metadata(false);
-		
+
 		std::vector<std::string> col_names(column_indices.size());
 
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
@@ -64,6 +65,18 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 		auto result = cudf::io::read_parquet(pq_args);
 
 		auto result_table = std::move(result.tbl);
+		auto columns = result_table->release();
+
+		for(std::size_t i = 0; i < columns.size(); i++) {
+			auto &column = columns[i];
+			cudf::type_id column_type_id = column->type().id();
+			if (column_type_id == cudf::type_id::DECIMAL64) {
+				auto casted = cudf::cast(column->view(), cudf::data_type(cudf::type_id::FLOAT64));
+				columns[i] = std::move(casted);
+			}
+		}
+
+		result_table = std::make_unique<cudf::table>(std::move(columns));
 		if (result.metadata.column_names.size() > column_indices.size()) {
 			auto columns = result_table->release();
 			// Assuming columns are in the same order as column_indices and any extra columns (i.e. index column) are put last
@@ -97,6 +110,13 @@ void parquet_parser::parse_schema(
 
 	for(int i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
+
+		// For now, we deal with decimals casting the column to float64
+		// see parse_batch method to check the casting
+		if (type == cudf::type_id::DECIMAL64) {
+			type = cudf::type_id::FLOAT64;
+		}
+
 		size_t file_index = i;
 		bool is_in_file = true;
 		std::string name = table_out.metadata.column_names.at(i);

@@ -66,6 +66,8 @@ class FileSystem(object):
         else:
             print("Local Storage Plugin Error: " + msg)
 
+        return ok
+
     def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
         root = kwargs.get("root", "/")
@@ -88,6 +90,8 @@ class FileSystem(object):
             print("HDFS Storage Plugin Registered Successfully")
         else:
             print("HDFS Storage Plugin Error: " + msg)
+
+        return ok
 
     def s3(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -118,6 +122,8 @@ class FileSystem(object):
         else:
             print("S3 Storage Plugin Error: " + msg)
 
+        return ok
+
     def gs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
         root = kwargs.get("root", "/")
@@ -138,6 +144,8 @@ class FileSystem(object):
             print("Google Cloud Storage Plugin Registered Successfully")
         else:
             print("Google Cloud Storage Plugin Error: " + msg)
+
+        return ok
 
     def _verify_prefix(self, prefix):
         if prefix in self.file_systems:

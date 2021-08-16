@@ -17,6 +17,9 @@ build:
       - PARALLEL_LEVEL
       - CUDA_VERSION
       - CUDACXX
+      - CUDAHOSTCXX
+      - CC
+      - CXX
 
 requirements:
     build:
@@ -36,7 +39,7 @@ requirements:
         - openjdk >=8.0, <9.0
         - maven
         - cudf {{ minor_version }}.*
-        - ucx-py 0.20.*
+        - ucx-py 0.21.*
         - ucx-proc=*=gpu
         - boost-cpp 1.72.0
         - dlpack
@@ -55,7 +58,7 @@ requirements:
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - ucx-py 0.20.*
+        - ucx-py 0.21.*
         - ucx-proc=*=gpu
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm
@@ -77,4 +80,4 @@ about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
     license_family: Apache
-    summary: GPU-powered distributed SQL engine in Python 
+    summary: GPU-powered distributed SQL engine in Python

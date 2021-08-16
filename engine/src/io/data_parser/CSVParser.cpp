@@ -57,10 +57,8 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		auto iter = args_map.find("max_bytes_chunk_read");
 		if(iter != args_map.end()) {
 			auto chunk_size = std::stoll(iter->second);
-			if (chunk_size > 0) {
-				args.set_byte_range_offset(chunk_size * row_groups[0]);
-				args.set_byte_range_size(chunk_size);
-			}
+			args.set_byte_range_offset(chunk_size * row_groups[0]);
+			args.set_byte_range_size(chunk_size);
 		}
 
 		cudf::io::table_with_metadata csv_table = cudf::io::read_csv(args);

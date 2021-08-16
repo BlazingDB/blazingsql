@@ -483,12 +483,19 @@ def parseHiveMetadata(curr_table, uri_values):
 
     dtypes = []
     for t in curr_table.column_types:
-        # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
-        # so just for this case let's get TIMESTAMP_SECONDS
-        if t != 12:
-            dtypes.append(cio.cudf_type_int_to_np_types(t))
+        # this hack allows to read an orc file with decimal columns casting the decimal column to float64
+        if t == 26:  # check decimal
+            print(
+                "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+            )
+            dtypes.append(np.dtype("float64"))
         else:
-            dtypes.append(cio.cudf_type_int_to_np_types(13))
+            # TIMESTAMP_DAYS (12) is not supported in cudf/python/cudf/cudf/_lib/types.pyx
+            # so just for this case let's get TIMESTAMP_SECONDS
+            if t != 12:
+                dtypes.append(cio.cudf_type_int_to_np_types(t))
+            else:
+                dtypes.append(cio.cudf_type_int_to_np_types(13))
 
     columns = curr_table.column_names
     for index in range(n_cols):
@@ -1063,8 +1070,8 @@ class BlazingTable(object):
             for x in self.input._data.values():
                 # for now `decimal` type is not considered from `np_to_cudf_types_int` call
                 if is_decimal_dtype(x.dtype):
-                    print(
-                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+                    raise Exception(
+                        "ERROR: BlazingSQL currently does not support tables based on cudf DataFrames with DECIMAL datatype columns"
                     )
                     type_int = 26
                 else:
@@ -1075,8 +1082,8 @@ class BlazingTable(object):
             for x in input.dtypes:
                 # for now `decimal` type is not considered from `np_to_cudf_types_int` call
                 if is_decimal_dtype(x):
-                    print(
-                        "WARNING: BlazingSQL currently does not support operations on DECIMAL datatype columns"
+                    raise Exception(
+                        "ERROR: BlazingSQL currently does not support tables based on dask_cudf DataFrames with DECIMAL datatype columns"
                     )
                     type_int = 26
                 else:
@@ -1686,12 +1693,17 @@ class BlazingContext(object):
     # BEGIN FileSystem interface
 
     def localfs(self, prefix, **kwargs):
+        """
+        returns a boolean meaning True when Registered Successfully
+        """
+
         return self.fs.localfs(self.dask_client, prefix, **kwargs)
 
     # Use result, error_msg = hdfs(args) where result can be True|False
     def hdfs(self, prefix, **kwargs):
         """
         Register a Hadoop Distributed File System (HDFS) Cluster.
+        returns a boolean meaning True when Registered Successfully
 
         Parameters
         ----------
@@ -1732,6 +1744,7 @@ class BlazingContext(object):
     def s3(self, prefix, **kwargs):
         """
         Register an AWS S3 bucket.
+        returns a boolean meaning True when Registered Successfully
 
         Parameters
         ----------
@@ -1781,6 +1794,7 @@ class BlazingContext(object):
     def gs(self, prefix, **kwargs):
         """
         Register a Google Storage bucket.
+        returns a boolean meaning True when Registered Successfully
 
         Parameters
         ----------
@@ -2472,17 +2486,19 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            has_csv_metadata = False
+            # When reading CSV files, we want to set up by default the size of chunks
             if "max_bytes_chunk_read" in parsedSchema["args"].keys():
-                if parsedSchema["args"]["max_bytes_chunk_read"] > 0:
-                    has_csv_metadata = True
+                if parsedSchema["args"]["max_bytes_chunk_read"] <= 0:
+                    parsedSchema["args"]["max_bytes_chunk_read"] = 268435456  # 256 MBs
+            else:
+                parsedSchema["args"]["max_bytes_chunk_read"] = 268435456  # 256 MBs
 
             # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
-                or has_csv_metadata
+                or parsedSchema["file_type"] == DataType.CSV
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
