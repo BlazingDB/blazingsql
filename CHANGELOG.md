@@ -14,6 +14,7 @@
 - #1585 Fix for GCS credentials from filepath
 - #1589 Fix decimal support using float64
 - #1590 Fix build issue with thrust package
+- #1595 Fix `spdlog` pinning
 
 # BlazingSQL 21.06.00 (June 10th, 2021)
 
