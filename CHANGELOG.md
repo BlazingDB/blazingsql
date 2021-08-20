@@ -15,6 +15,7 @@
 - #1589 Fix decimal support using float64
 - #1590 Fix build issue with thrust package
 - #1595 Fix `spdlog` pinning
+- #1597 Fix `google-cloud-cpp` pinning
 
 # BlazingSQL 21.06.00 (June 10th, 2021)
 

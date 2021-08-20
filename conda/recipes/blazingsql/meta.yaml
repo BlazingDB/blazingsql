@@ -27,7 +27,7 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
-        - google-cloud-cpp >=1.25.0
+        - google-cloud-cpp >=1.25.0,<1.30
         - mysql-connector-cpp 8.0.23
         - libpq 13
         - nlohmann_json 3.9.1
