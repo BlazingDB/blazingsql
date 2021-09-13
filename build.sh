@@ -95,7 +95,7 @@ fi
 # Get version number
 export GIT_DESCRIBE_TAG=`git describe --tags`
 export MINOR_VERSION=`echo $GIT_DESCRIBE_TAG | grep -o -E '([0-9]+\.[0-9]+)'`
-export UCX_PY_VERSION="0.21"
+export UCX_PY_VERSION="0.22"
 
 # Process flags
 if hasArg -v; then
