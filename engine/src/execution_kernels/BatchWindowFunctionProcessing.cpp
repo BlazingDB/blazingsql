@@ -38,7 +38,7 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
     this->frame_type = get_frame_type_from_over_clause(this->expression);
 
-    std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
+    std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) =
                                         get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
     std::tie(this->column_indices_partitioned, std::ignore, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     std::tie(this->column_indices_ordered, std::ignore, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
@@ -63,8 +63,13 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     cudf::column_view col_view_to_agg,
     std::size_t pos ) {
 
-    // we want firs get the type of aggregation
-    std::unique_ptr<cudf::rolling_aggregation> window_aggregation = ral::operators::makeCudfAggregation<cudf::rolling_aggregation>(this->aggs_wind_func[pos], this->agg_param_values[pos]);
+    // factories for creating either a groupby or rolling aggregation
+    auto make_groupby_agg = [&]() {
+      return ral::operators::makeCudfGroupbyAggregation(this->aggs_wind_func[pos], this->agg_param_values[pos]);
+    };
+    auto make_rolling_agg = [&]() {
+      return ral::operators::makeCudfRollingAggregation(this->aggs_wind_func[pos], this->agg_param_values[pos]);
+    };
 
     // want all columns to be partitioned
     std::vector<cudf::column_view> columns_to_partition;
@@ -91,7 +96,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             std::vector<cudf::groupby::aggregation_request> requests;
             requests.emplace_back(cudf::groupby::aggregation_request());
             requests[0].values = col_view_to_agg;
-            requests[0].aggregations.push_back(std::move(window_aggregation));
+            requests[0].aggregations.push_back(make_groupby_agg());
 
             cudf::groupby::groupby gb_obj(cudf::table_view({partitioned_table_view}), cudf::null_policy::INCLUDE, cudf::sorted::YES, {}, {});
             std::pair<std::unique_ptr<cudf::table>, std::vector<cudf::groupby::aggregation_result>> result = gb_obj.aggregate(requests);
@@ -135,24 +140,24 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         else if (window_expression_contains_order_by(this->expression)) {
             if (window_expression_contains_bounds(this->expression)) {
                 // TODO: for now just ROWS bounds works (not RANGE)
-                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 
-                    this->preceding_value >= 0 ? this->preceding_value + 1: partitioned_table_view.num_rows(), 
-                    this->following_value >= 0 ? this->following_value : partitioned_table_view.num_rows(), 
-                    1, *window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg,
+                    this->preceding_value >= 0 ? this->preceding_value + 1: partitioned_table_view.num_rows(),
+                    this->following_value >= 0 ? this->following_value : partitioned_table_view.num_rows(),
+                    1, *make_rolling_agg());
             } else {
                 if (this->type_aggs_as_str[pos] == "LEAD") {
-                    windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 0, col_view_to_agg.size(), 1, *window_aggregation);
+                    windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 0, col_view_to_agg.size(), 1, *make_rolling_agg());
                 } else {
-                    windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), 0, 1, *window_aggregation);
+                    windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), 0, 1, *make_rolling_agg());
                 }
             }
         } else {
-            windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, *window_aggregation);
+            windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, *make_rolling_agg());
         }
     } else {
         if (window_expression_contains_bounds(this->expression)) {
             // TODO: for now just ROWS bounds works (not RANGE)
-            windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, *window_aggregation);
+            windowed_col = cudf::rolling_window(col_view_to_agg, this->preceding_value + 1, this->following_value, 1, *make_rolling_agg());
         } else {
            throw std::runtime_error("Window functions without partitions and without bounded windows are currently not supported");
         }
@@ -165,7 +170,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
-        
+
     if (inputs.size() == 0) {
         return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
@@ -176,7 +181,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         cudf::table_view input_table_cudf_view = input->view();
 
         std::vector<std::string> input_names = input->names();
-        
+
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
             cudf::column_view col_view_to_agg = input_table_cudf_view.column(column_indices_to_agg[col_i]);
@@ -228,8 +233,8 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
                 }
                 cudf_table_window = std::move(temp_table_window);
             }
-        } 
-        
+        }
+
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
 
         if (windowed_table) {
@@ -277,7 +282,7 @@ kstatus ComputeWindowKernel::run() {
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this, 
+                    this,
                     task_args);
 
             is_first_batch = false;
@@ -296,7 +301,7 @@ kstatus ComputeWindowKernel::run() {
         }
     }
 
-    
+
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
@@ -330,7 +335,7 @@ OverlapGeneratorKernel::OverlapGeneratorKernel(std::size_t kernel_id, const std:
 
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 	self_node_index = context->getNodeIndex(self_node);
-    total_nodes = context->getTotalNodes();    
+    total_nodes = context->getTotalNodes();
 }
 
 
@@ -343,7 +348,7 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
         std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
         std::string overlap_type = args.at(TASK_ARG_OVERLAP_TYPE);
-        
+
         // first lets do the preceding overlap
         if (overlap_type == PRECEDING_OVERLAP_TYPE || overlap_type == BOTH_OVERLAP_TYPE){
             if (input->num_rows() > this->preceding_value){
@@ -355,7 +360,7 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
                 auto clone = input->toBlazingTableView().clone();
                 ral::cache::MetadataDictionary extra_metadata;
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS);
-                this->output_preceding_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);                
+                this->output_preceding_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);
             }
         }
 
@@ -370,11 +375,11 @@ ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std:
                 auto clone = input->toBlazingTableView().clone();
                 ral::cache::MetadataDictionary extra_metadata;
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS);
-                this->output_following_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);                
+                this->output_following_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);
             }
         }
         this->output_batches_cache->addToCache(std::move(input));
-        
+
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
@@ -411,7 +416,7 @@ kstatus OverlapGeneratorKernel::run() {
             }
         } else {
             if (batch_index == 0){ // that was the first batch, no need to do the following overlap
-                task_args[TASK_ARG_OVERLAP_TYPE] = PRECEDING_OVERLAP_TYPE;                
+                task_args[TASK_ARG_OVERLAP_TYPE] = PRECEDING_OVERLAP_TYPE;
             } else {
                 task_args[TASK_ARG_OVERLAP_TYPE] = BOTH_OVERLAP_TYPE;
             }
@@ -426,11 +431,11 @@ kstatus OverlapGeneratorKernel::run() {
                 this,
                 task_args);
         }
-        
-        
+
+
         batch_index++;
     }
-    
+
     // lets wait to make sure that all tasks are done
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
@@ -465,7 +470,7 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     this->input_.add_port("batches", "preceding_overlaps", "following_overlaps");
 
     this->num_batches = 0;
-	
+
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
 
     ral::cache::cache_settings cache_machine_config;
@@ -482,7 +487,7 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
 
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 	self_node_index = context->getNodeIndex(self_node);
-    
+
 }
 
 void OverlapAccumulatorKernel::set_overlap_status(bool preceding, int index, std::string status){
@@ -504,30 +509,30 @@ std::string OverlapAccumulatorKernel::get_overlap_status(bool preceding, int ind
 }
 
 void OverlapAccumulatorKernel::combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status) {
-    
+
     // WSM TODO should make a function that can create a cache data and automatically cache it if the resouce consumption demands it
     std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(new_overlap));
     return combine_overlaps(preceding, target_batch_index, std::move(new_overlap_cache_data), overlap_status);
 }
 
 void OverlapAccumulatorKernel::combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data, std::string overlap_status) {
-    
+
     std::vector<std::unique_ptr<ral::cache::CacheData>> overlap_parts;
     std::unique_ptr<ral::cache::CacheData> existing_overlap = nullptr;
     if (preceding){
         if (preceding_overlap_cache->has_data_in_index_now(target_batch_index)){
             existing_overlap = preceding_overlap_cache->get_or_wait_CacheData(target_batch_index);
         }
-    } else { 
+    } else {
         if (following_overlap_cache->has_data_in_index_now(target_batch_index)){
             existing_overlap = following_overlap_cache->get_or_wait_CacheData(target_batch_index);
         }
     }
-    
+
     if (existing_overlap) {
         if (existing_overlap->get_type() == ral::cache::CacheDataType::CONCATENATING){
             ral::cache::ConcatCacheData * concat_cache_ptr = static_cast<ral::cache::ConcatCacheData *> (existing_overlap.get());
-            overlap_parts = concat_cache_ptr->releaseCacheDatas();       
+            overlap_parts = concat_cache_ptr->releaseCacheDatas();
         } else {
             overlap_parts.push_back(std::move(existing_overlap));
         }
@@ -543,14 +548,14 @@ void OverlapAccumulatorKernel::combine_overlaps(bool preceding, int target_batch
     } else {
         overlap_parts.push_back(std::move(new_overlap_cache_data));
     }
-    
+
     std::unique_ptr<ral::cache::ConcatCacheData> new_cache_data = std::make_unique<ral::cache::ConcatCacheData>(std::move(overlap_parts), this->col_names, this->schema);
     if (preceding){
-        preceding_overlap_cache->put(target_batch_index, std::move(new_cache_data));        
-    } else { 
-        following_overlap_cache->put(target_batch_index, std::move(new_cache_data));        
+        preceding_overlap_cache->put(target_batch_index, std::move(new_cache_data));
+    } else {
+        following_overlap_cache->put(target_batch_index, std::move(new_cache_data));
     }
-    set_overlap_status(preceding, target_batch_index, overlap_status);        
+    set_overlap_status(preceding, target_batch_index, overlap_status);
 }
 
 
@@ -573,7 +578,7 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
         size_t rows_remaining = overlap_size;
 
         if (preceding) {
-            
+
             for (int i = inputs.size() -1; i >= 0; i--){
                 size_t cur_table_size = inputs[i]->num_rows();
                 if (cur_table_size > rows_remaining){
@@ -606,11 +611,11 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
                 }
             }
         }
-        
-        
+
+
         std::unique_ptr<ral::frame::BlazingTable> output_table;
         if (tables_to_concat.size() == 1 && scope_holder.size() == 1) {
-            output_table = std::move(scope_holder[0]);                
+            output_table = std::move(scope_holder[0]);
         } else {
             output_table = ral::utilities::concatTables(tables_to_concat);
         }
@@ -665,7 +670,7 @@ void OverlapAccumulatorKernel::response_receiver(){
     int messages_expected;
     int total_nodes = context->getTotalNodes();
     if (self_node_index == 0){
-        messages_expected = 1;       
+        messages_expected = 1;
         std::string sender_node_id = context->getNode(self_node_index + 1).id();
         expected_message_ids.push_back(FOLLOWING_RESPONSE + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
     } else if (self_node_index == total_nodes - 1) {
@@ -690,7 +695,7 @@ void OverlapAccumulatorKernel::following_request_receiver(){
         std::string sender_node_id = context->getNode(self_node_index - 1).id();
         expected_message_ids.push_back(FOLLOWING_REQUEST + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
         message_receiver(expected_message_ids, messages_expected);
-    }    
+    }
 }
 
 void OverlapAccumulatorKernel::preceding_request_receiver(){
@@ -701,7 +706,7 @@ void OverlapAccumulatorKernel::preceding_request_receiver(){
         std::string sender_node_id = context->getNode(self_node_index + 1).id();
         expected_message_ids.push_back(PRECEDING_REQUEST + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
         message_receiver(expected_message_ids, messages_expected);
-    }    
+    }
 }
 
 
@@ -720,9 +725,9 @@ void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expecte
             int target_batch_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX));
             int source_batch_index = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST ? num_batches - 1 : 0;
 
-            prepare_overlap_task(metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST, 
+            prepare_overlap_task(metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST,
                 source_batch_index, target_node_index, target_batch_index, overlap_size);
-            
+
         } else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_RESPONSE
                         || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_RESPONSE){
 
@@ -734,7 +739,7 @@ void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expecte
 
             RAL_EXPECTS(target_node_index == self_node_index, "RESPONSE message arrived at the wrong destination");
             combine_overlaps(preceding, target_batch_index, std::move(message_cache_data), overlap_status);
-                        
+
         } else {
             if(logger) {
                 logger->error("{query_id}|||{info}||kernel_id|{kernel_id}||",
@@ -743,7 +748,7 @@ void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expecte
                             "kernel_id"_a=this->get_id());
             }
         }
-    }    
+    }
 }
 
 void OverlapAccumulatorKernel::prepare_overlap_task(bool preceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size){
@@ -754,7 +759,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool preceding, int source_b
     while(overlap_rows_needed > 0){
         // Lets first try to fulfill the overlap needed from this node
         if (source_batch_index >= 0 && source_batch_index < this->num_batches){  // num_batches should be finalized for when its used here
-                        
+
             std::unique_ptr<ral::cache::CacheData> batch = batches_cache->get_or_wait_CacheData(source_batch_index);
             overlap_rows_needed = batch->num_rows() > overlap_rows_needed ? 0 : overlap_rows_needed - batch->num_rows();
             if (preceding){
@@ -773,14 +778,14 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool preceding, int source_b
                 std::unique_ptr<ral::cache::CacheData> batch = preceding_overlap_cache->get_or_wait_CacheData(0);
                 overlap_rows_needed = 0;
                 cache_datas_for_task.push_front(std::move(batch));
-                starting_index_of_datas_for_task = -1;                                
+                starting_index_of_datas_for_task = -1;
             } else {
                 // the last index of the following node will come from the neighbor. Its assumed that its complete.
                 // and if its not complete its because there is not enough data to fill the window
                 std::unique_ptr<ral::cache::CacheData> batch = following_overlap_cache->get_or_wait_CacheData(this->num_batches - 1);
                 overlap_rows_needed = 0;
-                cache_datas_for_task.push_back(std::move(batch));                 
-            }             
+                cache_datas_for_task.push_back(std::move(batch));
+            }
         }
     }
     std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas_for_task_vect(std::make_move_iterator(cache_datas_for_task.begin()), std::make_move_iterator(cache_datas_for_task.end()));
@@ -799,7 +804,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool preceding, int source_b
             preceding ? preceding_overlap_cache : following_overlap_cache,
             this,
             task_args);
-    }    
+    }
 }
 
 void OverlapAccumulatorKernel::send_request(bool preceding, int source_node_index, int target_node_index, int target_batch_index, size_t overlap_size){
@@ -833,7 +838,7 @@ kstatus OverlapAccumulatorKernel::run() {
     input_batches_cache = this->input_.get_cache("batches");
     input_preceding_overlap_cache = this->input_.get_cache("preceding_overlaps");
     input_following_overlap_cache = this->input_.get_cache("following_overlaps");
-    
+
     int cur_batch_ind = 0;
     bool have_all_batches = false;
     while (!have_all_batches){
@@ -847,14 +852,14 @@ kstatus OverlapAccumulatorKernel::run() {
             }
             batches_cache->put(cur_batch_ind, std::move(batch));
             num_batches = cur_batch_ind + 1;
-            cur_batch_ind++;            
+            cur_batch_ind++;
         } else {
             have_all_batches = true;
         }
     }
     preceding_overlap_statuses.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
     following_overlap_status.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
-    
+
     // lets send the requests for the first preceding overlap and last following overlap of this node
     if (total_nodes > 1 && self_node_index > 0){
         send_request(true, self_node_index - 1, self_node_index, 0, this->preceding_value);
@@ -871,7 +876,7 @@ kstatus OverlapAccumulatorKernel::run() {
     if (self_node_index == total_nodes - 1){ // last overlap of last node, so make it empty
         std::unique_ptr<ral::frame::BlazingTable> empty_table = ral::utilities::create_empty_table(this->col_names, this->schema);
         following_overlap_cache->put(num_batches - 1, std::move(empty_table));
-    } 
+    }
 
     BlazingThread response_receiver_thread, following_request_receiver_thread;
     if (total_nodes > 1) {
@@ -880,7 +885,7 @@ kstatus OverlapAccumulatorKernel::run() {
         response_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::response_receiver, this);
         following_request_receiver_thread = BlazingThread(&OverlapAccumulatorKernel::following_request_receiver, this);
     }
-    for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
+    for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){
         if (cur_batch_ind > 0){
             auto overlap_cache_data = input_preceding_overlap_cache->pullCacheData();
             if (overlap_cache_data != nullptr){
@@ -889,11 +894,11 @@ kstatus OverlapAccumulatorKernel::run() {
                 RAL_EXPECTS(metadata.has_value(ral::cache::OVERLAP_STATUS), "Overlap Data did not have OVERLAP_STATUS");
                 set_overlap_status(true, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 preceding_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
-                
+
                 if (metadata.get_value(ral::cache::OVERLAP_STATUS) == INCOMPLETE_OVERLAP_STATUS){
                     size_t overlap_needed = this->preceding_value - cur_overlap_rows > 0 ? this->preceding_value - cur_overlap_rows : 0;
                     // we want the source index to be cur_batch_ind - 2 because cur_batch_ind - 1 is where the original overlap came from, which is incomplete
-                    prepare_overlap_task(true, cur_batch_ind - 2, this->self_node_index, cur_batch_ind, overlap_needed);                    
+                    prepare_overlap_task(true, cur_batch_ind - 2, this->self_node_index, cur_batch_ind, overlap_needed);
                 }
             } else {
                 if(logger) {
@@ -913,11 +918,11 @@ kstatus OverlapAccumulatorKernel::run() {
                 RAL_EXPECTS(metadata.has_value(ral::cache::OVERLAP_STATUS), "Overlap Data did not have OVERLAP_STATUS");
                 set_overlap_status(false, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 following_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
-                
+
                 if (metadata.get_value(ral::cache::OVERLAP_STATUS) == INCOMPLETE_OVERLAP_STATUS){
                     size_t overlap_needed = this->following_value - cur_overlap_rows > 0 ? this->following_value - cur_overlap_rows : 0;
                     // we want the source index to be cur_batch_ind + 2 because cur_batch_ind + 1 is where the original overlap came from, which is incomplete
-                    prepare_overlap_task(false, cur_batch_ind + 2, this->self_node_index, cur_batch_ind, overlap_needed);                    
+                    prepare_overlap_task(false, cur_batch_ind + 2, this->self_node_index, cur_batch_ind, overlap_needed);
                 }
             } else {
                 if(logger) {
@@ -932,8 +937,8 @@ kstatus OverlapAccumulatorKernel::run() {
 
     // the preceding request will be responded to by the last batch, so we want to do all the batches before we try to respond to it
     preceding_request_receiver();
-     
-    // lets wait until the receiver threads are done. 
+
+    // lets wait until the receiver threads are done.
     // When its done, it means we have received overlap requests and have made tasks for them, and
     // it also means we have received the reponses to the overlap requests we sent out
     if (total_nodes > 1) {
@@ -977,13 +982,13 @@ kstatus OverlapAccumulatorKernel::run() {
     this->following_overlap_cache->clear();
 
     return kstatus::proceed;
-        
-    
+
+
 }
 
 /* Ideas for when we want to implement RANGE window frame instead of ROWS window frame:
 The previous kernel if there is RANGE needs to add metadata to every batch and overlap about the value of the first and last element
-Then when preparing the overlapping tasks we can see how many batches we need to fulfill the window, just by looking at the metadata about the 
+Then when preparing the overlapping tasks we can see how many batches we need to fulfill the window, just by looking at the metadata about the
 first and last elements.
 */
 
@@ -991,7 +996,7 @@ first and last elements.
 
 This logic that has been implemented has the downside of waiting until all batches are available so that we know the number of batches.
 We also cant push results to the next phase until we know we have responded to the requests from the neighboring nodes.
-This was done to dramatically simplify the logic. Additionally its not as bad of a performance penalty because the previous kernel which does an 
+This was done to dramatically simplify the logic. Additionally its not as bad of a performance penalty because the previous kernel which does an
 order by, also needs to wait until all batches are available before it can do its merge.
 In the future, when we can have CacheData's shared between nodes, then we can revisit this logic to make it more efficient.
 */
