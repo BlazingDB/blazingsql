@@ -11,7 +11,7 @@
 namespace ral {
 namespace io {
 
-DataType inferDataType(std::string file_format_hint);
+DataType inferDataType(std::string const& file_format_hint);
 
 DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths = false);
 
@@ -21,7 +21,7 @@ bool to_bool(std::string value);
 
 char ord(std::string value);
 
-int to_int(std::string value);
+int to_int(std::string const& value);
 
 std::vector<std::string> to_vector_string(std::string value);
 
