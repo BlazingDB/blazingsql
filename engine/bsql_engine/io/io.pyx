@@ -39,7 +39,6 @@ from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
 from cython.operator cimport dereference, postincrement
 
-from cudf._lib.table cimport Table as CudfXxTable
 from cudf._lib.utils cimport data_from_unique_ptr
 
 from libcpp.utility cimport pair
