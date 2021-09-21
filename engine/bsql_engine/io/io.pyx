@@ -29,7 +29,10 @@ import pyarrow as pa
 import cudf
 
 from cudf._lib cimport *
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
+from cudf._lib.types import (
+    SUPPORTED_NUMPY_TO_LIBCUDF_TYPES as np_to_cudf_types,
+    LIBCUDF_TO_SUPPORTED_NUMPY_TYPES as cudf_to_np_types
+)
 from cudf._lib.cpp.types cimport type_id
 from cudf._lib.types cimport underlying_type_t_type_id
 from cudf._lib.cpp.io.types cimport compression_type
