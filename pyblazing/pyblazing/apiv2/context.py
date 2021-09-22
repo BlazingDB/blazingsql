@@ -2,8 +2,7 @@
 import cudf
 
 
-from cudf.core.column.column import build_column
-from cudf.utils.dtypes import is_decimal_dtype
+from cudf.api.types import is_decimal_dtype
 from dask.distributed import get_worker
 from datetime import datetime
 
@@ -12,7 +11,6 @@ from collections import OrderedDict
 from urllib.parse import urlparse
 
 from threading import Lock
-from weakref import ref
 from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
@@ -23,8 +21,6 @@ from pyblazing.apiv2.sqlengines_utils import (
 )
 from pyblazing.apiv2.algebra import get_json_plan, format_json_plan
 
-import json
-import collections
 from pyhive import hive
 from .hive import (
     convertTypeNameStrToCudfType,
@@ -34,8 +30,6 @@ from .hive import (
     get_hive_table,
 )
 import time
-import socket
-import errno
 import os
 import pandas
 import numpy as np
