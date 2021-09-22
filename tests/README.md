@@ -34,7 +34,7 @@ By default the end to end tests:
 - Run in single node only (nrals: 1)
 - Compare against parquet result files instead of Drill or pySpark (execution mode: gpuci)
 - The log directory is the CONDA_PREFIX folder.
-- Download automatically and use the testing files (the data folder and the and parquet result files) in your CONDA_PREFIX folder (see https://github.com/BlazingDB/blazingsql-testing-files)
+- Download automatically and use the testing files (the data folder and the and parquet result files) in your CONDA_PREFIX folder (see https://github.com/rapidsai/blazingsql-testing-files)
 
 ```shell-script
 cd blazingsql
@@ -51,7 +51,7 @@ cd blazingsql
 
 ### Adding new Tests
 - Make a fork from https://github.com/BlazingDB/blazingsql and create a new branch (example feat/my-new-test)
-- After that make another one from https://github.com/BlazingDB/blazingsql-testing-files and create a new branch with the same name as above (example feat/my-new-test)
+- After that make another one from https://github.com/rapidsai/blazingsql-testing-files and create a new branch with the same name as above (example feat/my-new-test)
 - Write a new test file in blazingsql/tests/BlazingSQLTest/
 - Add new files in blazingsql-testing-files/data/
 - Push your changes of both repositories (example: git push origin feat/my-new-test)
@@ -322,7 +322,7 @@ $ docker-compose down
 					"dataDirectory": "/path_to_dataset/100MB2Part/"
 
 	You should have two folders inside dataDirectory: tpch folder and tpcx folder
-	See https://github.com/BlazingDB/blazingsql-testing-files/blob/master/data.tar.gz
+	See https://github.com/rapidsai/blazingsql-testing-files/blob/master/data.tar.gz
 
 ### Additional modules
 - CreationDatabases
