@@ -254,9 +254,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 				numeric_s->set_value((int64_t)(aggregation_input.size() - aggregation_input.null_count()));
 				reductions.emplace_back(std::move(scalar));
 			} else {
-				std::unique_ptr<cudf::aggregation> agg = makeCudfAggregation<cudf::aggregation>(aggregation_types[i]);
 				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i], false);
-				std::unique_ptr<cudf::scalar> reduction_out = cudf::reduce(aggregation_input, agg, cudf::data_type(output_type));
+				std::unique_ptr<cudf::scalar> reduction_out = cudf::reduce(
+          aggregation_input, makeCudfAggregation(aggregation_types[i]), cudf::data_type(output_type));
 
 				// if this aggregation was a SUM0, and it was not valid, we want it to be a valid 0 instead
 				if (aggregation_types[i] == AggregateKind::SUM0 && !reduction_out->is_valid()){
@@ -326,11 +326,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 		bool got_aggregation_input = false;
 		std::vector<int> all_indices;
 		bool is_multi_var = false;
-		std::vector<std::unique_ptr<cudf::aggregation>> agg_ops_for_request;
+		std::vector<std::unique_ptr<cudf::groupby_aggregation>> agg_ops_for_request;
 		for (size_t i = 0; i < aggregation_input_expressions.size(); i++){
 			std::string agg_input_expr = aggregation_input_expressions[i];
 			if (expression == agg_input_expr){
-				
+
 				// For operations like `COUNT($0, $1)`
 				size_t num_columns_to_count = StringUtil::findAndCountAllMatches(agg_input_expr, "$");
 				if (num_columns_to_count > 1 && aggregation_types[i] == AggregateKind::COUNT_VALID) {
@@ -354,7 +354,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 					}
 					got_aggregation_input = true;
 				}
-				agg_ops_for_request.push_back(makeCudfAggregation<cudf::aggregation>(aggregation_types[i]));
+				agg_ops_for_request.push_back(makeCudfGroupbyAggregation(aggregation_types[i]));
 				agg_out_indices.push_back(i);  // this is to know what is the desired order of aggregations output
 
 				// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input

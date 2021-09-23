@@ -29,7 +29,10 @@ import pyarrow as pa
 import cudf
 
 from cudf._lib cimport *
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
+from cudf._lib.types import (
+    SUPPORTED_NUMPY_TO_LIBCUDF_TYPES as np_to_cudf_types,
+    LIBCUDF_TO_SUPPORTED_NUMPY_TYPES as cudf_to_np_types
+)
 from cudf._lib.cpp.types cimport type_id
 from cudf._lib.types cimport underlying_type_t_type_id
 from cudf._lib.cpp.io.types cimport compression_type
@@ -39,7 +42,7 @@ from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
 from cython.operator cimport dereference, postincrement
 
-from cudf._lib.table cimport Table as CudfXxTable
+from cudf._lib.utils cimport data_from_unique_ptr
 
 from libcpp.utility cimport pair
 import logging
@@ -310,8 +313,12 @@ cdef class PyBlazingCache:
         decoded_names = []
         for i in range(deref(table).names().size()):
             decoded_names.append(deref(table).names()[i].decode('utf-8'))
-        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(deref(table).releaseCudfTable()), decoded_names)._data)
-        df._rename_columns(decoded_names)
+
+        df = cudf.DataFrame._from_data(*data_from_unique_ptr(
+            blaz_move(deref(table).releaseCudfTable()),
+            column_names=decoded_names
+        ))
+
         return df, metadata_py
 
 cpdef initializeCaller(uint16_t ralId, string worker_id, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info,
@@ -433,8 +440,11 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     for i in range(names.size()): # Increment the iterator to the net element
         decoded_names.append(names[i].decode('utf-8'))
 
-    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    df._rename_columns(decoded_names)
+    df = cudf.DataFrame._from_data(*data_from_unique_ptr(
+        blaz_move(dereference(resultSet).cudfTable),
+        column_names=decoded_names
+    ))
+
     return df
 
 cpdef inferFolderPartitionMetadataCaller(folder_path):
@@ -611,12 +621,17 @@ cpdef getExecuteGraphResultCaller(PyBlazingGraph graph, int ctx_token, bool is_s
         decoded_names.append(names[i].decode('utf-8'))
 
     if is_single_node: # the engine returns a concatenated dataframe
-        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
-        return df
+        return cudf.DataFrame._from_data(*data_from_unique_ptr(
+            blaz_move(dereference(resultSet).cudfTables[0]),
+            column_names=decoded_names
+        ))
     else: # the engine returns a vector of dataframes
         dfs = []
         for i in range(dereference(resultSet).cudfTables.size()):
-            dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
+            dfs.append(cudf.DataFrame._from_data(*data_from_unique_ptr(
+                blaz_move(dereference(resultSet).cudfTables[i]),
+                column_names=decoded_names
+            )))
         return dfs
 
 cpdef runSkipDataCaller(table, queryPy):
@@ -646,17 +661,19 @@ cpdef runSkipDataCaller(table, queryPy):
     return_object = {}
     return_object['skipdata_analysis_fail'] = dereference(resultSet).skipdata_analysis_fail
     if return_object['skipdata_analysis_fail']:
-      return_object['metadata'] = cudf.DataFrame()
-      return return_object
+        return_object['metadata'] = cudf.DataFrame()
     else:
-      names = dereference(resultSet).names
-      decoded_names = []
-      for i in range(names.size()):
-          decoded_names.append(names[i].decode('utf-8'))
+        names = dereference(resultSet).names
+        decoded_names = []
+        for i in range(names.size()):
+            decoded_names.append(names[i].decode('utf-8'))
 
-      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-      return_object['metadata'] = df
-      return return_object
+        df = cudf.DataFrame._from_data(*data_from_unique_ptr(
+            blaz_move(dereference(resultSet).cudfTable),
+            column_names=decoded_names
+        ))
+        return_object['metadata'] = df
+    return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan):
     temp = getTableScanInfoPython(str.encode(logicalPlan))

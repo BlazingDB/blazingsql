@@ -165,7 +165,7 @@ else
                         PR_BR=${PR_AUTHOR}":"${SOURCE_BRANCH}
                     else
                         echo "The fork doesn't exist"
-                        git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch ${TARGET_BRANCH} --single-branch
+                        git clone --depth 1 https://github.com/rapidsai/blazingsql-testing-files.git --branch ${TARGET_BRANCH} --single-branch
                     fi
                 fi
                 set -e

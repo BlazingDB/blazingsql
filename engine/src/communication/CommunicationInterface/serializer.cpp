@@ -39,7 +39,7 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 
 			cudf::size_type null_count = columns_offsets[i].metadata.null_count;
 			auto unique_column = cudf::make_strings_column(
-				num_strings, std::move(offsets_column), std::move(chars_column), null_count, std::move(null_mask),stream);
+				num_strings, std::move(offsets_column), std::move(chars_column), null_count, std::move(null_mask));
 			received_samples[i] = std::move(unique_column);
 
 		} else {
