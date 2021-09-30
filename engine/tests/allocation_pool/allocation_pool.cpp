@@ -97,7 +97,8 @@ TEST_F(AllocationPoolTest, mem_map_test) {
 	ral::memory::set_allocation_pools(size_buffers_host, num_buffers_host,
 	size_buffers_pinned, num_buffers_pinned, map_ucx, context);
 
-    ucp_mem_h handle = ral::memory::buffer_providers::get_pinned_buffer_provider()->getUcpMemoryHandle();
+  std::unique_ptr<ral::memory::blazing_allocation_chunk> allocation_chunk = ral::memory::buffer_providers::get_pinned_buffer_provider()->get_chunk();
+    ucp_mem_h handle = allocation_chunk->allocation->mem_handle;
     ucp_mem_attr_t attr;
     std::memset(&attr, 0, sizeof(ucp_mem_attr_t));
     // check that it is mapped
@@ -111,3 +112,47 @@ TEST_F(AllocationPoolTest, mem_map_test) {
     ASSERT_TRUE(attr.length != 0);
     ral::memory::empty_pools();
 }
+
+
+TEST_F(AllocationPoolTest, get_chuck_free_chunk) {
+	std::size_t size_buffers_host = 1000000;
+	std::size_t num_buffers_host = 100;
+	std::size_t size_buffers_pinned = 1000000;
+	std::size_t num_buffers_pinned = 100;
+	bool map_ucx = true;
+
+  auto context = CreateUcpContext();
+	ral::memory::set_allocation_pools(size_buffers_host, num_buffers_host,
+	size_buffers_pinned, num_buffers_pinned, map_ucx, context);
+
+  // lets make some buffers
+  std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > raw_buffers0, raw_buffers1, raw_buffers2;
+  for (int i = 0; i < num_buffers_pinned; i++){
+    raw_buffers0.push_back(std::move(ral::memory::buffer_providers::get_pinned_buffer_provider()->get_chunk()));
+  }
+  for (int i = 0; i < num_buffers_pinned; i++){
+    raw_buffers1.push_back(std::move(ral::memory::buffer_providers::get_pinned_buffer_provider()->get_chunk()));
+  }
+  for (int i = 0; i < num_buffers_pinned; i++){
+    raw_buffers2.push_back(std::move(ral::memory::buffer_providers::get_pinned_buffer_provider()->get_chunk()));
+  }
+
+  // lets free them in a different order and make sure we handle that correctly
+  for(auto i = 0; i < raw_buffers2.size(); i++){
+    auto pool = raw_buffers2[i]->allocation->pool;
+    pool->free_chunk(std::move(raw_buffers2[i]));
+  }
+  for(auto i = 0; i < raw_buffers1.size(); i++){
+    auto pool = raw_buffers1[i]->allocation->pool;
+    pool->free_chunk(std::move(raw_buffers1[i]));
+  }
+  for(auto i = 0; i < raw_buffers0.size(); i++){
+    auto pool = raw_buffers0[i]->allocation->pool;
+    pool->free_chunk(std::move(raw_buffers0[i]));
+  }
+  ASSERT_TRUE(true);
+
+
+}
+
+
