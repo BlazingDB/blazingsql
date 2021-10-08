@@ -27,19 +27,19 @@ requirements:
         - ninja
         - gtest 1.10
         - aws-sdk-cpp
-        - google-cloud-cpp >=1.25.0
+        - google-cloud-cpp >=1.25.0,<1.30
         - mysql-connector-cpp 8.0.23
         - libpq 13
         - nlohmann_json 3.9.1
         - cppzmq
         - python
         - setuptools
-        - spdlog >=1.8.5,<2.0.0a0
+        - spdlog >=1.8.5,<1.9
         - cython >=0.29,<0.30
         - openjdk >=8.0, <9.0
         - maven
         - cudf {{ minor_version }}.*
-        - ucx-py 0.21.*
+        - ucx-py 0.22.*
         - ucx-proc=*=gpu
         - boost-cpp 1.72.0
         - dlpack
@@ -54,11 +54,11 @@ requirements:
         - netifaces
         - pyhive
         - sqlite 3
-        - spdlog >=1.8.5,<2.0.0a0
+        - spdlog >=1.8.5,<1.9
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - ucx-py 0.21.*
+        - ucx-py 0.22.*
         - ucx-proc=*=gpu
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm

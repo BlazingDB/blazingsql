@@ -38,9 +38,9 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	int attempts_limit = 10;
 	while(attempts <= attempts_limit){
 		try {
-			cudf::io::table_metadata metadata;
+			cudf::io::table_input_metadata metadata;
 			for(auto name : table->names()) {
-				metadata.column_names.emplace_back(name);
+				metadata.column_metadata.emplace_back(name);
 			}
 
 			cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
@@ -53,7 +53,7 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 				logger->error("|||{info}||||rows|{rows}",
 					"info"_a="Failed to create CacheDataLocalFile in path: " + this->filePath_ + " attempt " + std::to_string(attempts),
 					"rows"_a=table->num_rows());
-			}	
+			}
 			attempts++;
 			if (attempts == attempts_limit){
 				throw;

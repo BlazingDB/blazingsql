@@ -36,12 +36,19 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		std::vector<std::string> col_names;
 		col_names.resize(column_indices.size());
 
+		std::vector<std::string> decimal_cols;
+
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
 			col_names[column_i] = schema.get_name(column_indices[column_i]);
+			cudf::type_id type_id = schema.get_dtype(column_indices[column_i]);
+			if (type_id == cudf::type_id::FLOAT64) {
+				decimal_cols.emplace_back(col_names[column_i]);
+			}
 		}
 
 		orc_opts.set_columns(col_names);
 		orc_opts.set_stripes({row_groups});
+		orc_opts.set_decimal_cols_as_float(decimal_cols);
 
 		auto result = cudf::io::read_orc(orc_opts);
 
@@ -64,6 +71,13 @@ void orc_parser::parse_schema(
 	for(cudf::size_type i = 0; i < table_out.tbl->num_columns() ; i++) {
 		std::string name = table_out.metadata.column_names[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
+
+		// For now, we deal with decimals casting the column to float64
+		// see parse_batch method to check the casting
+		if (type == cudf::type_id::DECIMAL64) {
+			type = cudf::type_id::FLOAT64;
+		}
+
 		size_t file_index = i;
 		bool is_in_file = true;
 		schema.add_column(name, type, file_index, is_in_file);

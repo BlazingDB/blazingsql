@@ -34,6 +34,7 @@ struct blazing_allocation{
     char *data;    // the pointer to the allocated memory
     std::stack< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks; // These are the available chunks that are part of the allocation. 
     allocation_pool * pool;  // this is the pool that was used to make this allocation, and therefore this is what we would use to free it
+    ucp_mem_h mem_handle;  // this is a memhandle used by UCX
 };
 
 struct blazing_allocation_chunk{
@@ -56,25 +57,20 @@ struct blazing_chunked_column_info {
 class base_allocator{
 public:
     base_allocator() {}
-    void allocate(void ** ptr, std::size_t size);
-    void deallocate(void * ptr);
-
-    virtual ucp_mem_h getUcpMemoryHandle() const
-        {
-        throw std::runtime_error("getUcpMemoryHandle not implemented in base class");
-        }
+    void allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr);
+    void deallocate(void * ptr, ucp_mem_h mem_handle);
 
 protected:
-    virtual void do_allocate(void ** ptr, std::size_t size) = 0;
-    virtual void do_deallocate(void * ptr) = 0;
+    virtual void do_allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr) = 0;
+    virtual void do_deallocate(void * ptr, ucp_mem_h mem_handle) = 0;
 };
 
 class host_allocator : public base_allocator {
 public:
     host_allocator(bool use_ucx) {}
 protected:
-    void do_allocate(void ** ptr, std::size_t size);
-    void do_deallocate(void * ptr);
+    void do_allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr);
+    void do_deallocate(void * ptr, ucp_mem_h mem_handle);
 };
 
 class pinned_allocator : public base_allocator {
@@ -83,17 +79,11 @@ public:
 
     void setUcpContext(ucp_context_h context);
 
-    virtual ucp_mem_h getUcpMemoryHandle() const
-        {
-        return mem_handle;
-        }
-
 protected:
-    void do_allocate(void ** ptr, std::size_t size);
-    void do_deallocate(void * ptr);
+    void do_allocate(void ** ptr, std::size_t size, ucp_mem_h * mem_handle_ptr);
+    void do_deallocate(void * ptr, ucp_mem_h mem_handle);
     bool use_ucx;
     ucp_context_h context;
-    ucp_mem_h mem_handle;
 };
 
 class allocation_pool {
@@ -103,11 +93,6 @@ public:
   ~allocation_pool();
 
   std::unique_ptr<blazing_allocation_chunk> get_chunk();
-
-  ucp_mem_h getUcpMemoryHandle() const
-    {
-    return allocator->getUcpMemoryHandle();
-    }
 
   void free_chunk(std::unique_ptr<blazing_allocation_chunk> allocation);
 
@@ -131,8 +116,6 @@ private:
 
   int buffer_counter;
 
-  int allocation_counter;
-    
   std::vector<std::unique_ptr<blazing_allocation> > allocations;
 
   std::unique_ptr<base_allocator> allocator;

@@ -145,6 +145,8 @@ cudf::type_id to_dtype(parquet::Type::type physical, parquet::ConvertedType::typ
 		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	case parquet::ConvertedType::type::TIMESTAMP_MICROS:
 		return cudf::type_id::TIMESTAMP_MICROSECONDS;
+	case parquet::ConvertedType::type::DECIMAL: 
+		return cudf::type_id::EMPTY;
 	default:
 		break;
 	}
@@ -224,7 +226,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			auto logical_type = column->converted_type();
 			cudf::data_type dtype = cudf::data_type (to_dtype(physical_type, logical_type)) ;
 
-			if (columnMetaData->is_stats_set() && dtype.id() != cudf::type_id::STRING) {
+			if (columnMetaData->is_stats_set() && dtype.id() != cudf::type_id::STRING && dtype.id() != cudf::type_id::EMPTY) {
 				auto statistics = columnMetaData->statistics();
 					auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
 					metadata_dtypes.push_back(dtype);
