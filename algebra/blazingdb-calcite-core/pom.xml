@@ -21,7 +21,7 @@
 		<org.slf4j-version>1.5.10</org.slf4j-version>
 		<junit.version>4.12</junit.version>
 		<org.testng.version>6.14.3</org.testng.version>
-		<org.apache.calcite-version>1.23.0</org.apache.calcite-version>
+		<org.apache.calcite-version>1.32.0</org.apache.calcite-version>
 		<org.apache.calcite.avatica-version>1.16.0</org.apache.calcite.avatica-version>
 	</properties>
 
